@@ -1,0 +1,35 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: cert-manager
+  namespace: ingress
+spec:
+  releaseName: cert-manager
+  targetNamespace: ingress
+  chart:
+    repository: https://charts.jetstack.io/
+    name: cert-manager
+    version: 0.16.1
+  values:
+    installCRDs: true
+    nodeSelector:
+      beta.kubernetes.io/os: linux
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: tom@tplant.com.au
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+    - http01:
+        ingress:
+          class: nginx
+          podTemplate:
+            spec:
+              nodeSelector:
+                kubernetes.io/os: linux

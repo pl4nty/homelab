@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tf2-vanilla
+  labels:
+    app: tf2-vanilla
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tf2-vanilla
+  template:
+    metadata:
+      labels:
+        app: tf2-vanilla
+    spec:
+      containers:
+      - name: tf2-vanilla
+        image: cm2network/tf2:latest
+        ports:
+        - containerPort: 27015
+        - containerPort: 27020
+        env:
+        - name: SRCDS_FPSMAX
+          value: 300
+        - name: SRCDS_TICKRATE
+          value: 66
+        - name: SRCDS_MAXPLAYERS
+          value: 14
+        - name: SRCDS_REGION
+          value: 3
+        - name: SRCDS_HOSTNAME
+          value: pl4nty's jungle
+        - name: SRCDS_WORKSHOP_START_MAP
+          value: 0
+        - name: SRCDS_HOST_WORKSHOP_COLLECTION
+          value: 0
+        - name: SRCDS_WORKSHOP_AUTHKEY
+          value: ""
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tf2-vanilla
+  labels:
+    run: tf2-vanilla
+spec:
+  type: NodePort
+  ports:
+  - port: 27015
+    protocol: TCP
+    name: RCON
+  - port: 27015
+    protocol: UDP
+    name: Game
+  - port: 27020
+    protocol: UDP
+    name: SourceTV
+  selector:
+    run: tf2-vanilla
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tcp-services
+  namespace: ingress
+data:
+  27015: default/tf2-vanilla:27015
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: udp-services
+  namespace: ingress
+data:
+  27015: default/tf2-vanilla:27015
+  27020: default/tf2-vanilla:27020

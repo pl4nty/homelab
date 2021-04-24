@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    name: ingress
+  name: ingress
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: nginx-ingress
+  namespace: ingress
+spec:
+  releaseName: nginx-ingress
+  targetNamespace: ingress
+  chart:
+    repository: https://kubernetes-charts.storage.googleapis.com/
+    name: nginx-ingress
+    version: 1.24.4
+  values:
+    controller:
+      service:
+        loadBalancerIP: EXTERNAL_IP
+        # annotations:
+          # service.beta.kubernetes.io/azure-dns-label-name: DNS_LABEL
+      replicaCount: 1
+      nodeSelector:
+        beta.kubernetes.io/os: linux
+      admissionWebhooks:
+        patch:
+          nodeSelector:
+            beta.kubernetes.io/os: linux
+    defaultBackend:
+      nodeSelector:
+        beta.kubernetes.io/os: linux
