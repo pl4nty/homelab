@@ -5,7 +5,6 @@ metadata:
   namespace: ingress
 spec:
   releaseName: cert-manager
-  targetNamespace: ingress
   chart:
     repository: https://charts.jetstack.io/
     name: cert-manager
@@ -18,7 +17,7 @@ spec:
 apiVersion: cert-manager.io/v1alpha2
 kind: ClusterIssuer
 metadata:
-  name: letsencrypt-staging
+  name: letsencrypt-prod
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
