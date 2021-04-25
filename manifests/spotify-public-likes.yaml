@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: spotify-public-likes
+  namespace: default
+spec:
+  externalName: spotify-public-likes.azurewebsites.net
+  type: ExternalName

@@ -1,33 +1,34 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tsuro
-  namespace: default
+  name: aks-helloworld
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: tsuro
+      app: aks-helloworld
   template:
     metadata:
       labels:
-        app: tsuro
+        app: aks-helloworld
     spec:
       containers:
-      - name: tsuro
-        image: ghcr.io/pl4nty/tsuro:latest
+      - name: aks-helloworld
+        image: mcr.microsoft.com/azuredocs/aks-helloworld:v1
         ports:
         - containerPort: 80
+        env:
+        - name: TITLE
+          value: "Welcome to Azure Kubernetes Service (AKS)"
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: tsuro
-  namespace: default
+  name: aks-helloworld
 spec:
   type: ClusterIP
   ports:
   - name: https
     port: 80
   selector:
-    app: tsuro
+    app: aks-helloworld
