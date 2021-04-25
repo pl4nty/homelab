@@ -26,6 +26,8 @@ spec:
       labels:
         app: tf2-vanilla
     spec:
+      securityContext:
+        fsGroup: 2000 
       volumes:
       - name: volume
         persistentVolumeClaim:
