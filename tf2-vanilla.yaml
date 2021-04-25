@@ -1,3 +1,7 @@
+# LoadBalancer Service ports only support one protocol without a v1.20 alpha flag
+# Tracked on:
+# https://github.com/Azure/AKS/issues/2193
+# https://github.com/Azure/AKS/issues/2058
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -44,7 +48,11 @@ spec:
           name: volume
         ports:
         - containerPort: 27015
+          protocol: TCP
+        - containerPort: 27015
+          protocol: UDP
         - containerPort: 27020
+          protocol: UDP
         env:
         - name: SRCDS_TOKEN
           value: C34AC753844955C042A954C4328B191E
@@ -80,17 +88,20 @@ metadata:
   labels:
     run: tf2-vanilla
 spec:
-  type: NodePort
+  type: ClusterIP
   ports:
-  - port: 27015
+  - name: rcon
+    port: 27015
+    targetPort: 27015
     protocol: TCP
-    name: rcon
-  - port: 27015
+  - name: game
+    port: 27015
+    targetPort: 27015
     protocol: UDP
-    name: game
-  - port: 27020
+  - name: sourcetv
+    port: 27020
+    targetPort: 27020
     protocol: UDP
-    name: sourcetv
   selector:
     run: tf2-vanilla
 ---
