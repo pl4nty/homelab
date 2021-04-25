@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tsuro
+  labels:
+    app: tsuro
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tsuro
+  template:
+    metadata:
+      labels:
+        app: tsuro
+    spec:
+      containers:
+      - name: tsuro
+        image: ghcr.io/pl4nty/tsuro:latest
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tsuro
+  labels:
+    run: tsuro
+spec:
+  type: ClusterIP
+  ports:
+  - name: https
+    port: 443
+    targetPort: 80
+  selector:
+    run: tsuro

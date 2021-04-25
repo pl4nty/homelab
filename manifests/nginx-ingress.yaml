@@ -14,17 +14,9 @@ spec:
     secretName: tls-secret
   rules:
   - host: lab.tplant.com.au
-    # http:
-    #   paths:
-    #   - backend:
-    #       serviceName: aks-helloworld
-    #       servicePort: 80
-    #     path: /hello-world-one(/|$)(.*)
-    #   - backend:
-    #       serviceName: ingress-demo
-    #       servicePort: 80
-    #     path: /hello-world-two(/|$)(.*)
-    #   - backend:
-    #       serviceName: aks-helloworld
-    #       servicePort: 80
-    #     path: /(.*)
+    http:
+      paths:
+      - backend:
+          serviceName: tsuro
+          servicePort: 443
+        path: /tsuro(/|$)(.*)
