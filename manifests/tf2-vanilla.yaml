@@ -33,6 +33,10 @@ spec:
       containers:
       - name: tf2-vanilla
         image: cm2network/tf2:latest
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "1"
         volumeMounts:
         - mountPath: "/home/steam/tf-dedicated"
           name: volume
