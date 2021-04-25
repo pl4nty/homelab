@@ -4,11 +4,11 @@ metadata:
   name: tf2-vanilla-store
 spec:
   accessModes:
-  - ReadWriteOnce
+  - ReadWriteMany
   storageClassName: default
   resources:
     requests:
-      storage: 10Gi
+      storage: 15Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -38,7 +38,7 @@ spec:
             memory: "1Gi"
             cpu: "1"
         volumeMounts:
-        - mountPath: "/home/steam/tf-dedicated"
+        - mountPath: "/home/steam"
           name: volume
         ports:
         - containerPort: 27015
