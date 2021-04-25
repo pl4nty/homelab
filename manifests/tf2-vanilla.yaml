@@ -40,7 +40,7 @@ spec:
             memory: "1Gi"
             cpu: "1"
         volumeMounts:
-        - mountPath: "/home/steam"
+        - mountPath: "/home/steam/tf-dedicated"
           name: volume
         ports:
         - containerPort: 27015
