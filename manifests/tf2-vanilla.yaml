@@ -1,3 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tf2-vanilla-store
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: default
+  resources:
+    requests:
+      storage: 10Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -14,21 +26,38 @@ spec:
       labels:
         app: tf2-vanilla
     spec:
+      volumes:
+      - name: volume
+        persistentVolumeClaim:
+          claimName: tf2-vanilla-store
       containers:
       - name: tf2-vanilla
         image: cm2network/tf2:latest
+        volumeMounts:
+        - mountPath: "/home/steam/tf-dedicated"
+          name: volume
         ports:
         - containerPort: 27015
         - containerPort: 27020
         env:
+        - name: SRCDS_TOKEN
+          value: C34AC753844955C042A954C4328B191E
+        - name: SRCDS_RCONPW
+          value: k8s_pain
+        - name: SRCDS_PW
+          value: k8s_pain
+        - name: SRCDS_PORT
+          value: "27015"
+        - name: SRCDS_TV_PORT
+          value: "27020"
         - name: SRCDS_FPSMAX
           value: "300"
         - name: SRCDS_TICKRATE
           value: "66"
         - name: SRCDS_MAXPLAYERS
-          value: "14"
+          value: "24"
         - name: SRCDS_REGION
-          value: "3"
+          value: "5"
         - name: SRCDS_HOSTNAME
           value: pl4nty's jungle
         - name: SRCDS_WORKSHOP_START_MAP

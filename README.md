@@ -21,7 +21,7 @@ az k8s-configuration create `
    --repository-url https://github.com/pl4nty/lab-infra.git `
    --operator-params='--git-readonly --git-path=manifests --git-branch=main'
 ```
- # managedClusters | connectedClusters
+managedClusters | connectedClusters
 
 If sync is desired, remove `--git-readonly` and add deploy key to GitHub repo.
 
