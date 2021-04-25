@@ -2,23 +2,66 @@
 Various configuration files for my lab infrastructure.
 
 Directory | Description
-- | -
+--- | ---
 `manifests` | Kubernetes manifests deployed to clusters with Flux
 
 Enable Flux with this command:
 ```powershell
-az k8sconfiguration create `
+az k8s-configuration create `
+   --cluster-name aks-east-1 `
+   --cluster-type connectedClusters `
    --name cluster-config `
-   --cluster-name  `
-   --resource-group  `
+   --resource-group lab-infra `
+   --scope cluster `
+   --enable-helm-operator `
+   --helm-operator-chart-version='1.2.0' `
+   --helm-operator-params='--set helm.versions=v3' `
    --operator-instance-name cluster-config `
    --operator-namespace cluster-config `
    --repository-url https://github.com/pl4nty/lab-infra.git `
-   --scope cluster `
-   --cluster-type managedClusters | connectedClusters `
-   --operator-params='--git-readonly --git-path=lab-infra/manifests'
+   --operator-params='--git-readonly --git-path=manifests --git-branch=main'
 ```
+ # managedClusters | connectedClusters
 
-If sync is desired, remove `--git-readonly` and add deploy key to GitHun repo.
+If sync is desired, remove `--git-readonly` and add deploy key to GitHub repo.
 
 Prereq: Deploy ingress with static IP using `nginx-ingress.yaml`.
+
+Cluster creation - TODO investigate ephemeral disks. Supported by B-series, supposedly "automatically provisioned"
+```powershell
+az aks create `
+    --resource-group lab-infra `
+    --name aks-east-1 `
+    --generate-ssh-keys `
+    --vm-set-type VirtualMachineScaleSets `
+    --load-balancer-sku basic `
+    --node-count 1 `
+    --min-count 1 `
+    --max-count 3 `
+    --enable-cluster-autoscaler `
+    --location australiaeast `
+    --node-osdisk-size 32 `
+    --node-vm-size Standard_B2s
+```
+
+Helm command if Flux isn't already installed
+```powershell
+helm install nginx-ingress ingress-nginx/ingress-nginx `
+    --namespace ingress `
+    --set controller.replicaCount=1 `
+    --set controller.nodeSelector."beta\.kubernetes\.io/os"=linux `
+    --set defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux `
+    --set controller.admissionWebhooks.patch.nodeSelector."beta\.kubernetes\.io/os"=linux `
+    --set controller.service.loadBalancerIP="13.70.81.98" `
+    --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-dns-label-name"="aks-east-1-public"
+```
+
+GitOps isn't actually supported on AKS, despite docs. See https://github.com/Azure/AKS/issues/1967
+Join to Azure Arc as workaround
+```powershell
+az connectedk8s connect --name aks-east-1 `
+    --resource-group lab-infra `
+    --distribution aks `
+    --infrastructure azure `
+    --location australiaeast
+```

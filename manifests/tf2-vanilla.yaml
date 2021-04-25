@@ -22,19 +22,19 @@ spec:
         - containerPort: 27020
         env:
         - name: SRCDS_FPSMAX
-          value: 300
+          value: "300"
         - name: SRCDS_TICKRATE
-          value: 66
+          value: "66"
         - name: SRCDS_MAXPLAYERS
-          value: 14
+          value: "14"
         - name: SRCDS_REGION
-          value: 3
+          value: "3"
         - name: SRCDS_HOSTNAME
           value: pl4nty's jungle
         - name: SRCDS_WORKSHOP_START_MAP
-          value: 0
+          value: "0"
         - name: SRCDS_HOST_WORKSHOP_COLLECTION
-          value: 0
+          value: "0"
         - name: SRCDS_WORKSHOP_AUTHKEY
           value: ""
 ---
@@ -49,13 +49,13 @@ spec:
   ports:
   - port: 27015
     protocol: TCP
-    name: RCON
+    name: rcon
   - port: 27015
     protocol: UDP
-    name: Game
+    name: game
   - port: 27020
     protocol: UDP
-    name: SourceTV
+    name: sourcetv
   selector:
     run: tf2-vanilla
 ---
