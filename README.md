@@ -5,7 +5,26 @@ Directory | Description
 --- | ---
 `manifests` | Kubernetes manifests deployed to clusters with Flux
 
-Enable Flux with this command:
+# AKS
+## AKS Bootstrap
+TODO research ephemeral disks. Supported by B-series, supposedly "automatically provisioned"
+```powershell
+az aks create `
+    --resource-group lab-infra `
+    --name aks-east-1 `
+    --generate-ssh-keys `
+    --vm-set-type VirtualMachineScaleSets `
+    --load-balancer-sku basic `
+    --node-count 1 `
+    --min-count 1 `
+    --max-count 3 `
+    --enable-cluster-autoscaler `
+    --location australiaeast `
+    --node-osdisk-size 32 `
+    --node-vm-size Standard_B2s
+```
+
+## Apply Flux via Policy
 ```powershell
 az k8s-configuration create `
    --cluster-name aks-east-1 `
@@ -25,26 +44,7 @@ managedClusters | connectedClusters
 
 If sync is desired, remove `--git-readonly` and add deploy key to GitHub repo.
 
-Prereq: Deploy ingress with static IP using `nginx-ingress.yaml`.
-
-Cluster creation - TODO investigate ephemeral disks. Supported by B-series, supposedly "automatically provisioned"
-```powershell
-az aks create `
-    --resource-group lab-infra `
-    --name aks-east-1 `
-    --generate-ssh-keys `
-    --vm-set-type VirtualMachineScaleSets `
-    --load-balancer-sku basic `
-    --node-count 1 `
-    --min-count 1 `
-    --max-count 3 `
-    --enable-cluster-autoscaler `
-    --location australiaeast `
-    --node-osdisk-size 32 `
-    --node-vm-size Standard_B2s
-```
-
-Helm command if Flux isn't already installed
+Deploy ingress with static IP using `nginx-ingress.yaml`. If Flux isn't installed, manually install ingress with:
 ```powershell
 helm install nginx-ingress ingress-nginx/ingress-nginx `
     --namespace ingress `
@@ -56,8 +56,9 @@ helm install nginx-ingress ingress-nginx/ingress-nginx `
     --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-dns-label-name"="aks-east-1-public"
 ```
 
+## Azure Arc on AKS
 GitOps isn't actually supported on AKS, despite docs. See https://github.com/Azure/AKS/issues/1967
-Join to Azure Arc as workaround
+Join to Azure Arc as a workaround with:
 ```powershell
 az connectedk8s connect --name aks-east-1 `
     --resource-group lab-infra `
@@ -65,3 +66,6 @@ az connectedk8s connect --name aks-east-1 `
     --infrastructure azure `
     --location australiaeast
 ```
+
+# Onprem
+https://docs.rke2.io/install/quickstart/
