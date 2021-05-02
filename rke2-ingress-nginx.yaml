@@ -1,0 +1,22 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: rke2-ingress-nginx
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    controller:
+      healthStatus: "true"
+      healthStatusURI: "/health"
+      service:
+        loadBalancerIP: 202.153.214.139
+      replicaCount: 1
+      nodeSelector:
+        beta.kubernetes.io/os: linux
+      admissionWebhooks:
+        patch:
+          nodeSelector:
+            beta.kubernetes.io/os: linux
+    defaultBackend:
+      nodeSelector:
+        beta.kubernetes.io/os: linux

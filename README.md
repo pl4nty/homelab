@@ -69,3 +69,8 @@ az connectedk8s connect --name aks-east-1 `
 
 # Onprem
 https://docs.rke2.io/install/quickstart/
+
+``
+curl --data "ReturnUrl=&Username=user&Password=pw&action%3AIndex=" "https://toolbox3.iinet.net.au/login" -L -c -
+curl "https://toolbox4.iinet.net.au/api/usage/getDataUsageInGB/1188057788/500707120?fromDate=2021-04-05&toDate=2021-05-06" -H "Cookie: JSESSIONID=cookie"
+``
