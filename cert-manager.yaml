@@ -19,7 +19,7 @@ spec:
   values:
     installCRDs: true
     nodeSelector:
-      beta.kubernetes.io/os: linux
+      kubernetes.io/os: linux
 ---
 apiVersion: cert-manager.io/v1alpha2
 kind: ClusterIssuer
