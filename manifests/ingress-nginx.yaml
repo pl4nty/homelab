@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    name: ingress-nginx
+  name: ingress-nginx
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: ingress-nginx
+  namespace: ingress-nginx
+spec:
+  releaseName: ingress-nginx
+  targetNamespace: ingress-nginx
+  chart:
+    repository: https://kubernetes.github.io/ingress-nginx
+    name: ingress-nginx
+  values:
+    controller:
+      healthStatus: "true"
+      healthStatusURI: "/health"
+      extraArgs:
+        tcp-services-configmap: ingress/tcp-services
+        udp-services-configmap: ingress/udp-services
+      # service:
+        # loadBalancerIP: EXTERNAL_IP
+        # annotations:
+          # service.beta.kubernetes.io/azure-dns-label-name: DNS_LABEL
+      replicaCount: 1
+      nodeSelector:
+        kubernetes.io/os: linux
+      admissionWebhooks:
+        patch:
+          nodeSelector:
+            kubernetes.io/os: linux
+    defaultBackend:
+      nodeSelector:
+        kubernetes.io/os: linux
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-default
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/rewrite-target: /$1 #$2$3$4
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    # nginx.ingress.kubernetes.io/preserve-host: "false"
+spec:
+  tls:
+  - hosts:
+    - lab.tplant.com.au
+    secretName: tls-secret
+  rules:
+  - host: lab.tplant.com.au
+    http:
+      paths:
+      - backend:
+          serviceName: aks-helloworld
+          servicePort: 80
+        path: /(.*)
+      - backend:
+          serviceName: tsuro
+          servicePort: 80
+        path: /tsuro(/|$)(.*)
+      - backend:
+          serviceName: tsuro
+          servicePort: 80
+        path: /(jpro|app)(/|$)(.*)
