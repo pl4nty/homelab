@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    name: ingress-nginx
+  name: ingress-nginx
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: ingress-nginx
+  namespace: ingress-nginx
+spec:
+  releaseName: ingress-nginx
+  targetNamespace: ingress-nginx
+  chart:
+    repository: https://kubernetes.github.io/ingress-nginx
+    name: ingress-nginx
+    version: 3.30.0
+  values:
+    controller:
+      healthStatus: "true"
+      healthStatusURI: "/health"
+      extraArgs:
+        tcp-services-configmap: ingress/tcp-services
+        udp-services-configmap: ingress/udp-services
+      service:
+        loadBalancerIP: EXTERNAL_IP
+        # annotations:
+        #   service.beta.kubernetes.io/azure-dns-label-name: DNS_LABEL
+      replicaCount: 1
+      admissionWebhooks:
+        patch:
+          nodeSelector:
+            kubernetes.io/os: linux
+    defaultBackend:
+      nodeSelector:
+        kubernetes.io/os: linux
