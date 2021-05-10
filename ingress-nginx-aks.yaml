@@ -19,8 +19,8 @@ spec:
     version: 3.30.0
   values:
     controller:
-      healthStatus: "true"
-      healthStatusURI: "/health"
+      # healthStatus: "true"
+      # healthStatusURI: "/health"
       extraArgs:
         tcp-services-configmap: ingress/tcp-services
         udp-services-configmap: ingress/udp-services

@@ -3,7 +3,6 @@ kind: Namespace
 metadata:
   labels:
     name: cert-manager
-    certmanager.k8s.io/disable-validation: true
   name: cert-manager
 ---
 apiVersion: helm.fluxcd.io/v1
