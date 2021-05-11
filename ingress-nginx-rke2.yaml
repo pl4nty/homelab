@@ -5,13 +5,14 @@ metadata:
   namespace: kube-system
 spec:
   valuesContent:
+    revisionHistoryLimit: 0
     controller:
       # healthStatus: "true"
       # healthStatusURI: "/health"
       extraArgs:
         tcp-services-configmap: ingress/tcp-services
         udp-services-configmap: ingress/udp-services
-      replicaCount: 1
+      # replicaCount: 1
       admissionWebhooks:
         patch:
           nodeSelector:

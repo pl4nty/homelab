@@ -37,7 +37,7 @@ az k8s-configuration create `
    --helm-operator-params='--set helm.versions=v3' `
    --operator-instance-name cluster-config `
    --operator-namespace cluster-config `
-   --repository-url https://github.com/pl4nty/lab-infra.git `
+   --repository-url https://github.com./pl4nty/lab-infra `
    --operator-params='--git-readonly --git-path=manifests --git-branch=main'
 ```
 managedClusters | connectedClusters
