@@ -18,6 +18,9 @@ spec:
         image: ghcr.io/pl4nty/tsuro:latest
         ports:
         - containerPort: 80
+        resources:
+          requests:
+            memory: 175Mi
 ---
 apiVersion: v1
 kind: Service
