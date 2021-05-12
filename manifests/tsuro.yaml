@@ -19,8 +19,13 @@ spec:
         ports:
         - containerPort: 80
         resources:
+          # at idle
           requests:
             memory: 175Mi
+            cpu: 20m
+          limits:
+            memory: 1Gi # reached 850Mi in UAT
+            cpu: 1500m # during AI moves
 ---
 apiVersion: v1
 kind: Service
