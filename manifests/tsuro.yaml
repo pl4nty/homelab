@@ -24,7 +24,7 @@ spec:
             memory: 175Mi
             cpu: 20m
           limits:
-            memory: 1Gi # reached 850Mi in UAT
+            memory: 1Gi # reached 850Mi in UAT, possibly 500Mi per user
             cpu: 1500m # during AI moves
 ---
 apiVersion: v1
