@@ -7,7 +7,7 @@ configMapGenerator:
   name: njs-modules
 resources:
 - https://github.com/kubernetes-sigs/gateway-api//config/crd?ref=v0.5.1
-- namespace.yaml
-- gatewayclass.yaml
-- nginx-gateway.yaml
-- loadbalancer.yaml
+# - namespace.yaml
+# - gatewayclass.yaml
+# - nginx-gateway.yaml
+# - loadbalancer.yaml
