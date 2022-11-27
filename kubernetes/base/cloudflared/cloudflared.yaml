@@ -23,9 +23,7 @@ spec:
       - name: cloudflared
         image: cloudflare/cloudflared:2022.11.0
         args:
-        - tunnel
-        - run
-        - --metrics 0.0.0.0:2000
+        - tunnel run
         livenessProbe:
           httpGet:
             # Cloudflared has a /ready endpoint which returns 200 if and only if
@@ -36,6 +34,8 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 10
         env:
+        - name: TUNNEL_METRICS
+          value: 0.0.0.0:2000
         - name: TUNNEL_TOKEN
           valueFrom:
             secretKeyRef:
