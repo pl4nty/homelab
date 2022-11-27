@@ -52,10 +52,6 @@ spec:
   hostnames:
   - tsuro.tplant.au
   rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /*
-    backendRefs:
+  - backendRefs:
     - name: tsuro
       port: 80
