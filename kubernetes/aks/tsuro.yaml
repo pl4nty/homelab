@@ -55,7 +55,7 @@ spec:
   - matches:
     - path:
         type: PathPrefix
-        value: /
+        value: /*
     backendRefs:
     - name: tsuro
       port: 80
