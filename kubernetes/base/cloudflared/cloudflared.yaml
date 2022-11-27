@@ -13,7 +13,7 @@ spec:
   selector:
     matchLabels:
       app: cloudflared
-  replicas: 2 # You could also consider elastic scaling for this deployment
+  replicas: 1 # You could also consider elastic scaling for this deployment
   template:
     metadata:
       labels:
@@ -22,16 +22,9 @@ spec:
       containers:
       - name: cloudflared
         image: cloudflare/cloudflared:2022.11.0
-        command:
-        - cloudflared
+        args:
         - tunnel
         - run
-        args:
-        # Points cloudflared to the config file, which configures what
-        # cloudflared will actually do. This file is created by a ConfigMap
-        # below.
-        - --token
-        - $(CF_TOKEN)
         livenessProbe:
           httpGet:
             # Cloudflared has a /ready endpoint which returns 200 if and only if
@@ -42,7 +35,7 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 10
         env:
-        - name: CF_TOKEN
+        - name: TUNNEL_TOKEN
           valueFrom:
             secretKeyRef:
               name: tunnel-credentials
