@@ -15,9 +15,9 @@ spec:
     spec:
       containers:
       - name: http-echo
-        image: brndnmtthws/nginx-echo-headers:latest
+        image: ksdn117/web-socket-test:latest
         ports:
-        - containerPort: 8080
+        - containerPort: 8010
         resources:
           # at idle
           requests:
@@ -36,7 +36,7 @@ spec:
   type: ClusterIP
   ports:
   - name: https
-    port: 8080
+    port: 8010
   selector:
     app: http-echo
 ---
@@ -54,4 +54,4 @@ spec:
   rules:
   - backendRefs:
     - name: http-echo
-      port: 8080
+      port: 8010
