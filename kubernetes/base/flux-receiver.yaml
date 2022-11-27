@@ -17,7 +17,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: receiver
+  name: webhook-receiver
   namespace: flux-system
 spec:
   selector:
