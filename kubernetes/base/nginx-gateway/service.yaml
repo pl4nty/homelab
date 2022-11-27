@@ -4,7 +4,6 @@ metadata:
   name: nginx-gateway
 spec:
   externalTrafficPolicy: Local
-  type: LoadBalancer
   ports:
   - port: 80
     targetPort: 80
