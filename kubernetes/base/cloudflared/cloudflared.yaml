@@ -22,8 +22,11 @@ spec:
       containers:
       - name: cloudflared
         image: cloudflare/cloudflared:2022.11.0
-        args:
+        command:
+        - cloudflared
         - tunnel
+        - run
+        args:
         # Points cloudflared to the config file, which configures what
         # cloudflared will actually do. This file is created by a ConfigMap
         # below.
@@ -46,5 +49,5 @@ spec:
               key: token
         resources:
           limits:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 1
+            memory: 1Gi
