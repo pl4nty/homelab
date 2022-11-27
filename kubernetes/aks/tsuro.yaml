@@ -50,7 +50,7 @@ spec:
   - name: gateway
     sectionName: http
   hostnames:
-  - tsuro.lab-test.tplant.com.au
+  - tsuro.tplant.au
   rules:
   - matches:
     - path:
