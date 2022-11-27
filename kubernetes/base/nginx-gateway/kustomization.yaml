@@ -5,8 +5,9 @@ configMapGenerator:
   - httpmatches.js
   name: njs-modules
 resources:
-- https://github.com/kubernetes-sigs/gateway-api/releases/download/v0.5.1/standard-install.yaml  
-- namespace.yaml
+- https://github.com/kubernetes-sigs/gateway-api/releases/download/v0.5.1/standard-install.yaml
+- https://github.com/nginxinc/nginx-kubernetes-gateway//deploy/manifests/namespace.yaml?ref=v0.2.0
+# - namespace.yaml
 - gatewayclass.yaml
 - nginx-gateway.yaml
 - service.yaml
