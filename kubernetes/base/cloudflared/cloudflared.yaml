@@ -28,7 +28,7 @@ spec:
         # cloudflared will actually do. This file is created by a ConfigMap
         # below.
         - --token
-        - $(CLOUDFLARED_TOKEN)
+        - $(CF_TOKEN)
         livenessProbe:
           httpGet:
             # Cloudflared has a /ready endpoint which returns 200 if and only if
@@ -43,7 +43,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: tunnel-credentials
-              key: CF_TOKEN
+              key: token
         resources:
           requests:
             cpu: 100m
