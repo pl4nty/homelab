@@ -10,4 +10,4 @@ resources:
 - namespace.yaml
 - gatewayclass.yaml
 - nginx-gateway.yaml
-- loadbalancer.yaml
+- service.yaml
