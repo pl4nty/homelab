@@ -40,10 +40,6 @@ spec:
   hostnames:
   - flux-webhook.tplant.au
   rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /
-    backendRefs:
+  - backendRefs:
     - name: webhook-receiver
       port: 80
