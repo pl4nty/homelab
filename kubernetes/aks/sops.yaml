@@ -4,6 +4,7 @@ metadata:
   name: sops-encrypted
   namespace: flux-system
 spec:
+  prune: false
   interval: 5m
   path: "kubernetes/aks"
   sourceRef:
