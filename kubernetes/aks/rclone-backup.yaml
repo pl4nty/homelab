@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: rclone-backup
+spec:
+  schedule: "0 0 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: hello
+            image: rclone/rclone:1.60.1
+            imagePullPolicy: IfNotPresent
+            command:
+            - copy
+            - "onedrive:"
+            - backblaze:backup-tplant
+            - --s3-no-check-bucket
+            - --fast-list
+            # remotes have no hashes in common so can't use checksum, see rclone/rclone#6585
+            # - --checksum
+            - --size-only
+            volumeMounts:
+            - name: config
+              mountPath: /config/rclone
+              readOnly: true
+            volumes:
+            - name: config
+              secret:
+                secretName: rclone-backup
+                optional: false
