@@ -42,3 +42,8 @@ spec:
             secretKeyRef:
               name: tunnel-credentials
               key: token
+        resources:
+          limits:
+            cpu: 100m
+            memory: 500Mi
+        

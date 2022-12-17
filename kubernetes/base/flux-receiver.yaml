@@ -36,6 +36,7 @@ metadata:
 spec:
   parentRefs:
   - name: gateway
+    namespace: default
     sectionName: http
   hostnames:
   - flux-webhook.tplant.au
