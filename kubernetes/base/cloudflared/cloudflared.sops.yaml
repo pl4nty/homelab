@@ -5,7 +5,7 @@ metadata:
     namespace: cloudflared
 type: Opaque
 data:
-    token: ENC[AES256_GCM,data:SeFYO450XzDsDXsVl1h3ScWae10D+UFfiKi4qEXYW5kCAtZwfItZTDQA6+kv9KK/GiQmcgoxbEg=,iv:0JR1Gl1HuiRTK8M0RUWTJNk6bZCFYxBfhb+ZrQODm9k=,tag:nE+J/R/GNO4Hla0RFawHnQ==,type:str]
+    token: ENC[AES256_GCM,data:5hZuxwHLwXcpVP6G5wzjkkAd+00F/gV+Lo1p2rhwH7y1tnMEh9oaabQA26njY3E4N4DvFK2gRB4znZedUFz5RTODSaj8YyWVye0PFnvCI/VXn80taGnk+o+zUAerDZ4tpFTX3YR/CqP1x6oSapRsABX8gMfg5wG68TSEjcPsK3kxgOhx919Ls+pV1USyUBA1BJnSh+dypJpsuRXyG4DWBl8RS811Ru1MIlym8i65WsC8NTncS0gGouKH9tG9D5ll6tfFJJYZ6nL/ECEKjHaWzRJpb1vA8GOKYQFMc6crCGNqbYhln7Hw/XiMVaibKr/Sk9foigV61kE=,iv:MZlpQyb0FJfvOvXXFMIqXSGfHa9wjSVrGo7ykGgir3U=,tag:GipK91Dxy8fNgFN0ZVS7TQ==,type:str]
 sops:
     kms: []
     gcp_kms: []
@@ -21,8 +21,8 @@ sops:
             YmNNUS9RV2ZrRm1La2lCR0Y2emxIVU0KfsSUa6aAU/yB4fnihKo2hjr5wZ2rlrMH
             2bkGjAUOSv2kVqgAA7Dit7ZHtlruY0M1qP5E3AAZ/T1VKQ5cc8TCNQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2022-12-17T05:00:43Z"
-    mac: ENC[AES256_GCM,data:I6klqgAzD38uU/u7OFVD+wVa3ym8YifAycQ+rTdm25nYnF2CDlyat/EU1Hhrgbbzm4tZWSKbO3ixuwcuIL4YTgM+9MyQF53ijQMlrvz45sxuK1QKcy3ZjEbLIYuU1aEdkPH+avg2MjOU9xLF7WhoLnLIldx+Q+pyFFB0IHHbE04=,iv:+JUxCz/UPSO+siw18oK1NXIQCU0ia53o6CuhUTkdHsI=,tag:v2kO8+SENlyhxh/RvI+ktQ==,type:str]
+    lastmodified: "2022-12-17T05:24:03Z"
+    mac: ENC[AES256_GCM,data:XN0JwIUqIt1vystbQF+70b3E8aXEYi38aVtBCzZxsG4XsABhOld/MTfaszzrMW4fwexogPZowOKloHqFEJ1OJs+YwM11+PJYCsb7KVutyYQu8tYXq8nQ9vXB5N/V+NH2JhK6aDUH+8Fmv2h8d4RBjyqRfL55VdNli9pnMKdKjcU=,iv:lBWyubyyZIJsVBfEalGDKQO8n0Hy0uvtYudRo4qxGfc=,tag:vfyPfDnS1fWCBPPiHHxSsQ==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.7.3
