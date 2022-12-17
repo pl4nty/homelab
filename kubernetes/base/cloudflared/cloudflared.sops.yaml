@@ -4,8 +4,8 @@ metadata:
     name: tunnel-credentials
     namespace: cloudflared
 type: Opaque
-data:
-    token: ENC[AES256_GCM,data:JCoy5rrbe+x63vlQxsBByJZSQnjJhH0ywqAsmGfHNvbxg6Qx0xGXvwH2ubj7B19kwMmd1ERPIiQd1arSESR6/Fh9g+hYdaLbSZvmstx884W7VG02jKZRsBogjRk90KRCSR/1e68NnTJvAfhlr+oSVb68R4jTHbUGSfJOZIizuFmNGoawAb7DcU4VgP89SEAm0O4S1ql90FFDdlbtFWdrkIhHLgGV63oZfCvchsrfl1FVSSseTWDGkFG9I0p4Wwh1aonT+5ttl5oKSzGzn5hHj1t5F8bepbVLSDCPniwy2dh6Is93/NGAnj0LeSoq9TeJeIPO07laIWE=,iv:qPH1H2Ukued4UaCtg6MVCx61HymqomUMVSKiZzQERKI=,tag:+r80wgr4yLGYWcEPfJj2EA==,type:str]
+stringData:
+    token: ENC[AES256_GCM,data:Jlh9s9UEVHc78HI2gzKCs9lqNXmpZwcYNbUohzTlna84Ion/F0T4jOSmWfOgUsmcMI9rO2sDf3GrAuvgKesIYxt+gyE3tbXLa7rAu3eX9/LhUSfxUE2sGshlbQ/py/OvNWGBKJZZl5WOtSNr4Ln8/WA8RmtlWFzh60ssmCJaN8T9/anBjDqdt85Y1hV80rUadGrdGgFOv5nRDMevAoew27Kvy/A9PL20iXZN7DU/GGNwyagyuSClmg==,iv:iTAQX6MYmfkxVu2Gm4o4qbOBxMqJe6tRjg0pVJGcE90=,tag:Q7TdzvjxZ6lJy8xczwwvRA==,type:str]
 sops:
     kms: []
     gcp_kms: []
@@ -21,8 +21,8 @@ sops:
             YmNNUS9RV2ZrRm1La2lCR0Y2emxIVU0KfsSUa6aAU/yB4fnihKo2hjr5wZ2rlrMH
             2bkGjAUOSv2kVqgAA7Dit7ZHtlruY0M1qP5E3AAZ/T1VKQ5cc8TCNQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2022-12-17T07:18:07Z"
-    mac: ENC[AES256_GCM,data:b8Sn/malfHOAGCT9+iYgxrZZ5aGe+DosGzhpGSUxCNZXR2WgySy2bxdMtG1FvGQlI8mocfwtnG7zTTCxBkEisLyHqp8lqxqERHBRcicJesOE1GmlWdqyDW2j+d9bvKwMyxGXiVpCQAl2qQVtw6lhltRuFLhQVpopnwWi8p6MZ4Q=,iv:iP1320k0BqWFTXdnBgwIM6A10SiJGTZ4+obdDQPqfQM=,tag:zmXeD3cBLA+r2FNzMH8auA==,type:str]
+    lastmodified: "2022-12-17T07:27:22Z"
+    mac: ENC[AES256_GCM,data:wa9dZQX9GdmsoKE2WVryNWLltQ9dUona3g+VK3g8sZkX/dvaWJZJnUlJqLMU+KRg34M0elsLUsKEbvONUoSND/1nac7rlPBTgsTqiLTxLCf10rE2NolhiVASFXCZzxQm/29TlGi9x8lSWy6bVzIoasTFIdfYimvS8z2+xAYyYHc=,iv:1UfTqArfrOEVawKLXeYhfBea7Ubg5h8VOud3OhXwztw=,tag:FnKL47g7QeO7dOtW03KE2g==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.7.3

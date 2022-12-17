@@ -4,8 +4,8 @@ metadata:
     name: webhook-token
     namespace: flux-system
 type: Opaque
-data:
-    token: ENC[AES256_GCM,data:5a/I4XRfWsJj5jZjQcUDYRGqTWCUfOwVQVjSVXyQdLaDqLjZCSo+6nfFi9AXTILZ2x9l0ojuoIE=,iv:2ZB+X8AwGhd9YUY83HRzLRaaiAtmpMY01gdIKHARv7g=,tag:w2eXVi4u8q9Shh3ugQ4G3Q==,type:str]
+stringData:
+    token: ENC[AES256_GCM,data:cbUpuygZEbIGjbTuq0EO8nWQ7lhF3AI3tNxpf76h1aRanxduKPoOwQ==,iv:bOAmfr0JeBeyhyvyHuv02nGkQDOvbhzEGudJZcwO45c=,tag:cVlP6x0vP5phU0HGvZAOLA==,type:str]
 sops:
     kms: []
     gcp_kms: []
@@ -21,8 +21,8 @@ sops:
             WUJ4Wk93N2Q3MGFPaStwVDhYZldtSjAKBpnCxLmNdyltgSfNklOVVV/L8h0/oED1
             VC72ouHtwmctaIrKydUUBja2gddUO3bvPX6TSETI9PVadplT8grkGQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2022-12-17T05:00:57Z"
-    mac: ENC[AES256_GCM,data:9Cro/9ob/6O32Wsc8T/41Ei65ShI8khQlrUkCqJswxejktHtXbHzxoKlXMm/jWPszcO+YclEh46gNgMk/7au9lkOeaCxBIJ1t/g3/55+272XCE69ra+AIxQ8ZOLC6wgzy5j3XyvsZu0fXJzQLrwLwROa3qcJiIEgiLCsSkO4Hvs=,iv:51PhYOjJWebt9r+Zo/XEozX1W1eH+IYvKN1puVuxZqE=,tag:Xw+LFzb+1URk7tzuvHystA==,type:str]
+    lastmodified: "2022-12-17T07:26:38Z"
+    mac: ENC[AES256_GCM,data:3kTY5RcVrtHCM+7aj0VVW90dZlQISyfXU3YQk91TQKy4sNkUHEnOne6XkfIIx+QlnisyTQSjN7zrnj9WV49o2uMYnNLjlBjLT50WadJS2zMn6Yk9G4ROGKL97QENtcJCKbYi9VU6LMIxWORFCQj1vQIYBs6yfJ025XFvDUhcZcA=,iv:FdjAprULWPPCCz+sj69Kb1K6B90TABGM0AOLhkTLg+4=,tag:3nET0yFPSHn4NoYRI5BUCg==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.7.3
