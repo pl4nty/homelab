@@ -43,7 +43,10 @@ spec:
               name: tunnel-credentials
               key: token
         resources:
+          requests:
+            cpu: 10m
+            memory: 20Mi
           limits:
-            cpu: 100m
-            memory: 500Mi
+            cpu: 500m
+            memory: 1Gi
         
