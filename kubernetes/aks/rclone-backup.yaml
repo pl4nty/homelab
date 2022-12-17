@@ -10,9 +10,8 @@ spec:
       template:
         spec:
           containers:
-          - name: hello
+          - name: rclone-backup
             image: rclone/rclone:1.60.1
-            imagePullPolicy: IfNotPresent
             command:
             - copy
             - "onedrive:"
@@ -26,8 +25,8 @@ spec:
             - name: config
               mountPath: /config/rclone
               readOnly: true
-            volumes:
-            - name: config
-              secret:
-                secretName: rclone-backup
-                optional: false
+          volumes:
+          - name: config
+            secret:
+              secretName: rclone-backup
+              optional: false
