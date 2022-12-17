@@ -10,6 +10,15 @@ spec:
       template:
         spec:
           restartPolicy: Never
+          initContainers:
+          - name: init-config
+            image: busybox:1.28
+            command: ['sh', '-c', 'cp -rn /config/secret/* /config/rclone']
+            volumeMounts:
+            - name: init-config
+              mountPath: /config/secret
+            - name: config
+              mountPath: /config/rclone
           containers:
           - name: rclone-backup
             image: rclone/rclone:1.60.1
@@ -26,7 +35,22 @@ spec:
             - name: config
               mountPath: /config/rclone
           volumes:
-          - name: config
+          - name: init-config
             secret:
               secretName: rclone-backup
               optional: false
+          - name: config
+            persistentVolumeClaim:
+              claimName: rclone-backup-config
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rclone-backup-config
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: default
+  resources:
+    requests:
+      storage: 1Gi
