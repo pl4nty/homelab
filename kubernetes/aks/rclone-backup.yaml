@@ -13,7 +13,7 @@ spec:
           containers:
           - name: rclone-backup
             image: rclone/rclone:1.60.1
-            command:
+            args:
             - copy
             - "onedrive:"
             - backblaze:backup-tplant
