@@ -1,4 +1,4 @@
-nkind: Secret
+kind: Secret
 apiVersion: v1
 metadata:
     name: rclone-backup
@@ -20,8 +20,8 @@ sops:
             bWdReThkWmlyc0dXd0xCSmdWdVhKbzAKF7t30KrUrehibTa6rDlsL6Cc+9pPuYOM
             zq3WU0L77bMwCK4L40JMoLFFQx8I5EVfvr3DfWsNs/Jwqc9KeTSMqg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2022-12-17T08:49:25Z"
-    mac: ENC[AES256_GCM,data:usPFbSWKdbXTmlfkyQwR3DHkCyZW10qy7487u/famwmt75wKfBlOPqh1a29mM/atc7FLCX6lxGYjvUphdQFsWexsqygO5nl73S2CL7ZePxRKNoO3dR2Q465rSVgcQRy9+OPF5z10Qk4MMazHeYOc1vqaYzRsoCF4l0gzoxdWVzo=,iv:1VjaP2/6yvWZS51KQCzQsK3N8VLi2Md2cyI4HqbHHdY=,tag:6MVCLzGt9BSdX063ekpApw==,type:str]
+    lastmodified: "2022-12-17T08:57:39Z"
+    mac: ENC[AES256_GCM,data:UJT5F6JhscMOiBE7yHt7VncQCGFc56WQc2CC/0tSSc7Ji7JIy8tAiVu57+FbmnSQgfqnny6+5Nv60eGLVt/PkqUYQdYuhsTbsjY0DhyxnTa3t2oqS6UVdMS+D3lWrmQeXNBV/8vRWx+3PTCw2aeT0O9DODILMg6VPRyKYuOqqJs=,iv:DIGJSBvkEN36ZjDShLhKCw96ghQrRk76IUISpl1HzWs=,tag:W1OWh5SX+FM5GHfviQsHww==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.7.3
