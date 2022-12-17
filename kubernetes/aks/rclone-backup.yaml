@@ -47,6 +47,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: rclone-backup-config
+  namespace: default
 spec:
   accessModes:
   - ReadWriteOnce
