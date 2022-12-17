@@ -27,6 +27,7 @@ spec:
             - copy
             - "onedrive:"
             - backblaze:backup-tplant
+            - -v
             - --s3-no-check-bucket
             - --fast-list
             # remotes have no hashes in common so can't use checksum, see rclone/rclone#6585
