@@ -2,6 +2,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: rclone-backup
+  namespace: default
 spec:
   schedule: "0 0 * * *"
   jobTemplate:
