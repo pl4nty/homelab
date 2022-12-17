@@ -25,7 +25,6 @@ spec:
             volumeMounts:
             - name: config
               mountPath: /config/rclone
-              readOnly: true
           volumes:
           - name: config
             secret:
