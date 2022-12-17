@@ -4,7 +4,7 @@ metadata:
   name: tsuro
   namespace: default
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: tsuro
@@ -21,11 +21,11 @@ spec:
         resources:
           # at idle
           requests:
-            memory: 175Mi
             cpu: 20m
+            memory: 200Mi
           limits:
-            memory: 1Gi # reached 850Mi in UAT, possibly 500Mi per user
             cpu: 1500m # during AI moves
+            memory: 1Gi # reached 850Mi in UAT, possibly 500Mi per user
 ---
 apiVersion: v1
 kind: Service

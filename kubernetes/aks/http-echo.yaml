@@ -4,7 +4,7 @@ metadata:
   name: http-echo
   namespace: default
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: http-echo
@@ -20,12 +20,9 @@ spec:
         - containerPort: 8010
         resources:
           # at idle
-          requests:
-            memory: 175Mi
-            cpu: 20m
           limits:
-            memory: 175Mi # reached 850Mi in UAT, possibly 500Mi per user
-            cpu: 20m # during AI moves
+            cpu: 10m
+            memory: 20Mi
 ---
 apiVersion: v1
 kind: Service
