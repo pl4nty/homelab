@@ -13,7 +13,8 @@ spec:
           initContainers:
           - name: init-config
             image: busybox:1.28
-            command: ['sh', '-c', 'cp -rn /config/secret/* /config/rclone']
+            # https://stackoverflow.com/a/19997505
+            command: ['sh', '-c', 'false | cp -i /config/secret/* /config/rclone 2>/dev/null']
             volumeMounts:
             - name: init-config
               mountPath: /config/secret
