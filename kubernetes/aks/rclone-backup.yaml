@@ -9,7 +9,7 @@ spec:
     spec:
       template:
         spec:
-          restartPolicy: Always
+          restartPolicy: OnFailure
           containers:
           - name: rclone-backup
             image: rclone/rclone:1.60.1
