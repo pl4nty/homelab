@@ -133,16 +133,10 @@ spec:
   serviceMonitorSelector:
     matchLabels:
       instance: primary
-
-  # Supply an empty namespace selector to look in all namespaces. Remove
-  # this to only look in the same namespace as the MetricsInstance CR.
   podMonitorNamespaceSelector: {}
   podMonitorSelector:
     matchLabels:
       instance: primary
-
-  # Supply an empty namespace selector to look in all namespaces. Remove
-  # this to only look in the same namespace as the MetricsInstance CR.
   probeNamespaceSelector: {}
   probeSelector:
     matchLabels:
