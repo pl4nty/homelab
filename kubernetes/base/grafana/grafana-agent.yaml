@@ -1,109 +1,109 @@
-# apiVersion: monitoring.grafana.com/v1alpha1
-# kind: GrafanaAgent
-# metadata:
-#   name: grafana-agent
-#   namespace: grafana
-#   labels:
-#     app: grafana-agent
-# spec:
-#   image: grafana/agent:v0.29.0
-#   logLevel: info
-#   serviceAccountName: grafana-agent
-#   metrics:
-#     instanceSelector:
-#       matchLabels:
-#         agent: grafana-agent-metrics
-#     externalLabels:
-#       cluster: cloud
+apiVersion: monitoring.grafana.com/v1alpha1
+kind: GrafanaAgent
+metadata:
+  name: grafana-agent
+  namespace: grafana
+  labels:
+    app: grafana-agent
+spec:
+  image: grafana/agent:v0.29.0
+  logLevel: info
+  serviceAccountName: grafana-agent
+  metrics:
+    instanceSelector:
+      matchLabels:
+        agent: grafana-agent-metrics
+    externalLabels:
+      cluster: cloud
 
-#   logs:
-#     instanceSelector:
-#       matchLabels:
-#         agent: grafana-agent-logs
-# ---
-# apiVersion: v1
-# kind: ServiceAccount
-# metadata:
-#   name: grafana-agent
-#   namespace: grafana
-# ---
-# apiVersion: rbac.authorization.k8s.io/v1
-# kind: ClusterRole
-# metadata:
-#   name: grafana-agent
-# rules:
-# - apiGroups:
-#   - ""
-#   resources:
-#   - nodes
-#   - nodes/proxy
-#   - nodes/metrics
-#   - services
-#   - endpoints
-#   - pods
-#   - events
-#   verbs:
-#   - get
-#   - list
-#   - watch
-# - apiGroups:
-#   - networking.k8s.io
-#   resources:
-#   - ingresses
-#   verbs:
-#   - get
-#   - list
-#   - watch
-# - nonResourceURLs:
-#   - /metrics
-#   - /metrics/cadvisor
-#   verbs:
-#   - get
-# ---
-# apiVersion: rbac.authorization.k8s.io/v1
-# kind: ClusterRoleBinding
-# metadata:
-#   name: grafana-agent
-# roleRef:
-#   apiGroup: rbac.authorization.k8s.io
-#   kind: ClusterRole
-#   name: grafana-agent
-# subjects:
-# - kind: ServiceAccount
-#   name: grafana-agent
-#   namespace: grafana
-# ---
-# apiVersion: monitoring.grafana.com/v1alpha1
-# kind: MetricsInstance
-# metadata:
-#   name: primary
-#   namespace: grafana
-#   labels:
-#     agent: grafana-agent-metrics
-# spec:
-#   remoteWrite:
-#   # Can't easily use a ConfigMap or Secret
-#   # https://github.com/grafana/agent/blob/b86d165f783e75522148e6961475ac52a07239e1/production/operator/crds/monitoring.grafana.com_metricsinstances.yaml#L657
-#   - url: "https://prometheus-prod-09-prod-au-southeast-0.grafana.net/api/prom/push"
-#     basicAuth:
-#       username:
-#         name: primary-credentials-metrics
-#         key: username
-#       password:
-#         name: primary-credentials-metrics
-#         key: password
+  logs:
+    instanceSelector:
+      matchLabels:
+        agent: grafana-agent-logs
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: grafana-agent
+  namespace: grafana
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: grafana-agent
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  - nodes/proxy
+  - nodes/metrics
+  - services
+  - endpoints
+  - pods
+  - events
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs:
+  - get
+  - list
+  - watch
+- nonResourceURLs:
+  - /metrics
+  - /metrics/cadvisor
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: grafana-agent
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: grafana-agent
+subjects:
+- kind: ServiceAccount
+  name: grafana-agent
+  namespace: grafana
+---
+apiVersion: monitoring.grafana.com/v1alpha1
+kind: MetricsInstance
+metadata:
+  name: primary
+  namespace: grafana
+  labels:
+    agent: grafana-agent-metrics
+spec:
+  remoteWrite:
+  # Can't easily use a ConfigMap or Secret
+  # https://github.com/grafana/agent/blob/b86d165f783e75522148e6961475ac52a07239e1/production/operator/crds/monitoring.grafana.com_metricsinstances.yaml#L657
+  - url: "https://prometheus-prod-09-prod-au-southeast-0.grafana.net/api/prom/push"
+    basicAuth:
+      username:
+        name: primary-credentials-metrics
+        key: username
+      password:
+        name: primary-credentials-metrics
+        key: password
 
-#   # Supply an empty namespace selector to look in all namespaces. Remove
-#   # this to only look in the same namespace as the MetricsInstance CR
-#   serviceMonitorNamespaceSelector: {}
-#   serviceMonitorSelector:
-#     matchLabels:
-#       instance: primary
-#   podMonitorNamespaceSelector: {}
-#   podMonitorSelector:
-#     matchLabels:
-#       instance: primary
-#   probeNamespaceSelector: {}
-#   probeSelector:
-#     matchLabels:
-#       instance: primary
+  # Supply an empty namespace selector to look in all namespaces. Remove
+  # this to only look in the same namespace as the MetricsInstance CR
+  serviceMonitorNamespaceSelector: {}
+  serviceMonitorSelector:
+    matchLabels:
+      instance: primary
+  podMonitorNamespaceSelector: {}
+  podMonitorSelector:
+    matchLabels:
+      instance: primary
+  probeNamespaceSelector: {}
+  probeSelector:
+    matchLabels:
+      instance: primary
