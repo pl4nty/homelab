@@ -59,15 +59,7 @@ metadata:
   namespace: default
 spec:
   endpoints:
-  - honorLabels: true
-    interval: 60s
-    port: https-metrics
-    scheme: https
-    tlsConfig:
-      insecureSkipVerify: true
-  namespaceSelector:
-    matchNames:
-    - default
+  - port: 8000
   selector:
     matchLabels:
       app.kubernetes.io/name: aussiebb
