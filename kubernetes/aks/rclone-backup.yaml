@@ -78,7 +78,7 @@ metadata:
 spec:
   podMetricsEndpoints:
   - port: metrics
-    interval: 30s
+    interval: 10s
   selector:
     matchLabels:
       app: rclone-backup
