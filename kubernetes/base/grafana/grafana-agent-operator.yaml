@@ -25,7 +25,7 @@ spec:
   chart:
     spec:
       chart: grafana-agent-operator
-      version: 0.28.0
+      version: 0.2.8
       interval: 15m
       sourceRef:
         kind: HelmRepository
