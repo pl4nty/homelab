@@ -9,8 +9,8 @@ spec:
     spec:
       template:
         metadata:
-        labels:
-          app: rclone-backup
+          labels:
+            app: rclone-backup
         spec:
           restartPolicy: Never
           initContainers:
