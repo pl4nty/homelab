@@ -8,18 +8,18 @@
     ":semanticCommits"
   ],
   "flux": {
-    "fileMatch": ["cluster/.+\\.ya?ml$"]
+    "fileMatch": ["kubernetes/.+\\.ya?ml$"]
   },
   "helm-values": {
-    "fileMatch": ["cluster/.+\\.ya?ml$"]
+    "fileMatch": ["kubernetes/.+\\.ya?ml$"]
   },
   "kubernetes": {
-    "fileMatch": ["cluster/.+\\.ya?ml$"]
+    "fileMatch": ["kubernetes/.+\\.ya?ml$"]
   },
   "regexManagers": [
     {
       "description": "Process CRD dependencies",
-      "fileMatch": ["cluster/.+\\.ya?ml$"],
+      "fileMatch": ["kubernetes/.+\\.ya?ml$"],
       "matchStrings": [
         // GitRepository where 'Git release/tag' matches 'Helm' version
         "registryUrl=(?<registryUrl>\\S+) chart=(?<depName>\\S+)\n.*?(?<currentValue>[^-\\s]*)\n",
@@ -31,8 +31,7 @@
     {
       "description": "Process various dependencies",
       "fileMatch": [
-        "ansible/.+\\.ya?ml$",
-        "cluster/.+\\.ya?ml$"
+        "kubernetes/.+\\.ya?ml$"
       ],
       "matchStrings": [
         "datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( versioning=(?<versioning>\\S+))?\n.*?\"(?<currentValue>.*)\"\n"
@@ -42,7 +41,7 @@
     },
     {
       "description": "Process raw GitHub URLs",
-      "fileMatch": ["cluster/.+\\.ya?ml$"],
+      "fileMatch": ["kubernetes/.+\\.ya?ml$"],
       "matchStrings": [
         "https:\\/\\/raw.githubusercontent.com\\/(?<depName>[\\w\\d\\-_]+\\/[\\w\\d\\-_]+)\\/(?<currentValue>[\\w\\d\\.\\-_]+)\\/.*"
       ],
