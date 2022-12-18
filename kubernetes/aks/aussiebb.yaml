@@ -59,7 +59,7 @@ metadata:
   namespace: default
 spec:
   endpoints:
-  - port: 8000
+  - port: web
   selector:
     matchLabels:
       app.kubernetes.io/name: aussiebb
