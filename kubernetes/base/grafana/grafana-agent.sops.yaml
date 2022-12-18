@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Secret
 metadata:
     name: primary-credentials-metrics
-    namespace: default
+    namespace: grafana
 stringData:
     username: ENC[AES256_GCM,data:n/oUBRHC,iv:btQSwMqsLuZ99hqeBNtmKN9HGna4Xpib4nCVDMZTNhI=,tag:l3tcIZ+0oM6WeoX2p2kt2A==,type:str]
     password: ENC[AES256_GCM,data:D+xAdK2C393n1mXFn/YOCI12wf0Q7hLDgwiX1FfS2U24QZVQ1oMFLE4yleY/1faLn5egOnWqbDF0hx0Zsg4L7U49mBZhMRDdah+Cg8kxi8FUHMRYmXvDliJFLU0Z/z3+NScYvWXTjXVT+yNVni0LQg==,iv:WRecRD74Ospm+vGcS0/oMheGeQa1HZ2AEPLayarATZU=,tag:KFRslFwnVQ5a997H+tV0ig==,type:str]
@@ -21,8 +21,8 @@ sops:
             OHZja3FDUGZBREdrOGZSWWdYUHpBTUUK08OtLaXKfIjjPV8G4Y010NMi3b3IpEDt
             02R47BaAZCMA1PxyZZiXtQuS7pMdOv6KT5vy1PbY+nTxkprEGRM65A==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2022-12-18T05:34:16Z"
-    mac: ENC[AES256_GCM,data:mERlfTv3t9VLXxk10kVh6kZA7L2T5XkY6v0gcKyXGJVXAAW1VT7kRFrA3ffbrOLL3hGYQnsnQwmE/Ev4LMQBNJkLWzRKwTeCujN3Tbr+C+Zp0ISeAiC0rRfkb34yapONmAcMgfEMlzTPq1R6u6q1YEzHLHWTN3ixI1vkLlIBlN4=,iv:lLPt5CPS+aWUm5+fGgCd41alpwJ+goOrf3Qm4ulNgu8=,tag:NrJwIdC7J4/MVPwBwiBNNQ==,type:str]
+    lastmodified: "2022-12-18T05:49:02Z"
+    mac: ENC[AES256_GCM,data:N+3ttrAmb6C6HnH4Ee4YPjFN48C71OCvjPJwG+Kw3rDcuNkBI1ZNz/JbrY9DxXJ0VXOM4Ae0qdszR9e9/gaMROlBreEhCbHBUzxuUEVDNFB4o6RN19WKQwGuleTg02J+Xt/x2dgkI1IeGW/fZS/t/dXWlV7RG6nguMwMh9hLEEY=,iv:0IH5VINYY/I7ZPGrdN4PkiEOEsmbSGttUebuO/Z1Pdk=,tag:854GCOBhQs4IidCPr7XqCA==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.7.3
