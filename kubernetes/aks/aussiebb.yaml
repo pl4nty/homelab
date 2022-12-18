@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aussiebb
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aussiebb
+  template:
+    metadata:
+      labels:
+        app: aussiebb
+    spec:
+      containers:
+      - name: aussiebb
+        image: ghcr.io/pl4nty/aussiebb:sha-cccb60f
+        ports:
+        - containerPort: 8000
+        env:
+        - name: AUSSIE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: aussiebb
+              key: username
+        - name: AUSSIE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: aussiebb
+              key: password
+        resources:
+          requests:
+            cpu: 10m
+            memory: 10Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aussiebb
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 8000
+  selector:
+    app: aussiebb
