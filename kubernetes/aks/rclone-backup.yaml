@@ -26,6 +26,8 @@ spec:
           containers:
           - name: rclone-backup
             image: rclone/rclone:1.60.1
+            ports:
+            - containerPort: 5572
             args:
             - copy
             - "onedrive:"
