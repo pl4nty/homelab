@@ -24,7 +24,7 @@ spec:
   interval: 15m
   chart:
     spec:
-      chart: agent-operator
+      chart: grafana-agent-operator
       version: 0.28.0
       interval: 15m
       sourceRef:
