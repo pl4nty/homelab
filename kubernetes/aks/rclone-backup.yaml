@@ -35,6 +35,7 @@ spec:
             - --fast-list
             - --rc-enable-metrics
             - --rc-no-auth
+            - --rc-addr=:5572
             # remotes have no hashes in common so can't use checksum, see rclone/rclone#6585
             # - --checksum
             - --size-only
