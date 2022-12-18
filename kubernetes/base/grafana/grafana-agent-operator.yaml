@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    name: grafana
+  name: grafana
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: grafana-charts
+  namespace: grafana
+spec:
+  url: https://grafana.github.io/helm-charts
+  interval: 30m
+  timeout: 3m
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: grafana-agent-operator
+  namespace: grafana
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: agent-operator
+      version: 0.28.0
+      interval: 15m
+      sourceRef:
+        kind: HelmRepository
+        namespace: grafana
+        name: grafana-charts
