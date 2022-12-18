@@ -42,6 +42,8 @@ kind: Service
 metadata:
   name: aussiebb
   namespace: default
+  labels:
+    app: aussiebb
 spec:
   ports:
   - name: metrics
@@ -52,14 +54,14 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  labels:
-    instance: primary
   name: aussiebb
   namespace: default
+  labels:
+    instance: primary
 spec:
   endpoints:
   - port: metrics
     interval: 60s
   selector:
     matchLabels:
-      app.kubernetes.io/name: aussiebb
+      app: aussiebb
