@@ -29,7 +29,7 @@ spec:
       interval: 15m
       sourceRef:
         kind: HelmRepository
-        namespace: flux-system
+        namespace: grafana
         name: grafana-charts
 ---
 apiVersion: monitoring.grafana.com/v1alpha1
