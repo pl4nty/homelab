@@ -71,7 +71,7 @@ metadata:
   labels:
     instance: primary
 spec:
-  podMetricsEndpoint:
+  podMetricsEndpoints:
   - port: metrics
     interval: 30s
   selector:
