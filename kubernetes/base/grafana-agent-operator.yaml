@@ -1,0 +1,26 @@
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: grafana-charts
+  namespace: flux-system
+spec:
+  interval: 30m
+  url: https://grafana.github.io/helm-charts
+  timeout: 3m
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: grafana-agent-operator
+  namespace: default
+spec:
+  chart:
+    spec:
+      chart: agent-operator
+      version: 0.28.0
+      interval: 15m
+      sourceRef:
+        kind: HelmRepository
+        namespace: flux-system
+        name: grafana-charts
+  interval: 15m
