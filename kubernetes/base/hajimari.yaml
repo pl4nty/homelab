@@ -20,11 +20,12 @@ spec:
       chart: hajimari
       sourceRef:
         kind: HelmRepository
-        namespace: default
         name: hajimari-charts
   values:
     title: Tom's Lab
     showGreeting: false
+    darkTheme: espresso
+    lightTheme: paper
     customApps:
     - group: default
       apps:
