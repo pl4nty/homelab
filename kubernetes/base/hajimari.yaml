@@ -24,6 +24,7 @@ spec:
   values:
     title: Tom's Lab
     showGreeting: false
+    alwaysTargetBlank: true
     darkTheme: espresso
     lightTheme: paper
     customApps:
@@ -31,7 +32,6 @@ spec:
       apps:
       - name: echo
         url: https://echo.tplant.au
-        targetBlank: true
 ---
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: HTTPRoute
