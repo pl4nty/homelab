@@ -25,7 +25,7 @@ spec:
               mountPath: /config/rclone
           containers:
           - name: rclone-backup
-            image: rclone/rclone:1.60.1
+            image: rclone/rclone:1.61.1
             ports:
             - name: metrics
               containerPort: 5572
