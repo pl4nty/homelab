@@ -31,3 +31,32 @@ spec:
       - name: echo
         url: https://echo.tplant.au
         targetBlank: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hajimari
+  namespace: default
+spec:
+  ports:
+    - port: 3000
+      targetPort: 3000
+      protocol: TCP
+  selector:
+    app: hajimari
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: hajimari
+  namespace: default
+spec:
+  parentRefs:
+  - name: gateway
+    sectionName: http
+  hostnames:
+  - lab.tplant.au
+  rules:
+  - backendRefs:
+    - name: hajimari
+      port: 3000
