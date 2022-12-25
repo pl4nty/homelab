@@ -1,0 +1,33 @@
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: hajimari-charts
+  namespace: default
+spec:
+  url: https://hajimari.io
+  interval: 30m
+  timeout: 3m
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: hajimari
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: hajimari
+      sourceRef:
+        kind: HelmRepository
+        namespace: default
+        name: hajimari-charts
+  values:
+    title: Tom's Lab
+    showGreeting: false
+    customApps:
+    - group: default
+      apps:
+      - name: echo
+        url: https://echo.tplant.au
+        targetBlank: true
