@@ -22,16 +22,17 @@ spec:
         kind: HelmRepository
         name: hajimari-charts
   values:
-    title: Tom's Lab
-    showGreeting: false
-    alwaysTargetBlank: true
-    darkTheme: espresso
-    lightTheme: paper
-    customApps:
-    - group: default
-      apps:
-      - name: echo
-        url: https://echo.tplant.au
+    hajimari:
+      title: Tom's Lab
+      showGreeting: false
+      alwaysTargetBlank: true
+      darkTheme: espresso
+      lightTheme: paper
+      customApps:
+      - group: default
+        apps:
+        - name: echo
+          url: https://echo.tplant.au
 ---
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: HTTPRoute
