@@ -25,6 +25,7 @@ spec:
     hajimari:
       title: Tom's Lab
       showGreeting: false
+      showGlobalBookmarks: true
       alwaysTargetBlank: true
       darkTheme: espresso
       lightTheme: paper
@@ -33,6 +34,18 @@ spec:
         apps:
         - name: echo
           url: https://echo.tplant.au
+      globalBookmarks:
+      - group: default
+        bookmarks:
+        - name: github
+          url: https://github.com/pl4nty
+          icon: simple-icons:github
+        - name: grafana
+          url: https://tplant.grafana.net
+          icon: simple-icons:grafana
+        - name: renovate
+          url: https://app.renovatebot.com/dashboard
+          icon: simple-icons:renovatebot
 ---
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: HTTPRoute
