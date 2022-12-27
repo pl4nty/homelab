@@ -60,12 +60,9 @@ spec:
   - name: gateway
     sectionName: http
   hostnames:
+  - "tplant.au"
   - "*.tplant.au"
   rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /robots.txt
-    backendRefs:
+  - backendRefs:
     - name: well-known
       port: 80
