@@ -337,7 +337,7 @@ spec:
     url: https://logs-prod-004.grafana.net/loki/api/v1/push
   podLogsNamespaceSelector: {}
   podLogsSelector:
-    any: true
+    matchLabels: {}
 ---
 apiVersion: monitoring.grafana.com/v1alpha1
 kind: MetricsInstance
