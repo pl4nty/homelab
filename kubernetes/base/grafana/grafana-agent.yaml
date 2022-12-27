@@ -359,11 +359,11 @@ spec:
     # https://github.com/grafana/agent/blob/b86d165f783e75522148e6961475ac52a07239e1/production/operator/crds/monitoring.grafana.com_metricsinstances.yaml#L657
     url: https://prometheus-prod-09-prod-au-southeast-0.grafana.net/api/prom/push
   serviceMonitorNamespaceSelector: {}
-  serviceMonitorSelector: {}
+  # serviceMonitorSelector: {}
   podMonitorNamespaceSelector: {}
-  podMonitorSelector: {}
+  # podMonitorSelector: {}
   probeNamespaceSelector: {}
-  probeSelector: {}
+  # probeSelector: {}
 ---
 apiVersion: monitoring.grafana.com/v1alpha1
 kind: PodLogs
