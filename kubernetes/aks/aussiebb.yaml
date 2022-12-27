@@ -17,7 +17,8 @@ spec:
       - name: aussiebb
         image: ghcr.io/pl4nty/aussiebb:sha-cccb60f
         ports:
-        - containerPort: 8000
+        - name: metrics
+          containerPort: 8000
         env:
         - name: AUSSIE_USERNAME
           valueFrom:
@@ -37,31 +38,17 @@ spec:
             cpu: 100m
             memory: 100Mi
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: aussiebb
-  namespace: default
-  labels:
-    app: aussiebb
-spec:
-  ports:
-  - name: metrics
-    port: 8000
-  selector:
-    app: aussiebb
----
 apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
+kind: PodMonitor
 metadata:
   name: aussiebb
   namespace: default
   labels:
     instance: primary
 spec:
-  endpoints:
+  podMetricsEndpoints:
   - port: metrics
-    interval: 60s
+    interval: 15m
   selector:
     matchLabels:
       app: aussiebb
