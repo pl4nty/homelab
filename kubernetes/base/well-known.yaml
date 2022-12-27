@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
   name: well-known
@@ -17,6 +17,8 @@ spec:
       - image: nginx:1.23.3
         imagePullPolicy: IfNotPresent
         name: well-known
+        ports:
+        - containerPort: 80
         volumeMounts:
         - name: data-volume
           mountPath: /usr/share/nginx/html
