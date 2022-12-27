@@ -24,3 +24,6 @@ spec:
   values:
     metrics:
       enabled: true
+      serviceMonitor:
+        labels:
+          instance: primary
