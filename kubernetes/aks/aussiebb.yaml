@@ -43,8 +43,6 @@ kind: PodMonitor
 metadata:
   name: aussiebb
   namespace: default
-  labels:
-    instance: primary
 spec:
   podMetricsEndpoints:
   - port: metrics

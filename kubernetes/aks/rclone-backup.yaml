@@ -73,8 +73,6 @@ kind: PodMonitor
 metadata:
   name: rclone-backup
   namespace: default
-  labels:
-    instance: primary
 spec:
   podMetricsEndpoints:
   - port: metrics

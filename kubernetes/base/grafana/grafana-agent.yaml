@@ -371,8 +371,6 @@ spec:
 apiVersion: monitoring.grafana.com/v1alpha1
 kind: PodLogs
 metadata:
-  labels:
-    instance: primary
   name: kubernetes-logs
   namespace: grafana
 spec:
@@ -410,8 +408,6 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  labels:
-    instance: primary
   name: cadvisor-monitor
   namespace: grafana
 spec:
@@ -446,8 +442,6 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  labels:
-    instance: primary
   name: ksm-monitor
   namespace: grafana
 spec:
@@ -474,8 +468,6 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  labels:
-    instance: primary
   name: kubelet-monitor
   namespace: grafana
 spec:
