@@ -64,8 +64,8 @@ spec:
   rules:
   - matches:
     - path:
-      type: PathPrefix
-      value: /robots.txt
+        type: PathPrefix
+        value: /robots.txt
     backendRefs:
     - name: well-known
       port: 80
