@@ -37,6 +37,9 @@ spec:
       globalBookmarks:
       - group: default
         bookmarks:
+        - name: backblaze
+          url: https://secure.backblaze.com/user_signin.htm
+          icon: simple-icons:backblaze
         - name: github
           url: https://github.com/pl4nty
           icon: simple-icons:github
