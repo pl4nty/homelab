@@ -20,17 +20,15 @@ spec:
         ports:
         - containerPort: 80
         volumeMounts:
-        - name: well-known-root
-          mountPath: /usr/share/nginx/html
         - name: well-known
-          mountPath: /usr/share/nginx/html/.well-known
+          mountPath: /usr/share/nginx/html
       volumes:
-      - name: well-known-root
-        configMap:
-          name: well-known-root
       - name: well-known
         configMap:
           name: well-known
+          items:
+          - key: security.txt
+            path: .well-known/security.txt
 ---
 apiVersion: v1
 kind: Service
@@ -48,19 +46,12 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: well-known-root
+  name: well-known
   namespace: default
 data:
   robots.txt: |
     User-agent: *
     Allow: / 
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: well-known
-  namespace: default
-data:
   security.txt: |
     Contact: https://twitter.com/pl4nty
     Expires: 2024-00-00T00:00:00.000Z
@@ -78,6 +69,7 @@ spec:
     sectionName: http
   hostnames:
   - "tplant.au"
+  - "*.tplant.au"
   rules:
   - backendRefs:
     - name: well-known
