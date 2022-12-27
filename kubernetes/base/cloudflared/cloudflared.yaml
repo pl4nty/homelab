@@ -25,6 +25,17 @@ spec:
         args:
         - tunnel
         - run
+        env:
+        - name: TUNNEL_METRICS
+          value: 0.0.0.0:2000
+        - name: TUNNEL_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: tunnel-credentials
+              key: token
+        ports:
+        - name: metrics
+          containerPort: 2000
         livenessProbe:
           httpGet:
             # Cloudflared has a /ready endpoint which returns 200 if and only if
@@ -34,14 +45,6 @@ spec:
           failureThreshold: 1
           initialDelaySeconds: 10
           periodSeconds: 10
-        env:
-        - name: TUNNEL_METRICS
-          value: 0.0.0.0:2000
-        - name: TUNNEL_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: tunnel-credentials
-              key: token
         resources:
           requests:
             cpu: 10m
@@ -49,4 +52,16 @@ spec:
           limits:
             cpu: 500m
             memory: 1Gi
-        
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: cloudflared
+  namespace: default
+spec:
+  podMetricsEndpoints:
+  - port: metrics
+    interval: 5m
+  selector:
+    matchLabels:
+      app: cloudflared
