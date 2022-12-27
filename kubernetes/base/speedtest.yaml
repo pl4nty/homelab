@@ -26,5 +26,3 @@ spec:
       enabled: true
       serviceMonitor:
         interval: 5m
-        labels:
-          instance: primary
