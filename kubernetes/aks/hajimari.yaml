@@ -69,6 +69,9 @@ spec:
     - path:
         type: PathPrefix
         value: /robots.txt
+    - path:
+        type: PathPrefix
+        value: /.well-known/
     backendRefs:
     - name: well-known
       port: 80

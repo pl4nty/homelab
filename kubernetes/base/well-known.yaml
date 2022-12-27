@@ -20,10 +20,15 @@ spec:
         ports:
         - containerPort: 80
         volumeMounts:
-        - name: data-volume
+        - name: well-known-root
           mountPath: /usr/share/nginx/html
+        - name: well-known
+          mountPath: /usr/share/nginx/html/.well-known
       volumes:
-      - name: data-volume
+      - name: well-known-root
+        configMap:
+          name: well-known-root
+      - name: well-known
         configMap:
           name: well-known
 ---
@@ -43,12 +48,24 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: well-known
+  name: well-known-root
   namespace: default
 data:
   robots.txt: |
     User-agent: *
     Allow: / 
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: well-known
+  namespace: default
+data:
+  security.txt: |
+    Contact: https://twitter.com/pl4nty
+    Expires: 2024-00-00T00:00:00.000Z
+    Preferred-Languages: en
+    Canonical: https://tplant.au/.well-known/security.txt
 ---
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: HTTPRoute
@@ -61,7 +78,6 @@ spec:
     sectionName: http
   hostnames:
   - "tplant.au"
-  - "*.tplant.au"
   rules:
   - backendRefs:
     - name: well-known
