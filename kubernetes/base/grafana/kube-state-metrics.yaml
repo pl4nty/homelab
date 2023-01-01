@@ -230,7 +230,7 @@ spec:
       targetLabel: metrics_path
     - action: replace
       targetLabel: job
-      replacement: integrations/kubernetes/cadvisor
+      replacement: integrations/kubernetes/kube-state-metrics
     path: /metrics
     port: http-metrics
   namespaceSelector:
