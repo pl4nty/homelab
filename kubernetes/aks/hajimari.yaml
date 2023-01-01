@@ -40,6 +40,9 @@ spec:
         - name: backblaze
           url: https://secure.backblaze.com/user_signin.htm
           icon: simple-icons:backblaze
+        - name: cloudflare
+          url: https://dash.cloudflare.com
+          icon: simple-icons:cloudflare
         - name: github
           url: https://github.com/pl4nty
           icon: simple-icons:github
