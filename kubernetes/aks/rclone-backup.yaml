@@ -5,6 +5,8 @@ metadata:
   namespace: default
 spec:
   schedule: "0 0 * * *"
+  # concurrency causes duplicate file versions in Backblaze
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
       template:
