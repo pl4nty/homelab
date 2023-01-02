@@ -25,4 +25,4 @@ spec:
     metrics:
       enabled: true
       serviceMonitor:
-        interval: 5m
+        interval: 600m
