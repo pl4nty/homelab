@@ -1,0 +1,28 @@
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: samipsolutions-charts
+  namespace: default
+spec:
+  url: https://helm.samipsolutions.fi
+  interval: 30m
+  timeout: 3m
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: speedtest
+  namespace: default
+spec:
+  interval: 2m
+  chart:
+    spec:
+      chart: speedtest-exporter
+      sourceRef:
+        kind: HelmRepository
+        name: samipsolutions-charts
+  values:
+    metrics:
+      enabled: true
+      serviceMonitor:
+        interval: 5m
