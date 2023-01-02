@@ -4,7 +4,7 @@ metadata:
   name: homelab-github-aks
   namespace: flux-system
 spec:
-  prune: false
+  prune: true
   interval: 5m
   path: "kubernetes/aks"
   sourceRef:
