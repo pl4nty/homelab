@@ -17,7 +17,7 @@ spec:
           restartPolicy: Never
           initContainers:
           - name: init-config
-            image: busybox:1.35
+            image: busybox:1.36
             # https://stackoverflow.com/a/19997505
             command: ['sh', '-c', 'false | cp -i /config/secret/* /config/rclone 2>/dev/null']
             volumeMounts:
