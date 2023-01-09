@@ -8,6 +8,11 @@ spec:
   - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
     honorLabels: true
     interval: 60s
+    metricRelabelings:
+    - action: drop
+      regex: kube_pod_status_reason|kube_pod_status_phase|csi_operations_seconds_bucket|kube_pod_tolerations|volume_operation_total_seconds_bucket
+      sourceLabels:
+      - __name__
     port: https-metrics
     relabelings:
     - sourceLabels:
@@ -37,6 +42,11 @@ spec:
     honorLabels: true
     honorTimestamps: false
     interval: 60s
+    metricRelabelings:
+    - action: drop
+      regex: container_tasks_state|container_memory_failures_total|container_blkio_device_usage_total
+      sourceLabels:
+      - __name__
     path: /metrics/cadvisor
     port: https-metrics
     relabelings:
