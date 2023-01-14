@@ -34,6 +34,8 @@ spec:
         queryServiceBasicAuthSecretName: grafana-prom-creds
       grafana:
         enabled: false
+        domainName: tplant.grafana.net
+        scheme: https
     prometheus:
       # nodeExporter:
       #   enabled: false
