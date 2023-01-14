@@ -146,6 +146,11 @@ spec:
     # Can't easily use a ConfigMap or Secret
     # https://github.com/grafana/agent/blob/b86d165f783e75522148e6961475ac52a07239e1/production/operator/crds/monitoring.grafana.com_metricsinstances.yaml#L657
     url: https://prometheus-prod-09-prod-au-southeast-0.grafana.net/api/prom/push
+    writeRelabelConfigs:
+    - action: drop
+      regex: kubecost_http_response_time_seconds_bucket
+      sourceLabels:
+      - __name__
   serviceMonitorNamespaceSelector: {}
   serviceMonitorSelector:
     matchLabels: {}
