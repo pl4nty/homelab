@@ -58,8 +58,8 @@ spec:
       config:
         services:
           azure-cloud-services: true
-    # serviceMonitor:
-    #   enabled: true
+    serviceMonitor:
+      enabled: true
     #   networkCosts:
     #     enabled: true
     kubecostProductConfigs:
