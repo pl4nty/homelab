@@ -58,6 +58,7 @@ spec:
       config:
         services:
           azure-cloud-services: true
+    containerStatsEnabled: true
     serviceMonitor:
       enabled: true
     #   networkCosts:
