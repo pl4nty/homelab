@@ -261,7 +261,8 @@ spec:
         kube_resourcequota|\
         kube_statefulset.*|\
         namespace_workload_pod|\
-        process_resident_memory_bytes"
+        process_resident_memory_bytes|\
+        kube_persistentvolume_capacity_bytes"
       sourceLabels:
       - __name__
     relabelings:
