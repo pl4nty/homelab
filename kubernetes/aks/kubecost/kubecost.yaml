@@ -65,7 +65,7 @@ spec:
     kubecostProductConfigs:
       grafanaURL: https://tplant.grafana.net
     currency: AUD
-    azureClientId: 04217cc9-fda2-4765-9d0f-84d2b8058228
+    azureClientID: 04217cc9-fda2-4765-9d0f-84d2b8058228
 ---
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: HTTPRoute
