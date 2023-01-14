@@ -5,8 +5,8 @@ metadata:
     namespace: kubecost
 type: Opaque
 stringData:
-    username: ENC[AES256_GCM,data:s0ehfqHj,iv:jnHoNKTm3QSivXKu/jQO8x3ggNxAATyefFm7jx8+DGY=,tag:etc6VOnVdKsF8EGp+ii/Xg==,type:str]
-    password: ENC[AES256_GCM,data:FPx/hIJj0UQWZ5ss++RKkaJo+NH3n9XdYgVRmK3givkoPDLNHhoOIs1x0pLTRpJJtXEKijLVCWyLGtlI3kUjS6QQidYDldtwwEnzV4SL40GGlm5e,iv:BNbiwGV0Nk6MC0ErTIfUsVSOx5dK5VODVJsqcRBVjvA=,tag:CzqlZtvk5ZtX4TcgVFypWw==,type:str]
+    USERNAME: ENC[AES256_GCM,data:8jti4U+t,iv:Xyf4lHDQsryx7FidExpsWrkQou/vchl8k4geWD/HiJw=,tag:GvZe992ZXO3Cp8+QRGYN3g==,type:str]
+    PASSWORD: ENC[AES256_GCM,data:NW/dyj05pqGky9vsCLmOSrP2b+r9HXCqOTjFQ/jcXy7KUk8aqCAGopGpsq8ZgrU2+KHL4ZzUFyCyJw7xb9rQh1Z8SPbnxLeD68SAyOlth6nVri+S,iv:oAvZsSXuzmMcH+OzgdLdQZMIrRLjp8weXjAtLsvOFu4=,tag:k9gdcedLqDqnNqZaUPyWsQ==,type:str]
 sops:
     kms: []
     gcp_kms: []
@@ -22,8 +22,8 @@ sops:
             WVVNU2E4TEZyNm9UU3JBNmREdk04VlkK7HlrC+UDmmklu4FZQp+92CdZk2hb9+1C
             zkTT7FsLYpXo/Afo+R/3XyBZrzb4S917cWEC2dZWk8gKdIr+jvq/tQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-01-14T07:44:36Z"
-    mac: ENC[AES256_GCM,data:5czjObSklamL8yfZ9fLhSXWgCbyLzzolF+HyemLy9IhE4VaO1JttbqAGUCgyAVB/uJdfFCKOZJoc9VcpBIgJ1835YySPDb9wu4u4vNlZkR5nm8HyUlLNHzdED0lgZSOnU5jzyf7RxeBOWeTx4hhehKYxI5PoKxg+aHOo9e5dz3I=,iv:BpH2PD+puvex0XQBsMLyaTTwv/9sWB6u4boL7mDvvqE=,tag:MUDPa3K6MBgntPLy8xm7qA==,type:str]
+    lastmodified: "2023-01-14T07:47:57Z"
+    mac: ENC[AES256_GCM,data:gBWCq4eoNFNVPg2FfNAL2Ks8wkwTtXKkUu45t5L6WqYsPpytxcElFtqwixDwb4AHbip8CeKFrb7cZesutyUHdQMifFAShqE90A3Tkup9ipCnaL1bykZL/L0X2I4LL85YUnV7f72MBaCuln3f8RV1Hla6roOJy0XlzaRB/JZJbIA=,iv:d5qInF7KAHShZyNhLZRWrS+Bse9lSHG+caKlntlYZmQ=,tag:8ScBipjDaXADGG2Te9fb+Q==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.7.3
