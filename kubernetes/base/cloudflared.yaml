@@ -62,6 +62,12 @@ spec:
   podMetricsEndpoints:
   - port: metrics
     interval: 5m
+    metricRelabelings:
+    - action: drop
+      regex: go_.*
+      sourceLabels:
+      - __name__
   selector:
     matchLabels:
       app: cloudflared
+
