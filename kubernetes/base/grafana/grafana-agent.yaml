@@ -135,6 +135,7 @@ metadata:
   name: grafana-agent-metrics
   namespace: grafana
 spec:
+  maxWALTime: 5m
   remoteWrite:
   - basicAuth:
       password:
