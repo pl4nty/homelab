@@ -10,7 +10,7 @@ spec:
     interval: 60s
     metricRelabelings:
     - action: keep
-      regex: |-
+      regex: >-
         go_goroutines|
         kubelet_cgroup_manager_duration_seconds_bucket|
         kubelet_cgroup_manager_duration_seconds_count|
@@ -80,7 +80,7 @@ spec:
     interval: 60s
     metricRelabelings:
     - action: keep
-      regex: |-
+      regex: >-
         container_cpu_cfs_periods_total|
         container_cpu_cfs_throttled_periods_total|
         container_cpu_usage_seconds_total|
