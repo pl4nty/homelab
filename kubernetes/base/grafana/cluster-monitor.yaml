@@ -40,7 +40,6 @@ spec:
         process_cpu_seconds_total|\
         rest_client_request_duration_seconds_bucket|\
         rest_client_requests_total|\
-        storage_operation_duration_seconds_bucket|\
         storage_operation_duration_seconds_count|\
         storage_operation_errors_total|\
         kubernetes_build_info|\
