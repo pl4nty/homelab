@@ -66,6 +66,7 @@ metadata:
 spec:
   parentRefs:
   - name: gateway
+    namespace: default
     sectionName: http
   hostnames:
   - lab.tplant.au
