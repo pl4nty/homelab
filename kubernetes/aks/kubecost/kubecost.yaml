@@ -68,6 +68,7 @@ spec:
     kubecostProductConfigs:
       grafanaURL: https://tplant.grafana.net
       currency: AUD
+      azureSubscriptionID: 6803eee8-df5b-4713-91c1-f08967d7e55e
       azureClientID: 04217cc9-fda2-4765-9d0f-84d2b8058228
       metricsConfigs:
         disabledMetrics:
