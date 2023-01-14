@@ -221,7 +221,7 @@ spec:
     interval: 60s
     metricRelabelings:
     - action: keep
-      regex: >
+      regex: |-
         cluster:namespace:pod_cpu:active:kube_pod_container_resource_limits|
         cluster:namespace:pod_cpu:active:kube_pod_container_resource_requests|
         cluster:namespace:pod_memory:active:kube_pod_container_resource_limits|
