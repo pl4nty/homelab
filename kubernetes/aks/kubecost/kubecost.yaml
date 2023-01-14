@@ -36,6 +36,10 @@ spec:
         enabled: false
         domainName: tplant.grafana.net
         scheme: https
+      notifications:
+        alertmanager:
+          enabled: true
+          fqdn: https://alertmanager-prod-au-southeast-0.grafana.net
     prometheus:
       # nodeExporter:
       #   enabled: false
