@@ -100,9 +100,7 @@ spec:
     - __meta_kubernetes_pod_uid
     - __meta_kubernetes_pod_container_name
     targetLabel: __path__
-  - action: drop
-    regex: statefulset_kubernetes_io_pod_name
-    sourceLabels:
-    - __name__
+  - action: labeldrop
+    regex: app_kubernetes_io_name
   selector:
     matchLabels: {}
