@@ -72,6 +72,7 @@ metadata:
 spec:
   parentRefs:
   - name: gateway
+    namespace: default
     sectionName: http
   hostnames:
   - kubecost.tplant.au
