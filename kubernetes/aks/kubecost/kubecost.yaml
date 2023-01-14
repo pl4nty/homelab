@@ -58,10 +58,10 @@ spec:
       config:
         services:
           azure-cloud-services: true
-    serviceMonitor:
-      enabled: true
-      networkCosts:
-        enabled: true
+    # serviceMonitor:
+    #   enabled: true
+    #   networkCosts:
+    #     enabled: true
     kubecostProductConfigs:
       grafanaURL: https://tplant.grafana.net
     currency: AUD
