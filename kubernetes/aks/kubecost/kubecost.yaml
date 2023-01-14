@@ -52,7 +52,7 @@ spec:
       enabled: false
       # size: 1Gi
       # dbSize: 1Gi
-    readonly: true
+    # readonly: true
     networkCosts:
       enabled: true
       config:
