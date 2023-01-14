@@ -41,11 +41,11 @@ spec:
           enabled: true
           fqdn: https://alertmanager-prod-au-southeast-0.grafana.net
     prometheus:
-      nodeExporter:
-        enabled: true
-      serviceAccounts:
-        nodeExporter:
-          enabled: true
+      # nodeExporter:
+      #   enabled: true
+      # serviceAccounts:
+      #   nodeExporter:
+      #     enabled: true
       kubeStateMetrics:
         enabled: false
     persistentVolume:
