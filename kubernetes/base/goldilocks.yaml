@@ -29,6 +29,13 @@ spec:
         kind: HelmRepository
         name: fairwinds-charts
         namespace: default
+  values:
+    recommender:
+      image:
+        tag: 0.12.0 # chart has 0.11.0 which is incompatible with k8s 1.25
+      # extraArgs:
+      #   prometheus-address: https://prometheus-prod-09-prod-au-southeast-0.grafana.net/api/prom/
+      #   storage: prometheus
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
