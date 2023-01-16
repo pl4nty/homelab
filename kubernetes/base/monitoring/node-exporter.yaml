@@ -25,3 +25,8 @@ spec:
     prometheus:
       monitor:
         enabled: true
+        metricRelabelings:
+        - action: drop
+          regex: go.*|python.*
+          sourceLabels:
+          - __name__

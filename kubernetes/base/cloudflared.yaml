@@ -64,7 +64,7 @@ spec:
     interval: 5m
     metricRelabelings:
     - action: drop
-      regex: go_.*
+      regex: go.*|python.*
       sourceLabels:
       - __name__
   selector:
