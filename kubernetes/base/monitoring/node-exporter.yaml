@@ -1,12 +1,11 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta1
 kind: HelmRepository
 metadata:
-  name: prometheus-charts
+  name: prometheus-community
   namespace: grafana
 spec:
   url: https://prometheus-community.github.io/helm-charts
-  interval: 30m
-  timeout: 3m
+  interval: 2h
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
@@ -20,7 +19,7 @@ spec:
       chart: prometheus-node-exporter
       sourceRef:
         kind: HelmRepository
-        name: prometheus-charts
+        name: prometheus-community
   values:
     nameOverride: node-exporter # required for dashboards
     prometheus:
