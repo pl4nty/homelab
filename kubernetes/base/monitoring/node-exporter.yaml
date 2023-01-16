@@ -13,7 +13,7 @@ metadata:
   name: node-exporter
   namespace: grafana
 spec:
-  interval: 2m
+  interval: 15m
   chart:
     spec:
       chart: prometheus-node-exporter
