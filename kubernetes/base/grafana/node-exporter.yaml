@@ -22,7 +22,7 @@ spec:
         kind: HelmRepository
         name: prometheus-charts
   values:
-    fullnameOverride: node-exporter # required for dashboards
+    nameOverride: node-exporter # required for dashboards
     prometheus:
       monitor:
         enabled: true
