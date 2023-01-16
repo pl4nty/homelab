@@ -108,7 +108,8 @@ spec:
         node_namespace_pod_container:container_memory_rss|\
         node_namespace_pod_container:container_memory_working_set_bytes|\
         process_resident_memory_bytes|\
-        container_memory_usage_bytes"
+        container_memory_usage_bytes|\
+        machine_cpu_cores"
       sourceLabels:
       - __name__
     path: /metrics/cadvisor

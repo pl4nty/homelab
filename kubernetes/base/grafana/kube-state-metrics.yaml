@@ -266,7 +266,9 @@ spec:
         kube_persistentvolume_capacity_bytes|\
         kube_node_status_capacity_cpu_cores|\
         kube_node_status_capacity_memory_bytes|\
-        kube_pod_container_resource_requests"
+        kube_pod_container_resource_requests|\
+        kube_namespace_created|\
+        kube_pod_status_phase"
       sourceLabels:
       - __name__
     relabelings:
