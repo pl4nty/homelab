@@ -1,70 +1,70 @@
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: kubelet-monitor
-  namespace: grafana
-spec:
-  endpoints:
-  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
-    honorLabels: true
-    interval: 60s
-    metricRelabelings:
-    - action: keep
-      regex: "go_goroutines|\
-        kubelet_cgroup_manager_duration_seconds_bucket|\
-        kubelet_cgroup_manager_duration_seconds_count|\
-        kubelet_node_config_error|\
-        kubelet_node_name|\
-        node_quantile:kubelet_pleg_relist_duration_seconds:histogram_quantile|\
-        kubelet_pleg_relist_duration_seconds_bucket|\
-        kubelet_pleg_relist_duration_seconds_count|\
-        kubelet_pleg_relist_interval_seconds_bucket|\
-        kubelet_certificate_manager_client_ttl_seconds|\
-        kubelet_certificate_manager_client_expiration_renew_errors|\
-        kubelet_certificate_manager_server_ttl_seconds|\
-        kubelet_pod_start_duration_seconds_bucket|\
-        kubelet_pod_start_duration_seconds_count|\
-        kubelet_pod_worker_duration_seconds_bucket|\
-        kubelet_pod_worker_duration_seconds_count|\
-        kubelet_server_expiration_renew_errors|\
-        kubelet_running_containers|\
-        kubelet_running_container_count|\
-        kubelet_running_pods|\
-        kubelet_running_pod_count|\
-        kubelet_runtime_operations_errors_total|\
-        kubelet_runtime_operations_total|\
-        kubelet_volume_stats_available_bytes|\
-        kubelet_volume_stats_capacity_bytes|\
-        kubelet_volume_stats_inodes|\
-        kubelet_volume_stats_inodes_used|\
-        process_cpu_seconds_total|\
-        rest_client_request_duration_seconds_bucket|\
-        rest_client_requests_total|\
-        storage_operation_duration_seconds_count|\
-        storage_operation_errors_total|\
-        kubernetes_build_info|\
-        volume_manager_total_volumes|\
-        process_resident_memory_bytes|\
-        kubelet_volume_stats_used_bytes"
-      sourceLabels:
-      - __name__
-    port: https-metrics
-    relabelings:
-    - sourceLabels:
-      - __metrics_path__
-      targetLabel: metrics_path
-    - action: replace
-      targetLabel: job
-      replacement: integrations/kubernetes/kubelet
-    scheme: https
-    tlsConfig:
-      insecureSkipVerify: true
-  namespaceSelector:
-    matchNames:
-    - default
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: kubelet
+# apiVersion: monitoring.coreos.com/v1
+# kind: ServiceMonitor
+# metadata:
+#   name: kubelet-monitor
+#   namespace: grafana
+# spec:
+#   endpoints:
+#   - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+#     honorLabels: true
+#     interval: 60s
+#     metricRelabelings:
+#     - action: keep
+#       regex: "go_goroutines|\
+#         kubelet_cgroup_manager_duration_seconds_bucket|\
+#         kubelet_cgroup_manager_duration_seconds_count|\
+#         kubelet_node_config_error|\
+#         kubelet_node_name|\
+#         node_quantile:kubelet_pleg_relist_duration_seconds:histogram_quantile|\
+#         kubelet_pleg_relist_duration_seconds_bucket|\
+#         kubelet_pleg_relist_duration_seconds_count|\
+#         kubelet_pleg_relist_interval_seconds_bucket|\
+#         kubelet_certificate_manager_client_ttl_seconds|\
+#         kubelet_certificate_manager_client_expiration_renew_errors|\
+#         kubelet_certificate_manager_server_ttl_seconds|\
+#         kubelet_pod_start_duration_seconds_bucket|\
+#         kubelet_pod_start_duration_seconds_count|\
+#         kubelet_pod_worker_duration_seconds_bucket|\
+#         kubelet_pod_worker_duration_seconds_count|\
+#         kubelet_server_expiration_renew_errors|\
+#         kubelet_running_containers|\
+#         kubelet_running_container_count|\
+#         kubelet_running_pods|\
+#         kubelet_running_pod_count|\
+#         kubelet_runtime_operations_errors_total|\
+#         kubelet_runtime_operations_total|\
+#         kubelet_volume_stats_available_bytes|\
+#         kubelet_volume_stats_capacity_bytes|\
+#         kubelet_volume_stats_inodes|\
+#         kubelet_volume_stats_inodes_used|\
+#         process_cpu_seconds_total|\
+#         rest_client_request_duration_seconds_bucket|\
+#         rest_client_requests_total|\
+#         storage_operation_duration_seconds_count|\
+#         storage_operation_errors_total|\
+#         kubernetes_build_info|\
+#         volume_manager_total_volumes|\
+#         process_resident_memory_bytes|\
+#         kubelet_volume_stats_used_bytes"
+#       sourceLabels:
+#       - __name__
+#     port: https-metrics
+#     relabelings:
+#     - sourceLabels:
+#       - __metrics_path__
+#       targetLabel: metrics_path
+#     - action: replace
+#       targetLabel: job
+#       replacement: integrations/kubernetes/kubelet
+#     scheme: https
+#     tlsConfig:
+#       insecureSkipVerify: true
+#   namespaceSelector:
+#     matchNames:
+#     - default
+#   selector:
+#     matchLabels:
+#       app.kubernetes.io/name: kubelet
 # ---
 # apiVersion: monitoring.coreos.com/v1
 # kind: ServiceMonitor
