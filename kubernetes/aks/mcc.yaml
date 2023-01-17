@@ -59,6 +59,9 @@ spec:
       - name: cache-1
         persistentVolumeClaim:
           claimName: mcc-cache-1
+      # avoid trying to mount WriteOnce PVC across nodes
+      strategy:
+        type: Recreate
       securityContext:
         fsGroup: 2000
         # net.* isn't allowlisted by default, but can be added
