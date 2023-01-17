@@ -24,18 +24,18 @@ spec:
         modules:
           default:
             metrics:
-            - name: example_global_value
-              path: "{ .aggregated_PerSecondStats }"
-              help: Per-second stats aggregated over a minute
-              values:
-                mcc_hits: {.hits}
-                mcc_misses: {.misses}
-                mcc_stale: {.stale}
-                mcc_updating: {.updating}
-                mcc_hitRps: {.hitRps}
-                mcc_missRps: {.missRps}
-                mcc_hitMbps: {.hitMbps}
-                mcc_missMbps: {.missMbps}
-                mcc_hitBytesSum_Accumulator: {.hitBytesSum_Accumulator}
-                mcc_requestDurationInMs_Accumulator: {.requestDurationInMs_Accumulator}
-                mcc_requestDurationCountAccumulator: {.requestDurationCountAccumulator}
+              - name: mcc
+                path: "{ .aggregated_PerSecondStats }"
+                help: Per-second stats aggregated over a minute
+                values:
+                  mcc_hits: {.hits}
+                  mcc_misses: {.misses}
+                  mcc_stale: {.stale}
+                  mcc_updating: {.updating}
+                  mcc_hitRps: {.hitRps}
+                  mcc_missRps: {.missRps}
+                  mcc_hitMbps: {.hitMbps}
+                  mcc_missMbps: {.missMbps}
+                  mcc_hitBytesSum_Accumulator: {.hitBytesSum_Accumulator}
+                  mcc_requestDurationInMs_Accumulator: {.requestDurationInMs_Accumulator}
+                  mcc_requestDurationCountAccumulator: {.requestDurationCountAccumulator}
