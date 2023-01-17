@@ -44,7 +44,8 @@ spec:
         storage_operation_errors_total|\
         kubernetes_build_info|\
         volume_manager_total_volumes|\
-        process_resident_memory_bytes"
+        process_resident_memory_bytes|\
+        kubelet_volume_stats_used_bytes"
       sourceLabels:
       - __name__
     port: https-metrics
@@ -109,7 +110,9 @@ spec:
         node_namespace_pod_container:container_memory_working_set_bytes|\
         process_resident_memory_bytes|\
         container_memory_usage_bytes|\
-        machine_cpu_cores"
+        machine_cpu_cores|\
+        container_network_receive_errors_total|
+        container_network_transmit_errors_total"
       sourceLabels:
       - __name__
     path: /metrics/cadvisor
