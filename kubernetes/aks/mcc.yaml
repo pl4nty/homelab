@@ -13,14 +13,65 @@ spec:
       labels:
         app: mcc
     spec:
+      imagePullSecrets:
+      - name: mcc-registry
       containers:
       - name: mcc
         image: msconnectedcacheprod.azurecr.io/mcc/linux/iot/mcc-ubuntu-iot-amd64:latest
+        resources:
+          requests:
+            cpu: 50m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 200Mi
         ports:
         - containerPort: 8081
         - containerPort: 5000
-      imagePullSecrets:
-      - name: mcc-registry
+        env:
+        - name: CUSTOMER_ID
+          valueFrom:
+            secretKeyRef:
+              name: mcc-env
+              key: CUSTOMER_ID
+        - name: CUSTOMER_KEY
+          valueFrom:
+            secretKeyRef:
+              name: mcc-env
+              key: CUSTOMER_KEY
+        - name: CACHE_NODE_ID
+          valueFrom:
+            secretKeyRef:
+              name: mcc-env
+              key: CACHE_NODE_ID
+        - name: IS_SUMMARY_PUBLIC
+          value: 'true'
+        - name: IS_SUMMARY_ACCESS_UNRESTRICTED
+          value: 'true'
+        - name: X_CID
+          value: '10000'
+        - name: STORAGE_1_SIZE_GB
+          value: '10'
+        volumeMounts:
+        - name: cache-1
+          mountPath: /nginx/cache1
+      volumes:
+      - name: cache-1
+        persistentVolumeClaim:
+          claimName: mcc-cache-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mcc-cache-1
+  namespace: default
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: default
+  resources:
+    requests:
+      storage: 10Gi
 ---
 apiVersion: v1
 kind: Service
