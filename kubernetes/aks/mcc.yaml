@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcc
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mcc
+  template:
+    metadata:
+      labels:
+        app: mcc
+    spec:
+      containers:
+      - name: mcc
+        image: msconnectedcacheprod.azurecr.io/mcc/linux/iot/mcc-ubuntu-iot-amd64:latest
+        ports:
+        - containerPort: 8081
+        - containerPort: 5000
+      imagePullSecrets:
+      - name: mcc-registry
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcc
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 8081
+  - name: metrics
+    port: 5000
+  selector:
+    app: mcc
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: mcc
+  namespace: default
+spec:
+  parentRefs:
+  - name: gateway
+    sectionName: http
+  hostnames:
+  - cache.tplant.au
+  rules:
+  - backendRefs:
+    - name: mcc
+      port: 8081
+
