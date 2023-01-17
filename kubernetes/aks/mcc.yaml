@@ -20,11 +20,11 @@ spec:
         image: msconnectedcacheprod.azurecr.io/mcc/linux/iot/mcc-ubuntu-iot-amd64:1.2.1.1332
         resources:
           requests:
-            cpu: 50m
-            memory: 100Mi
-          limits:
-            cpu: 100m
-            memory: 200Mi
+            cpu: 1m
+            memory: 50Mi
+          # limits:
+          #   cpu: 100m
+          #   memory: 400Mi
         ports:
         - containerPort: 8081
         - containerPort: 5000
