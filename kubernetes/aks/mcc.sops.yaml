@@ -1,11 +1,23 @@
+# Flux bug preventing this from deploying?
+# kind: Secret
+# apiVersion: v1
+# metadata:
+#     name: mcc-registry
+#     namespace: default
+# type: kubernetes.io/dockerconfigjson
+# data:
+#     .dockerconfigjson: 
+# ---
 kind: Secret
 apiVersion: v1
 metadata:
-    name: mcc-registry
+    name: mcc-env
     namespace: default
-type: kubernetes.io/dockerconfigjson
-data:
-    .dockerconfigjson: ENC[AES256_GCM,data:Sxh3kRPLu95Sxr9w0Fl2m3I+ndl0SmKjK5/H3DXGfAxm3MYTGKJnr5G0eClc1FCIwem8q8NmoHQEJGS/PSzX5bL6+7hTUbtk3fz6d33OXuiASOSWtgjvdeqsiroCth+4IDe6wUlLoqEHMRoNydeFGG8BsBqIndODyT+9RLYWSMFZFIbDWueHV5BufB+2gpcQxOXcq0OpCKMSJuO2SGUQJQWNpSPvG5XYCm+DmbL1/TmhZgX0J1keOnQswElNpTpEft+Hien/sBZAyJxz3UZ/ha+7m/WreLzhSqjDuyX/T/2jujSLfkGs7JKSz05GeMjJTVlbSi0pne/Nqc34cUVghElKq95MfS5wadhvxAQshbW4kNqKqPwjjXVr/hG3GyjwqlgxrCkGLF+RQVWJUayOucTW0smg8Jgi9UNF1McN+/510UICeeVOoWmPB6YWIwLa,iv:Oxx0zN3rI63BhsT8aNZa9vZG/A0Sz1mEdD2XTpVSn/M=,tag:3oWf5MmdOJcckPpxdLzn/g==,type:str]
+type: Opaque
+stringData:
+    CUSTOMER_ID: ENC[AES256_GCM,data:OA22m1sSg7Bsu1FIHzXPOIk4jhgdTIpoe0yLw92FO8AXOkBj,iv:l1QdaI1usedk772MJ4cfCKM1t1c+3uL5LV2FpN6il9Y=,tag:1V/uAi4zM17hvvdJWq9HOg==,type:str]
+    CUSTOMER_KEY: ENC[AES256_GCM,data:ewp2sef9Msl90WUvOp+josxvyl5Hq3+ZSLBBWSkZWXsw7Nyu,iv:B5IB1TU+Eu0r35hZRI6yADOTxwmGjhH9k2cmrH5FKz4=,tag:191ErQxLWGIfegK5tu//nA==,type:str]
+    CACHE_NODE_ID: ENC[AES256_GCM,data:p5PntGngFELYaQlbQ7xkXPj3t3AHF1MiiBY0oCxquF1JpBX7,iv:ISgzxmKnSSDm73XeC14fmX38HSDx7KrpKZHtAu7QrQ8=,tag:UVTVJuQnFQreCQxrW1Z5Zw==,type:str]
 sops:
     kms: []
     gcp_kms: []
@@ -21,8 +33,8 @@ sops:
             VGhwcWh2YWZhTVNQeHhpU0daUnVicXMKyX4Nj6UYvrD4LYE8WopnogY1vj6EXxkX
             jzz84GlQy+U/2D127w6ZvBVckim2tYJZfJgGZHmuTUTvzjz4UGgWjQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-01-17T14:31:20Z"
-    mac: ENC[AES256_GCM,data:DZ/CuS7PuK4U5kX5q4aEg8TPKd3eojcZ2Sj5xjZzBrwqL2+mgnwiQCs1hxV1K3cqQEN+Uv2zAYFc4H3l9e9yPWtNv1usla/951FL/5eS7Wgod0HrdZ9JQ9PA4J6AqDHgEszcFwiPziuObICWq3MqjQrxF9OOXLsoR1LdkbAb28I=,iv:g4ZDLJKSYfiY4EkQKDj3CSulW1MAowN55Av1N9rYJiA=,tag:tTEaDiZB5PuoUS+zm/JHRg==,type:str]
+    lastmodified: "2023-01-18T10:14:01Z"
+    mac: ENC[AES256_GCM,data:3tdZZCzHygameOVQ7zSV/qswR+YFK8gEXNGBuU1ZGmZwEzxENJz8Zyki/PmXyYOgmJhsJYeVtQbe5HR7RucLikEUOL4eETafHowk/xX1rNn1mWhNQmmKf1M6ADLCNPmO8y9zUna0iPuF2vc9bWuE3dtxbPMfign+NMwq510nbDc=,iv:FHhAz7o+PDGgvG/Nu9wetpozKkIAfiMxk3QSDWDRgJw=,tag:xJ58mqZajNYVfSOnryDPCQ==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.7.3
