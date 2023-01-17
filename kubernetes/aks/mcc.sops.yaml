@@ -4,8 +4,8 @@ metadata:
     name: mcc-registry
     namespace: default
 type: kubernetes.io/dockerconfigjson
-stringData:
-    .dockerconfigjson: ENC[AES256_GCM,data:JJLpsYkn2jBgtKpOvIENcpbmR8xXcZk5XmlkFrbAlqw/UjGjyAAQK1KCScGwOY9Zx7p/G36YF9sDT6O3w/euQl0Eflvegbfmcayaijm7sDBpdoVgn/6J5/6dESJGL5U8H0z835Pn0g6mkpDVaRMEwLCiGnhvB9ywB0XTw2KovfxN5WF8Ht20/J4l7rAlFPb1VfYlin44BfgBsjdfIxvNMMaZGW45FluvifXheS+k8wlEHAfHujItAhcd3brn0nHmIlSlrLgnN0yj8G4MWzKV8QkhfGIIgJn2wnAiA9OGj3RcHs9k2x0cbWlr4Un+oTqPr9eCAaPKSSrZkXJYsFHTsh06PFR5JmQYsgAJ9HL7+MAqWL/Nrzj6/jb/1ECnCyzKk4nMvigIgcn2EmTW53YFUfjnoWver1EW4WoGa89JCqqT56cysqH3/kJyDp9jK1IU0cL4DdBMK+oos2M9YDOsSp6obpFkey5G/OOUhFfX,iv:vN0csbfP2/zlWDpEO/9nMt+R7UsGmvee5B2ajpqjgW0=,tag:bJ3uNhcHGNQ0G+F1vMD2Bg==,type:str]
+data:
+    .dockerconfigjson: ENC[AES256_GCM,data:2mYeMO6oqWE4JmI/1RkKklkSjExX3XaThArN2z3AjV43sGZ0C9FKl+KpKRgO6myx/SA6WWg9p91D3uOMzhSSgFarvdK0egnYI14Ld0XsFWWQzL5zUBbw0vR+9ex7XabRrq6cZjuiSP2VVqfixEK7aThYHv1jhqoYi1GiDueky02/Dm7qoDSu2qEG6WvZ0oeYDp0+uBU8PnkY9ctsYj73OsPuepwG5qx1oXSV6yGKot6WU+FSuC9v+gaw3+zc/RwBDtUx0ZUzdnQkSg50/dHGiEJRTGToRBP7t0JkiKihTxtihP82+xQSH56jlCbZAtmP5RsQZJ0kmHhZWoluf9M26eyjDPlo4VQgmirJGbjDjjXrdGmbnXF3hu5qBK8hTbdumGSdgEWLIyY3LvseAcRbYgU7TpnAyX/J+0nQ/XnV3crO7ckrdXbj9j3Ko2f17OLKc4OocJVD5xhPSwFVmIkTDrQujCII5p9IM0XWndWRgBzWSDIUHXiA5rzT/ADYcI9+oy3tTp4RBWtmLkVaXWgFrs/LHF3CDCHGtADxjuFoNBMZKO+uRREZ32u0xVcbFHBDJH90lQ==,iv:U7vP3i2IB2eDtD6W8ZlWCMqTBVYuONu+JIdX8r9botg=,tag:PUxw8my05mEtAjBnF32GIQ==,type:str]
 sops:
     kms: []
     gcp_kms: []
@@ -21,8 +21,8 @@ sops:
             VGhwcWh2YWZhTVNQeHhpU0daUnVicXMKyX4Nj6UYvrD4LYE8WopnogY1vj6EXxkX
             jzz84GlQy+U/2D127w6ZvBVckim2tYJZfJgGZHmuTUTvzjz4UGgWjQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-01-17T12:28:41Z"
-    mac: ENC[AES256_GCM,data:53SyW1trenJBhkqI8U7M7Q9Mw8GPr2FbPZwb9M1X29qmzkgPh40GkZyvFKdWNS+RD/R6/kagorH6BWXDvXfGhPJoG0B/J4CUkhI6To8vsLT/pIKkcarQdFh2GmmOLwHuS57D2c3IQCBpAXjIgu9pbg/eu3jtDRaX36mKkNiBO/U=,iv:KOc7tvUp5XrGgNPHxlFuIXaSD3smvGN4B6BwdCzzZcM=,tag:yysDauFPULAfNCohrFqyqw==,type:str]
+    lastmodified: "2023-01-17T12:42:11Z"
+    mac: ENC[AES256_GCM,data:W569ViP0OasRpSha+99Oiw7EFW01olSdFdjIcAgZU52ess5fmo7pVdbWqPa5KlsGKlKZ/FN+/0X47hIZqMhS7oyeImxe/OJXBANUge3ihyK4em0JrbcQsLHUMFt07gmgL61LEuoeSQSZfTcdAFP7W/HTPjNoica/rGILAa06Q7c=,iv:dLxDq+NdIIHcDgJyMfLA7qGnkflioGQVZCu07R+xCf0=,tag:YR+2eAnbgMj7cqv/40AJ6w==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.7.3
