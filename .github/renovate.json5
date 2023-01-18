@@ -2,11 +2,22 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:base",
-    "group:all",
-    "schedule:monthly",
     "docker:enableMajor",
-    ":semanticCommits"
+    ":disableRateLimiting",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":enablePreCommit",
+    ":automergeDigest",
+    ":automergeBranch",
+    "github>pl4nty/lab-infra//.github/renovate/autoMerge.json5",
+    "github>pl4nty/lab-infra//.github/renovate/commitMessage.json5",
+    "github>pl4nty/lab-infra//.github/renovate/labels.json5",
+    "github>pl4nty/lab-infra//.github/renovate/semanticCommits.json5",
+    "helpers:pinGitHubActionDigests"
   ],
+  "suppressNotifications": ["prIgnoreNotification"],
+  "rebaseWhen": "conflicted",
+  "schedule": ["every saturday"],
   "flux": {
     "fileMatch": ["kubernetes/.+\\.ya?ml$"]
   },
