@@ -21,10 +21,10 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 500Mi
-          # limits:
-          #   cpu: 100m
-          #   memory: 400Mi
+            memory: 600Mi
+          limits:
+            cpu: 100m
+            memory: 1Gi
         ports:
         - containerPort: 8081
         - containerPort: 5000
