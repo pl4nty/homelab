@@ -48,5 +48,15 @@
       "datasourceTemplate": "github-releases",
       "versioningTemplate": "semver"
     }
+  ],
+  hostRules: [
+    {
+      "hostType": "docker",
+      "matchHost": "msconnectedcacheprod.azurecr.io",
+      "encrypted": {
+        "username": "wcFMA/xDdHCJBTolAQ//WweRMTnfhkXmLCx3s75Znn7gqYGPZOCtrl+ADEUHDtKr+zNMUXe7d6RNVCDO0QUCgcVIBi2U7blE52g0APS6oUWq0Nz/xRhhAK0vXsOD+EwqD/rEUyxAdImz7g8yvmbfDO7FUkxLKUAYPu0C05krLo4XKI5+9v3i74vMs5h7Uj7ab8nVNhXsYkgo15bJqZ/xwXprI8S2/jiwADgVQNc3hbjX/KcNFJRyf2JwuzpvCpdzG7xXMPPQyr1nXfxEZv08uyOKJEBiTu9gTbnksPSCSQ2w4pGI3cD+AROSmzJ27DlsOuOFhV2Xtn43JnOVMKCBf9aQjdNmJkrXQmF/wuMdwzkxIaZJbtmLs/hJMleVmgqSuVACXfBI6zuFoo/DJbu5ZFQmegzUV3MwHognqbYi/XiHXESR1pcxvJwORiFoozhzaGtDkbR6bXy0aCbC+gd4Htho+7aCv3tj5+DR8sdkVGFMiLwRaTwz8gZuh23i5wyVnroWiT0pbuYRbhAeiCUzoztrsAJ/UwkliIRDqROyDq1pcAIG3m0vn4FKeI42SQH32o11f2CZJQM9qulq1HUpswNC7jWaEHVZu9HBuqvHClKG1wfaVsbR5M/QM9iQ9MNhff6dKhVtjrCSnrtVW9QfzoM+r7DRTwMk4528USGyF3O46MVztTzCoceRj99hXaTSegFlTCq1u/a9wO1ZVJku/v7FxdU7fAheRnaODqJ7STgaw9KqokASKaYdgRlxsrmdIA58CX6CfOtPjt0GnKWiKAwXp0u9ZIPKjUb1HXvw+L4xRBDYUTvTexja9zMpd/NkxeKwOL4prtDKEADpOeEaxQu6zYBaO8qUOjCB",
+        "password": "wcFMA/xDdHCJBTolARAAh+ewgh0QrxKIZ0mkZ9AKOrTrkGxvB31S+DWebJSKMRjRmGyXG9w4tGd5xB0cDG9obcCgrhxaTAg22NCWBt3dXFTH/Hi8I9JaGbUDJWp6Jgo6Z8WckRi/0AhwOYktwUrVKWmE7Za5tsjEpnk1Y7piJcJv4cwjFElg8ALxx/fF2owtrvIxibcKWguaDze+AEfWb7ksBpTUapDWnoMQD8/JLLYONldGtW0TrozUMt3sCvPttOdTZuJ8dzwIaeWoF+9zZaRZ5CM/3SVyyoGqo7uLVQ55Q7TcasMkZ7d3kfnUJET60ZR/Ey+oeCwskMRKPghejU7WFpukEGG4/jzrJsBoXFdzz34hoAr8CSS1FK6TFJnrs6V54DjaWNKITHvy4VtfiIuF4j1+x8Z+QX1J3S0PH++SM2UvjXjnMrwF9Dl9/rGB4gKEmSIDRXHDhr+XO8LHPYsDL4t2GhJueoUbiBh9jGNxgeJkmTGLV/f7Szz7IY6LG3fbcDuqfDJgLm2TIXbTGKwQEE55BTFed9XVlWPVtz7Ra1PYvPXiaXWDXzrrEVg3vOJzyDlEhaQ4n0GkFH6rdFooi7XXPioZTrzOmduTmxaTXtESHars4r8M/L3OOw329EDT//grjObnWuxzdjK0GsCF9aETsC6aESsRXnojvZJ326CjT6AsJoJSwPibWf3SeAGT9bZxwvVCN6x2ky27XGZcMFLPbmNNLf8BNf+uJOAq9HCT/+wPpvlk6ApdgVIf4NLoXYVOHFwo8ZHM3+JW4PuhVTZxSh4SPBYlF6ouotLDhwh3bhecfc58Q1Nc1IfOJSew9RdRk/BbYNFAfTfYWdDMCHSzWHgGPw"
+      }
+    }
   ]
 }
