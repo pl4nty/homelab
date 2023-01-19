@@ -27,19 +27,19 @@ spec:
           default:
             metrics:
             - name: mcc
-              path: "{.RequestSizeInBytesHistogram.ExceptionMessages.Capacity}"
+              path: "{$.RequestSizeInBytesHistogram.ExceptionMessages.Capacity}"
               help: Per-second stats aggregated over a minute
               labels:
                 environment: test
       # values:
-      #   mcc_test: "{.RequestSizeInBytesHistogram.ExceptionMessages.Capacity}"
-      # mcc_misses: "{.Aggregated_PerSecondStats.Misses}"
-      # mcc_stale: "{.Aggregated_PerSecondStats.Stale}"
-      # mcc_updating: "{.Aggregated_PerSecondStats.Updating}"
-      # mcc_hitRps: "{.Aggregated_PerSecondStats.HitRps}"
-      # mcc_missRps: "{.Aggregated_PerSecondStats.MissRps}"
-      # mcc_hitMbps: "{.Aggregated_PerSecondStats.HitMbps}"
-      # mcc_missMbps: "{.Aggregated_PerSecondStats.MissMbps}"
-      # mcc_hitBytesSum_Accumulator: "{.Aggregated_PerSecondStats.HitBytesSum_Accumulator}"
-      # mcc_requestDurationInMs_Accumulator: "{.Aggregated_PerSecondStats.RequestDurationInMs_Accumulator}"
-      # mcc_requestDurationCountAccumulator: "{.Aggregated_PerSecondStats.RequestDurationCountAccumulator}"
+      #   test: "{.RequestSizeInBytesHistogram.ExceptionMessages.Capacity}"
+      # misses: "{.Aggregated_PerSecondStats.Misses}"
+      # stale: "{.Aggregated_PerSecondStats.Stale}"
+      # updating: "{.Aggregated_PerSecondStats.Updating}"
+      # hitRps: "{.Aggregated_PerSecondStats.HitRps}"
+      # missRps: "{.Aggregated_PerSecondStats.MissRps}"
+      # hitMbps: "{.Aggregated_PerSecondStats.HitMbps}"
+      # missMbps: "{.Aggregated_PerSecondStats.MissMbps}"
+      # hitBytesSum_Accumulator: "{.Aggregated_PerSecondStats.HitBytesSum_Accumulator}"
+      # requestDurationInMs_Accumulator: "{.Aggregated_PerSecondStats.RequestDurationInMs_Accumulator}"
+      # requestDurationCountAccumulator: "{.Aggregated_PerSecondStats.RequestDurationCountAccumulator}"
