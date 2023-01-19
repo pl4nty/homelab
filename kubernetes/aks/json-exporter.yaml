@@ -27,10 +27,10 @@ spec:
           default:
             metrics:
             - name: mcc
-              path: '{.avgDiskStats}'
+              path: '{.AvgDiskStats}'
               help: Per-second stats aggregated over a minute
               values:
-                mcc_test: '{.avgDiskStats.totalSamples}'
+                mcc_test: '{.AvgDiskStats.TotalSamples}'
     # mcc_hits: "{.aggregated_PerSecondStats.hits}"
     # mcc_misses: "{.aggregated_PerSecondStats.misses}"
     # mcc_stale: "{.aggregated_PerSecondStats.stale}"
