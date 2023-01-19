@@ -27,7 +27,7 @@ spec:
           default:
             metrics:
             - name: mcc
-              path: "{.aggregated\_PerSecondStats}"
+              path: "{.aggregated_PerSecondStats}"
               help: Per-second stats aggregated over a minute
               values:
                 mcc_hits: "{.aggregated_PerSecondStats.hits}"
