@@ -27,10 +27,10 @@ spec:
           default:
             metrics:
             - name: mcc
-              path: "{.canonicalHosts_Allowed_HitCount}"
+              path: '{.avgDiskStats}'
               help: Per-second stats aggregated over a minute
               values:
-                mcc_test: "{.canonicalHosts_Allowed_HitCount.DCSFE\.PROD\.ADU\.MICROSOFT\.COM}"
+                mcc_test: '{.avgDiskStats.totalSamples}'
     # mcc_hits: "{.aggregated_PerSecondStats.hits}"
     # mcc_misses: "{.aggregated_PerSecondStats.misses}"
     # mcc_stale: "{.aggregated_PerSecondStats.stale}"
