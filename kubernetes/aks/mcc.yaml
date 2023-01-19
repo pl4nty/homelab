@@ -20,7 +20,7 @@ spec:
       - name: mcc-registry
       containers:
       - name: mcc
-        image: msconnectedcacheprod.azurecr.io/mcc/linux/iot/mcc-ubuntu-iot-amd64:1.2.1.1405
+        image: msconnectedcacheprod.azurecr.io/mcc/linux/iot/mcc-ubuntu-iot-amd64:1.2.1.1501
         resources:
           requests:
             cpu: 50m
