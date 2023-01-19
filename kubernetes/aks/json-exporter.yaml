@@ -17,7 +17,7 @@ spec:
       enabled: true
       targets:
       - name: mcc
-        url: mcc.svc.cluster.local:5000/summary
+        url: mcc:5000/summary
     configuration:
       config: |
         ---
