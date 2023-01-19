@@ -17,7 +17,7 @@ spec:
       enabled: true
       targets:
       - name: mcc
-        url: mcc:5000/summary
+        url: http://mcc:5000/summary
     configuration:
       config: |
         ---
