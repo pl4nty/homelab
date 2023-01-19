@@ -18,6 +18,8 @@ spec:
       targets:
       - name: mcc
         url: http://mcc:5000/summary
+      defaults:
+        interval: 1m
     configuration:
       config: |
         ---
