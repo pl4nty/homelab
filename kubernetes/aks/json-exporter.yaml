@@ -29,8 +29,10 @@ spec:
             - name: mcc
               path: "{.RequestSizeInBytesHistogram.ExceptionMessages.Capacity}"
               help: Per-second stats aggregated over a minute
-              values:
-                mcc_test: "{.RequestSizeInBytesHistogram.ExceptionMessages.Capacity}"
+              labels:
+                environment: test
+      # values:
+      #   mcc_test: "{.RequestSizeInBytesHistogram.ExceptionMessages.Capacity}"
       # mcc_misses: "{.Aggregated_PerSecondStats.Misses}"
       # mcc_stale: "{.Aggregated_PerSecondStats.Stale}"
       # mcc_updating: "{.Aggregated_PerSecondStats.Updating}"
