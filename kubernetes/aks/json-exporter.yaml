@@ -17,7 +17,7 @@ spec:
       enabled: true
       targets:
       - name: mcc
-        url: https://ifconfig.me/all.json # http://mcc:5000/summary
+        url: http://mcc:5000/summary
       defaults:
         interval: 1m
     configuration:
@@ -27,7 +27,7 @@ spec:
           default:
             metrics:
             - name: mcc
-              path: "{.ip_addr}"
+              path: "{ .Aggregated_PerSecondStats.Samples }"
               help: Per-second stats aggregated over a minute
               labels:
                 environment: test
