@@ -1,12 +1,3 @@
-apiVersion: source.toolkit.fluxcd.io/v1beta1
-kind: HelmRepository
-metadata:
-  name: prometheus-community
-  namespace: grafana
-spec:
-  url: https://prometheus-community.github.io/helm-charts
-  interval: 2h
----
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:

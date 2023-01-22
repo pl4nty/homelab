@@ -5,16 +5,6 @@ metadata:
     name: grafana
   name: grafana
 ---
-apiVersion: source.toolkit.fluxcd.io/v1beta1
-kind: HelmRepository
-metadata:
-  name: grafana-charts
-  namespace: grafana
-spec:
-  url: https://grafana.github.io/helm-charts
-  interval: 30m
-  timeout: 3m
----
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
