@@ -18,7 +18,37 @@ spec:
       monitor:
         enabled: true
         metricRelabelings:
-        - action: drop
-          regex: go.*|python.*|node_sockstat.*|node_vmstat.*
+        - action: keep
+          regex: "node_filesystem.*|\
+            node_network_(receive|transmit).*|\
+            node_cpu_seconds_total|\
+            node_disk_read_bytes_total|\
+            node_disk_written_bytes_total|\
+            node_disk_io_now|node_disk_writes_completed_total\
+            |node_disk_reads_completed_total|\
+            node_memory_Cached_bytes|\
+            node_filefd_allocated|\
+            node_load5|\
+            node_memory_MemTotal_bytes|\
+            node_memory_MemFree_bytes|\
+            node_netstat_Tcp_CurrEstab|\
+            node_memory_MemAvailable_bytes|\
+            node_time_seconds|\
+            node_memory_SwapFree_bytes|\
+            node_memory_Buffers_bytes|\
+            node_netstat_Tcp_OutSegs|\
+            node_nf_conntrack_entries_limit|\
+            node_boot_time_seconds|\
+            node_memory_SwapTotal_bytes|\
+            node_load15|\
+            node_netstat_TcpExt_TCPSynRetrans|\
+            node_nf_conntrack_entries|\
+            node_load1|\
+            node_filefd_maximum|\
+            node_intr_total|\
+            node_netstat_Tcp_RetransSegs|\
+            node_timex_maxerror_seconds|\
+            node_context_switches_total|\
+            node_timex_estimated_error_seconds"
           sourceLabels:
           - __name__
