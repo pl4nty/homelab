@@ -1,103 +1,89 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
 metadata:
-  name: well-known
+  name: rclone-backup
   namespace: default
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: well-known
-  template:
-    metadata:
-      labels:
-        app: well-known
+  interval: 15m
+  chart:
     spec:
-      containers:
-      - image: nginx:1.23.3
-        imagePullPolicy: IfNotPresent
+      chart: app-template
+      version: 1.2.1
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: default
+  values:
+    image:
+      repository: nginx
+      tag: 1.23.3
+    resources:
+      requests:
+        cpu: 1m
+        memory: 10Mi
+      limits:
+        cpu: 100m
+        memory: 100Mi
+    configMaps:
+      config:
+        enabled: true
+        data:
+          robots.txt: |
+            User-agent: *
+            Allow: / 
+          security.txt: |
+            Contact: https://twitter.com/pl4nty
+            Expires: 2024-00-00T00:00:00.000Z
+            Preferred-Languages: en
+            Canonical: https://tplant.au/.well-known/security.txt
+          webfinger: |
+            {
+              "subject": "acct:pl4nty@aus.social",
+              "aliases": [
+                "https://aus.social/@pl4nty",
+                "https://aus.social/users/pl4nty"
+              ],
+              "links": [
+                {
+                  "rel": "http://webfinger.net/rel/profile-page",
+                  "type": "text/html",
+                  "href": "https://aus.social/@pl4nty"},
+                {
+                  "rel": "self",
+                  "type": "application/activity+json",
+                  "href": "https://aus.social/users/pl4nty"
+                },
+                {
+                  "rel": "http://ostatus.org/schema/1.0/subscribe",
+                  "template": "https://aus.social/authorize_interaction?uri={uri}"
+                }
+              ]
+            }
+    persistence:
+      config:
+        enabled: true
+        type: configMap
         name: well-known
+        mountPath: /usr/share/nginx/html
+        items:
+        - key: robots.txt
+          path: robots.txt
+        - key: security.txt
+          path: .well-known/security.txt
+        - key: webfinger
+          path: .well-known/webfinger
+    service:
+      main:
         ports:
-        - containerPort: 80
-        volumeMounts:
-        - name: well-known
-          mountPath: /usr/share/nginx/html
-      volumes:
-      - name: well-known
-        configMap:
-          name: well-known
-          items:
-          - key: robots.txt
-            path: robots.txt
-          - key: security.txt
-            path: .well-known/security.txt
-          - key: webfinger
-            path: .well-known/webfinger
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: well-known
-  namespace: default
-spec:
-  ports:
-    - port: 80
-      targetPort: 80
-      protocol: TCP
-  selector:
-    app: well-known
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: well-known
-  namespace: default
-data:
-  robots.txt: |
-    User-agent: *
-    Allow: / 
-  security.txt: |
-    Contact: https://twitter.com/pl4nty
-    Expires: 2024-00-00T00:00:00.000Z
-    Preferred-Languages: en
-    Canonical: https://tplant.au/.well-known/security.txt
-  webfinger: |
-    {
-      "subject": "acct:pl4nty@aus.social",
-      "aliases": [
-        "https://aus.social/@pl4nty",
-        "https://aus.social/users/pl4nty"
-      ],
-      "links": [
-        {
-          "rel": "http://webfinger.net/rel/profile-page",
-          "type": "text/html",
-          "href": "https://aus.social/@pl4nty"},
-        {
-          "rel": "self",
-          "type": "application/activity+json",
-          "href": "https://aus.social/users/pl4nty"
-        },
-        {
-          "rel": "http://ostatus.org/schema/1.0/subscribe",
-          "template": "https://aus.social/authorize_interaction?uri={uri}"
-        }
-      ]
-    }
----
-apiVersion: gateway.networking.k8s.io/v1beta1
-kind: HTTPRoute
-metadata:
-  name: well-known
-  namespace: default
-spec:
-  parentRefs:
-  - name: gateway
-    sectionName: http
-  hostnames:
-  - "tplant.au"
-  - "*.tplant.au"
-  rules:
-  - backendRefs:
-    - name: well-known
-      port: 80
+          http:
+            port: 80
+    route:
+      main:
+        enabled: true
+        parentRefs:
+        - namespace: default
+          name: gateway
+          sectionName: http
+        hostnames:
+        - "tplant.au"
+        - "*.tplant.au"
