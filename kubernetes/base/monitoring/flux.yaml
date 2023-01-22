@@ -32,28 +32,29 @@ spec:
       regex: go.*|gotk_reconcile_duration_seconds_bucket
       sourceLabels:
       - __name__
----
-apiVersion: notification.toolkit.fluxcd.io/v1beta2
-kind: Alert
-metadata:
-  name: grafana
-  namespace: grafana
-spec:
-  providerRef:
-    name: grafana
-  eventSeverity: info
-  eventSources:
-    - kind: GitRepository
-      name: '*'
-      namespace: flux-system
----
-apiVersion: notification.toolkit.fluxcd.io/v1beta2
-kind: Provider
-metadata:
-  name: grafana
-  namespace: grafana
-spec:
-  type: grafana
-  address: "http://tplant.grafana.net/api/annotations"
-  secretRef:
-    name: annotation-token
+# notification CRD unsupported in AKS extension as of writing
+# ---
+# apiVersion: notification.toolkit.fluxcd.io/v1beta2
+# kind: Alert
+# metadata:
+#   name: grafana
+#   namespace: grafana
+# spec:
+#   providerRef:
+#     name: grafana
+#   eventSeverity: info
+#   eventSources:
+#     - kind: GitRepository
+#       name: '*'
+#       namespace: flux-system
+# ---
+# apiVersion: notification.toolkit.fluxcd.io/v1beta2
+# kind: Provider
+# metadata:
+#   name: grafana
+#   namespace: grafana
+# spec:
+#   type: grafana
+#   address: "http://tplant.grafana.net/api/annotations"
+#   secretRef:
+#     name: annotation-token
