@@ -45,6 +45,13 @@ spec:
     # remotes have no hashes in common so can't use checksum, see rclone/rclone#6585
     # - --checksum
     - --size-only
+    resources:
+      requests:
+        cpu: 150m
+        memory: 100Mi
+      limits:
+        cpu: 300m
+        memory: 200Mi
     persistence:
       secret:
         enabled: true
