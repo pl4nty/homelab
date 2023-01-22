@@ -63,7 +63,7 @@ spec:
       config:
         enabled: true
         type: configMap
-        name: well-known
+        name: well-known-config
         mountPath: /usr/share/nginx/html
         items:
         - key: robots.txt
