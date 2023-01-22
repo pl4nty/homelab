@@ -29,7 +29,7 @@ spec:
       sourceLabels: [__meta_kubernetes_pod_phase]
       regex: Running
     - action: drop
-      regex: go.*
+      regex: go.*|gotk_reconcile_duration_seconds_bucket
       sourceLabels:
       - __name__
 ---
