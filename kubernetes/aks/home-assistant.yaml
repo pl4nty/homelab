@@ -38,6 +38,8 @@ spec:
               use_x_forwarded_for: true
               trusted_proxies:
               - 10.244.0.0/16
+            homeassistant:
+              external_url: https://home-assistant.tplant.au
     persistence:
       configmap:
         enabled: true
@@ -49,7 +51,7 @@ spec:
         name: home-assistant
         mountPath: /config
         accessMode: ReadWriteOnce
-        size: 1Gi
+        # size: 1Gi
     resources:
       requests:
         cpu: 100m
