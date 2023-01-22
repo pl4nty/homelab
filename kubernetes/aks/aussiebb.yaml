@@ -16,7 +16,7 @@ spec:
   values:
     image:
       repository: ghcr.io/pl4nty/aussiebb
-      tag: 0.3
+      tag: '0.3'
     envFrom:
     - secretRef:
         name: aussiebb
