@@ -6,8 +6,8 @@ metadata:
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: well-known
-  namespace: default
+  name: cloudflared
+  namespace: cloudflared
 spec:
   interval: 15m
   chart:
