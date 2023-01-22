@@ -50,7 +50,7 @@ spec:
         enabled: true
         type: secret
         name: rclone-backup
-        mountPath: -
+        mountPath: '-'
       config:
         enabled: true
         mountPath: /config/rclone
