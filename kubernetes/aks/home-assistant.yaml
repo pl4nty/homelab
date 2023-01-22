@@ -19,7 +19,24 @@ spec:
       tag: 2023.1.6
     env:
       TZ: Australia/Sydney
-      SECRET_TRUSTED_PROXIES_1: 10.244.0.0/16
+    configMaps:
+      config:
+        enabled: true
+        data:
+          configuration.yaml: |
+            http:
+              use_x_forwarded_for: true
+              trusted_proxies:
+              - 10.244.0.0/16
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: home-assistant-config
+        mountPath: /config
+        items:
+        - key: configuration.yaml
+          path: configuration.yaml
     resources:
       requests:
         cpu: 100m
@@ -49,4 +66,4 @@ spec:
           name: gateway
           sectionName: http
         hostnames:
-        - home-assistant.tplant.au 
+        - home-assistant.tplant.au
