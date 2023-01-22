@@ -22,12 +22,16 @@ spec:
         - image-automation-controller
         - image-reflector-controller
   podMetricsEndpoints:
-    - port: http-prom
-      relabelings:
-      # https://github.com/prometheus-operator/prometheus-operator/issues/4816
-      - sourceLabels: [__meta_kubernetes_pod_phase]
-        action: keep
-        regex: Running
+  - port: http-prom
+    relabelings:
+    # https://github.com/prometheus-operator/prometheus-operator/issues/4816
+    - action: keep
+      sourceLabels: [__meta_kubernetes_pod_phase]
+      regex: Running
+    - action: drop
+      regex: go.*
+      sourceLabels:
+      - __name__
 ---
 apiVersion: notification.toolkit.fluxcd.io/v1beta2
 kind: Alert
