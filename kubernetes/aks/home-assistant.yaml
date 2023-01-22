@@ -33,11 +33,8 @@ spec:
         enabled: true
         type: configMap
         name: home-assistant-config
-        mountPath: /config
+        mountPath: /config/configuration.yaml
         subPath: configuration.yaml
-        items:
-        - key: configuration.yaml
-          path: configuration.yaml
     resources:
       requests:
         cpu: 100m
