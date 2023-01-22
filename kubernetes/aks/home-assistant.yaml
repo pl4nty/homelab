@@ -34,6 +34,7 @@ spec:
         type: configMap
         name: home-assistant-config
         mountPath: /config
+        subPath: configuration.yaml
         items:
         - key: configuration.yaml
           path: configuration.yaml
