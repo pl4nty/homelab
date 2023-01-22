@@ -19,5 +19,5 @@ spec:
       interval: 15m
       sourceRef:
         kind: HelmRepository
-        namespace: grafana
-        name: flux-system
+        namespace: flux-system
+        name: grafana
