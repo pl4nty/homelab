@@ -1,52 +1,37 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
 metadata:
   name: aussiebb
   namespace: default
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: aussiebb
-  template:
-    metadata:
-      labels:
-        app: aussiebb
+  interval: 15m
+  chart:
     spec:
-      containers:
-      - name: aussiebb
-        image: ghcr.io/pl4nty/aussiebb:sha-cccb60f
+      chart: app-template
+      version: 1.2.1
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: default
+  values:
+    image:
+      repository: ghcr.io/pl4nty/aussiebb
+      tag: sha-cccb60f
+    envFrom:
+    - secretRef:
+        name: aussiebb
+    resources:
+      requests:
+        cpu: 1m
+        memory: 20Mi
+      limits:
+        cpu: 100m
+        memory: 100Mi
+    service:
+      main:
         ports:
-        - name: metrics
-          containerPort: 8000
-        env:
-        - name: AUSSIE_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: aussiebb
-              key: username
-        - name: AUSSIE_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: aussiebb
-              key: password
-        resources:
-          requests:
-            cpu: 1m
-            memory: 20Mi
-          limits:
-            cpu: 100m
-            memory: 100Mi
----
-apiVersion: monitoring.coreos.com/v1
-kind: PodMonitor
-metadata:
-  name: aussiebb
-  namespace: default
-spec:
-  podMetricsEndpoints:
-  - port: metrics
-    interval: 15m
-  selector:
-    matchLabels:
-      app: aussiebb
+          http:
+            port: 8000
+    serviceMonitor:
+      main:
+        enabled: true

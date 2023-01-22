@@ -5,8 +5,8 @@ metadata:
     namespace: default
 type: Opaque
 stringData:
-    username: ENC[AES256_GCM,data:xR6bagYTvQ==,iv:g8f1VbvzJj9MdvaOJR8KsQL+Vxj0nZ3VH7fN8jMMkgY=,tag:A2RIQp2P6S5ER3Rty9PTDA==,type:str]
-    password: ENC[AES256_GCM,data:RjCHe/d6vnFxFhKa+Kk9nQ==,iv:vtM6F7tVCOlJEmZF3E8Sppfl6LLpMZ79UlHRKKBaVcY=,tag:UAYDEFgOYk/rli1FTHatpg==,type:str]
+    AUSSIE_USERNAME: ENC[AES256_GCM,data:lsyzkZPAzw==,iv:KIJDsNedITMWXpOu9ejigaUDzPfweKCR06O0Eighgc8=,tag:nuzinaBxaEa8NJKTrb4OaQ==,type:str]
+    AUSSIE_PASSWORD: ENC[AES256_GCM,data:NQPuEsO4VDKaG4/geCRKog==,iv:mQsjVDCBoIvz29tf/qYwoibZ004eCsUIaU/O9I8qLuA=,tag:mRB7hTmM7IncyMHCOjwsig==,type:str]
 sops:
     kms: []
     gcp_kms: []
@@ -22,8 +22,8 @@ sops:
             WWxvWVo0dkdtWWhNY0p2NllKODE0TjAKibO0MBwOMC/aZLuCvORJAHW0NqS883uX
             CaBm7s5vqBte89Etol0t6yh63RU9GtGBRPEV5Ixg/C4H97+/ppkeAQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2022-12-18T04:31:10Z"
-    mac: ENC[AES256_GCM,data:/OqWa9w4ghtAa5ImDtylZpM5qaLRMsCe9Fi6Mb034DKtw8AB4vKUjMIs1AjJl1fJy/n0U4FOeUa5/Z9H8MC+qK1d5fdmT3NlcEcsgsp4q6rrs5Tjey5lTGqlN+o8xDZDsLEjFqHtNiv4Lp9O5eNU5YS81fEPqQMWL8Bz+1k/R7M=,iv:sp/v5i9pSh4d93hYrgfybe3V5qZ5EGcywyCM1QZNZbQ=,tag:mpHDu4Gpra6lXSOlBEjz3Q==,type:str]
+    lastmodified: "2023-01-22T03:59:25Z"
+    mac: ENC[AES256_GCM,data:Pbcb0oHevp927dzFdmyMVPbLpce6JDYf2aiHMrYmyug/Pg0TCckt1tPkWYi5QjCDhkIJ38sn+tspc0yqHvF8Qj5oiJpeNzTNm2ofjqNeGm/SjAWdUnwjkaMFeQl0uDp+kUYkFPxiMcUMb7gmCLHlo5RPemudm2qOWqAVz/2korc=,iv:zn+1R/5fbLismD6NXWKy6UqHC9h2Sav5Ih3EIt/oYgg=,tag:sPUAu51nw4wC18xdv+YRog==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.7.3
