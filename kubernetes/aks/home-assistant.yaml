@@ -82,3 +82,33 @@ spec:
           sectionName: http
         hostnames:
         - home-assistant.tplant.au
+    addons:
+      codeserver:
+        enabled: true
+        workingDir: '/config'
+        args:
+          - --user-data-dir
+          - '/config/.vscode'
+          - --auth
+          - 'none'
+          - --extensions-dir
+          - '/config/.vscode'
+        volumeMounts:
+          - name: volume
+            mountPath: /config
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: home-assistant-codeserver
+  namespace: default
+spec:
+  parentRefs:
+  - name: gateway
+    sectionName: http
+  hostnames:
+  - hass-vscode.tplant.au
+  rules:
+  - backendRefs:
+    - name: home-assistant-codeserver
+      port: 12321
