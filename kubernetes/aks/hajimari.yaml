@@ -68,7 +68,7 @@ spec:
   - name: gateway
     sectionName: http
   hostnames:
-  - lab.tplant.au
+  - lab.cloud.tplant.au
   rules:
   - backendRefs:
     - name: hajimari
