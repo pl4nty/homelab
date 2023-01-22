@@ -19,6 +19,6 @@ spec:
         enabled: true
         metricRelabelings:
         - action: drop
-          regex: go.*|python.*
+          regex: go.*|python.*|node_sockstat.*
           sourceLabels:
           - __name__
