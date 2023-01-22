@@ -27,8 +27,6 @@ spec:
     image:
       repository: ghcr.io/home-assistant/home-assistant
       tag: 2023.1.6
-    env:
-      TZ: Australia/Sydney
     configMaps:
       config:
         enabled: true
@@ -39,6 +37,7 @@ spec:
               trusted_proxies:
               - 10.244.0.0/16
             homeassistant:
+              time_zone: Australia/Sydney
               external_url: https://home-assistant.tplant.au
     persistence:
       configmap:
