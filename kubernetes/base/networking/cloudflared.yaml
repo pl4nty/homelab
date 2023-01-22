@@ -3,71 +3,65 @@ kind: Namespace
 metadata:
   name: cloudflared
 ---
-# https://github.com/cloudflare/argo-tunnel-examples/blob/master/named-tunnel-k8s/cloudflared.yaml
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
 metadata:
-  name: cloudflared
-  namespace: cloudflared
+  name: well-known
+  namespace: default
 spec:
-  selector:
-    matchLabels:
-      app: cloudflared
-  replicas: 1 # You could also consider elastic scaling for this deployment
-  template:
-    metadata:
-      labels:
-        app: cloudflared
+  interval: 15m
+  chart:
     spec:
-      containers:
-      - name: cloudflared
-        image: cloudflare/cloudflared:2023.1.0
-        args:
-        - tunnel
-        - run
-        env:
-        - name: TUNNEL_METRICS
-          value: 0.0.0.0:2000
-        - name: TUNNEL_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: tunnel-credentials
-              key: token
+      chart: app-template
+      version: 1.2.1
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  values:
+    image:
+      repository: cloudflare/cloudflared
+      tag: 2023.1.0
+    args: [tunnel, run]
+    env:
+      TUNNEL_METRICS: 0.0.0.0:2000
+      TUNNEL_TOKEN:
+        valueFrom:
+          secretKeyRef:
+            name: tunnel-credentials
+            key: token
+    resources:
+      requests:
+        cpu: 10m
+        memory: 20Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    service:
+      main:
         ports:
-        - name: metrics
-          containerPort: 2000
-        livenessProbe:
-          httpGet:
-            # Cloudflared has a /ready endpoint which returns 200 if and only if
-            # it has an active connection to the edge.
-            path: /ready
+          http:
             port: 2000
-          failureThreshold: 1
-          initialDelaySeconds: 10
-          periodSeconds: 10
-        resources:
-          requests:
-            cpu: 10m
-            memory: 20Mi
-          limits:
-            cpu: 500m
-            memory: 1Gi
----
-apiVersion: monitoring.coreos.com/v1
-kind: PodMonitor
-metadata:
-  name: cloudflared
-  namespace: cloudflared
-spec:
-  podMetricsEndpoints:
-  - port: metrics
-    interval: 5m
-    metricRelabelings:
-    - action: drop
-      regex: go.*|python.*
-      sourceLabels:
-      - __name__
-  selector:
-    matchLabels:
-      app: cloudflared
-
+    probes:
+      liveness:
+          custom: true
+          spec:
+            httpGet:
+              # Cloudflared has a /ready endpoint which returns 200 if and only if
+              # it has an active connection to the edge.
+              path: /ready
+              port: 2000
+            failureThreshold: 1
+            initialDelaySeconds: 10
+            periodSeconds: 10
+    serviceMonitor:
+      main:
+        enabled: true
+        endpoints:
+        - port: http
+          interval: 1m
+          metricRelabelings:
+          - action: drop
+            regex: go.*|python.*
+            sourceLabels:
+            - __name__
