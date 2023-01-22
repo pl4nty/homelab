@@ -10,7 +10,8 @@ spec:
       chart: hajimari
       sourceRef:
         kind: HelmRepository
-        name: hajimari-charts
+        name: hajimari
+        namespace: flux-system
   values:
     hajimari:
       title: Tom's Lab

@@ -20,4 +20,4 @@ spec:
       sourceRef:
         kind: HelmRepository
         namespace: grafana
-        name: grafana-charts
+        name: flux-system

@@ -1,8 +1,8 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta1
 kind: HelmRepository
 metadata:
-  name: hajimari-charts
-  namespace: default
+  name: hajimari
+  namespace: flux-system
 spec:
-  url: https://hajimari.io
   interval: 1h
+  url: https://hajimari.io
