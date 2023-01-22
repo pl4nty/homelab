@@ -48,6 +48,8 @@ spec:
         enabled: true
         name: home-assistant
         mountPath: /config
+        accessMode: ReadWriteOnce
+        size: 1Gi
     resources:
       requests:
         cpu: 100m
