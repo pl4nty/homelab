@@ -71,7 +71,8 @@ spec:
       main:
         enabled: true
         parentRefs:
-        - name: gateway
+        - namespace: default
+          name: gateway
           sectionName: http
         hostnames:
         - cache.tplant.au 
