@@ -21,12 +21,14 @@ spec:
       darkTheme: espresso
       lightTheme: paper
       customApps:
-      - group: default
+      - group: apps
         apps:
         - name: echo
           url: https://echo.tplant.au
+        - name: k8s-at-home search
+          url: https://nanne.dev/k8s-at-home-search/
       globalBookmarks:
-      - group: default
+      - group: dependencies
         bookmarks:
         - name: github
           url: https://github.com/pl4nty
