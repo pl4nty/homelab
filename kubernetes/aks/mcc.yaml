@@ -36,7 +36,7 @@ spec:
       STORAGE_1_SIZE_GB: '10'
     envFrom:
     - secretRef:
-      name: mcc-env
+        name: mcc-env
     resources:
       requests:
         cpu: 50m
