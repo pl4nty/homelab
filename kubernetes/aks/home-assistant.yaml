@@ -110,5 +110,5 @@ spec:
   - hass-vscode.tplant.au
   rules:
   - backendRefs:
-    - name: home-assistant-codeserver
+    - name: home-assistant-addon-codeserver
       port: 12321
