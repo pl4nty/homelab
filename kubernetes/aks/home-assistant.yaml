@@ -18,7 +18,8 @@ spec:
       repository: ghcr.io/home-assistant/home-assistant
       tag: 2023.1.6
     env:
-      TZ: 'Australia/Sydney'
+      TZ: Australia/Sydney
+      SECRET_TRUSTED_PROXIES_1: 10.244.0.0/16
     resources:
       requests:
         cpu: 100m
