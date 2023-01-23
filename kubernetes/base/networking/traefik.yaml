@@ -43,5 +43,7 @@ spec:
       single: false
 
     metrics:
+      prometheus:
+        serviceMonitor:
       service:
         enabled: true
