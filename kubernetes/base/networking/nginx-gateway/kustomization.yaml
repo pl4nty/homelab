@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
 - https://github.com/kubernetes-sigs/gateway-api/releases/download/v0.5.1/standard-install.yaml
 # - https://github.com/nginxinc/nginx-kubernetes-gateway//deploy/manifests/namespace.yaml?ref=v0.2.0
+- kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v0.4.0/experimental-install.yaml
 - namespace.yaml
 - njs-modules.yaml
 - gatewayclass.yaml
