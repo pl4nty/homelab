@@ -33,6 +33,8 @@ spec:
       regex: go_.*|gotk_reconcile_duration_seconds_bucket|gotk_event_.*|gotk_receiver_.*
       sourceLabels:
       - __name__
+    - action: labeldrop
+      regex: instance
 # notification CRD unsupported in AKS extension as of writing
 # ---
 # apiVersion: notification.toolkit.fluxcd.io/v1beta2
