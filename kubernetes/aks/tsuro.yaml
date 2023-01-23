@@ -15,7 +15,7 @@ spec:
         namespace: flux-system
   values:
     controller:
-      replicas: 0
+      replicas: 1
     image:
       repository: ghcr.io/pl4nty/tsuro
       tag: latest
@@ -37,7 +37,7 @@ spec:
         enabled: true
         parentRefs:
         - namespace: default
-          name: gateway
+          name: traefik
           sectionName: http
         hostnames:
         - tsuro.tplant.au
