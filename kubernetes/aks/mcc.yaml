@@ -16,6 +16,7 @@ spec:
   values:
     controller:
       strategy: Recreate
+      replicas: 0
     image:
       repository: msconnectedcacheprod.azurecr.io/mcc/linux/iot/mcc-ubuntu-iot-amd64
       tag: 1.2.1.1501
