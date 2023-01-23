@@ -37,6 +37,6 @@ spec:
         enabled: true
         parentRefs:
         - namespace: default
-          name: traefik
+          name: traefik-gateway
         hostnames:
         - tsuro.tplant.au
