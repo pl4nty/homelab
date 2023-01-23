@@ -38,6 +38,5 @@ spec:
         parentRefs:
         - namespace: default
           name: traefik
-          sectionName: http
         hostnames:
         - tsuro.tplant.au
