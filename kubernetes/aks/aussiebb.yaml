@@ -39,6 +39,6 @@ spec:
         - port: http
           metricRelabelings:
           - action: drop
-            regex: python.*
+            regex: python.*|process.*|scrape.*
             sourceLabels:
             - __name__
