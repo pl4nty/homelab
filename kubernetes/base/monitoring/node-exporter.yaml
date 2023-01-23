@@ -19,6 +19,8 @@ spec:
         enabled: true
         interval: 2m
         metricRelabelings:
+        - action: labeldrop
+          regex: pod
         - action: keep
           regex: "node_filesystem_device_error|\
             node_filesystem_files|\
