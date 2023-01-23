@@ -29,7 +29,7 @@ spec:
       sourceLabels: [__meta_kubernetes_pod_phase]
       regex: Running
     - action: drop
-      regex: go_.*|gotk_reconcile_duration_seconds_bucket
+      regex: go_.*|gotk_reconcile_duration_seconds_bucket|gotk_event_.*|gotk_receiver_.*
       sourceLabels:
       - __name__
 # notification CRD unsupported in AKS extension as of writing
