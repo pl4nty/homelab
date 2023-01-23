@@ -36,6 +36,12 @@ spec:
       kubernetesIngress:
         enabled: false
 
+    # Goes beta (live in AKS) in 1.26, preview ETA from Jan 2023
+    # https://learn.microsoft.com/en-us/azure/aks/supported-kubernetes-versions#aks-kubernetes-release-calendar
+    # https://releases.aks.azure.com/#tabasia
+    service:
+      single: false
+
     metrics:
       service:
         enabled: true
