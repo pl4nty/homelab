@@ -25,8 +25,7 @@ spec:
     experimental:
       kubernetesGateway:
         enabled: true
-        gateway:
-          namespace: default
+        namespace: default
     ingressRoute:
       dashboard:
         enabled: false
