@@ -224,48 +224,25 @@ spec:
       targetLabel: job
       replacement: integrations/kubernetes/kube-state-metrics
     - action: keep
-      regex: "cluster:namespace:pod_cpu:active:kube_pod_container_resource_limits|\
-        cluster:namespace:pod_cpu:active:kube_pod_container_resource_requests|\
-        cluster:namespace:pod_memory:active:kube_pod_container_resource_limits|\
-        cluster:namespace:pod_memory:active:kube_pod_container_resource_requests|\
-        kube_daemonset.*|\
-        kube_deployment_metadata_generation|\
-        kube_deployment_spec_replicas|\
-        kube_deployment_status_observed_generation|\
-        kube_deployment_status_replicas|\
+      regex: "kube_daemonset_status_desired_number_scheduled|\
+        kube_daemonset_status_number_ready|\
+        kube_daemonset_labels|\
         kube_deployment_status_replicas_available|\
-        kube_deployment_status_replicas_updated|\
-        kube_horizontalpodautoscaler_spec_max_replicas|\
-        kube_horizontalpodautoscaler_spec_min_replicas|\
-        kube_horizontalpodautoscaler_status_current_replicas|\
-        kube_horizontalpodautoscaler_status_desired_replicas|\
         kube_job.*|\
-        kube_namespace_status_phase|\
-        namespace_workload_pod:kube_pod_owner:relabel|\
         kube_node.*|\
         kube_pod_container_info|\
         kube_pod_container_resource_limits|\
-        namespace_cpu:kube_pod_container_resource_limits:sum|\
-        namespace_memory:kube_pod_container_resource_limits:sum
         kube_pod_container_resource_requests|\
-        cluster:namespace:pod_cpu:active:kube_pod_container_resource_requests|\
-        namespace_cpu:kube_pod_container_resource_requests:sum|\
-        namespace_memory:kube_pod_container_resource_requests:sum|\
         kube_pod_container_status_restarts_total|\
         kube_pod_container_status_waiting_reason|\
         kube_pod_info|\
         kube_pod_owner|\
-        kube_pod_start_time|\
         kube_replicaset.*|\
-        kube_resourcequota|\
+        kube_replicaset_owner|\
         kube_statefulset.*|\
-        namespace_workload_pod|\
         process_resident_memory_bytes|\
         kube_persistentvolumeclaim_info|\
         kube_persistentvolumeclaim_resource_requests_storage_bytes|\
-        kube_persistentvolume_capacity_bytes|\
-        kube_node_status_capacity_cpu_cores|\
-        kube_node_status_capacity_memory_bytes|\
         kube_pod_container_resource_requests|\
         kube_namespace_created|\
         kube_pod_status_phase|\
