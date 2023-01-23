@@ -17,6 +17,7 @@ spec:
     prometheus:
       monitor:
         enabled: true
+        interval: 2m
         metricRelabelings:
         - action: keep
           regex: "node_filesystem.*|\
