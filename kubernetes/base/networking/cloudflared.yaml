@@ -61,7 +61,7 @@ spec:
         - port: http
           interval: 1m
           metricRelabelings:
-          - action: drop
-            regex: go.*|python.*
+          - action: keep
+            regex: quic.*|cloudflared.*
             sourceLabels:
             - __name__
