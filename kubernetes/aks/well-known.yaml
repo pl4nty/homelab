@@ -82,8 +82,7 @@ spec:
         enabled: true
         parentRefs:
         - namespace: default
-          name: gateway
-          sectionName: http
+          name: traefik-gateway
         hostnames:
         - "tplant.au"
         - "*.tplant.au"
