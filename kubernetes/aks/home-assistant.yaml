@@ -102,8 +102,7 @@ metadata:
   namespace: default
 spec:
   parentRefs:
-  - name: gateway
-    sectionName: http
+  - name: traefik-gateway
   hostnames:
   - hass-vscode.tplant.au
   rules:
