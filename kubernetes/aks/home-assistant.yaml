@@ -77,8 +77,7 @@ spec:
         enabled: true
         parentRefs:
         - namespace: default
-          name: gateway
-          sectionName: http
+          name: traefik
         hostnames:
         - home-assistant.tplant.au
     addons:
