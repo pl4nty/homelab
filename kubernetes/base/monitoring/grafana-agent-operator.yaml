@@ -16,7 +16,6 @@ spec:
     spec:
       chart: grafana-agent-operator
       version: 0.2.8
-      interval: 15m
       sourceRef:
         kind: HelmRepository
         namespace: flux-system
