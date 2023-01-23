@@ -38,7 +38,6 @@ spec:
         kubelet_volume_stats_inodes|\
         kubelet_volume_stats_inodes_used|\
         process_cpu_seconds_total|\
-        rest_client_request_duration_seconds_bucket|\
         rest_client_requests_total|\
         storage_operation_duration_seconds_count|\
         storage_operation_errors_total|\
@@ -87,9 +86,7 @@ spec:
         container_fs_limit_bytes|\
         container_fs_usage_bytes|\
         container_fs_reads_bytes_total|\
-        container_fs_reads_total|\
         container_fs_writes_bytes_total|\
-        container_fs_writes_total|\
         container_memory_working_set_bytes|\
         container_network_receive_bytes_total|\
         container_network_receive_packets_dropped_total|\
@@ -97,11 +94,7 @@ spec:
         container_network_transmit_bytes_total|\
         container_network_transmit_packets_dropped_total|\
         container_network_transmit_packets_total|\
-        container_start_time_seconds|\
         machine_memory_bytes|\
-        node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate|\
-        node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate|\
-        node_namespace_pod_container:container_memory_working_set_bytes|\
         process_resident_memory_bytes|\
         container_memory_usage_bytes|\
         machine_cpu_cores|\
