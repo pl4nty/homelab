@@ -22,9 +22,8 @@ metadata:
   namespace: flux-system
 spec:
   parentRefs:
-  - name: gateway
+  - name: traefik-gateway
     namespace: default
-    sectionName: http
   hostnames:
   - flux-webhook.tplant.au
   rules:
