@@ -209,57 +209,57 @@ spec:
       nodeSelector:
         kubernetes.io/os: linux
       serviceAccountName: kube-state-metrics
-# ---
-# apiVersion: monitoring.coreos.com/v1
-# kind: ServiceMonitor
-# metadata:
-#   name: ksm-monitor
-#   namespace: grafana
-# spec:
-#   endpoints:
-#   - honorLabels: true
-#     interval: 60s
-#     metricRelabelings:
-#     - action: replace
-#       targetLabel: job
-#       replacement: integrations/kubernetes/kube-state-metrics
-#     - action: keep
-#       regex: "kube_daemonset_status_desired_number_scheduled|\
-#         kube_daemonset_status_number_ready|\
-#         kube_daemonset_labels|\
-#         kube_deployment_status_replicas_available|\
-#         kube_job.*|\
-#         kube_node.*|\
-#         kube_pod_container_info|\
-#         kube_pod_container_resource_limits|\
-#         kube_pod_container_resource_requests|\
-#         kube_pod_container_status_restarts_total|\
-#         kube_pod_container_status_waiting_reason|\
-#         kube_pod_info|\
-#         kube_pod_owner|\
-#         kube_replicaset.*|\
-#         kube_replicaset_owner|\
-#         kube_statefulset.*|\
-#         process_resident_memory_bytes|\
-#         kube_persistentvolumeclaim_info|\
-#         kube_persistentvolumeclaim_resource_requests_storage_bytes|\
-#         kube_pod_container_resource_requests|\
-#         kube_namespace_created|\
-#         kube_pod_status_phase|\
-#         kube_deployment_status_replicas_unavailable|\
-#         kubelet_volume_stats_used_bytes|\
-#         up"
-#       sourceLabels:
-#       - __name__
-#     relabelings:
-#     - sourceLabels:
-#       - __metrics_path__
-#       targetLabel: metrics_path
-#     path: /metrics
-#     port: http-metrics
-#   namespaceSelector:
-#     matchNames:
-#     - grafana
-#   selector:
-#     matchLabels:
-#       app.kubernetes.io/name: kube-state-metrics
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ksm-monitor
+  namespace: grafana
+spec:
+  endpoints:
+  - honorLabels: true
+    interval: 60s
+    metricRelabelings:
+    - action: replace
+      targetLabel: job
+      replacement: integrations/kubernetes/kube-state-metrics
+    - action: keep
+      regex: "kube_daemonset_status_desired_number_scheduled|\
+        kube_daemonset_status_number_ready|\
+        kube_daemonset_labels|\
+        kube_deployment_status_replicas_available|\
+        kube_job.*|\
+        kube_node.*|\
+        kube_pod_container_info|\
+        kube_pod_container_resource_limits|\
+        kube_pod_container_resource_requests|\
+        kube_pod_container_status_restarts_total|\
+        kube_pod_container_status_waiting_reason|\
+        kube_pod_info|\
+        kube_pod_owner|\
+        kube_statefulset_replicas|\
+        kube_statefulset_status_replicas|\
+        kube_statefulset_labels|\
+        process_resident_memory_bytes|\
+        kube_persistentvolumeclaim_info|\
+        kube_persistentvolumeclaim_resource_requests_storage_bytes|\
+        kube_pod_container_resource_requests|\
+        kube_namespace_created|\
+        kube_pod_status_phase|\
+        kube_deployment_status_replicas_unavailable|\
+        kubelet_volume_stats_used_bytes|\
+        up"
+      sourceLabels:
+      - __name__
+    relabelings:
+    - sourceLabels:
+      - __metrics_path__
+      targetLabel: metrics_path
+    path: /metrics
+    port: http-metrics
+  namespaceSelector:
+    matchNames:
+    - grafana
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kube-state-metrics
