@@ -8,4 +8,4 @@ resources:
 - njs-modules.yaml
 - gatewayclass.yaml
 - nginx-gateway.yaml
-- gateway.yaml
+# - gateway.yaml
