@@ -247,7 +247,8 @@ spec:
         kube_namespace_created|\
         kube_pod_status_phase|\
         kube_deployment_status_replicas_unavailable|\
-        kubelet_volume_stats_used_bytes"
+        kubelet_volume_stats_used_bytes|\
+        up"
       sourceLabels:
       - __name__
     relabelings:
