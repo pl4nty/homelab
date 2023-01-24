@@ -70,7 +70,7 @@ spec:
         process_resident_memory_bytes|\
         container_memory_usage_bytes|\
         machine_cpu_cores|\
-        container_network_receive_errors_total|
+        container_network_receive_errors_total|\
         container_network_transmit_errors_total"
       sourceLabels:
       - __name__
