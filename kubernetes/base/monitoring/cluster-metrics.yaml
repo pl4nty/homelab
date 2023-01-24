@@ -16,6 +16,7 @@ spec:
         process_cpu_seconds_total|\
         rest_client_requests_total|\
         process_resident_memory_bytes|\
+        kubelet_volume_stats_used_bytes|\
         kubelet_volume_stats_used_bytes"
       sourceLabels:
       - __name__

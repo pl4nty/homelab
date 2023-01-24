@@ -63,6 +63,7 @@ spec:
             node_netstat_Tcp_RetransSegs|\
             node_timex_maxerror_seconds|\
             node_context_switches_total|\
+            node_uname_info|\
             node_timex_estimated_error_seconds"
           sourceLabels:
           - __name__
