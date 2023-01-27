@@ -1,0 +1,44 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: error-pages
+  namespace: default
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: app-template
+      version: 1.2.1
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  dependsOn:
+  - name: traefik
+    namespace: traefik
+  values:
+    image:
+      repository: ghcr.io/tarampampam/error-pages
+      tag: 2.15.0
+    nameOverride: error-pages
+    env:
+      TEMPLATE_NAME: ghost
+    service:
+      main:
+        ports:
+          http:
+            port: 8080
+    route:
+      main:
+        enabled: true
+        parentRefs:
+        - namespace: default
+          name: traefik-gateway
+        hostnames:
+        - "*.tplant.au"
+    resources:
+      requests:
+        memory: 100Mi
+        cpu: 100m
+      limits:
+        memory: 500Mi
