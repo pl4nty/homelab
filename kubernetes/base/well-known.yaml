@@ -77,12 +77,3 @@ spec:
         ports:
           http:
             port: 80
-    route:
-      main:
-        enabled: true
-        parentRefs:
-        - namespace: default
-          name: traefik-gateway
-        hostnames:
-        - tplant.au
-        - '*.tplant.au'
