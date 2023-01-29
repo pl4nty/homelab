@@ -65,13 +65,14 @@ spec:
   - backendRefs:
     - name: hajimari
       port: 3000
-  - matches:
+  - backendRefs:
+    - name: well-known
+      port: 80
+    matches:
     - path:
         type: PathPrefix
         value: /robots.txt
     - path:
         type: PathPrefix
         value: /.well-known/
-    backendRefs:
-    - name: well-known
-      port: 80
+
