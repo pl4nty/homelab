@@ -3,5 +3,4 @@ kind: Kustomization
 resources:
 - https://github.com/kubernetes-sigs/gateway-api//config/crd?ref=v0.4.0
 - traefik.yaml
-- error-pages.yaml
-- middleware.yaml
+- cloudflared.yaml
