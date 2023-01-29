@@ -28,14 +28,6 @@ spec:
         ports:
           http:
             port: 8080
-    route:
-      main:
-        enabled: true
-        parentRefs:
-        - namespace: default
-          name: traefik-gateway
-        hostnames:
-        - "*.tplant.au"
     resources:
       requests:
         memory: 100Mi
