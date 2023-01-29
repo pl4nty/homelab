@@ -47,7 +47,8 @@ spec:
       main:
         enabled: true
         parentRefs:
-        - name: traefik-gateway
+        - namespace: default
+          name: traefik-gateway
         hostnames:
         - home-assistant.tplant.au
     addons:
@@ -75,7 +76,8 @@ metadata:
   namespace: default
 spec:
   parentRefs:
-  - name: traefik-gateway
+  - namespace: default
+    name: traefik-gateway
   hostnames:
   - hass-vscode.tplant.au
   rules:
