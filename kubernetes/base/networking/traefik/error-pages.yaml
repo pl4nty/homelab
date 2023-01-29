@@ -19,7 +19,7 @@ spec:
   values:
     image:
       repository: ghcr.io/tarampampam/error-pages
-      tag: 2.15.0
+      tag: 2.19.0
     nameOverride: error-pages
     env:
       TEMPLATE_NAME: ghost
