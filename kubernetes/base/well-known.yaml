@@ -86,4 +86,3 @@ spec:
         hostnames:
         - tplant.au
         - '*.tplant.au'
-        - '*.tplant.com.au'
