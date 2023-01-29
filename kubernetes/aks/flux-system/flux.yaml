@@ -39,7 +39,7 @@ spec:
   parentRefs:
   - name: flux-gateway
   hostnames:
-  - flux-webhook.tplant.au
+  - flux-webhook.tplant.com.au
   rules:
   - backendRefs:
     - name: webhook-receiver
