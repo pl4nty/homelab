@@ -84,5 +84,6 @@ spec:
         - namespace: default
           name: traefik-gateway
         hostnames:
-        - "tplant.au"
-        - "*.tplant.au"
+        - tplant.au
+        - '*.tplant.au'
+        - '*.tplant.com.au'

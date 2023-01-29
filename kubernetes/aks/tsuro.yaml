@@ -39,4 +39,4 @@ spec:
         - namespace: default
           name: traefik-gateway
         hostnames:
-        - tsuro.tplant.au
+        - tsuro.tplant.com.au

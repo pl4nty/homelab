@@ -60,7 +60,7 @@ spec:
   parentRefs:
   - name: traefik-gateway
   hostnames:
-  - lab.tplant.au
+  - lab.tplant.com.au
   rules:
   - backendRefs:
     - name: hajimari
