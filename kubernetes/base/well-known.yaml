@@ -32,10 +32,10 @@ spec:
             User-agent: *
             Allow: / 
           security.txt: |
-            Contact: https://twitter.com/pl4nty
+            Contact: https://aus.social/@pl4nty
             Expires: 2024-00-00T00:00:00.000Z
             Preferred-Languages: en
-            Canonical: https://tplant.au/.well-known/security.txt
+            Canonical: https://tplant.com.au/.well-known/security.txt
           webfinger: |
             {
               "subject": "acct:pl4nty@aus.social",
