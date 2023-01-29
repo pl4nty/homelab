@@ -58,7 +58,8 @@ metadata:
   namespace: default
 spec:
   parentRefs:
-  - name: traefik-gateway
+  - namespace: default
+    name: traefik-gateway
   hostnames:
   - lab.tplant.com.au
   rules:
