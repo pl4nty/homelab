@@ -18,8 +18,8 @@ spec:
       repository: codercom/code-server
       tag: 4.9.1
     persistence:
-      enabled: true
-      size: 1Gi
+      config:
+        enabled: true
     service:
       main:
         ports:
