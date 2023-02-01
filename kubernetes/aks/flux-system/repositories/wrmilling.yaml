@@ -1,8 +1,0 @@
-apiVersion: source.toolkit.fluxcd.io/v1beta1
-kind: HelmRepository
-metadata:
-  name: wrmilling
-  namespace: flux-system
-spec:
-  interval: 1h
-  url: wrmilling.github.io/wrmilling-charts
