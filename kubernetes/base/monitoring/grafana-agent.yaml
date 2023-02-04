@@ -68,7 +68,7 @@ metadata:
   name: grafana-agent
   namespace: grafana
 spec:
-  image: grafana/agent:v0.30.2
+  image: grafana/agent:v0.31.0
   integrations:
     selector:
       matchLabels:
