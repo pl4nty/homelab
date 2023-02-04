@@ -24,11 +24,11 @@ spec:
         size: 1Gi
     resources:
       requests:
-        cpu: 100m
-        memory: 200Mi
+        cpu: 5m
+        memory: 300Mi
       limits:
-        cpu: 500m
-        memory: 500Mi
+        cpu: 100m
+        memory: 800Mi
     service:
       main:
         ports:
