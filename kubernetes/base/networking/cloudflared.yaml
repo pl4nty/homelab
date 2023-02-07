@@ -60,8 +60,3 @@ spec:
             regex: quic.*|cloudflared.*
             sourceLabels:
             - __name__
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: cloudflared
