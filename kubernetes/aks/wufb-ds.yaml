@@ -17,6 +17,7 @@ spec:
     image:
       repository: ghcr.io/pl4nty/windowsupdates-webapplication-sample
       tag: 0.1.0
+      pullPolicy: Always
     resources:
       requests:
         cpu: 5m
