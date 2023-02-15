@@ -19,11 +19,11 @@ spec:
       tag: 0.3.3
     resources:
       requests:
-        cpu: 5m
-        memory: 150Mi
-      limits:
         cpu: 100m
-        memory: 300Mi
+        memory: 50Mi
+      limits:
+        cpu: 200m
+        memory: 100Mi
     service:
       main:
         ports:
