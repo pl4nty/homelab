@@ -19,11 +19,11 @@ spec:
       tag: 0.1.0
     resources:
       requests:
-        cpu: 1m
-        memory: 150Mi
+        cpu: 5m
+        memory: 10Mi
       limits:
-        cpu: 100m
-        memory: 300Mi
+        cpu: 50m
+        memory: 100Mi
     securityContext:
       capabilities:
         add:
