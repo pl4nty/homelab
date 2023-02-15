@@ -40,4 +40,4 @@ spec:
         - namespace: default
           name: traefik-gateway
         hostnames:
-        - wufb-ds.tplant.au
+        - wufb-ds.tplant.com.au
