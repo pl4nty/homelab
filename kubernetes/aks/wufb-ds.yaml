@@ -24,7 +24,7 @@ spec:
       limits:
         cpu: 50m
         memory: 100Mi
-    securityContext:
+    podSecurityContext:
       capabilities:
         add:
         - NET_BIND_SERVICE
