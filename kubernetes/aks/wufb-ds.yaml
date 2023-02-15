@@ -17,7 +17,6 @@ spec:
     image:
       repository: ghcr.io/pl4nty/windowsupdates-webapplication-sample
       tag: 0.1.0
-      pullPolicy: Always
     resources:
       requests:
         cpu: 5m
@@ -26,10 +25,9 @@ spec:
         cpu: 50m
         memory: 100Mi
     securityContext:
-      privileged: true
-      # capabilities:
-      #   add:
-      #     - NET_BIND_SERVICE
+      capabilities:
+        add:
+          - NET_BIND_SERVICE
     service:
       main:
         ports:
