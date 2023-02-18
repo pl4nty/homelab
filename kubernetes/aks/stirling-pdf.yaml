@@ -17,13 +17,13 @@ spec:
     image:
       repository: frooodle/s-pdf
       tag: 0.3.3
-    resources:
-      requests:
-        cpu: 100m
-        memory: 50Mi
-      limits:
-        cpu: 200m
-        memory: 100Mi
+    # resources:
+    #   requests:
+    #     cpu: 100m
+    #     memory: 50Mi
+    #   limits:
+    #     cpu: 200m
+    #     memory: 100Mi
     service:
       main:
         ports:
