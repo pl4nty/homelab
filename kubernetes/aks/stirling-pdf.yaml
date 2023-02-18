@@ -24,6 +24,10 @@ spec:
     #   limits:
     #     cpu: 200m
     #     memory: 100Mi
+    probes:
+      liveness:
+        spec:
+          initialDelaySeconds: 30
     service:
       main:
         ports:
