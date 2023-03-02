@@ -37,7 +37,7 @@ metadata:
   namespace: flux-system
 spec:
   parentRefs:
-  - namespace: default
+  - namespace: flux-gateway
     name: flux-gateway
   hostnames:
   - flux-webhook.tplant.com.au
