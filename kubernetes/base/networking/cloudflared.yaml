@@ -16,7 +16,7 @@ spec:
   values:
     image:
       repository: cloudflare/cloudflared
-      tag: 2023.2.2
+      tag: 2023.1.0
     args: [tunnel, run]
     env:
       TUNNEL_METRICS: 0.0.0.0:2000
