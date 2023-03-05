@@ -6,8 +6,10 @@ Kubernetes manifests deployed to clusters with Flux in a pull-only model. Base m
 
 Networking:
 * [Cloudflare authoritative DNS](https://www.cloudflare.com/dns/)
-* [Cloudflare Tunnels](https://www.cloudflare.com/products/tunnel/) HTTP/TCP routing and TLS termination
-* [nginx-kubernetes-gateway](https://github.com/nginxinc/nginx-kubernetes-gateway) internal routing ([Gateway API](https://gateway-api.sigs.k8s.io/))
+* [Cloudflare Tunnels](https://www.cloudflare.com/products/tunnel/) HTTP routing and TLS termination
+* [Traefik](https://github.com/traefik/traefik) internal routing ([Gateway API](https://gateway-api.sigs.k8s.io/)), until I write a [cloudflared](https://github.com/cloudflare/cloudflared) operator
+* [Cloudflare Access](https://www.cloudflare.com/products/zero-trust/access/) authentication broker
+* [Azure AD](https://www.microsoft.com/microsoft-365/p/microsoft-365-personal/cfq7ttc0k5bf) IdP
 
 Monitoring:
 * [Grafana Cloud](https://grafana.com/products/cloud/) metrics, logs, alerts
