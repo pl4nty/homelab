@@ -15,7 +15,7 @@ spec:
   chart:
     spec:
       chart: grafana-agent-operator
-      version: 0.2.13
+      version: 0.2.14
       sourceRef:
         kind: HelmRepository
         namespace: flux-system
