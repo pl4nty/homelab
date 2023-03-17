@@ -17,7 +17,7 @@ spec:
     image:
       repository: cloudflare/cloudflared
       tag: 2023.3.0
-    args: [tunnel, run]
+    args: [tunnel, run,  --post-quantum]
     env:
       TUNNEL_METRICS: 0.0.0.0:2000
       TUNNEL_TOKEN:
