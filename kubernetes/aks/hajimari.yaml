@@ -27,6 +27,8 @@ spec:
           url: https://wufb-ds.tplant.com.au
         - name: PDF editor
           url: https://tsuro.tplant.com.au
+        - name: CyberChef
+          url: https://cyberchef.tplant.com.au
         - name: tsuro boardgame
           url: https://tsuro.tplant.com.au
       globalBookmarks:
