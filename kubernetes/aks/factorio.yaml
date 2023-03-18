@@ -1,0 +1,68 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: factorio
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: factorio-server-charts
+      version: 1.2.3
+      sourceRef:
+        kind: HelmRepository
+        name: factorio-server-charts
+        namespace: flux-system
+  values:
+    rcon:
+      external: false
+
+    # making sure the game doesnt auto update on redeploy
+    # https://hub.docker.com/r/factoriotools/factorio/
+    image:
+      tag: 1.1.76
+
+    persistence:
+      enabled: true
+
+    factorioServer:
+      save_name: pl4nty-vanilla
+
+    admin_list:
+    - pl4nty
+
+    # white_list: [ ] # put the people you want to play with you based on factorio names
+    # - "john_doe"
+    # - "jane_doe"
+
+    server_settings:
+      name: pl4nty's jungle
+      # tags:
+      #   - modded
+      visibility:
+        public: false
+      require_user_verification: true
+
+    account:
+      # Existing secret containing a valid factorio.com username and either a password or a token
+      # Example:
+      #
+      # apiVersion: v1
+      # kind: Secret
+      # metadata:
+      #   name: account-secret
+      # data:
+      #   username: <username in base64>
+      #   password: <password in base64>
+      #
+      # accountSecret: account-secret
+      accountSecret: ''
+      # Your factorio.com login credentials. Required for games with visibility public
+      username: ''
+      password: ''
+      # Authentication token. May be used instead of password above.
+      token: ''
+
+    serverPassword:
+      # Existing Secret containing a `game_password` data entry
+      passwordSecret: factorio
