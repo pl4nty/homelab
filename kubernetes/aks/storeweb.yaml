@@ -1,0 +1,33 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: storeweb
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: 1.3.2
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  values:
+    image:
+      repository: ghcr.io/pl4nty/storeweb
+      tag: sha256:99093ff15b393dce254a2acadfca05375ccf9905c35270827a2ffedc140554d4
+    command: ASPNETCORE_URLS=http://*:8080 dotnet StoreWeb.dll
+    service:
+      main:
+        ports:
+          http:
+            port: 8080
+    route:
+      main:
+        enabled: true
+        parentRefs:
+        - namespace: default
+          name: traefik-gateway
+        hostnames:
+        - msft-store.tplant.com.au

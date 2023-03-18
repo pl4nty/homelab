@@ -23,14 +23,16 @@ spec:
       customApps:
       - group: apps
         apps:
-        - name: WUfB deployment service
-          url: https://wufb-ds.tplant.com.au
-        - name: PDF editor
-          url: https://tsuro.tplant.com.au
         - name: CyberChef
           url: https://cyberchef.tplant.com.au
-        - name: tsuro boardgame
+        - name: Microsoft Store package tools
+          url: https://msft-store.tplant.com.au
+        - name: PDF editor
           url: https://tsuro.tplant.com.au
+        - name: Tsuro boardgame
+          url: https://tsuro.tplant.com.au
+        - name: WUfB deployment service
+          url: https://wufb-ds.tplant.com.au
       globalBookmarks:
       - group: dependencies
         bookmarks:
