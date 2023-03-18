@@ -30,7 +30,7 @@ spec:
           mountPath: /config/rclone
     image:
       repository: rclone/rclone
-      tag: 1.61.1
+      tag: 1.62.2
     args:
     - copy
     - "onedrive:"
