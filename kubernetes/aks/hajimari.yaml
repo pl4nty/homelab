@@ -25,7 +25,9 @@ spec:
         apps:
         - name: WUfB deployment service
           url: https://wufb-ds.tplant.com.au
-        - name: tsuro
+        - name: PDF editor
+          url: https://tsuro.tplant.com.au
+        - name: tsuro boardgame
           url: https://tsuro.tplant.com.au
       globalBookmarks:
       - group: dependencies

@@ -40,4 +40,4 @@ spec:
         - namespace: default
           name: traefik-gateway
         hostnames:
-        - pdf.tplant.au
+        - pdf.tplant.com.au
