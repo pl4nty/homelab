@@ -21,6 +21,9 @@ spec:
     # https://hub.docker.com/r/factoriotools/factorio/
     image:
       tag: 1.1.76
+    
+    service:
+      type: LoadBalancer
 
     persistence:
       enabled: true
@@ -66,3 +69,18 @@ spec:
     serverPassword:
       # Existing Secret containing a `game_password` data entry
       passwordSecret: factorio
+# ---
+# apiVersion: gateway.networking.k8s.io/v1beta1
+# kind: UDPRoute
+# metadata:
+#   name: factorio
+#   namespace: default
+# spec:
+#   parentRefs:
+#   - namespace: default
+#     name: traefik-gateway
+#     sectionName: udp
+#   rules:
+#   - backendRefs:
+#     - name: factorio-factorio-server-charts
+#       port: 31497
