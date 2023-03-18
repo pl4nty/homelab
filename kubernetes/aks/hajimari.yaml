@@ -25,6 +25,8 @@ spec:
         apps:
         - name: CyberChef
           url: https://cyberchef.tplant.com.au
+        - name: JWT decoder
+          url: https://jwt.tplant.com.au
         - name: Microsoft Store package tools
           url: https://msft-store.tplant.com.au
         - name: PDF editor
