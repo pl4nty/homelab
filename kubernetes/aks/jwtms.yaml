@@ -15,8 +15,8 @@ spec:
         namespace: flux-system
   values:
     image:
-      repository: ghcr.io/pl4nty/jwtms
-      tag: sha256@0ecd21c208ded0100ef2f5ce3cd452b5845ff14e6ec7b6db3fb74322d4e38a34
+      repository: ghcr.io/pl4nty/jwtms@sha256
+      tag: 0ecd21c208ded0100ef2f5ce3cd452b5845ff14e6ec7b6db3fb74322d4e38a34
     service:
       main:
         ports:
