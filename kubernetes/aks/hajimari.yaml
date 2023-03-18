@@ -23,10 +23,10 @@ spec:
       customApps:
       - group: apps
         apps:
-        - name: echo
-          url: https://echo.tplant.au
-        - name: k8s-at-home search
-          url: https://nanne.dev/k8s-at-home-search/
+        - name: WUfB deployment service
+          url: https://wufb-ds.tplant.com.au
+        - name: tsuro
+          url: https://tsuro.tplant.com.au
       globalBookmarks:
       - group: dependencies
         bookmarks:
@@ -50,6 +50,10 @@ spec:
         - name: azure
           url: https://azure.status.microsoft
           icon: simple-icons:microsoftazure
+      - group: utils
+        bookmarks:
+        - name: k8s-at-home search
+          url: https://nanne.dev/k8s-at-home-search/
 ---
 apiVersion: gateway.networking.k8s.io/v1alpha2
 kind: HTTPRoute
