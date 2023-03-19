@@ -15,8 +15,10 @@ spec:
         namespace: flux-system
   values:
     image:
-      repository: nginx
-      tag: 1.23.3
+      repository: joseluisq/static-web-server
+      tag: 2.15.0
+    env:
+      SERVER_PORT: 8080
     resources:
       requests:
         cpu: 1m
@@ -64,7 +66,7 @@ spec:
         enabled: true
         type: configMap
         name: well-known-config
-        mountPath: /usr/share/nginx/html
+        mountPath: /public
         items:
         - key: robots.txt
           path: robots.txt
@@ -76,4 +78,4 @@ spec:
       main:
         ports:
           http:
-            port: 80
+            port: 8080
