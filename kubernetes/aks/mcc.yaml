@@ -56,8 +56,8 @@ spec:
         type: LoadBalancer
         ports:
           http:
-            port: 8081
-            nodePort: 80
+            port: 80
+            targetPort: 8081
       metrics:
         ports:
           metrics:
