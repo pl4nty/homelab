@@ -1,0 +1,82 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: hyperglass
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: 1.3.2
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  values:
+    image:
+      repository: docker.io/timrabl/hyperglass
+      tag: 1.0.4-1.0.183
+    configMaps:
+      config:
+        enabled: true
+        data:
+          commands.yaml: |
+            linux:
+              ipv4_default:
+                bgp_route: ip route get {target}
+                ping: ping {target}
+                traceroute: traceroute {target}
+              ipv6_default:
+                bgp_route: ip route get {target}
+                ping: ping6 {target}
+                traceroute: traceroute6 {target}
+          devices.yaml: |
+            routers:
+            - name: Azure 1, Aus East
+              address: 10.0.0.1
+              network:
+                name: azure
+                display_name: Azure
+              nos: linux
+              credential:
+                username: ubuntu
+                password: ubuntu
+              vrfs:
+              - name: global
+                default: true
+                ipv4:
+                  source_address: 192.0.2.1
+                ipv6:
+                  source_address: 2001:db8::1
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: hyperglass-config
+        mountPath: /opt/hyperglass/hyperglass
+        items:
+        - key: commands.yaml
+          path: commands.yaml
+        - key: devices.yaml
+          path: devices.yaml
+    service:
+      main:
+        ports:
+          http:
+            port: 8001
+    route:
+      main:
+        enabled: true
+        parentRefs:
+        - namespace: default
+          name: traefik-gateway
+        hostnames:
+        - lg.tplant.com.au
+    sidecars:
+      redis:
+        name: redis
+        image: redis:7.0.9
+      ssh:
+        name: ssh
+        image: ghcr.io/pl4nty/ubuntu-ssh@sha256:554d2a6b098f2a507f538144efcd91c6c7f76f25f519fd8e25dd6f1980fc8e2c

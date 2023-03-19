@@ -27,16 +27,22 @@ spec:
           url: https://cyberchef.tplant.com.au
         - name: JWT decoder
           url: https://jwt.tplant.com.au
+        - name: Network looking glass
+          url: https://lg.tplant.com.au
         - name: Message Header Analyser
-          url: https://msft-store.tplant.com.au
-        - name: Msft Store package tools
           url: https://mha.tplant.com.au
+        - name: Msft Store package tools
+          url: https://msft-store.tplant.com.au
         - name: PDF editor
           url: https://pdf.tplant.com.au
         - name: Tsuro boardgame
           url: https://tsuro.tplant.com.au
         - name: WUfB deployment service
           url: https://wufb-ds.tplant.com.au
+      - group: games
+        apps:
+        - name: Factorio
+          url: play.tplant.com.au:31497
       globalBookmarks:
       - group: dependencies
         bookmarks:
