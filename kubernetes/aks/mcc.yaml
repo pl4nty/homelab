@@ -21,7 +21,7 @@ spec:
       repository: msconnectedcacheprod.azurecr.io/mcc/linux/iot/mcc-ubuntu-iot-amd64
       tag: 1.2.1.1501
     imagePullSecrets:
-    - mcc-registry
+    - name: mcc-registry
     env:
       IS_SUMMARY_PUBLIC: 'true'
       IS_SUMMARY_ACCESS_UNRESTRICTED: 'true'
