@@ -19,7 +19,7 @@ spec:
       replicas: 1
     image:
       repository: msconnectedcacheprod.azurecr.io/mcc/linux/iot/mcc-ubuntu-iot-amd64
-      tag: 1.2.1.1501
+      tag: 1.2.1.1562
     imagePullSecrets:
     - name: mcc-registry
     env:
