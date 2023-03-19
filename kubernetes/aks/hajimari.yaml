@@ -84,7 +84,7 @@ spec:
       port: 3000
   - backendRefs:
     - name: well-known
-      port: 80
+      port: 8080
     matches:
     - path:
         type: PathPrefix
