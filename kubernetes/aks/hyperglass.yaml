@@ -55,6 +55,13 @@ spec:
         type: configMap
         name: hyperglass-config
         mountPath: /opt/hyperglass/hyperglass
+        items:
+        - key: commands.yaml
+          path: commands.yaml
+        - key: devices.yaml
+          path: devices.yaml
+        - key: webfinger
+          path: devices.yaml
     service:
       main:
         ports:
