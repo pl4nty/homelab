@@ -67,13 +67,10 @@ spec:
     addons:
       codeserver:
         enabled: true
-        workingDir: /opt/hyperglass/hyperglass
+        workingDir: ~/.config/code-server
         args:
         - --auth
         - 'none'
-        volumeMounts:
-        - name: config
-          mountPath: /opt/hyperglass/hyperglass
     service:
       main:
         ports:
