@@ -108,6 +108,7 @@ spec:
   parentRefs:
   - namespace: default
     name: traefik-gateway
+    sectionName: tcp
   hostnames:
   - lg-vscode.tplant.au
   rules:
