@@ -71,6 +71,9 @@ spec:
         args:
         - --auth
         - 'none'
+        volumeMounts:
+        - name: config
+          mountPath: /opt/hyperglass/hyperglass
     service:
       main:
         ports:
