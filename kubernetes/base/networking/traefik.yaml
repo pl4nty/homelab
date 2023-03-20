@@ -41,3 +41,5 @@ spec:
         enabled: true
         # for Loki
         format: json
+        filters:
+          statuscodes: "100-199,300-599"
