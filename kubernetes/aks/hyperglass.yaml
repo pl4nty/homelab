@@ -69,12 +69,8 @@ spec:
         enabled: true
         workingDir: /opt/hyperglass/hyperglass
         args:
-        - --user-data-dir
-        - '/opt/hyperglass/hyperglass/.vscode'
         - --auth
         - 'none'
-        - --extensions-dir
-        - '/opt/hyperglass/hyperglass/.vscode'
         volumeMounts:
         - name: config
           mountPath: /opt/hyperglass/hyperglass
