@@ -21,7 +21,7 @@ spec:
       config:
         enabled: true
         data:
-          commands.yaml: |
+          commands.yml: |
             linux:
               ipv4_default:
                 bgp_route: ip route get {target}
@@ -31,7 +31,7 @@ spec:
                 bgp_route: ip route get {target}
                 ping: ping6 {target}
                 traceroute: traceroute6 {target}
-          devices.yaml: |
+          devices.yml: |
             routers:
             - name: Azure 1, Aus East
               address: 10.0.0.1
@@ -54,12 +54,12 @@ spec:
         enabled: true
         type: configMap
         name: hyperglass-config
-        mountPath: /etc/hyperglass
+        mountPath: /opt/hyperglass/hyperglass
         items:
-        - key: commands.yaml
-          path: commands.yaml
-        - key: devices.yaml
-          path: devices.yaml
+        - key: commands.yml
+          path: commands.yml
+        - key: devices.yml
+          path: devices.yml
     securityContext:
       runAsUser: 1000
       runAsGroup: 1000
@@ -67,17 +67,17 @@ spec:
     addons:
       codeserver:
         enabled: true
-        workingDir: /etc/hyperglass
+        workingDir: /opt/hyperglass/hyperglass
         args:
         - --user-data-dir
-        - '/etc/hyperglass/.vscode'
+        - '/opt/hyperglass/hyperglass/.vscode'
         - --auth
         - 'none'
         - --extensions-dir
-        - '/etc/hyperglass/.vscode'
+        - '/opt/hyperglass/hyperglass/.vscode'
         volumeMounts:
         - name: config
-          mountPath: /etc/hyperglass
+          mountPath: /opt/hyperglass/hyperglass
     service:
       main:
         ports:
@@ -109,7 +109,7 @@ spec:
   - namespace: default
     name: traefik-gateway
   hostnames:
-  - hass-lg.tplant.au
+  - lg-vscode.tplant.au
   rules:
   - backendRefs:
     - name: hyperglass-addon-codeserver
