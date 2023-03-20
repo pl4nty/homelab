@@ -54,7 +54,7 @@ spec:
         enabled: true
         type: configMap
         name: hyperglass-config
-        mountPath: /opt/hyperglass/hyperglass
+        mountPath: /etc/hyperglass
         items:
         - key: commands.yaml
           path: commands.yaml
