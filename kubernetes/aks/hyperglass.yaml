@@ -67,6 +67,17 @@ spec:
     addons:
       codeserver:
         enabled: true
+        workingDir: /etc/hyperglass
+        args:
+        - --user-data-dir
+        - '/etc/hyperglass/.vscode'
+        - --auth
+        - 'none'
+        - --extensions-dir
+        - '/etc/hyperglass/.vscode'
+        volumeMounts:
+        - name: config
+          mountPath: /etc/hyperglass
     service:
       main:
         ports:
