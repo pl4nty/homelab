@@ -60,6 +60,10 @@ spec:
           path: commands.yaml
         - key: devices.yaml
           path: devices.yaml
+    securityContext:
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
     service:
       main:
         ports:
