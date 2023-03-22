@@ -58,6 +58,7 @@ spec:
         mountPath: /opt/hyperglass/hyperglass
     securityContext:
       runAsUser: 1000
+      fsGroup: 1000
     addons:
       codeserver:
         enabled: true
