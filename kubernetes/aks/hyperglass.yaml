@@ -76,7 +76,7 @@ spec:
         - --auth
         - 'none'
         volumeMounts:
-        - name: secret
+        - name: config
           mountPath: /opt/hyperglass/hyperglass
     service:
       main:
