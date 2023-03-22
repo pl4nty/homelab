@@ -54,18 +54,18 @@ spec:
         enabled: true
         type: configMap
         name: hyperglass-config
-        mountPath: /opt/hyperglass/hyperglass
+        mountPath: /etc/hyperglass
         items:
         - key: commands.yml
           path: commands.yml
         - key: devices.yml
           path: devices.yml
-    podSecurityContext:
-      fsGroup: 1000
-      runAsGroup: 1000
-    securityContext:
-      fsGroup: 1000
-      runAsGroup: 1000
+    # podSecurityContext:
+    #   fsGroup: 1000
+    #   runAsGroup: 1000
+    # securityContext:
+    #   fsGroup: 1000
+    #   runAsGroup: 1000
     addons:
       codeserver:
         enabled: true
@@ -75,7 +75,7 @@ spec:
         - 'none'
         volumeMounts:
         - name: config
-          mountPath: /opt/hyperglass/hyperglass
+          mountPath: /etc/hyperglass
     service:
       main:
         ports:
