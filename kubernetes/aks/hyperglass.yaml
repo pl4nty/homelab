@@ -55,7 +55,7 @@ spec:
         type: configMap
         name: hyperglass-config
         readOnly: true
-        mountPath: /opt/hyperglass/hyperglass
+        mountPath: /opt/hyperglass
         items:
         - key: commands.yml
           path: commands.yml
@@ -70,7 +70,7 @@ spec:
         - 'none'
         volumeMounts:
         - name: config
-          mountPath: /opt/hyperglass/hyperglass
+          mountPath: /opt/hyperglass
     service:
       main:
         ports:
