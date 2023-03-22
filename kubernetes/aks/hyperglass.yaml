@@ -16,7 +16,7 @@ spec:
   values:
     image:
       repository: handymenny/hyperglass
-      tag: 1.0.4-1.0.183
+      tag: latest
     configMaps:
       config:
         enabled: true
