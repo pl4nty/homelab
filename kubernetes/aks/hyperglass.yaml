@@ -70,7 +70,7 @@ spec:
       main:
         ports:
           http:
-            port: 8001
+            port: 12321
     route:
       main:
         enabled: true
