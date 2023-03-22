@@ -17,11 +17,10 @@ spec:
     image:
       repository: docker.io/timrabl/hyperglass
       tag: 1.0.4-1.0.183
-    # ConfigMaps in app-template don't support defaultMode :(
-    secrets:
-      secret:
+    configMaps:
+      config:
         enabled: true
-        stringData:
+        data:
           commands.yml: |
             linux:
               ipv4_default:
@@ -53,21 +52,15 @@ spec:
     persistence:
       config:
         enabled: true
-        type: secret
-        name: hyperglass-secret
+        type: configMap
+        name: hyperglass-config
+        readOnly: true
         mountPath: /opt/hyperglass/hyperglass
-        defaultMode: 384
         items:
         - key: commands.yml
           path: commands.yml
         - key: devices.yml
           path: devices.yml
-    # podSecurityContext:
-    #   fsGroup: 1000
-    #   runAsGroup: 1000
-    # securityContext:
-    #   fsGroup: 1000
-    #   runAsGroup: 1000
     addons:
       codeserver:
         enabled: true
