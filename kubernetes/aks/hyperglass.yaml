@@ -17,10 +17,11 @@ spec:
     image:
       repository: docker.io/timrabl/hyperglass
       tag: 1.0.4-1.0.183
-    configMaps:
-      config:
+    # ConfigMaps in app-template don't support defaultMode :(
+    secrets:
+      secret:
         enabled: true
-        data:
+        stringData:
           commands.yml: |
             linux:
               ipv4_default:
@@ -52,9 +53,10 @@ spec:
     persistence:
       config:
         enabled: true
-        type: configMap
-        name: hyperglass-config
+        type: secret
+        name: hyperglass-secret
         mountPath: /opt/hyperglass/hyperglass
+        defaultMode: 384
         items:
         - key: commands.yml
           path: commands.yml
@@ -74,7 +76,7 @@ spec:
         - --auth
         - 'none'
         volumeMounts:
-        - name: config
+        - name: secret
           mountPath: /opt/hyperglass/hyperglass
     service:
       main:
@@ -95,7 +97,7 @@ spec:
         image: redis:7.0.9
       ssh:
         name: ssh
-        image: ghcr.io/pl4nty/ubuntu-ssh@sha256:554d2a6b098f2a507f538144efcd91c6c7f76f25f519fd8e25dd6f1980fc8e2c
+        image: ghcr.io/pl4nty/ubuntu-ssh@sha256:3601c45122ce210bf3dd3760bbf21571885d44e7ff144f7074e02c0211473e83
 ---
 apiVersion: gateway.networking.k8s.io/v1alpha2
 kind: HTTPRoute
