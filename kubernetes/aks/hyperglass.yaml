@@ -15,13 +15,13 @@ spec:
         namespace: flux-system
   values:
     image:
-      repository: handymenny/hyperglass
-      tag: latest
+      repository: timrabl/hyperglass
+      tag: 1.0.4-1.0.183
     configMaps:
       config:
         enabled: true
         data:
-          commands.yml: |
+          commands.yaml: |
             linux:
               ipv4_default:
                 bgp_route: ip route get {target}
@@ -31,7 +31,7 @@ spec:
                 bgp_route: ip route get {target}
                 ping: ping6 {target}
                 traceroute: traceroute6 {target}
-          devices.yml: |
+          devices.yaml: |
             routers:
             - name: Azure 1, Aus East
               address: 10.0.0.1
@@ -55,12 +55,7 @@ spec:
         type: configMap
         name: hyperglass-config
         readOnly: true
-        mountPath: /opt/hyperglass
-        items:
-        - key: commands.yml
-          path: commands.yml
-        - key: devices.yml
-          path: devices.yml
+        mountPath: /opt/hyperglass/hyperglass
     addons:
       codeserver:
         enabled: true
@@ -70,7 +65,7 @@ spec:
         - 'none'
         volumeMounts:
         - name: config
-          mountPath: /opt/hyperglass
+          mountPath: /opt/hyperglass/hyperglass
     service:
       main:
         ports:
