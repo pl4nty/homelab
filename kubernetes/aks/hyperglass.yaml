@@ -15,7 +15,7 @@ spec:
         namespace: flux-system
   values:
     image:
-      repository: docker.io/timrabl/hyperglass
+      repository: handymenny/hyperglass
       tag: 1.0.4-1.0.183
     configMaps:
       config:
