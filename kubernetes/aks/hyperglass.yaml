@@ -87,9 +87,9 @@ spec:
       redis:
         name: redis
         image: redis:7.0.9
-      ssh:
-        name: ssh
-        image: ghcr.io/pl4nty/ubuntu-ssh@sha256:3601c45122ce210bf3dd3760bbf21571885d44e7ff144f7074e02c0211473e83
+      # ssh:
+      #   name: ssh
+      #   image: ghcr.io/pl4nty/ubuntu-ssh@sha256:3601c45122ce210bf3dd3760bbf21571885d44e7ff144f7074e02c0211473e83
 ---
 apiVersion: gateway.networking.k8s.io/v1alpha2
 kind: HTTPRoute
