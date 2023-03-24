@@ -56,6 +56,10 @@ spec:
     service:
       main:
         type: LoadBalancer
+        annotations:
+          # https://cloud-provider-azure.sigs.k8s.io/topics/loadbalancer/#loadbalancer-annotations
+          # consider ipFamilyPolicy/ipFamilies? and/or IPv6 prefix, or dynamic IPv6 with external-dns
+          service.beta.kubernetes.io/azure-pip-name: pip-homelab-lbe-v4
         ports:
           http:
             port: 80
