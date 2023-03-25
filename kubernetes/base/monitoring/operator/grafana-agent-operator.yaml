@@ -28,7 +28,7 @@ metadata:
   namespace: grafana
 spec:
   interval: 30m
-  path: kubernetes/base/monitoring/grafana-agent-operator.yaml
+  path: kubernetes/base/monitoring/operator
   prune: true
   sourceRef:
     kind: GitRepository
