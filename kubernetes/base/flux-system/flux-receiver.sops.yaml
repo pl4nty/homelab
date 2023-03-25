@@ -1,7 +1,7 @@
 kind: Secret
 apiVersion: v1
 metadata:
-    name: webhook-token
+    name: github-webhook-token-secret
     namespace: flux-system
 type: Opaque
 stringData:
@@ -21,8 +21,8 @@ sops:
             WUJ4Wk93N2Q3MGFPaStwVDhYZldtSjAKBpnCxLmNdyltgSfNklOVVV/L8h0/oED1
             VC72ouHtwmctaIrKydUUBja2gddUO3bvPX6TSETI9PVadplT8grkGQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2022-12-17T07:26:38Z"
-    mac: ENC[AES256_GCM,data:3kTY5RcVrtHCM+7aj0VVW90dZlQISyfXU3YQk91TQKy4sNkUHEnOne6XkfIIx+QlnisyTQSjN7zrnj9WV49o2uMYnNLjlBjLT50WadJS2zMn6Yk9G4ROGKL97QENtcJCKbYi9VU6LMIxWORFCQj1vQIYBs6yfJ025XFvDUhcZcA=,iv:FdjAprULWPPCCz+sj69Kb1K6B90TABGM0AOLhkTLg+4=,tag:3nET0yFPSHn4NoYRI5BUCg==,type:str]
+    lastmodified: "2023-03-25T06:00:51Z"
+    mac: ENC[AES256_GCM,data:zZDo7oSVcAH4AVGeqfZU6JHGYYtuymwqlQlWCfCbfQOnXCWjAAl8GPgQmrD5kfwS5WwmKBlva/IZNaFcIu7Zs7Gyvr2T1tfU5Fv50NVp+8moNKZmekVWggDPup0GEQBlSJxBDlQIYpAXrk+KC2y/0ekB60cjokI6cBGhaMm7k/Q=,iv:72cuaSzafBXk+OnBdWaM+FHM3Bt0VSi8H+rw1e8/4oE=,tag:WnC9acST5h1p62b0MKxUVg==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.7.3
