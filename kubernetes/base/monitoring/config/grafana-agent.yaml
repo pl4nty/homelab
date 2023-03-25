@@ -125,6 +125,8 @@ spec:
         key: username
         name: logs-secret
     url: https://logs-prod-004.grafana.net/loki/api/v1/push
+    externalLabels:
+      cluster: "${CLUSTER_NAME}"
   podLogsNamespaceSelector: {}
   podLogsSelector:
     matchLabels: {}
