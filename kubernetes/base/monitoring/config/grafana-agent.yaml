@@ -82,6 +82,8 @@ spec:
       matchLabels:
         agent: grafana-agent
     scrapeInterval: 60s
+    externalLabels:
+      cluster: "${CLUSTER_NAME}"
   serviceAccountName: grafana-agent
 ---
 apiVersion: monitoring.grafana.com/v1alpha1

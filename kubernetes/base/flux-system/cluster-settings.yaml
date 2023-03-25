@@ -5,3 +5,4 @@ metadata:
   namespace: flux-system
 data:
   TIMEZONE: Australia/Canberra
+  CLUSTER_NAME: cloud
