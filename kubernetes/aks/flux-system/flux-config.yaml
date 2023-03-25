@@ -50,5 +50,5 @@ spec:
   - flux-webhook.tplant.com.au
   rules:
   - backendRefs:
-    - name: webhook-receiver
+    - name: webhook-receiver-2
       port: 80
