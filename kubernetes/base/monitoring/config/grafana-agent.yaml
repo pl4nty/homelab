@@ -85,7 +85,7 @@ spec:
     externalLabels:
       # TODO this resource should be instance-level, otherwise base config dry run might fail
       # maybe we can default to "cloud" or something, and override with instance configmaps?
-      cluster: "${CLUSTER_NAME}"
+      cluster: "${CLUSTER_NAME:=cloud}"
   serviceAccountName: grafana-agent
 ---
 apiVersion: monitoring.grafana.com/v1alpha1
@@ -129,7 +129,7 @@ spec:
     url: https://logs-prod-004.grafana.net/loki/api/v1/push
     externalLabels:
       # TODO this resource should be instance-level, otherwise base config dry run might fail
-      cluster: "${CLUSTER_NAME}"
+      cluster: "${CLUSTER_NAME:=cloud}"
   podLogsNamespaceSelector: {}
   podLogsSelector:
     matchLabels: {}
