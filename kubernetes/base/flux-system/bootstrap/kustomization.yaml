@@ -1,0 +1,21 @@
+# kubectl apply --kustomize kubernetes/base/flux-system/bootstrap
+# echo {{.SOPS_AGE_KEY_FILE}} | kubectl -n flux-system create secret generic sops-age --from-file=age.agekey=/dev/stdin
+# sops --decrypt kubernetes/base/flux-system/cluster-secrets.sops.yaml | kubectl apply -f -
+# kubectl apply -f kubernetes/base/flux-system/cluster-settings.yaml
+# kubectl apply -f kubernetes/base/flux-system/flux-config.yaml
+# kubectl apply -f kubernetes/[instance]/flux-system/flux-config.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- github.com/fluxcd/flux2/manifests/install?ref=v0.40.2
+patches:
+- patch: |-
+    $patch: delete
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      name: not-used
+  target:
+    group: networking.k8s.io
+    version: v1
+    kind: NetworkPolicy
