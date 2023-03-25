@@ -12,7 +12,7 @@ spec:
     name: github-webhook-token-secret
   resources:
   - kind: GitRepository
-    name: homelab-github
+    name: home-kubernetes
 ---
 apiVersion: v1
 kind: Service
