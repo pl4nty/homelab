@@ -4,4 +4,4 @@ metadata:
   name: cluster-settings
   namespace: flux-system
 data:
-  TIMEZONE: Australia/Canberra
+  CLUSTER_NAME: oke
