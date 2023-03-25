@@ -83,6 +83,8 @@ spec:
         agent: grafana-agent
     scrapeInterval: 60s
     externalLabels:
+      # TODO this resource should be instance-level, otherwise base config dry run might fail
+      # maybe we can default to "cloud" or something, and override with instance configmaps?
       cluster: "${CLUSTER_NAME}"
   serviceAccountName: grafana-agent
 ---
@@ -126,6 +128,7 @@ spec:
         name: logs-secret
     url: https://logs-prod-004.grafana.net/loki/api/v1/push
     externalLabels:
+      # TODO this resource should be instance-level, otherwise base config dry run might fail
       cluster: "${CLUSTER_NAME}"
   podLogsNamespaceSelector: {}
   podLogsSelector:
