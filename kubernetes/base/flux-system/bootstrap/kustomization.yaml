@@ -6,6 +6,9 @@
 # kubectl apply -f kubernetes/base/flux-system/flux-config.yaml
 # kubectl apply -f kubernetes/[instance]/flux-system/instance-settings.yaml
 # kubectl apply -f kubernetes/[instance]/flux-system/flux-config.yaml
+# wait for cloudflared to provision, then:
+# kubectl get receiver -A
+# create GitHub webhook to receiver in status
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:

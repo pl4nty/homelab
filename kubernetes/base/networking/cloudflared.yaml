@@ -25,6 +25,9 @@ spec:
           secretKeyRef:
             name: tunnel-credentials
             key: token
+    securityContext:
+      # allows ICMPv4 proxying. v6 gives "socket: permission denied"
+      runAsGroup: 1
     resources:
       requests:
         cpu: 10m
