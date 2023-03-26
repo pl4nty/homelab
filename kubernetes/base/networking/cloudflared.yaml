@@ -57,8 +57,7 @@ spec:
           interval: 1m
           metricRelabelings:
           - action: keep
-            # quic.*
-            regex: cloudflared.*
+            regex: quic.*|cloudflared.*
             sourceLabels:
             - __name__
 # TODO node config on new pools: https://learn.microsoft.com/en-us/azure/aks/custom-node-configuration

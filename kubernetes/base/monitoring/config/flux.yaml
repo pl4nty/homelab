@@ -1,37 +1,37 @@
-# apiVersion: monitoring.coreos.com/v1
-# kind: PodMonitor
-# metadata:
-#   name: flux-system
-#   namespace: grafana
-# spec:
-#   namespaceSelector:
-#     matchNames:
-#     - flux-system
-#   selector:
-#     matchExpressions:
-#     - key: app
-#       operator: In
-#       values:
-#         - helm-controller
-#         - source-controller
-#         - kustomize-controller
-#         - notification-controller
-#         - image-automation-controller
-#         - image-reflector-controller
-#   podMetricsEndpoints:
-#   - port: http-prom
-#     relabelings:
-#     # https://github.com/prometheus-operator/prometheus-operator/issues/4816
-#     - action: keep
-#       sourceLabels: [__meta_kubernetes_pod_phase]
-#       regex: Running
-#     metricRelabelings:
-#     - action: drop
-#       regex: go_.*|gotk_reconcile_duration_seconds_bucket|gotk_event_.*|gotk_receiver_.*
-#       sourceLabels:
-#       - __name__
-#     - action: labeldrop
-#       regex: instance
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: flux-system
+  namespace: grafana
+spec:
+  namespaceSelector:
+    matchNames:
+    - flux-system
+  selector:
+    matchExpressions:
+    - key: app
+      operator: In
+      values:
+        - helm-controller
+        - source-controller
+        - kustomize-controller
+        - notification-controller
+        - image-automation-controller
+        - image-reflector-controller
+  podMetricsEndpoints:
+  - port: http-prom
+    relabelings:
+    # https://github.com/prometheus-operator/prometheus-operator/issues/4816
+    - action: keep
+      sourceLabels: [__meta_kubernetes_pod_phase]
+      regex: Running
+    metricRelabelings:
+    - action: drop
+      regex: go_.*|gotk_reconcile_duration_seconds_bucket|gotk_event_.*|gotk_receiver_.*
+      sourceLabels:
+      - __name__
+    - action: labeldrop
+      regex: instance
 # notification CRD unsupported in AKS extension as of writing
 # ---
 # apiVersion: notification.toolkit.fluxcd.io/v1beta2
