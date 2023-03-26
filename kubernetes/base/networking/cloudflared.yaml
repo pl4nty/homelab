@@ -25,9 +25,9 @@ spec:
           secretKeyRef:
             name: tunnel-credentials
             key: token
-    securityContext:
-      # allows ICMPv4 proxying. v6 gives "socket: permission denied"
-      runAsGroup: 1
+    # set net.ipv4.ping_group_range to allow ICMPv4 proxying (default '0 1' == block). v6 gives "socket: permission denied"
+    # securityContext:
+    #   runAsGroup: 
     resources:
       requests:
         cpu: 10m
