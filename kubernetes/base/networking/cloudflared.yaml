@@ -49,16 +49,16 @@ spec:
             failureThreshold: 1
             initialDelaySeconds: 10
             periodSeconds: 10
-    serviceMonitor:
-      main:
-        enabled: true
-        endpoints:
-        - port: http
-          interval: 1m
-          metricRelabelings:
-          - action: keep
-            regex: quic.*|cloudflared.*
-            sourceLabels:
-            - __name__
+    # serviceMonitor:
+    #   main:
+    #     enabled: true
+    #     endpoints:
+    #     - port: http
+    #       interval: 1m
+    #       metricRelabelings:
+    #       - action: keep
+    #         regex: quic.*|cloudflared.*
+    #         sourceLabels:
+    #         - __name__
 # TODO node config on new pools: https://learn.microsoft.com/en-us/azure/aks/custom-node-configuration
 # net.core.rmem_max=2048000
