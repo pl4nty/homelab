@@ -168,3 +168,5 @@ spec:
   probeNamespaceSelector: {}
   probeSelector:
     matchLabels: {}
+  # minWALTime: 5m
+  walTruncateFrequency: 10m
