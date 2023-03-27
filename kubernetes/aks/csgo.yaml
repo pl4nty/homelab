@@ -1,0 +1,20 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: csgo
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: csgo
+      version: 0.2.3
+      sourceRef:
+        kind: HelmRepository
+        name: buttahtoast
+        namespace: flux-system
+  values:
+    config:
+      hostname: pl4nty's jungle
+    persistence:
+      enabled: false
