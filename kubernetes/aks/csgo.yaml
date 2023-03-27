@@ -18,3 +18,5 @@ spec:
       hostname: pl4nty's jungle
     persistence:
       size: 4Gi
+    service:
+      type: LoadBalancer
