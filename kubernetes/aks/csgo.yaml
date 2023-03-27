@@ -20,3 +20,20 @@ spec:
       size: 4Gi
     service:
       type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: csgo
+  namespace: default
+spec:
+  selector:
+    app.kubernetes.io/instance: csgo
+    app.kubernetes.io/name: csgo
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+  ipFamilies:
+  - IPv6
+  ports:
+  - port: 27015
+    targetPort: srcds
