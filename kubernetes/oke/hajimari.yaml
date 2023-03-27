@@ -43,6 +43,8 @@ spec:
           url: https://wufb-ds.tplant.com.au
       - group: games
         apps:
+        - name: CS:GO
+          url: steam://connect/play.tplant.com.au:27015
         - name: Factorio
           url: play.tplant.com.au:31497
       globalBookmarks:

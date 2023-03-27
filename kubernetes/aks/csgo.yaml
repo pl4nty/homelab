@@ -20,6 +20,7 @@ spec:
       size: 4Gi
     service:
       type: LoadBalancer
+# TODO externaldns entry
 # ---
 # apiVersion: v1
 # kind: Service
