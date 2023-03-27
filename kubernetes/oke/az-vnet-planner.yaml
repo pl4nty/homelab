@@ -19,6 +19,7 @@ spec:
       tag: 2.15.0
     env:
       SERVER_PORT: 8080
+      SERVER_LOG_LEVEL: trace
     persistence:
       config:
         enabled: true
