@@ -17,4 +17,4 @@ spec:
     config:
       hostname: pl4nty's jungle
     persistence:
-      enabled: false
+      size: 4Gi
