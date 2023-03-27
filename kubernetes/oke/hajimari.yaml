@@ -23,6 +23,8 @@ spec:
       customApps:
       - group: apps
         apps:
+        - name: Azure vnet planner
+          url: https://vnetplanner.tplant.com.au
         - name: CyberChef
           url: https://cyberchef.tplant.com.au
         - name: JWT decoder
