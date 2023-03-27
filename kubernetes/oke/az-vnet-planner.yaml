@@ -27,11 +27,7 @@ spec:
     initContainers:
       init-config:
         image: alpine/git:2.36.3
-        args:
-        - clone
-        - -b gh-pages
-        - https://github.com/chunliu/vnet-capacity-planner.git
-        - /public
+        args: ['clone -b gh-pages https://github.com/chunliu/vnet-capacity-planner.git /public']
         volumeMounts:
         - name: config
           mountPath: /public
