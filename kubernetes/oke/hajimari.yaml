@@ -4,7 +4,7 @@ metadata:
   name: hajimari
   namespace: default
 spec:
-  interval: 2m
+  interval: 15m
   chart:
     spec:
       chart: hajimari
