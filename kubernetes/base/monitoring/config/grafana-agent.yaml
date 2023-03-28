@@ -86,7 +86,7 @@ spec:
       # TODO this resource should be instance-level, otherwise base config dry run might fail
       # maybe we can default to "cloud" or something, and override with instance configmaps?
       cluster: "${CLUSTER_NAME:=cloud}"
-    enforcedSampleLimit: 15000 # Grafana Cloud free tier limit is 15k (undocumented)
+    enforcedSampleLimit: 10000 # Grafana Cloud free tier limit is 15k (undocumented)
   serviceAccountName: grafana-agent
 ---
 apiVersion: monitoring.grafana.com/v1alpha1
