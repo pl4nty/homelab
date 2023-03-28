@@ -62,6 +62,22 @@ spec:
     target:
       kind: Deployment
       name: source-controller
+  - patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: all
+      spec:
+        template:
+          spec:
+            containers:
+              - name: manager
+                resources:
+                  requests:
+                    memory: 128Mi      
+    target:
+      kind: Deployment
+      name: "(kustomize-controller|source-controller)"
 ---
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: GitRepository
