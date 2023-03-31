@@ -74,10 +74,26 @@ spec:
               - name: manager
                 resources:
                   requests:
-                    memory: 512Mi      
+                    memory: 256Mi      
     target:
       kind: Deployment
       name: "(kustomize-controller|source-controller)"
+  - patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: all
+      spec:
+        template:
+          spec:
+            containers:
+              - name: manager
+                resources:
+                  requests:
+                    memory: 128Mi      
+    target:
+      kind: Deployment
+      name: "(helm-controller|image-reflector-controller)"
 ---
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: GitRepository
