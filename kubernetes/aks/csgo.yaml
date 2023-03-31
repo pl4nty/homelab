@@ -28,7 +28,7 @@ spec:
     config:
       hostname: pl4nty's jungle
     persistence:
-      size: 4Gi
+      size: 32Gi
     service:
       type: LoadBalancer
 # TODO externaldns entry
