@@ -41,26 +41,63 @@ spec:
       replicas: 1
       targetAllocator:
         replicas: 1
-      envFrom:
-      - secretRef:
-          name: opentelemetry-collector
       env:
       - name: LS_TOKEN
         value: ""
+      - name: GRAFANA_API_KEY
+        valueFrom:
+          secretKeyRef:
+            key: TRACES_PASSWORD
+            name: opentelemetry-collector
+      - name: TRACES_USERNAME
+        valueFrom:
+          secretKeyRef:
+            key: TRACES_USERNAME
+            name: opentelemetry-collector
+      - name: METRICS_USERNAME
+        valueFrom:
+          secretKeyRef:
+            key: METRICS_USERNAME
+            name: opentelemetry-collector
+      - name: LOGS_USERNAME
+        valueFrom:
+          secretKeyRef:
+            key: LOGS_USERNAME
+            name: opentelemetry-collector
+      - name: TRACES_ENDPOINT
+        valueFrom:
+          secretKeyRef:
+            key: TRACES_ENDPOINT
+            name: opentelemetry-collector
+      - name: METRICS_ENDPOINT
+        valueFrom:
+          secretKeyRef:
+            key: METRICS_ENDPOINT
+            name: opentelemetry-collector
+      - name: LOGS_ENDPOINT
+        valueFrom:
+          secretKeyRef:
+            key: LOGS_ENDPOINT
+            name: opentelemetry-collector
+      - name: CLUSTER_NAME
+        valueFrom:
+          secretKeyRef:
+            key: CLUSTER_NAME
+            name: opentelemetry-collector
       config:
         extensions:
           basicauth/traces:
             client_auth:
               username: $${env:TRACES_USERNAME}
-              password: $${env:TRACES_PASSWORD}
+              password: $${env:GRAFANA_API_KEY}
           basicauth/metrics:
             client_auth:
               username: $${env:METRICS_USERNAME}
-              password: $${env:METRICS_PASSWORD}
+              password: $${env:GRAFANA_API_KEY}
           basicauth/logs:
             client_auth:
               username: $${env:LOGS_USERNAME}
-              password: $${env:LOGS_PASSWORD}
+              password: $${env:GRAFANA_API_KEY}
         processors:
           batch:
             send_batch_max_size: 10000
