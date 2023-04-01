@@ -41,7 +41,7 @@ spec:
             id: get-format
             routes:
               - output: parser-docker
-                expr: 'body matches "^\\{"'
+                expr: 'body matches "^\\\{"'
               - output: parser-crio
                 expr: 'body matches "^[^ Z]+ "'
               - output: parser-containerd
