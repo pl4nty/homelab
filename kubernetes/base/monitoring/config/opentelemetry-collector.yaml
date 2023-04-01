@@ -9,6 +9,7 @@ spec:
       name: opentelemetry-collector
   # https://github.com/open-telemetry/opentelemetry-operator/tree/main/cmd/otel-allocator
   # TODO install CRDs with https://github.com/prometheus-operator/prometheus-operator/releases
+  mode: daemonset
   targetAllocator:
     enabled: true
     prometheusCR:
