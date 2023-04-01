@@ -12,6 +12,12 @@ spec:
   #   prometheusCR:
   #     enabled: true
   config: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+          http:
+
     extensions:
       basicauth/traces:
         client_auth:
