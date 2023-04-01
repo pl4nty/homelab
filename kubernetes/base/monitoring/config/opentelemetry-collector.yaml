@@ -22,7 +22,6 @@ spec:
           grpc:
           http:
       k8s_events:
-        auth_type: serviceAccount
       prometheus:
         config:
           scrape_configs:
@@ -133,12 +132,12 @@ spec:
         auth:
           authenticator: basicauth/logs
       otlp/metrics:
-        endpoint: api.honeycomb.io:443
+        endpoint: "api.honeycomb.io:443"
         headers:
           "x-honeycomb-team": $${env:HONEYCOMB_API_KEY}
           "x-honeycomb-dataset": kubernetes-metrics
       otlp/logs:
-        endpoint: api.honeycomb.io:443
+        endpoint: "api.honeycomb.io:443"
         headers:
           "x-honeycomb-team": $${env:HONEYCOMB_API_KEY}
 
@@ -152,9 +151,11 @@ spec:
       pipelines:
         metrics:
           receivers: [ prometheus ]
+          processors: [ batch ]
           exporters: [ prometheusremotewrite, otlp/metrics ]
         logs:
           receivers: [ filelog, k8s_events ]
+          processors: [ batch ]
           exporters: [ loki, otlp/logs ]
 ---
 # TODO move to operator
