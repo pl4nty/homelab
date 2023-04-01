@@ -33,19 +33,20 @@ spec:
       repository: rclone/rclone
       tag: 1.62.2
     args:
-    - copy
-    - "onedrive:"
-    - backblaze:backup-tplant
-    - -v
-    - --s3-no-check-bucket
-    - --fast-list
-    - --rc
-    - --rc-enable-metrics
-    - --rc-no-auth
-    - --rc-addr=:5572
+    - version
+    # - copy
+    # - "onedrive:"
+    # - backblaze:backup-tplant
+    # - -v
+    # - --s3-no-check-bucket
+    # - --fast-list
+    # - --rc
+    # - --rc-enable-metrics
+    # - --rc-no-auth
+    # - --rc-addr=:5572
     # remotes have no hashes in common so can't use checksum, see rclone/rclone#6585
     # - --checksum
-    - --size-only
+    # - --size-only
     # resources:
     #   requests:
     #     cpu: 150m
