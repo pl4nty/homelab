@@ -161,7 +161,7 @@ spec:
           exporters: [ prometheusremotewrite ]
         logs:
           receivers: [ filelog, k8s_events ]
-          processors: [ attributes, batch ]
+          processors: [ batch ]
           exporters: [ loki ]
 ---
 # TODO move to operator
