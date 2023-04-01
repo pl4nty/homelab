@@ -228,5 +228,5 @@ roleRef:
   name: opentelemetry-events
 subjects:
 - kind: ServiceAccount
-  name: kube-otel-stack-collector
+  name: kube-otel-stack-metrics-collector
   namespace: monitoring
