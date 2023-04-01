@@ -5,9 +5,10 @@ metadata:
   namespace: monitoring
 spec:
   envFrom:
-    secretRef:
-    - name: opentelemetry-collector
+  - secretRef:
+      name: opentelemetry-collector
   # targetAllocator:
+  #   enabled: true
   #   prometheusCR:
   #     enabled: true
   config: |
