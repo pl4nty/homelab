@@ -1,98 +1,98 @@
-# apiVersion: monitoring.coreos.com/v1
-# kind: ServiceMonitor
-# metadata:
-#   name: kubelet-monitor
-#   namespace: grafana
-# spec:
-#   endpoints:
-#   - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
-#     honorLabels: true
-#     interval: 60s
-#     metricRelabelings:
-#     - action: keep
-#       regex: "kubelet_volume_stats_capacity_bytes|\
-#         kubelet_volume_stats_inodes|\
-#         kubelet_volume_stats_inodes_used|\
-#         process_cpu_seconds_total|\
-#         rest_client_requests_total|\
-#         process_resident_memory_bytes|\
-#         kubelet_volume_stats_used_bytes|\
-#         kubelet_volume_stats_used_bytes"
-#       sourceLabels:
-#       - __name__
-#     port: https-metrics
-#     relabelings:
-#     - sourceLabels:
-#       - __metrics_path__
-#       targetLabel: metrics_path
-#     - action: replace
-#       targetLabel: job
-#       replacement: integrations/kubernetes/kubelet
-#     scheme: https
-#     tlsConfig:
-#       insecureSkipVerify: true
-#   namespaceSelector:
-#     matchNames:
-#     - default
-#   selector:
-#     matchLabels:
-#       app.kubernetes.io/name: kubelet
-# ---
-# apiVersion: monitoring.coreos.com/v1
-# kind: ServiceMonitor
-# metadata:
-#   name: cadvisor-monitor
-#   namespace: grafana
-# spec:
-#   endpoints:
-#   - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
-#     honorLabels: true
-#     honorTimestamps: false
-#     interval: 60s
-#     metricRelabelings:
-#     - action: keep
-#       regex: "container_cpu_cfs_periods_total|\
-#         container_cpu_cfs_throttled_periods_total|\
-#         container_cpu_usage_seconds_total|\
-#         container_fs_inodes_free|\
-#         container_fs_inodes_total|\
-#         container_fs_limit_bytes|\
-#         container_fs_usage_bytes|\
-#         container_fs_reads_bytes_total|\
-#         container_fs_writes_bytes_total|\
-#         container_memory_working_set_bytes|\
-#         container_network_receive_bytes_total|\
-#         container_network_receive_packets_dropped_total|\
-#         container_network_receive_packets_total|\
-#         container_network_transmit_bytes_total|\
-#         container_network_transmit_packets_dropped_total|\
-#         container_network_transmit_packets_total|\
-#         machine_memory_bytes|\
-#         process_resident_memory_bytes|\
-#         container_memory_usage_bytes|\
-#         machine_cpu_cores|\
-#         container_network_receive_errors_total|\
-#         container_network_transmit_errors_total"
-#       sourceLabels:
-#       - __name__
-#     path: /metrics/cadvisor
-#     port: https-metrics
-#     relabelings:
-#     - sourceLabels:
-#       - __metrics_path__
-#       targetLabel: metrics_path
-#     - action: replace
-#       targetLabel: job
-#       replacement: integrations/kubernetes/cadvisor
-#     scheme: https
-#     tlsConfig:
-#       insecureSkipVerify: true
-#   namespaceSelector:
-#     matchNames:
-#     - default
-#   selector:
-#     matchLabels:
-#       app.kubernetes.io/name: kubelet
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kubelet-monitor
+  namespace: grafana
+spec:
+  endpoints:
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    honorLabels: true
+    interval: 60s
+    metricRelabelings:
+    - action: keep
+      regex: "kubelet_volume_stats_capacity_bytes|\
+        kubelet_volume_stats_inodes|\
+        kubelet_volume_stats_inodes_used|\
+        process_cpu_seconds_total|\
+        rest_client_requests_total|\
+        process_resident_memory_bytes|\
+        kubelet_volume_stats_used_bytes|\
+        kubelet_volume_stats_used_bytes"
+      sourceLabels:
+      - __name__
+    port: https-metrics
+    relabelings:
+    - sourceLabels:
+      - __metrics_path__
+      targetLabel: metrics_path
+    - action: replace
+      targetLabel: job
+      replacement: integrations/kubernetes/kubelet
+    scheme: https
+    tlsConfig:
+      insecureSkipVerify: true
+  namespaceSelector:
+    matchNames:
+    - default
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kubelet
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: cadvisor-monitor
+  namespace: grafana
+spec:
+  endpoints:
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    honorLabels: true
+    honorTimestamps: false
+    interval: 60s
+    metricRelabelings:
+    - action: keep
+      regex: "container_cpu_cfs_periods_total|\
+        container_cpu_cfs_throttled_periods_total|\
+        container_cpu_usage_seconds_total|\
+        container_fs_inodes_free|\
+        container_fs_inodes_total|\
+        container_fs_limit_bytes|\
+        container_fs_usage_bytes|\
+        container_fs_reads_bytes_total|\
+        container_fs_writes_bytes_total|\
+        container_memory_working_set_bytes|\
+        container_network_receive_bytes_total|\
+        container_network_receive_packets_dropped_total|\
+        container_network_receive_packets_total|\
+        container_network_transmit_bytes_total|\
+        container_network_transmit_packets_dropped_total|\
+        container_network_transmit_packets_total|\
+        machine_memory_bytes|\
+        process_resident_memory_bytes|\
+        container_memory_usage_bytes|\
+        machine_cpu_cores|\
+        container_network_receive_errors_total|\
+        container_network_transmit_errors_total"
+      sourceLabels:
+      - __name__
+    path: /metrics/cadvisor
+    port: https-metrics
+    relabelings:
+    - sourceLabels:
+      - __metrics_path__
+      targetLabel: metrics_path
+    - action: replace
+      targetLabel: job
+      replacement: integrations/kubernetes/cadvisor
+    scheme: https
+    tlsConfig:
+      insecureSkipVerify: true
+  namespaceSelector:
+    matchNames:
+    - default
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kubelet
 # ---
 # apiVersion: monitoring.grafana.com/v1alpha1
 # kind: PodLogs
