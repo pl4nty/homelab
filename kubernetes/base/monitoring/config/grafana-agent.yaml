@@ -62,112 +62,112 @@ subjects:
   name: grafana-agent
   namespace: grafana
 ---
-apiVersion: monitoring.grafana.com/v1alpha1
-kind: GrafanaAgent
-metadata:
-  name: grafana-agent
-  namespace: grafana
-spec:
-  image: grafana/agent:v0.32.1
-  integrations:
-    selector:
-      matchLabels:
-        agent: grafana-agent
-  logs:
-    instanceSelector:
-      matchLabels:
-        agent: grafana-agent
-  metrics:
-    instanceSelector:
-      matchLabels:
-        agent: grafana-agent
-    scrapeInterval: 60s
-    externalLabels:
-      # TODO this resource should be instance-level, otherwise base config dry run might fail
-      # maybe we can default to "cloud" or something, and override with instance configmaps?
-      cluster: "${CLUSTER_NAME:=cloud}"
-    enforcedSampleLimit: 10000 # Grafana Cloud free tier limit is 15k (undocumented)
-  serviceAccountName: grafana-agent
----
-apiVersion: monitoring.grafana.com/v1alpha1
-kind: Integration
-metadata:
-  labels:
-    agent: grafana-agent
-  name: agent-eventhandler
-  namespace: grafana
-spec:
-  config:
-    cache_path: /etc/eventhandler/eventhandler.cache
-    logs_instance: grafana/grafana-agent-logs
-  name: eventhandler
-  type:
-    unique: true
-  volumeMounts:
-  - mountPath: /etc/eventhandler
-    name: agent-eventhandler
-  volumes:
-  - name: agent-eventhandler
-    persistentVolumeClaim:
-      claimName: agent-eventhandler
----
-apiVersion: monitoring.grafana.com/v1alpha1
-kind: LogsInstance
-metadata:
-  labels:
-    agent: grafana-agent
-  name: grafana-agent-logs
-  namespace: grafana
-spec:
-  clients:
-  - basicAuth:
-      password:
-        key: password
-        name: logs-secret
-      username:
-        key: username
-        name: logs-secret
-    url: https://logs-prod-004.grafana.net/loki/api/v1/push
-    externalLabels:
-      # TODO this resource should be instance-level, otherwise base config dry run might fail
-      cluster: "${CLUSTER_NAME:=cloud}"
-  podLogsNamespaceSelector: {}
-  podLogsSelector:
-    matchLabels: {}
----
-apiVersion: monitoring.grafana.com/v1alpha1
-kind: MetricsInstance
-metadata:
-  labels:
-    agent: grafana-agent
-  name: grafana-agent-metrics
-  namespace: grafana
-spec:
-  maxWALTime: 5m
-  remoteWrite:
-  - basicAuth:
-      password:
-        key: password
-        name: metrics-secret
-      username:
-        key: username
-        name: metrics-secret
-    # Can't easily use a ConfigMap or Secret
-    # https://github.com/grafana/agent/blob/b86d165f783e75522148e6961475ac52a07239e1/production/operator/crds/monitoring.grafana.com_metricsinstances.yaml#L657
-    url: https://prometheus-prod-09-prod-au-southeast-0.grafana.net/api/prom/push
-    # writeRelabelConfigs:
-    # - action: drop
-    #   regex: 
-    #   sourceLabels:
-    #   - __name__
-  serviceMonitorNamespaceSelector: {}
-  serviceMonitorSelector:
-    matchLabels: {}
-  podMonitorNamespaceSelector: {}
-  podMonitorSelector:
-    matchLabels: {}
-  probeNamespaceSelector: {}
-  probeSelector:
-    matchLabels: {}
-  # minWALTime: 5m
-  walTruncateFrequency: 10m
+# apiVersion: monitoring.grafana.com/v1alpha1
+# kind: GrafanaAgent
+# metadata:
+#   name: grafana-agent
+#   namespace: grafana
+# spec:
+#   image: grafana/agent:v0.32.1
+#   integrations:
+#     selector:
+#       matchLabels:
+#         agent: grafana-agent
+#   logs:
+#     instanceSelector:
+#       matchLabels:
+#         agent: grafana-agent
+#   metrics:
+#     instanceSelector:
+#       matchLabels:
+#         agent: grafana-agent
+#     scrapeInterval: 60s
+#     externalLabels:
+#       # TODO this resource should be instance-level, otherwise base config dry run might fail
+#       # maybe we can default to "cloud" or something, and override with instance configmaps?
+#       cluster: "${CLUSTER_NAME:=cloud}"
+#     enforcedSampleLimit: 10000 # Grafana Cloud free tier limit is 15k (undocumented)
+#   serviceAccountName: grafana-agent
+# ---
+# apiVersion: monitoring.grafana.com/v1alpha1
+# kind: Integration
+# metadata:
+#   labels:
+#     agent: grafana-agent
+#   name: agent-eventhandler
+#   namespace: grafana
+# spec:
+#   config:
+#     cache_path: /etc/eventhandler/eventhandler.cache
+#     logs_instance: grafana/grafana-agent-logs
+#   name: eventhandler
+#   type:
+#     unique: true
+#   volumeMounts:
+#   - mountPath: /etc/eventhandler
+#     name: agent-eventhandler
+#   volumes:
+#   - name: agent-eventhandler
+#     persistentVolumeClaim:
+#       claimName: agent-eventhandler
+# ---
+# apiVersion: monitoring.grafana.com/v1alpha1
+# kind: LogsInstance
+# metadata:
+#   labels:
+#     agent: grafana-agent
+#   name: grafana-agent-logs
+#   namespace: grafana
+# spec:
+#   clients:
+#   - basicAuth:
+#       password:
+#         key: password
+#         name: logs-secret
+#       username:
+#         key: username
+#         name: logs-secret
+#     url: https://logs-prod-004.grafana.net/loki/api/v1/push
+#     externalLabels:
+#       # TODO this resource should be instance-level, otherwise base config dry run might fail
+#       cluster: "${CLUSTER_NAME:=cloud}"
+#   podLogsNamespaceSelector: {}
+#   podLogsSelector:
+#     matchLabels: {}
+# ---
+# apiVersion: monitoring.grafana.com/v1alpha1
+# kind: MetricsInstance
+# metadata:
+#   labels:
+#     agent: grafana-agent
+#   name: grafana-agent-metrics
+#   namespace: grafana
+# spec:
+#   maxWALTime: 5m
+#   remoteWrite:
+#   - basicAuth:
+#       password:
+#         key: password
+#         name: metrics-secret
+#       username:
+#         key: username
+#         name: metrics-secret
+#     # Can't easily use a ConfigMap or Secret
+#     # https://github.com/grafana/agent/blob/b86d165f783e75522148e6961475ac52a07239e1/production/operator/crds/monitoring.grafana.com_metricsinstances.yaml#L657
+#     url: https://prometheus-prod-09-prod-au-southeast-0.grafana.net/api/prom/push
+#     # writeRelabelConfigs:
+#     # - action: drop
+#     #   regex: 
+#     #   sourceLabels:
+#     #   - __name__
+#   serviceMonitorNamespaceSelector: {}
+#   serviceMonitorSelector:
+#     matchLabels: {}
+#   podMonitorNamespaceSelector: {}
+#   podMonitorSelector:
+#     matchLabels: {}
+#   probeNamespaceSelector: {}
+#   probeSelector:
+#     matchLabels: {}
+#   # minWALTime: 5m
+#   walTruncateFrequency: 10m
