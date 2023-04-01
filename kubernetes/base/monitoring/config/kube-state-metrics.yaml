@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/name: kube-state-metrics
     app.kubernetes.io/version: 2.5.0
   name: kube-state-metrics
-  namespace: grafana
+  namespace: monitoring
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -134,7 +134,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: kube-state-metrics
-  namespace: grafana
+  namespace: monitoring
 ---
 apiVersion: v1
 kind: Service
@@ -144,7 +144,7 @@ metadata:
     app.kubernetes.io/name: kube-state-metrics
     app.kubernetes.io/version: 2.5.0
   name: kube-state-metrics
-  namespace: grafana
+  namespace: monitoring
 spec:
   clusterIP: None
   ports:
@@ -165,7 +165,7 @@ metadata:
     app.kubernetes.io/name: kube-state-metrics
     app.kubernetes.io/version: 2.5.0
   name: kube-state-metrics
-  namespace: grafana
+  namespace: monitoring
 spec:
   replicas: 1
   selector:
@@ -214,7 +214,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: ksm-monitor
-  namespace: grafana
+  namespace: monitoring
 spec:
   endpoints:
   - honorLabels: true
@@ -258,7 +258,7 @@ spec:
     port: http-metrics
   namespaceSelector:
     matchNames:
-    - grafana
+    - monitoring
   selector:
     matchLabels:
       app.kubernetes.io/name: kube-state-metrics
