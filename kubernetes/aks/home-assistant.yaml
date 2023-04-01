@@ -69,6 +69,8 @@ spec:
         resources:
           requests:
             memory: 100Mi
+    podAnnotations:
+      instrumentation.opentelemetry.io/inject-python: true
 ---
 apiVersion: gateway.networking.k8s.io/v1alpha2
 kind: HTTPRoute

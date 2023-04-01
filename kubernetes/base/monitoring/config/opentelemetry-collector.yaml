@@ -15,6 +15,7 @@ spec:
     prometheusCR:
       enabled: true
   # target_allocator can be removed once this is merged: open-telemetry/opentelemetry-operator#1557
+  # must use operator for service discovery, but 
   config: |
     receivers:
       otlp:
@@ -131,15 +132,6 @@ spec:
         endpoint: $${env:LOGS_ENDPOINT}
         auth:
           authenticator: basicauth/logs
-      otlp/metrics:
-        endpoint: "api.honeycomb.io:443"
-        headers:
-          "x-honeycomb-team": $${env:HONEYCOMB_API_KEY}
-          "x-honeycomb-dataset": kubernetes-metrics
-      otlp/logs:
-        endpoint: "api.honeycomb.io:443"
-        headers:
-          "x-honeycomb-team": $${env:HONEYCOMB_API_KEY}
 
     processors:
       spanmetrics:
@@ -214,3 +206,32 @@ subjects:
 - kind: ServiceAccount
   name: opentelemetry-collector
   namespace: monitoring
+---
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: opentelemetry-instrumentation
+spec:
+  exporter:
+    endpoint: http://opentelemetry-collector:4317
+  propagators:
+    - tracecontext
+    - baggage
+    - b3
+  sampler:
+    type: parentbased_traceidratio
+    argument: "0.25"
+  python:
+    env:
+      # Required if endpoint is set to 4317.
+      # Python autoinstrumentation uses http/proto by default
+      # so data must be sent to 4318 instead of 4317.
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: http://opentelemetry-collector:4318
+  dotnet:
+    env:
+      # Required if endpoint is set to 4317.
+      # Dotnet autoinstrumentation uses http/proto by default
+      # See https://github.com/open-telemetry/opentelemetry-dotnet-instrumentation/blob/888e2cd216c77d12e56b54ee91dafbc4e7452a52/docs/config.md#otlp
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: http://opentelemetry-collector:4318
