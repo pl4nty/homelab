@@ -29,7 +29,8 @@ spec:
     persistence:
       size: 32Gi
     podSecurityContext:
-      fsGroup: 1234
+      fsGroup: 1000
+      runAsGroup: 1000
     service:
       type: LoadBalancer
 # TODO externaldns entry
