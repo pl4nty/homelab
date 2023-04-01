@@ -142,14 +142,18 @@ spec:
     service:
       extensions: [ basicauth/traces, basicauth/metrics, basicauth/logs ]
       pipelines:
+        traces:
+          receivers: [ otlp ]
+          processors: [ batch ]
+          exporters: [ otlp ]
         metrics:
           receivers: [ prometheus ]
           processors: [ batch ]
-          exporters: [ prometheusremotewrite, otlp/metrics ]
+          exporters: [ prometheusremotewrite ]
         logs:
           receivers: [ filelog, k8s_events ]
           processors: [ batch ]
-          exporters: [ loki, otlp/logs ]
+          exporters: [ loki ]
 ---
 # TODO move to operator
 apiVersion: rbac.authorization.k8s.io/v1
