@@ -130,6 +130,11 @@ spec:
         endpoint: $${env:LOGS_ENDPOINT}
         auth:
           authenticator: basicauth/logs
+      otlp/metrics:
+        endpoint: api.honeycomb.io:443
+        headers:
+          "x-honeycomb-team": $${env:HONEYCOMB_API_KEY}
+          "x-honeycomb-dataset": kubernetes
 
     processors:
       spanmetrics:
@@ -140,7 +145,7 @@ spec:
       pipelines:
         metrics:
           receivers: [ prometheus ]
-          exporters: [ prometheusremotewrite ]
+          exporters: [ prometheusremotewrite, otlp/metrics ]
         logs:
           receivers: [ filelog ]
           exporters: [ loki ]
