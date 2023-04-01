@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: frooodle/s-pdf
-      tag: 0.4.3
+      tag: 0.4.4
     # resources:
     #   requests:
     #     cpu: 100m
