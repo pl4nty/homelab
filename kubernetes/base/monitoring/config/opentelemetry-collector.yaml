@@ -211,6 +211,7 @@ apiVersion: opentelemetry.io/v1alpha1
 kind: Instrumentation
 metadata:
   name: opentelemetry-instrumentation
+  namespace: monitoring
 spec:
   exporter:
     endpoint: http://opentelemetry-collector:4317
