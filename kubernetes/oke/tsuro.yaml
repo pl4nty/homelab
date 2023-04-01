@@ -30,6 +30,8 @@ spec:
     image:
       repository: ghcr.io/pl4nty/tsuro
       tag: latest
+    podAnnotations:
+      instrumentation.opentelemetry.io/inject-java: "true"
     resources:
       # at idle
       requests:

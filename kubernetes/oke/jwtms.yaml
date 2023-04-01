@@ -30,6 +30,8 @@ spec:
       tag: 0ecd21c208ded0100ef2f5ce3cd452b5845ff14e6ec7b6db3fb74322d4e38a34
     env:
       PORT: 8080
+    podAnnotations:
+      instrumentation.opentelemetry.io/inject-nodejs: "true"
     service:
       main:
         ports:

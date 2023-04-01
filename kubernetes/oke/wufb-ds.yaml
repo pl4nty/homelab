@@ -29,6 +29,8 @@ spec:
       repository: ghcr.io/pl4nty/windowsupdates-webapplication-sample
       tag: 0.1.0
       pullPolicy: Always
+    podAnnotations:
+      instrumentation.opentelemetry.io/inject-nodejs: "true"
     resources:
       requests:
         cpu: 5m

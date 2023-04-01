@@ -33,6 +33,8 @@ spec:
     - StoreWeb.dll
     env:
       ASPNETCORE_URLS: http://*:8080
+    podAnnotations:
+      instrumentation.opentelemetry.io/inject-dotnet: "true"
     service:
       main:
         ports:
