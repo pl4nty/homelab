@@ -37,6 +37,7 @@ spec:
     keepHistory: false
   maxHistory: 3
   values:
+    mode: daemonset
     manager:
       serviceMonitor:
         enabled: true
