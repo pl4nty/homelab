@@ -145,7 +145,7 @@ spec:
       spanmetrics:
         metrics_exporter: prometheusremotewrite
       batch:
-        send_batch_max_size: 7500
+        send_batch_max_size: 10000
 
     service:
       extensions: [ basicauth/traces, basicauth/metrics, basicauth/logs ]
