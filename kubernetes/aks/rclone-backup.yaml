@@ -58,18 +58,20 @@ spec:
         enabled: true
         mountPath: /config/rclone
         retain: true
-    addons:
-      codeserver:
-        enabled: true
-        workingDir: /config/rclone
-        args:
-          - --auth
-          - 'none'
-        volumeMounts:
-        - name: config
-          mountPath: /config/rclone
-        service:
-          type: LoadBalancer
+    # if state is lost, refresh token must be manually regenerated
+    # this wouldn't be required if client secret auth was implemented in rclone (rather than delegated)
+    # addons:
+    #   codeserver:
+    #     enabled: true
+    #     workingDir: /config/rclone
+    #     args:
+    #       - --auth
+    #       - 'none'
+    #     volumeMounts:
+    #     - name: config
+    #       mountPath: /config/rclone
+    #     service:
+    #       type: LoadBalancer
     service:
       main:
         ports:
