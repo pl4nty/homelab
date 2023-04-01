@@ -67,7 +67,7 @@ spec:
         metrics_exporter: prometheusremotewrite
 
     service:
-      extensions: [ basicauth/traces, basicauth/metrics, basicauth/logs, health_check, memory_ballast ]
+      extensions: [ basicauth/traces, basicauth/metrics, basicauth/logs ]
       pipelines:
         metrics:
           receivers: [ prometheus ]
