@@ -1,22 +1,33 @@
 apiVersion: opentelemetry.io/v1alpha1
 kind: OpenTelemetryCollector
 metadata:
-  name: opentelemetry-collector
+  name: opentelemetry
   namespace: monitoring
 spec:
   envFrom:
   - secretRef:
       name: opentelemetry-collector
-  # targetAllocator:
-  #   enabled: true
-  #   prometheusCR:
-  #     enabled: true
+  # https://github.com/open-telemetry/opentelemetry-operator/tree/main/cmd/otel-allocator
+  # TODO install CRDs with https://github.com/prometheus-operator/prometheus-operator/releases
+  targetAllocator:
+    enabled: true
+    prometheusCR:
+      enabled: true
+  # target_allocator can be removed once this is merged: open-telemetry/opentelemetry-operator#1557
   config: |
     receivers:
       otlp:
         protocols:
           grpc:
           http:
+      prometheus:
+        config:
+          scrape_configs:
+          - job_name: otel-collector
+          target_allocator:
+            endpoint: http://my-targetallocator-service
+            interval: 1m
+            collector_id: $${POD_NAME}
 
     extensions:
       basicauth/traces:
@@ -44,7 +55,7 @@ spec:
         auth:
           authenticator: basicauth/metrics
         external_labels:
-          cluster: ${env:CLUSTER_NAME}
+          cluster: $${env:CLUSTER_NAME}
       loki:
         endpoint: $${env:LOGS_ENDPOINT}
         auth:
@@ -58,7 +69,8 @@ spec:
       extensions: [ basicauth/traces, basicauth/metrics, basicauth/logs, health_check, memory_ballast ]
       pipelines:
         metrics:
-          exporters: [prometheusremotewrite]
+          receivers: [ prometheus ]
+          exporters: [ prometheusremotewrite ]
         logs:
-          receivers: [filelog]
-          exporters: [loki]
+          receivers: [ filelog ]
+          exporters: [ loki ]
