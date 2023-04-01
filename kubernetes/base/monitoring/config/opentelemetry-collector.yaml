@@ -1,216 +1,216 @@
-apiVersion: opentelemetry.io/v1alpha1
-kind: OpenTelemetryCollector
-metadata:
-  name: opentelemetry
-  namespace: monitoring
-spec:
-  envFrom:
-  - secretRef:
-      name: opentelemetry-collector
-  # https://github.com/open-telemetry/opentelemetry-operator/tree/main/cmd/otel-allocator
-  # TODO install CRDs with https://github.com/prometheus-operator/prometheus-operator/releases
-  mode: statefulset
-  targetAllocator:
-    enabled: true
-    prometheusCR:
-      enabled: true
-  # target_allocator can be removed once this is merged: open-telemetry/opentelemetry-operator#1557
-  config: |
-    receivers:
-      otlp:
-        protocols:
-          grpc:
-          http:
-      k8s_events:
-      prometheus:
-        config:
-          scrape_configs:
-          - job_name: otel-collector
-        target_allocator:
-          endpoint: http://opentelemetry-targetallocator
-          interval: 1m
-          collector_id: $${env:POD_NAME}
-      filelog:
-        include: [ /var/log/pods/*/*/*.log ]
-        exclude: []
-        start_at: beginning
-        include_file_path: true
-        include_file_name: false
-        operators:
-          # Find out which format is used by kubernetes
-          - type: router
-            id: get-format
-            routes:
-              - output: parser-docker
-                expr: 'body matches "^\\\{"'
-              - output: parser-crio
-                expr: 'body matches "^[^ Z]+ "'
-              - output: parser-containerd
-                expr: 'body matches "^[^ Z]+Z"'
-          # Parse CRI-O format
-          - type: regex_parser
-            id: parser-crio
-            regex: '^(?P<time>[^ Z]+) (?P<stream>stdout|stderr) (?P<logtag>[^ ]*) ?(?P<log>.*)$'
-            output: extract_metadata_from_filepath
-            timestamp:
-              parse_from: attributes.time
-              layout_type: gotime
-              layout: '2006-01-02T15:04:05.000000000-07:00'
-          # Parse CRI-Containerd format
-          - type: regex_parser
-            id: parser-containerd
-            regex: '^(?P<time>[^ ^Z]+Z) (?P<stream>stdout|stderr) (?P<logtag>[^ ]*) ?(?P<log>.*)$'
-            output: extract_metadata_from_filepath
-            timestamp:
-              parse_from: attributes.time
-              layout: '%Y-%m-%dT%H:%M:%S.%LZ'
-          # Parse Docker format
-          - type: json_parser
-            id: parser-docker
-            output: extract_metadata_from_filepath
-            timestamp:
-              parse_from: attributes.time
-              layout: '%Y-%m-%dT%H:%M:%S.%LZ'
-          # Extract metadata from file path
-          - type: regex_parser
-            id: extract_metadata_from_filepath
-            regex: '^.*\/(?P<namespace>[^_]+)_(?P<pod_name>[^_]+)_(?P<uid>[a-f0-9\-]+)\/(?P<container_name>[^\._]+)\/(?P<restart_count>\d+)\.log$'
-            parse_from: attributes["log.file.path"]
-          # Rename attributes
-          - type: move
-            from: attributes.stream
-            to: attributes["log.iostream"]
-          - type: move
-            from: attributes.container_name
-            to: resource["k8s.container.name"]
-          - type: move
-            from: attributes.namespace
-            to: resource["k8s.namespace.name"]
-          - type: move
-            from: attributes.pod_name
-            to: resource["k8s.pod.name"]
-          - type: move
-            from: attributes.restart_count
-            to: resource["k8s.container.restart_count"]
-          - type: move
-            from: attributes.uid
-            to: resource["k8s.pod.uid"]
-          # Clean up log body
-          - type: move
-            from: attributes.log
-            to: body
+# apiVersion: opentelemetry.io/v1alpha1
+# kind: OpenTelemetryCollector
+# metadata:
+#   name: opentelemetry
+#   namespace: monitoring
+# spec:
+#   envFrom:
+#   - secretRef:
+#       name: opentelemetry-collector
+#   # https://github.com/open-telemetry/opentelemetry-operator/tree/main/cmd/otel-allocator
+#   # TODO install CRDs with https://github.com/prometheus-operator/prometheus-operator/releases
+#   mode: statefulset
+#   targetAllocator:
+#     enabled: true
+#     prometheusCR:
+#       enabled: true
+#   # target_allocator can be removed once this is merged: open-telemetry/opentelemetry-operator#1557
+#   config: |
+#     receivers:
+#       otlp:
+#         protocols:
+#           grpc:
+#           http:
+#       k8s_events:
+#       prometheus:
+#         config:
+#           scrape_configs:
+#           - job_name: otel-collector
+#         target_allocator:
+#           endpoint: http://opentelemetry-targetallocator
+#           interval: 1m
+#           collector_id: $${env:POD_NAME}
+#       filelog:
+#         include: [ /var/log/pods/*/*/*.log ]
+#         exclude: []
+#         start_at: beginning
+#         include_file_path: true
+#         include_file_name: false
+#         operators:
+#           # Find out which format is used by kubernetes
+#           - type: router
+#             id: get-format
+#             routes:
+#               - output: parser-docker
+#                 expr: 'body matches "^\\\{"'
+#               - output: parser-crio
+#                 expr: 'body matches "^[^ Z]+ "'
+#               - output: parser-containerd
+#                 expr: 'body matches "^[^ Z]+Z"'
+#           # Parse CRI-O format
+#           - type: regex_parser
+#             id: parser-crio
+#             regex: '^(?P<time>[^ Z]+) (?P<stream>stdout|stderr) (?P<logtag>[^ ]*) ?(?P<log>.*)$'
+#             output: extract_metadata_from_filepath
+#             timestamp:
+#               parse_from: attributes.time
+#               layout_type: gotime
+#               layout: '2006-01-02T15:04:05.000000000-07:00'
+#           # Parse CRI-Containerd format
+#           - type: regex_parser
+#             id: parser-containerd
+#             regex: '^(?P<time>[^ ^Z]+Z) (?P<stream>stdout|stderr) (?P<logtag>[^ ]*) ?(?P<log>.*)$'
+#             output: extract_metadata_from_filepath
+#             timestamp:
+#               parse_from: attributes.time
+#               layout: '%Y-%m-%dT%H:%M:%S.%LZ'
+#           # Parse Docker format
+#           - type: json_parser
+#             id: parser-docker
+#             output: extract_metadata_from_filepath
+#             timestamp:
+#               parse_from: attributes.time
+#               layout: '%Y-%m-%dT%H:%M:%S.%LZ'
+#           # Extract metadata from file path
+#           - type: regex_parser
+#             id: extract_metadata_from_filepath
+#             regex: '^.*\/(?P<namespace>[^_]+)_(?P<pod_name>[^_]+)_(?P<uid>[a-f0-9\-]+)\/(?P<container_name>[^\._]+)\/(?P<restart_count>\d+)\.log$'
+#             parse_from: attributes["log.file.path"]
+#           # Rename attributes
+#           - type: move
+#             from: attributes.stream
+#             to: attributes["log.iostream"]
+#           - type: move
+#             from: attributes.container_name
+#             to: resource["k8s.container.name"]
+#           - type: move
+#             from: attributes.namespace
+#             to: resource["k8s.namespace.name"]
+#           - type: move
+#             from: attributes.pod_name
+#             to: resource["k8s.pod.name"]
+#           - type: move
+#             from: attributes.restart_count
+#             to: resource["k8s.container.restart_count"]
+#           - type: move
+#             from: attributes.uid
+#             to: resource["k8s.pod.uid"]
+#           # Clean up log body
+#           - type: move
+#             from: attributes.log
+#             to: body
 
-    extensions:
-      basicauth/traces:
-        client_auth:
-          username: $${env:TRACES_USERNAME}
-          password: $${env:METRICS_PASSWORD}
-      basicauth/metrics:
-        client_auth:
-          username: $${env:METRICS_USERNAME}
-          password: $${env:METRICS_PASSWORD}
-      basicauth/logs:
-        client_auth:
-          username: $${env:LOGS_USERNAME}
-          password: $${env:METRICS_PASSWORD}
+#     extensions:
+#       basicauth/traces:
+#         client_auth:
+#           username: $${env:TRACES_USERNAME}
+#           password: $${env:METRICS_PASSWORD}
+#       basicauth/metrics:
+#         client_auth:
+#           username: $${env:METRICS_USERNAME}
+#           password: $${env:METRICS_PASSWORD}
+#       basicauth/logs:
+#         client_auth:
+#           username: $${env:LOGS_USERNAME}
+#           password: $${env:METRICS_PASSWORD}
 
-    exporters:
-      otlp:
-        endpoint: $${env:TRACES_ENDPOINT}
-        tls:
-          insecure: false
-        auth:
-          authenticator: basicauth/traces
-      prometheusremotewrite:
-        endpoint: $${env:METRICS_ENDPOINT}
-        auth:
-          authenticator: basicauth/metrics
-        external_labels:
-          cluster: $${env:CLUSTER_NAME}
-      loki:
-        endpoint: $${env:LOGS_ENDPOINT}
-        auth:
-          authenticator: basicauth/logs
-      otlp/metrics:
-        endpoint: "api.honeycomb.io:443"
-        headers:
-          "x-honeycomb-team": $${env:HONEYCOMB_API_KEY}
-          "x-honeycomb-dataset": kubernetes-metrics
-      otlp/logs:
-        endpoint: "api.honeycomb.io:443"
-        headers:
-          "x-honeycomb-team": $${env:HONEYCOMB_API_KEY}
+#     exporters:
+#       otlp:
+#         endpoint: $${env:TRACES_ENDPOINT}
+#         tls:
+#           insecure: false
+#         auth:
+#           authenticator: basicauth/traces
+#       prometheusremotewrite:
+#         endpoint: $${env:METRICS_ENDPOINT}
+#         auth:
+#           authenticator: basicauth/metrics
+#         external_labels:
+#           cluster: $${env:CLUSTER_NAME}
+#       loki:
+#         endpoint: $${env:LOGS_ENDPOINT}
+#         auth:
+#           authenticator: basicauth/logs
+#       otlp/metrics:
+#         endpoint: "api.honeycomb.io:443"
+#         headers:
+#           "x-honeycomb-team": $${env:HONEYCOMB_API_KEY}
+#           "x-honeycomb-dataset": kubernetes-metrics
+#       otlp/logs:
+#         endpoint: "api.honeycomb.io:443"
+#         headers:
+#           "x-honeycomb-team": $${env:HONEYCOMB_API_KEY}
 
-    processors:
-      spanmetrics:
-        metrics_exporter: prometheusremotewrite
-      batch:
-        send_batch_max_size: 10000
+#     processors:
+#       spanmetrics:
+#         metrics_exporter: prometheusremotewrite
+#       batch:
+#         send_batch_max_size: 10000
 
-    service:
-      extensions: [ basicauth/traces, basicauth/metrics, basicauth/logs ]
-      pipelines:
-        metrics:
-          receivers: [ prometheus ]
-          processors: [ batch ]
-          exporters: [ prometheusremotewrite, otlp/metrics ]
-        logs:
-          receivers: [ filelog, k8s_events ]
-          processors: [ batch ]
-          exporters: [ loki, otlp/logs ]
----
-# TODO move to operator
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: opentelemetry-targetallocator
-rules:
-# Prometheus discovery
-- apiGroups:
-  - monitoring.coreos.com
-  resources:
-  - servicemonitors
-  - podmonitors
-  verbs:
-  - '*'
-- apiGroups: [""]
-  resources:
-  - nodes
-  - nodes/metrics
-  - services
-  - endpoints
-  - pods
-  verbs: ["get", "list", "watch"]
-- apiGroups: [""]
-  resources:
-  - configmaps
-  verbs: ["get"]
-- apiGroups:
-  - discovery.k8s.io
-  resources:
-  - endpointslices
-  verbs: ["get", "list", watch"]
-- apiGroups:
-  - networking.k8s.io
-  resources:
-  - ingresses
-  verbs: ["get", "list", "watch"]
-- nonResourceURLs: ["/metrics"]
-  verbs: ["get"]
-# k8s events
-- apiGroups: [""]
-  resources: ["events"]
-  verbs: ["list"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: opentelemetry-targetallocator
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: opentelemetry-targetallocator
-subjects:
-- kind: ServiceAccount
-  name: opentelemetry-collector
-  namespace: monitoring
+#     service:
+#       extensions: [ basicauth/traces, basicauth/metrics, basicauth/logs ]
+#       pipelines:
+#         metrics:
+#           receivers: [ prometheus ]
+#           processors: [ batch ]
+#           exporters: [ prometheusremotewrite, otlp/metrics ]
+#         logs:
+#           receivers: [ filelog, k8s_events ]
+#           processors: [ batch ]
+#           exporters: [ loki, otlp/logs ]
+# ---
+# # TODO move to operator
+# apiVersion: rbac.authorization.k8s.io/v1
+# kind: ClusterRole
+# metadata:
+#   name: opentelemetry-targetallocator
+# rules:
+# # Prometheus discovery
+# - apiGroups:
+#   - monitoring.coreos.com
+#   resources:
+#   - servicemonitors
+#   - podmonitors
+#   verbs:
+#   - '*'
+# - apiGroups: [""]
+#   resources:
+#   - nodes
+#   - nodes/metrics
+#   - services
+#   - endpoints
+#   - pods
+#   verbs: ["get", "list", "watch"]
+# - apiGroups: [""]
+#   resources:
+#   - configmaps
+#   verbs: ["get"]
+# - apiGroups:
+#   - discovery.k8s.io
+#   resources:
+#   - endpointslices
+#   verbs: ["get", "list", watch"]
+# - apiGroups:
+#   - networking.k8s.io
+#   resources:
+#   - ingresses
+#   verbs: ["get", "list", "watch"]
+# - nonResourceURLs: ["/metrics"]
+#   verbs: ["get"]
+# # k8s events
+# - apiGroups: [""]
+#   resources: ["events"]
+#   verbs: ["list"]
+# ---
+# apiVersion: rbac.authorization.k8s.io/v1
+# kind: ClusterRoleBinding
+# metadata:
+#   name: opentelemetry-targetallocator
+# roleRef:
+#   apiGroup: rbac.authorization.k8s.io
+#   kind: ClusterRole
+#   name: opentelemetry-targetallocator
+# subjects:
+# - kind: ServiceAccount
+#   name: opentelemetry-collector
+#   namespace: monitoring
