@@ -28,6 +28,8 @@ spec:
       hostname: pl4nty's jungle
     persistence:
       size: 32Gi
+    podSecurityContext:
+      fsGroup: 1234
     service:
       type: LoadBalancer
 # TODO externaldns entry
