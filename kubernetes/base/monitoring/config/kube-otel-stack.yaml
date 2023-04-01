@@ -127,7 +127,7 @@ spec:
           pipelines:
             metrics:
               receivers: [prometheus]
-              processors: [memory_limiter, resource, resourcedetection/env, batch]
+              processors: [memory_limiter, resource, batch]
               exporters: [prometheusremotewrite]
             logs:
               receivers: [ filelog, k8s_events ]
