@@ -29,7 +29,7 @@ spec:
         protocols:
           grpc:
           http:
-      k8s_events:
+      k8s_events: {}
       prometheus:
         config:
           scrape_configs:
@@ -161,7 +161,7 @@ spec:
           exporters: [ prometheusremotewrite ]
         logs:
           receivers: [ filelog, k8s_events ]
-          processors: [ batch ]
+          processors: [ attributes, batch ]
           exporters: [ loki ]
 ---
 # TODO move to operator
