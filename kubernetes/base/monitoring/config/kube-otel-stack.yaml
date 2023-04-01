@@ -44,7 +44,9 @@ spec:
       envFrom:
       - secretRef:
           name: opentelemetry-collector
-      env: {}
+      env:
+      - name: LS_TOKEN
+        value: ""
       config:
         extensions:
           basicauth/traces:
