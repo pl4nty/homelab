@@ -64,11 +64,12 @@ spec:
           devices.yaml: |
             routers:
             - name: Azure 1, Aus East
-              address: localhost
               network:
                 name: azure
                 display_name: Azure
               nos: linux
+              address: localhost
+              port: 2222
               credential:
                 username: ubuntu
                 password: ubuntu
