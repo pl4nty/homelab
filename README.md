@@ -11,9 +11,9 @@ Networking:
 * [Cloudflare Access](https://www.cloudflare.com/products/zero-trust/access/) authentication broker
 * [Azure AD](https://www.microsoft.com/microsoft-365/p/microsoft-365-personal/cfq7ttc0k5bf) IdP
 
-Monitoring:
-* [Grafana Cloud](https://grafana.com/products/cloud/) metrics, logs, alerts
-* [grafana-agent-operator](https://github.com/grafana/agent) metric and log shipping
+Observability:
+* [OpenTelemetry Operator](https://github.com/open-telemetry/opentelemetry-operator) instrumentation and exporting 
+* [Grafana Cloud](https://grafana.com/products/cloud/) storage, analysis, and alerts
 
 GitOps:
 * [Flux](https://fluxcd.io/) manifest reconciliation
