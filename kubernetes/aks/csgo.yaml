@@ -30,7 +30,7 @@ spec:
       environment:
       - name: SRCDS_TOKEN
         valueFrom:
-          secretRef:
+          secretKeyRef:
             name: csgo
             key: SRCDS_TOKEN
     persistence:
