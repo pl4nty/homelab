@@ -35,10 +35,26 @@ spec:
           commands.yaml: |
             linux:
               ipv4_default:
+                bgp_aspath: echo "unsupported"
+                bgp_community: echo "unsupported"
                 bgp_route: ip route get {target}
                 ping: ping {target}
                 traceroute: traceroute {target}
               ipv6_default:
+                bgp_aspath: echo "unsupported"
+                bgp_community: echo "unsupported"
+                bgp_route: ip route get {target}
+                ping: ping6 {target}
+                traceroute: traceroute6 {target}
+              ipv4_vpn:
+                bgp_aspath: echo "unsupported"
+                bgp_community: echo "unsupported"
+                bgp_route: ip route get {target}
+                ping: ping {target}
+                traceroute: traceroute {target}
+              ipv6_vpn:
+                bgp_aspath: echo "unsupported"
+                bgp_community: echo "unsupported"
                 bgp_route: ip route get {target}
                 ping: ping6 {target}
                 traceroute: traceroute6 {target}
@@ -76,16 +92,6 @@ spec:
     podSecurityContext:
       fsGroup: 2000
       fsGroupChangePolicy: OnRootMismatch
-    addons:
-      codeserver:
-        enabled: true
-        workingDir: ~/.config/code-server
-        args:
-        - --auth
-        - 'none'
-        volumeMounts:
-        - name: config-commands
-          mountPath: /opt/hyperglass/hyperglass
     service:
       main:
         ports:
