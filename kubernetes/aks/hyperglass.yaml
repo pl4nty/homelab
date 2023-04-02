@@ -84,7 +84,7 @@ spec:
         - --auth
         - 'none'
         volumeMounts:
-        - name: config
+        - name: config-commands
           mountPath: /opt/hyperglass/hyperglass
     service:
       main:
