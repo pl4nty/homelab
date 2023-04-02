@@ -65,7 +65,6 @@ spec:
         enabled: true
         type: configMap
         name: hyperglass-config
-        readOnly: true
         mountPath: /opt/hyperglass/hyperglass
     podSecurityContext:
       runAsGroup: 1000
