@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/coder/code-server
-      tag: 4.10.0
+      repository: timrabl/hyperglass
+      tag: 1.0.4-1.0.183
     configMaps:
       config:
         enabled: true
@@ -86,14 +86,14 @@ spec:
         ports:
           http:
             port: 12321
-    route:
-      main:
-        enabled: true
-        parentRefs:
-        - namespace: default
-          name: traefik-gateway
-        hostnames:
-        - lg.tplant.com.au
+    # route:
+    #   main:
+    #     enabled: true
+    #     parentRefs:
+    #     - namespace: default
+    #       name: traefik-gateway
+    #     hostnames:
+    #     - lg.tplant.com.au
     sidecars:
       redis:
         name: redis
@@ -101,19 +101,19 @@ spec:
       # ssh:
       #   name: ssh
       #   image: ghcr.io/pl4nty/ubuntu-ssh@sha256:3601c45122ce210bf3dd3760bbf21571885d44e7ff144f7074e02c0211473e83
----
-apiVersion: gateway.networking.k8s.io/v1alpha2
-kind: HTTPRoute
-metadata:
-  name: hyperglass-codeserver
-  namespace: default
-spec:
-  parentRefs:
-  - namespace: default
-    name: traefik-gateway
-  hostnames:
-  - lg-vscode.tplant.au
-  rules:
-  - backendRefs:
-    - name: hyperglass-addon-codeserver
-      port: 12321
+# ---
+# apiVersion: gateway.networking.k8s.io/v1alpha2
+# kind: HTTPRoute
+# metadata:
+#   name: hyperglass-codeserver
+#   namespace: default
+# spec:
+#   parentRefs:
+#   - namespace: default
+#     name: traefik-gateway
+#   hostnames:
+#   - lg-vscode.tplant.au
+#   rules:
+#   - backendRefs:
+#     - name: hyperglass-addon-codeserver
+#       port: 12321
