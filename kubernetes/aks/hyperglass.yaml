@@ -64,7 +64,7 @@ spec:
           devices.yaml: |
             routers:
             - name: Azure 1, Aus East
-              address: 10.0.0.1
+              address: localhost
               network:
                 name: azure
                 display_name: Azure
@@ -103,6 +103,7 @@ spec:
       fsGroupChangePolicy: OnRootMismatch
     probes:
       startup:
+        enabled: false
         spec:
           initialDelaySeconds: 120
           periodSeconds: 10
