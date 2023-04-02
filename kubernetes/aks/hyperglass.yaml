@@ -105,7 +105,7 @@ spec:
       main:
         ports:
           http:
-            port: 12321
+            port: 8001
     # route:
     #   main:
     #     enabled: true
