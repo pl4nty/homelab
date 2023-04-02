@@ -67,8 +67,7 @@ spec:
         name: hyperglass-config
         readOnly: true
         mountPath: /opt/hyperglass/hyperglass
-    securityContext:
-      runAsUser: 1000
+    podSecurityContext:
       runAsGroup: 1000
       fsGroup: 1000
     addons:
