@@ -26,6 +26,13 @@ spec:
   values:
     config:
       hostname: pl4nty's jungle
+    statefulset:
+      environment:
+      - name: SRCDS_TOKEN
+        valueFrom:
+          secretRef:
+            name: csgo
+            key: SRCDS_TOKEN
     persistence:
       size: 32Gi
     podSecurityContext:
