@@ -68,8 +68,8 @@ spec:
         mountPath: /opt/hyperglass/hyperglass
     podSecurityContext:
       runAsUser: 1000
-      runAsGroup: 101
-      fsGroup: 101
+      runAsGroup: 2000
+      fsGroup: 2000
       fsGroupChangePolicy: OnRootMismatch
     addons:
       codeserver:
