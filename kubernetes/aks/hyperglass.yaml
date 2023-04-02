@@ -114,10 +114,6 @@ spec:
     #       name: traefik-gateway
     #     hostnames:
     #     - lg.tplant.com.au
-    sidecars:
-      redis:
-        name: redis
-        image: redis:7.0.10
       # ssh:
       #   name: ssh
       #   image: ghcr.io/pl4nty/ubuntu-ssh@sha256:3601c45122ce210bf3dd3760bbf21571885d44e7ff144f7074e02c0211473e83
