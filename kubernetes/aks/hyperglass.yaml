@@ -69,6 +69,7 @@ spec:
     podSecurityContext:
       runAsGroup: 1000
       fsGroup: 1000
+      fsGroupChangePolicy: OnRootMismatch
     addons:
       codeserver:
         enabled: true
