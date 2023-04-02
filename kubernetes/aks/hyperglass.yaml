@@ -104,7 +104,8 @@ spec:
     probes:
       startup:
         spec:
-          initialDelaySeconds: 60
+          initialDelaySeconds: 120
+          periodSeconds: 10
     service:
       main:
         ports:
