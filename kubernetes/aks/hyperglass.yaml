@@ -124,9 +124,14 @@ spec:
       redis:
         name: redis
         image: redis:7.0.10
-      # ssh:
-      #   name: ssh
-      #   image: ghcr.io/pl4nty/ubuntu-ssh@sha256:3601c45122ce210bf3dd3760bbf21571885d44e7ff144f7074e02c0211473e83
+      ssh:
+        name: ssh
+        image: ghcr.io/pl4nty/ubuntu-ssh@sha256:ecaca0b76405780af43d5931280dad4e70e7f53451963609a1f015b3369edac6
+        # allow ICMP access. net.ipv4.ping_group_range="0 [the uid ie 1000]" may still be required on the node
+        securityContext:
+          capabilities:
+            add:
+            - NET_RAW
 # ---
 # apiVersion: gateway.networking.k8s.io/v1alpha2
 # kind: HTTPRoute
