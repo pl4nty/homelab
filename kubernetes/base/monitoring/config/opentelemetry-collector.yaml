@@ -146,6 +146,14 @@ spec:
       batch:
         send_batch_size: 1000
         send_batch_max_size: 5000
+      attributes:
+        actions:
+        - action: insert
+          key: log_file_name
+          from_attribute: log.file.name
+        - action: insert
+          key: loki.attribute.labels
+          value: log_file_name
 
     service:
       extensions: [ basicauth/traces, basicauth/metrics, basicauth/logs ]
@@ -160,7 +168,7 @@ spec:
           exporters: [ prometheusremotewrite ]
         logs:
           receivers: [ filelog, k8s_events ]
-          processors: [ batch ]
+          processors: [ attributes, batch ]
           exporters: [ loki ]
 ---
 # TODO move to operator
