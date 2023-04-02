@@ -23,13 +23,6 @@ spec:
         mountPath: /config
         size: 1Gi
         retain: true
-    resources:
-      requests:
-        cpu: 5m
-        memory: 300Mi
-      limits:
-        cpu: 100m
-        memory: 800Mi
     service:
       main:
         ports:
