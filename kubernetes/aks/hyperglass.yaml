@@ -32,6 +32,9 @@ spec:
       config:
         enabled: true
         data:
+          hyperglass.yaml: |
+            cache:
+              host: localhost
           commands.yaml: |
             linux:
               ipv4_default:
@@ -77,6 +80,12 @@ spec:
                 ipv6:
                   source_address: 2001:db8::1
     persistence:
+      config-hyperglass:
+        enabled: true
+        type: configMap
+        name: hyperglass-config
+        mountPath: /opt/hyperglass/hyperglass/hyperglass.yaml
+        subPath: hyperglass.yaml
       config-commands:
         enabled: true
         type: configMap
