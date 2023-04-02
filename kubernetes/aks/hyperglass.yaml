@@ -101,6 +101,10 @@ spec:
     podSecurityContext:
       fsGroup: 2000
       fsGroupChangePolicy: OnRootMismatch
+    probes:
+      startup:
+        spec:
+          initialDelaySeconds: 60
     service:
       main:
         ports:
