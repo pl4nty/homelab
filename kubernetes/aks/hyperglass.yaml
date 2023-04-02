@@ -61,16 +61,18 @@ spec:
                 ipv6:
                   source_address: 2001:db8::1
     persistence:
-      config:
+      config-commands:
         enabled: true
         type: configMap
         name: hyperglass-config
-        mountPath: /opt/hyperglass/hyperglass
-        items:
-        - key: devices.yaml
-          path: devices.yaml
-        - key: commands.yaml
-          path: commands.yaml
+        mountPath: /opt/hyperglass/hyperglass/commands.yaml
+        subPath: commands.yaml
+      config-devices:
+        enabled: true
+        type: configMap
+        name: hyperglass-config
+        mountPath: /opt/hyperglass/hyperglass/devices.yaml
+        subPath: devices.yaml
     podSecurityContext:
       # runAsUser: 1000
       # runAsGroup: 2000
