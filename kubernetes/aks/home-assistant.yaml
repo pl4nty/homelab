@@ -95,7 +95,7 @@ tunnelRef:
 apiVersion: networking.cfargotunnel.com/v1alpha1
 kind: TunnelBinding
 metadata:
-  name: home-assistant
+  name: home-assistant-addon-codeserver
   namespace: default
 subjects:
   - name: home-assistant-addon-codeserver
