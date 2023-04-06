@@ -50,3 +50,16 @@ spec:
           name: traefik-gateway
         hostnames:
         - msft-store.tplant.com.au
+---
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: storeweb
+  namespace: default
+subjects:
+  - name: storeweb
+    spec:
+      fqdn: msft-store.tplant.com.au
+tunnelRef:
+  kind: ClusterTunnel
+  name: cloudflare-tunnel

@@ -45,3 +45,14 @@ spec:
           name: traefik-gateway
         hostnames:
         - mha.tplant.com.au
+---
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: mha
+  namespace: default
+subjects:
+  - name: mha
+tunnelRef:
+  kind: ClusterTunnel
+  name: cloudflare-tunnel
