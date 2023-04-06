@@ -30,13 +30,6 @@ spec:
       tag: 0.4.5
     podAnnotations:
       instrumentation.opentelemetry.io/inject-java: "monitoring/opentelemetry-instrumentation"
-    # resources:
-    #   requests:
-    #     cpu: 100m
-    #     memory: 50Mi
-    #   limits:
-    #     cpu: 200m
-    #     memory: 100Mi
     probes:
       liveness:
         spec:
