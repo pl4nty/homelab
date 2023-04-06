@@ -149,11 +149,17 @@ spec:
       attributes:
         actions:
         - action: insert
-          key: log_file_name
-          from_attribute: log.file.name
+          key: log_file_path
+          from_attribute: log.file.path
         - action: insert
           key: loki.attribute.labels
-          value: log_file_name
+          value: log_file_path
+        - action: insert
+          key: log_iostream
+          from_attribute: log.iostream
+        - action: insert
+          key: loki.attribute.labels
+          value: log_iostream
 
     service:
       extensions: [ basicauth/traces, basicauth/metrics, basicauth/logs ]
