@@ -166,19 +166,19 @@ spec:
           key: namespace
           from_attribute: k8s.namespace.name
         - action: insert
-          key: loki.attribute.labels
+          key: loki.resource.labels
           value: namespace
         - action: insert
           key: pod
           from_attribute: k8s.pod.name
         - action: insert
-          key: loki.attribute.labels
+          key: loki.resource.labels
           value: pod
         - action: insert
           key: container
           from_attribute: k8s.container.name
         - action: insert
-          key: loki.attribute.labels
+          key: loki.resource.labels
           value: container
 
     service:
