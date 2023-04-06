@@ -13,3 +13,19 @@ spec:
   newTunnel:
     name: lab-infra-aks
   size: 1
+---
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: ClusterTunnel
+metadata:
+  name: cloudflare-tunnel-private
+  namespace: cloudflare-operator-system
+spec:
+  cloudflare:
+    email: tom@tplant.com.au
+    accountId: 20e0944718a914755e926a8ac51178d7
+    accountName: tom@tplant.com.au
+    domain: tplant.au
+    secret: cloudflare-api
+  newTunnel:
+    name: lab-infra-aks-private
+  size: 1

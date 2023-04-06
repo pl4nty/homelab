@@ -80,3 +80,27 @@ spec:
   - backendRefs:
     - name: home-assistant-addon-codeserver
       port: 12321
+---
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: home-assistant
+  namespace: default
+subjects:
+  - name: home-assistant
+tunnelRef:
+  kind: ClusterTunnel
+  name: cloudflare-tunnel-private
+---
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: home-assistant
+  namespace: default
+subjects:
+  - name: home-assistant-addon-codeserver
+    spec:
+      fqdn: hass-vscode.tplant.au
+tunnelRef:
+  kind: ClusterTunnel
+  name: cloudflare-tunnel-private
