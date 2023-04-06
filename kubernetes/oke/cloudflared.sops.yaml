@@ -2,7 +2,7 @@ kind: Secret
 apiVersion: v1
 metadata:
     name: tunnel-credentials
-    namespace: cloudflared
+    namespace: networking
 type: Opaque
 stringData:
     token: ENC[AES256_GCM,data:2uWABdZe4eAv/S9WLVtFvgWZv6Hnf2XA2y7fZECx7txhbuGxSTuFyjX+ZQ/TpbUWzwmDsbATfpUF5YgfBPceeXlLwZljAxLlEzi+BBlTwPDhSyOVq2rkndImYFkQ55X3/X94SFsSh1RuuhvDVnYWg9+pq10KBpzlXgW3DrEBPZBok+GeVFrZKl9TJC0P4yv5vVanFc7m3IWqGbf+xC2n5Y4+nacv39hM6HSZDSnyteommEIP/YEPxA==,iv:9YSGBukYr8kb/eO7BRchad1IMpA6jLm/0IbxoJPg15o=,tag:b+140d8Zsj9d7E3MsMD4Tw==,type:str]
@@ -21,8 +21,8 @@ sops:
             YmNNUS9RV2ZrRm1La2lCR0Y2emxIVU0KfsSUa6aAU/yB4fnihKo2hjr5wZ2rlrMH
             2bkGjAUOSv2kVqgAA7Dit7ZHtlruY0M1qP5E3AAZ/T1VKQ5cc8TCNQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-03-25T14:38:53Z"
-    mac: ENC[AES256_GCM,data:FgNAqilew5/KjOymOVU8RN6R5PFF6TMiPRzTUPy97YiEimX96zD0aREcNPhSPYVNeagqitrWUfw3dMuJxDUMAYyyFN+gfn2YffH1gYGqMigleuHtltX0PxL/guPIHXTub1ikJDpfkrwPo8abUdV2dTOgMZXUV7Qkauqbh4bNALA=,iv:ljA1midLgztXoUCoXM41QWsJCtipH5br8FaiDR/srlc=,tag:lKufn/oBnBL9wJsnQhWZPg==,type:str]
+    lastmodified: "2023-04-06T07:53:18Z"
+    mac: ENC[AES256_GCM,data:pdo7heQXzpM238YyA5uzlfUPGPLt6sQH2dqQ6KUVQ8jLxFsDOZt93lepZ05SSJKivC+e+yw/WmwLopFvuN7d0w6D4sjtLz4kc3u7IywclBtUQKNmEMGCMbhJww2A/jZ2SoO03iXXK+R3ql7yWxnXrrFt/Ogr1uvepVXQmT7N+tk=,iv:Wn6Cy7WiTtS6s+Caxk2UpChsQf89eRFyJIZP2BgPALY=,tag:xcgQL1/VJoVpOf4AiDy5JA==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.7.3
