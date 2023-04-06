@@ -70,8 +70,6 @@ spec:
         volumeMounts:
         - name: config
           mountPath: /config/rclone
-        service:
-          type: LoadBalancer
     service:
       main:
         ports:
