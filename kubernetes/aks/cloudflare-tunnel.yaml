@@ -2,7 +2,7 @@ apiVersion: networking.cfargotunnel.com/v1alpha1
 kind: Tunnel
 metadata:
   name: cloudflare-tunnel
-  namespace: networking
+  namespace: default
 spec:
   cloudflare:
     email: tom@tplant.com.au

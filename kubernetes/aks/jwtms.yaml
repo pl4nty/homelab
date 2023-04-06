@@ -60,4 +60,3 @@ subjects:
 tunnelRef:
   kind: Tunnel
   name: cloudflare-tunnel
-  namespace: networking
