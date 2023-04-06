@@ -31,7 +31,7 @@ spec:
     env:
       PORT: 8080
     podAnnotations:
-      instrumentation.opentelemetry.io/inject-nodejs: "true"
+      instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
     service:
       main:
         ports:

@@ -34,7 +34,7 @@ spec:
     env:
       ASPNETCORE_URLS: http://*:8080
     podAnnotations:
-      instrumentation.opentelemetry.io/inject-dotnet: "true"
+      instrumentation.opentelemetry.io/inject-dotnet: "monitoring/opentelemetry-instrumentation"
     service:
       main:
         ports:

@@ -29,7 +29,7 @@ spec:
       repository: mpepping/cyberchef
       tag: v10.4.0
     podAnnotations:
-      instrumentation.opentelemetry.io/inject-nodejs: "true"
+      instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
     service:
       main:
         ports:

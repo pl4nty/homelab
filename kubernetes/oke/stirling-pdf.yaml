@@ -29,7 +29,7 @@ spec:
       repository: frooodle/s-pdf
       tag: 0.4.5
     podAnnotations:
-      instrumentation.opentelemetry.io/inject-java: "true"
+      instrumentation.opentelemetry.io/inject-java: "monitoring/opentelemetry-instrumentation"
     # resources:
     #   requests:
     #     cpu: 100m

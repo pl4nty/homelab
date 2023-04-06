@@ -31,7 +31,7 @@ spec:
       repository: ghcr.io/pl4nty/tsuro
       tag: latest
     podAnnotations:
-      instrumentation.opentelemetry.io/inject-java: "true"
+      instrumentation.opentelemetry.io/inject-java: "monitoring/opentelemetry-instrumentation"
     resources:
       # at idle
       requests:

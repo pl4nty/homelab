@@ -30,7 +30,7 @@ spec:
       tag: 0.1.0
       pullPolicy: Always
     podAnnotations:
-      instrumentation.opentelemetry.io/inject-nodejs: "true"
+      instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
     resources:
       requests:
         cpu: 5m
