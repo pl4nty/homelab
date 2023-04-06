@@ -2,7 +2,7 @@ kind: Secret
 apiVersion: v1
 metadata:
     name: cloudflare-tunnel
-    namespace: networking
+    namespace: cloudflare-operator-system
 type: Opaque
 stringData:
     CLOUDFLARE_API_KEY: ENC[AES256_GCM,data:TIymZHJ5C2P8QH+kiLFW1Pi6OEsIxdPBd0NWS6PmcSZuZLGIbQ==,iv:+cV7Lp0omRNuPOOp/k+lTq8/UTQvky4GWFbshNLxcuw=,tag:zU86f8FmVVHESoRpEmrxjA==,type:str]
@@ -22,8 +22,8 @@ sops:
             ZlhWR1lzR3VOQlF4VUdJK2dBZElieHMKWV3sSV8Xy7tetm6b9XTbMW1CUi8+4rvY
             xq4MDShCC15ZTAy/wBYVV1xze7+AQhymaQznZryMKr6eBI2lW/6/Qg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-04-06T10:55:21Z"
-    mac: ENC[AES256_GCM,data:GJRLeaSYn30F9JweD8iT1phi5OJmOiyTRUspblcUru0TFQcP87DdZCIEiPVGS5WQtNzk+LSsry5hxx+Iseyj3c1mjnFChr9RKeBD3wJb+G+co5BYN4JIhMxKGfaR/ewQzb2sM/mEaBc9es550jQLWNqXfQT+uJPupvEERKHOkkM=,iv:pYw3DDsIzsLfZzhUCjnmptFNiF6QKmzDNBe6XseIk2o=,tag:/fsIXeWskjelNExxuRJlxQ==,type:str]
+    lastmodified: "2023-04-06T10:59:25Z"
+    mac: ENC[AES256_GCM,data:OrNO+fkrNTOQ+fawAC3A7d9b7hF7oLFgdtQKwWCgqesSJ/HfUgMrw0rN+cYyshzSrS8PHrUd0hu4HtdwWrBBRHIPXkHiCJmHLEv6SARJEh25yqX6/alr54xV+5At5lUv8pM7X4YRHe8u27tlvXUuWH9vWUnIqI0x5O38wiVU+zM=,iv:P6mj6i5i7iv3jc2ypKLsFsAPhJZavRraQzU5hNNMfAU=,tag:Jmm3NFW6kKdY50MGGKZyqw==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.7.3
