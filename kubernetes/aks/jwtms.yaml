@@ -58,5 +58,5 @@ subjects:
     spec:
       fqdn: jwt.tplant.com.au
 tunnelRef:
-  kind: Tunnel
+  kind: ClusterTunnel
   name: cloudflare-tunnel
