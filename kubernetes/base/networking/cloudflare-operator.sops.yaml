@@ -2,7 +2,7 @@ kind: Secret
 apiVersion: v1
 metadata:
     name: cloudflare-operator
-    namespace: networking
+    namespace: cloudflare-operator-system
 type: Opaque
 stringData:
     CLOUDFLARE_API_KEY: ENC[AES256_GCM,data:TIymZHJ5C2P8QH+kiLFW1Pi6OEsIxdPBd0NWS6PmcSZuZLGIbQ==,iv:+cV7Lp0omRNuPOOp/k+lTq8/UTQvky4GWFbshNLxcuw=,tag:zU86f8FmVVHESoRpEmrxjA==,type:str]
@@ -22,8 +22,8 @@ sops:
             ZlhWR1lzR3VOQlF4VUdJK2dBZElieHMKWV3sSV8Xy7tetm6b9XTbMW1CUi8+4rvY
             xq4MDShCC15ZTAy/wBYVV1xze7+AQhymaQznZryMKr6eBI2lW/6/Qg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-04-06T09:57:12Z"
-    mac: ENC[AES256_GCM,data:TSFY4fgFtpzC+Qg2fzqXSYtq2wrjuNK0fhrKn5DayCmLPCpDgvBPjueWFOR6O794TR2/TeMnzO1XJqKCfW7TtscMfkW5jaab7v1zBSYuHAmev+apznrS9m8Z2jXyYIhyhjdyIKsjJlZV7pVNo0CHXSfJExNbtrIYf2Z6+FML7Es=,iv:hMfvNf/GUAb7NRanscAY6RoUxSQ3/jLX94vQG7FdSdk=,tag:aFQL93UErZ8tyRZSOZFvbw==,type:str]
+    lastmodified: "2023-04-06T10:27:17Z"
+    mac: ENC[AES256_GCM,data:YwFcjPlqpmkyhF5psBVfRgxz2n/n7u48YhRgdtFIbU0l5rwh36M9shTfVjmZSh6XepOXYjT0kN7xapO31NZ+rWGSLVyOhNt4A5WUOugoJ7qeQJHgkb4EjxR87Wy4BPNP0448iacFiWtrvN++s8aVk5kaJTUKTME+RR1Twq2BESc=,iv:hrw8Y6o/PAUdQ1z0GaTWg51aSVUkjo0WMwMk2PY28gU=,tag:7yRoOiMHDPjJc78Uv7f0tg==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.7.3
