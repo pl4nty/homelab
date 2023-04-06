@@ -60,3 +60,16 @@ subjects:
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel
+---
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: jwtms-au
+  namespace: default
+subjects:
+  - name: jwtms
+    spec:
+      fqdn: jwt.tplant.au
+tunnelRef:
+  kind: ClusterTunnel
+  name: cloudflare-tunnel
