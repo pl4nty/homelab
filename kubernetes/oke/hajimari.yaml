@@ -87,32 +87,32 @@ spec:
           url: https://nanne.dev/k8s-at-home-search
         - name: msportals
           url: https://msportals.io
----
-apiVersion: gateway.networking.k8s.io/v1alpha2
-kind: HTTPRoute
-metadata:
-  name: hajimari
-  namespace: default
-spec:
-  parentRefs:
-  - namespace: default
-    name: traefik-gateway
-  hostnames:
-  - lab.tplant.com.au
-  rules:
-  - backendRefs:
-    - name: hajimari
-      port: 3000
-  - backendRefs:
-    - name: well-known
-      port: 8080
-    matches:
-    - path:
-        type: PathPrefix
-        value: /robots.txt
-    - path:
-        type: PathPrefix
-        value: /.well-known/
+# ---
+# apiVersion: gateway.networking.k8s.io/v1alpha2
+# kind: HTTPRoute
+# metadata:
+#   name: hajimari
+#   namespace: default
+# spec:
+#   parentRefs:
+#   - namespace: default
+#     name: traefik-gateway
+#   hostnames:
+#   - lab.tplant.com.au
+#   rules:
+#   - backendRefs:
+#     - name: hajimari
+#       port: 3000
+#   - backendRefs:
+#     - name: well-known
+#       port: 8080
+#     matches:
+#     - path:
+#         type: PathPrefix
+#         value: /robots.txt
+#     - path:
+#         type: PathPrefix
+#         value: /.well-known/
 ---
 apiVersion: networking.cfargotunnel.com/v1alpha1
 kind: TunnelBinding
