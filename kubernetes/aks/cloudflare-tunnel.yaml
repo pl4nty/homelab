@@ -10,6 +10,7 @@ spec:
     accountName: tom@tplant.com.au
     domain: tplant.com.au
     secret: cloudflare-api
+  image: cloudflared/cloudflared:2023.3.1
   newTunnel:
     name: lab-infra-aks
   size: 1
@@ -26,6 +27,11 @@ spec:
     accountName: tom@tplant.com.au
     domain: tplant.au
     secret: cloudflare-api
+  image: cloudflared/cloudflared:2023.3.1
   newTunnel:
     name: lab-infra-aks-private
   size: 1
+# set net.ipv4.ping_group_range to allow ICMPv4 proxying (default '0 1' == block). v6 gives "socket: permission denied"
+# securityContext:
+#   runAsGroup: 
+# set --post-quantum to enable post-quantum crypto
