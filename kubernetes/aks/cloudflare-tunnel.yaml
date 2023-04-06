@@ -9,7 +9,7 @@ spec:
     accountId: 20e0944718a914755e926a8ac51178d7
     accountName: tom@tplant.com.au
     domain: tplant.com.au
-    secret: cloudflare-tunnel
+    secret: cloudflare-api
   newTunnel:
     name: lab-infra-aks
   size: 1
