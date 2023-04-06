@@ -139,14 +139,6 @@ spec:
         endpoint: $${env:LOGS_ENDPOINT}
         auth:
           authenticator: basicauth/logs
-        labels:
-          attributes:
-            k8s.namespace.name: namespace
-            k8s.pod.name: pod
-            k8s.container.name: container
-            log.file.path: "__path__"
-            log.iostream: iostream
-
 
     processors:
       spanmetrics:
@@ -154,6 +146,40 @@ spec:
       batch:
         send_batch_size: 1000
         send_batch_max_size: 5000
+      attributes:
+        actions:
+        - action: insert
+          key: __path__
+          from_attribute: log.file.path
+        - action: insert
+          key: loki.attribute.labels
+          value: __path__
+        - action: insert
+          key: log_iostream
+          from_attribute: log.iostream
+        - action: insert
+          key: loki.attribute.labels
+          value: log_iostream
+      resource:
+        attributes:
+        - action: insert
+          key: namespace
+          from_attribute: k8s.namespace.name
+        - action: insert
+          key: loki.attribute.labels
+          value: namespace
+        - action: insert
+          key: pod
+          from_attribute: k8s.pod.name
+        - action: insert
+          key: loki.attribute.labels
+          value: pod
+        - action: insert
+          key: container
+          from_attribute: k8s.container.name
+        - action: insert
+          key: loki.attribute.labels
+          value: container
 
     service:
       extensions: [ basicauth/traces, basicauth/metrics, basicauth/logs ]
@@ -168,7 +194,7 @@ spec:
           exporters: [ prometheusremotewrite ]
         logs:
           receivers: [ filelog, k8s_events ]
-          processors: [ batch ]
+          processors: [ attributes, resource, batch ]
           exporters: [ loki ]
 ---
 # TODO move to operator
