@@ -49,14 +49,14 @@ spec:
         ports:
           http:
             port: 80
-    route:
-      main:
-        enabled: true
-        parentRefs:
-        - namespace: default
-          name: traefik-gateway
-        hostnames:
-        - wufb-ds.tplant.com.au
+    # route:
+    #   main:
+    #     enabled: true
+    #     parentRefs:
+    #     - namespace: default
+    #       name: traefik-gateway
+    #     hostnames:
+    #     - wufb-ds.tplant.com.au
 ---
 apiVersion: networking.cfargotunnel.com/v1alpha1
 kind: TunnelBinding
