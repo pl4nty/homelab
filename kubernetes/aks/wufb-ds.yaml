@@ -29,8 +29,8 @@ spec:
       repository: ghcr.io/pl4nty/windowsupdates-webapplication-sample
       tag: 0.1.0
       pullPolicy: Always
-    # nodeSelector:
-    #   kubernetes.io/arch: amd64
+    nodeSelector:
+      kubernetes.io/arch: amd64
     podAnnotations:
       instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
     resources:
