@@ -6,3 +6,4 @@ resources:
 - cloudflared.yaml
 - namespace.yaml
 - https://github.com/adyanth/cloudflare-operator//config/default?ref=v0.10.0
+- cloudflare-operator.sops.yaml
