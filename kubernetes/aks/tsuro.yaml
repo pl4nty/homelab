@@ -1,7 +1,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: mha
+  name: tsuro
   namespace: default
 spec:
   interval: 15m
@@ -25,16 +25,28 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    controller:
+      replicas: 1
     image:
-      repository: ghcr.io/pl4nty/mha@sha256
-      tag: 8d7dfc05d335ca0da71a2d774264b7b568d8c6bb569b043fe30e1d597c7f186e
-    env:
-      SERVER_PORT: 8080
+      repository: ghcr.io/pl4nty/tsuro
+      tag: latest
+    nodeSelector:
+      kubernetes.io/arch: amd64
+    podAnnotations:
+      instrumentation.opentelemetry.io/inject-java: "monitoring/opentelemetry-instrumentation"
+    resources:
+      # at idle
+      requests:
+        cpu: 20m
+        memory: 250Mi
+      limits:
+        cpu: 1500m # during AI moves
+        memory: 1Gi # reached 850Mi in UAT, possibly 500Mi per user
     service:
       main:
         ports:
           http:
-            port: 8080
+            port: 80
     route:
       main:
         enabled: true
@@ -42,4 +54,4 @@ spec:
         - namespace: default
           name: traefik-gateway
         hostnames:
-        - mha.tplant.com.au
+        - tsuro.tplant.com.au

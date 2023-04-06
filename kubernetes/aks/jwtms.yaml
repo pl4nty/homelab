@@ -1,7 +1,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: storeweb
+  name: jwtms
   namespace: default
 spec:
   interval: 15m
@@ -26,15 +26,14 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/pl4nty/storeweb@sha256
-      tag: 99093ff15b393dce254a2acadfca05375ccf9905c35270827a2ffedc140554d4
-    command:
-    - dotnet
-    - StoreWeb.dll
+      repository: ghcr.io/pl4nty/jwtms@sha256
+      tag: 0ecd21c208ded0100ef2f5ce3cd452b5845ff14e6ec7b6db3fb74322d4e38a34
+    nodeSelector:
+      kubernetes.io/arch: amd64
     env:
-      ASPNETCORE_URLS: http://*:8080
+      PORT: 8080
     podAnnotations:
-      instrumentation.opentelemetry.io/inject-dotnet: "monitoring/opentelemetry-instrumentation"
+      instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
     service:
       main:
         ports:
@@ -47,4 +46,4 @@ spec:
         - namespace: default
           name: traefik-gateway
         hostnames:
-        - msft-store.tplant.com.au
+        - jwt.tplant.com.au

@@ -1,7 +1,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: wufb-ds
+  name: storeweb
   namespace: default
 spec:
   interval: 15m
@@ -26,27 +26,22 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/pl4nty/windowsupdates-webapplication-sample
-      tag: 0.1.0
-      pullPolicy: Always
+      repository: ghcr.io/pl4nty/storeweb@sha256
+      tag: 99093ff15b393dce254a2acadfca05375ccf9905c35270827a2ffedc140554d4
+    command:
+    - dotnet
+    - StoreWeb.dll
+    env:
+      ASPNETCORE_URLS: http://*:8080
+    nodeSelector:
+      kubernetes.io/arch: amd64
     podAnnotations:
-      instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
-    resources:
-      requests:
-        cpu: 5m
-        memory: 10Mi
-      limits:
-        cpu: 50m
-        memory: 100Mi
-    securityContext:
-      capabilities:
-        add:
-          - NET_BIND_SERVICE
+      instrumentation.opentelemetry.io/inject-dotnet: "monitoring/opentelemetry-instrumentation"
     service:
       main:
         ports:
           http:
-            port: 80
+            port: 8080
     route:
       main:
         enabled: true
@@ -54,4 +49,4 @@ spec:
         - namespace: default
           name: traefik-gateway
         hostnames:
-        - wufb-ds.tplant.com.au
+        - msft-store.tplant.com.au
