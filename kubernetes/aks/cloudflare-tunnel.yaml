@@ -8,7 +8,7 @@ spec:
     email: tom@tplant.com.au
     accountName: tom@tplant.com.au
     domain: tplant.com.au
-    secret: cloudflare-operator
+    secret: cloudflare-tunnel
   newTunnel:
     name: lab-infra-aks
   size: 1
