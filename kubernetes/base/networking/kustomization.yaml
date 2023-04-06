@@ -5,3 +5,4 @@ resources:
 - traefik.yaml
 - cloudflared.yaml
 - namespace.yaml
+- https://github.com/adyanth/cloudflare-operator//config/default?ref=v0.10.0

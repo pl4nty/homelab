@@ -1,0 +1,13 @@
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: Tunnel
+metadata:
+  name: cloudflare-tunnel
+spec:
+  cloudflare:
+    email: tom@tplant.com.au
+    accountName: tom@tplant.com.au
+    domain: tplant.com.au
+    secret: cloudflare-operator
+  newTunnel:
+    name: lab-infra-aks
+  size: 1

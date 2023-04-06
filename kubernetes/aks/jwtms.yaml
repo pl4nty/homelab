@@ -1,7 +1,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: jwtms
+  name: &app jwtms
   namespace: default
 spec:
   interval: 15m
@@ -47,3 +47,15 @@ spec:
           name: traefik-gateway
         hostnames:
         - jwt.tplant.com.au
+---
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: *app
+subjects:
+  - name: *app
+    spec:
+      fqdn: jwt.tplant.com.au
+tunnelRef:
+  kind: Tunnel
+  name: cloudflare-tunnel
