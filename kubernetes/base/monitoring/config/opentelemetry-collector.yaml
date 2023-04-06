@@ -149,11 +149,29 @@ spec:
       attributes:
         actions:
         - action: insert
-          key: log_file_path
+          key: namespace
+          from_attribute: k8s.namespace.name
+        - action: insert
+          key: loki.attribute.labels
+          value: namespace
+        - action: insert
+          key: pod
+          from_attribute: k8s.pod.name
+        - action: insert
+          key: loki.attribute.labels
+          value: pod
+        - action: insert
+          key: container
+          from_attribute: k8s.container.name
+        - action: insert
+          key: loki.attribute.labels
+          value: container
+        - action: insert
+          key: __path__
           from_attribute: log.file.path
         - action: insert
           key: loki.attribute.labels
-          value: log_file_path
+          value: __path__
         - action: insert
           key: log_iostream
           from_attribute: log.iostream
