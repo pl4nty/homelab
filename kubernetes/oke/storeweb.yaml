@@ -33,8 +33,8 @@ spec:
     - StoreWeb.dll
     env:
       ASPNETCORE_URLS: http://*:8080
-    nodeSelector:
-      kubernetes.io/arch: amd64
+    # nodeSelector:
+    #   kubernetes.io/arch: amd64
     podAnnotations:
       instrumentation.opentelemetry.io/inject-dotnet: "monitoring/opentelemetry-instrumentation"
     service:
