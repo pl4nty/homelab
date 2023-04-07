@@ -24,6 +24,8 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    controllers:
+      replicas: 0
     config:
       hostname: pl4nty's jungle
     statefulset:

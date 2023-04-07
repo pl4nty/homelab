@@ -25,6 +25,8 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    controller:
+      replicas: 0
     image:
       repository: timrabl/hyperglass
       tag: 1.0.4-1.0.183
