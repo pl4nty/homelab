@@ -85,6 +85,8 @@ spec:
         bookmarks:
         - name: k8s-at-home search
           url: https://nanne.dev/k8s-at-home-search
+        - name: visualise CRDs
+          url: https://doc.crds.dev
         - name: msportals
           url: https://msportals.io
 # ---
