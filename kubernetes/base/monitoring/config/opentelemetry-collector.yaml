@@ -169,8 +169,11 @@ spec:
           key: container
           from_attribute: k8s.container.name
         - action: insert
+          key: cluster
+          value: $${env:CLUSTER_NAME}
+        - action: insert
           key: loki.resource.labels
-          value: namespace, pod, container
+          value: namespace, pod, container, cluster
 
     service:
       extensions: [ basicauth/traces, basicauth/metrics, basicauth/logs ]
