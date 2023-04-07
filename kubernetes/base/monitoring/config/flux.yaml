@@ -34,7 +34,6 @@ spec:
         go_memstats_alloc_bytes|\
         rest_client_requests_total|\
         process_cpu_seconds_total|\
-        container_memory_working_set_bytes|\
         workqueue_longest_running_processor_seconds|\
         controller_runtime_reconcile_total|\
         controller_runtime_reconcile_time_seconds_bucket"
