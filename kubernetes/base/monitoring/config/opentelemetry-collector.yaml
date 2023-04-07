@@ -153,13 +153,7 @@ spec:
           from_attribute: log.file.path
         - action: insert
           key: loki.attribute.labels
-          value: __path__
-        - action: insert
-          key: log_iostream
-          from_attribute: log.iostream
-        - action: insert
-          key: loki.attribute.labels
-          value: log_iostream
+          value: __path__, log.iostream
       resource:
         attributes:
         - action: insert
@@ -169,20 +163,14 @@ spec:
           key: namespace
           from_attribute: k8s.namespace.name
         - action: insert
-          key: loki.resource.labels
-          value: namespace
-        - action: insert
           key: pod
           from_attribute: k8s.pod.name
-        - action: upsert
-          key: loki.resource.labels
-          value: pod
         - action: insert
           key: container
           from_attribute: k8s.container.name
-        - action: upsert
+        - action: insert
           key: loki.resource.labels
-          value: container
+          value: namespace, pod, container
 
     service:
       extensions: [ basicauth/traces, basicauth/metrics, basicauth/logs ]
