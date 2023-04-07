@@ -24,68 +24,68 @@ data:
              exit 0
              ;;
          s ) 
-             SLEEP_INTERVAL=${OPTARG}
+             SLEEP_INTERVAL=$${OPTARG}
              ;;
       esac
     done
-    if [[ ${SLEEP_INTERVAL} != ?(-)+([0-9]) ]]; then
-      logger "${SLEEP_INTERVAL} is not an integer"
+    if [[ $${SLEEP_INTERVAL} != ?(-)+([0-9]) ]]; then
+      logger "$${SLEEP_INTERVAL} is not an integer"
       usage
       exit 1
     fi
     gc_pods(){
       POD_IDS=($(crictl pods -q))
       POD_SCOPES=()
-      for POD_ID in ${POD_IDS[@]}; do
-        JSONDUMP="`crictl inspectp ${POD_ID}`"
-        POD_NAME="`echo ${JSONDUMP} | jq -r '.status.metadata.name'`"
-        POD_SCOPE="`echo ${JSONDUMP} | jq -r '.info.runtimeSpec.linux.cgroupsPath' | awk -F: '{print "crio-" $NF ".scope"}'`"
-        if [[ $? -ne 0 || -z "${POD_SCOPE}" ]]; then
-            logger "Error fetching pod SCOPE for pod with ID ${POD_ID}"
+      for POD_ID in $${POD_IDS[@]}; do
+        JSONDUMP="`crictl inspectp $${POD_ID}`"
+        POD_NAME="`echo $${JSONDUMP} | jq -r '.status.metadata.name'`"
+        POD_SCOPE="`echo $${JSONDUMP} | jq -r '.info.runtimeSpec.linux.cgroupsPath' | awk -F: '{print "crio-" $NF ".scope"}'`"
+        if [[ $? -ne 0 || -z "$${POD_SCOPE}" ]]; then
+            logger "Error fetching pod SCOPE for pod with ID $${POD_ID}"
             continue
         else
             POD_SCOPES+=($POD_SCOPE)
         fi
-        POD_NAMESPACE="`echo ${JSONDUMP} | jq -r '.status.metadata.namespace'`"
-        if [[ $? -ne 0 || -z "${POD_NAMESPACE}" ]]; then
-            logger "Error fetching pod NAMESPACE for pod with ID ${POD_ID}"
+        POD_NAMESPACE="`echo $${JSONDUMP} | jq -r '.status.metadata.namespace'`"
+        if [[ $? -ne 0 || -z "$${POD_NAMESPACE}" ]]; then
+            logger "Error fetching pod NAMESPACE for pod with ID $${POD_ID}"
             continue
         fi
-        POD_CREATED="`echo ${JSONDUMP} | jq -r '.status.createdAt'`"
-        if [[ $? -ne 0 || -z "${POD_CREATED}" ]]; then
-            logger "Error fetching pod created timestamp for pod with ID ${POD_ID}"
+        POD_CREATED="`echo $${JSONDUMP} | jq -r '.status.createdAt'`"
+        if [[ $? -ne 0 || -z "$${POD_CREATED}" ]]; then
+            logger "Error fetching pod created timestamp for pod with ID $${POD_ID}"
             continue
         fi
-        POD_NS="`echo ${JSONDUMP} | jq -r '.info.runtimeSpec.linux.namespaces[]|.path' | grep run | awk -F\/ '{print $NF}' | sort -u`"
-        if [[ $? -ne 0 || -z "${POD_NS}" ]]; then
-            logger "Error fetching pod namespace for pod with ID ${POD_ID}"
+        POD_NS="`echo $${JSONDUMP} | jq -r '.info.runtimeSpec.linux.namespaces[]|.path' | grep run | awk -F\/ '{print $NF}' | sort -u`"
+        if [[ $? -ne 0 || -z "$${POD_NS}" ]]; then
+            logger "Error fetching pod namespace for pod with ID $${POD_ID}"
             continue
         fi
-        if ip netns list | grep -q ${POD_NS}; then
-          POD_PIDS=($(ip netns pids ${POD_NS}))
+        if ip netns list | grep -q $${POD_NS}; then
+          POD_PIDS=($(ip netns pids $${POD_NS}))
           if [[ $? -ne 0 ]]; then
-              logger "Error fetching pod PIDs for pod ${POD_NAME}"
+              logger "Error fetching pod PIDs for pod $${POD_NAME}"
               continue
           fi
         else
           POD_PIDS=()
         fi
         # check if pod is known to k8s control plane
-        KUBECONFIG=/var/lib/kubelet/kubeconfig kubectl get pod ${POD_NAME} -n ${POD_NAMESPACE} &>/dev/null
+        KUBECONFIG=/var/lib/kubelet/kubeconfig kubectl get pod $${POD_NAME} -n $${POD_NAMESPACE} &>/dev/null
         if [[ $? -ne 0 ]]; then
           # additional check for safety, making sure that if there's a problem with apiserver we don't blindly remove pods with running processes
           KUBECONFIG=/var/lib/kubelet/kubeconfig kubectl get --raw='/readyz' &>/dev/null
           if [[ $? -ne 0 ]]; then
-            logger "Kubernetes API unavailable. Could be false positive so skipping deletion of POD ${POD_NAME}"
+            logger "Kubernetes API unavailable. Could be false positive so skipping deletion of POD $${POD_NAME}"
             continue
           fi
-          if [[ ${#POD_PIDS[@]} -eq 0 ]]; then
-            logger "Found POD ${POD_NAME} unknown to k8s control plane and without any PIDs, will delete it..."
-            crictl stopp ${POD_ID} || logger "Failed to stop POD ${POD_NAME}"
-            crictl rmp ${POD_ID} || logger "Error removing POD ${POD_NAME}"
+          if [[ $${#POD_PIDS[@]} -eq 0 ]]; then
+            logger "Found POD $${POD_NAME} unknown to k8s control plane and without any PIDs, will delete it..."
+            crictl stopp $${POD_ID} || logger "Failed to stop POD $${POD_NAME}"
+            crictl rmp $${POD_ID} || logger "Error removing POD $${POD_NAME}"
           fi
     #    else
-    #      logger "Pod ${POD_NAME} in namespace ${POD_NAMESPACE} is still known to control plane, skipping..."
+    #      logger "Pod $${POD_NAME} in namespace $${POD_NAMESPACE} is still known to control plane, skipping..."
         fi
       done
     }
@@ -93,21 +93,21 @@ data:
       CGROUPDIRS=($(find /sys/fs/cgroup -type d))
       LEFTOVER_SCOPES_TMP=($(journalctl --since "10m ago" | egrep 'Failed to update stats for container|Failed to create existing container' | grep -o 'crio-.*scope' | sort -u))
       for PODID in `journalctl --since "10 ago" | grep 'Unable to fetch pod log stats' | grep -o '\/var.*:' | tr -d ':' | awk -F_ '{print $NF}' | sed 's/-/_/g' | sort -u`; do
-        LEFTOVER_SCOPES_TMP+=($(printf -- '%s\n' "${testarray[@]}" | grep ${PODID} | grep -o crio.*$))
+        LEFTOVER_SCOPES_TMP+=($(printf -- '%s\n' "$${testarray[@]}" | grep $${PODID} | grep -o crio.*$))
       done
-      LEFTOVER_SCOPES=($(printf -- '%s\n' "${LEFTOVER_SCOPES_TMP[@]}" | sort -u))
-      for SCOPENAME in ${LEFTOVER_SCOPES[@]}; do
-        if [[ " ${POD_SCOPES[*]} " =~ " ${SCOPENAME} " ]]; then
-          logger "Scope ${SCOPENAME} found under running pod, skipping..."
+      LEFTOVER_SCOPES=($(printf -- '%s\n' "$${LEFTOVER_SCOPES_TMP[@]}" | sort -u))
+      for SCOPENAME in $${LEFTOVER_SCOPES[@]}; do
+        if [[ " $${POD_SCOPES[*]} " =~ " $${SCOPENAME} " ]]; then
+          logger "Scope $${SCOPENAME} found under running pod, skipping..."
           continue
         else
-          for SCOPE in `printf -- '%s\n' "${CGROUPDIRS[@]}" | grep ${SCOPENAME}`; do
-            logger "Removing CGROUP ${SCOPENAME} and its parent..."
-            rmdir ${SCOPE}
+          for SCOPE in `printf -- '%s\n' "$${CGROUPDIRS[@]}" | grep $${SCOPENAME}`; do
+            logger "Removing CGROUP $${SCOPENAME} and its parent..."
+            rmdir $${SCOPE}
             if [[ $? -eq 0 ]]; then
-              rmdir `dirname ${SCOPE}`
+              rmdir `dirname $${SCOPE}`
               if [[ $? -ne 0 ]]; then
-                logger "Failed to remove parent for CGROUP ${SCOPE}..."
+                logger "Failed to remove parent for CGROUP $${SCOPE}..."
               fi
             fi
           done
@@ -125,8 +125,8 @@ data:
         gc_pods
         gc_cgroups
       fi
-      logger "Sleeping for ${SLEEP_INTERVAL} seconds..."
-      sleep ${SLEEP_INTERVAL}
+      logger "Sleeping for $${SLEEP_INTERVAL} seconds..."
+      sleep $${SLEEP_INTERVAL}
     done
 ---
 apiVersion: apps/v1
