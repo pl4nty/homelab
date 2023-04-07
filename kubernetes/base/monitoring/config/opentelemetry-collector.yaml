@@ -262,6 +262,14 @@ spec:
   sampler:
     type: parentbased_traceidratio
     argument: "0.25"
+  resource:
+    resourceAttributes:
+      k8s.cluster.name: ${CLUSTER_NAME}
+  env:
+    # disable due to ingest limits
+    # https://opentelemetry.io/docs/reference/specification/sdk-environment-variables/#exporter-selection
+    - name: OTEL_METRICS_EXPORTER
+      value: none
   python:
     env:
       # Required if endpoint is set to 4317.
