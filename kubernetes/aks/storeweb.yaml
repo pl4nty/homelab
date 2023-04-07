@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/pl4nty/storeweb@sha256
-      tag: 99093ff15b393dce254a2acadfca05375ccf9905c35270827a2ffedc140554d4
+      repository: ghcr.io/pl4nty/storeweb
+      tag: latest
     command:
     - dotnet
     - StoreWeb.dll
