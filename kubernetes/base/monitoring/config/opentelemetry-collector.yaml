@@ -163,6 +163,9 @@ spec:
       resource:
         attributes:
         - action: insert
+          key: loki.format
+          value: raw
+        - action: insert
           key: namespace
           from_attribute: k8s.namespace.name
         - action: insert
@@ -171,13 +174,13 @@ spec:
         - action: insert
           key: pod
           from_attribute: k8s.pod.name
-        - action: insert
+        - action: upsert
           key: loki.resource.labels
           value: pod
         - action: insert
           key: container
           from_attribute: k8s.container.name
-        - action: insert
+        - action: upsert
           key: loki.resource.labels
           value: container
 
