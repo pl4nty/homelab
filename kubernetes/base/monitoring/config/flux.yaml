@@ -37,8 +37,7 @@ spec:
         container_memory_working_set_bytes|\
         workqueue_longest_running_processor_seconds|\
         controller_runtime_reconcile_total|\
-        controller_runtime_reconcile_time_seconds_bucket|\
-        container_memory_working_set_bytes"
+        controller_runtime_reconcile_time_seconds_bucket"
       # drop: go_.*|gotk_reconcile_duration_seconds_bucket|gotk_event_.*|gotk_receiver_.*
       sourceLabels:
       - __name__
