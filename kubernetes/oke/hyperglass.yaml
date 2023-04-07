@@ -108,7 +108,14 @@ spec:
       fsGroupChangePolicy: OnRootMismatch
     probes:
       startup:
-        enabled: false
+        spec:
+          initialDelaySeconds: 120
+          periodSeconds: 10
+      liveness:
+        spec:
+          initialDelaySeconds: 120
+          periodSeconds: 10
+      readiness:
         spec:
           initialDelaySeconds: 120
           periodSeconds: 10
