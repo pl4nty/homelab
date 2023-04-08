@@ -28,7 +28,6 @@ spec:
       kubernetes.io/arch: amd64
     # config:
     #   hostname: pl4nty's jungle
-    # statefulset:
     persistence:
       size: 32Gi
     statefulset:
