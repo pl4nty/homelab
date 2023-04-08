@@ -37,9 +37,9 @@ spec:
     #         key: SRCDS_TOKEN
     persistence:
       size: 32Gi
-    # podSecurityContext:
-    #   fsGroup: 2000
-    #   runAsGroup: 1000
+    podSecurityContext:
+      fsGroup: 2000
+      # runAsGroup: 1000
     # TODO externaldns entry
     # service:
     #   type: LoadBalancer
