@@ -34,10 +34,7 @@ spec:
     statefulset:
       sidecars:
       - name: code-server
-        image:
-          registry: docker.io
-          repository: coder/code-server
-          tag: latest
+        image: coder/code-server:latest
         volumeMounts:
         - mountPath: /home/steam/csgo-dedicated/
           name: home
