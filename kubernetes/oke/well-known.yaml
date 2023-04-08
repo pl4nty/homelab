@@ -84,3 +84,6 @@ spec:
         ports:
           http:
             port: 8080
+
+# no way to express this with a TunnelBinding CRD
+# would be fixed if adyanth/cloudflare-operator#81 is implemented
