@@ -33,9 +33,13 @@ spec:
       size: 32Gi
     statefulset:
       sidecars:
-        registry: docker.io
-        repository: coder/code-server
-        tag: 4.11.0-bullseye
+      - image:
+          registry: docker.io
+          repository: coder/code-server
+          tag: latest
+        volumeMounts:
+        - mountPath: /home/steam/csgo-dedicated/
+          name: home
       environment:
       - name: SRCDS_TOKEN
         valueFrom:
