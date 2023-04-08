@@ -35,14 +35,3 @@ spec:
         ports:
           http:
             port: 8080
----
-apiVersion: networking.cfargotunnel.com/v1alpha1
-kind: TunnelBinding
-metadata:
-  name: wufb-ds
-  namespace: default
-subjects:
-  - name: wufb-ds
-tunnelRef:
-  kind: ClusterTunnel
-  name: cloudflare-tunnel

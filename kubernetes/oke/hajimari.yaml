@@ -120,16 +120,3 @@ spec:
 #     - path:
 #         type: PathPrefix
 #         value: /.well-known/
----
-apiVersion: networking.cfargotunnel.com/v1alpha1
-kind: TunnelBinding
-metadata:
-  name: hajimari
-  namespace: default
-subjects:
-  - name: hajimari
-    spec:
-      fqdn: lab.tplant.com.au
-tunnelRef:
-  kind: ClusterTunnel
-  name: cloudflare-tunnel

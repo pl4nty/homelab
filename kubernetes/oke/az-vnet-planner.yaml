@@ -61,16 +61,3 @@ spec:
     #       name: traefik-gateway
     #     hostnames:
     #     - vnetplanner.tplant.com.au
----
-apiVersion: networking.cfargotunnel.com/v1alpha1
-kind: TunnelBinding
-metadata:
-  name: az-vnet-planner
-  namespace: default
-subjects:
-  - name: az-vnet-planner
-    spec:
-      fqdn: vnetplanner.tplant.com.au
-tunnelRef:
-  kind: ClusterTunnel
-  name: cloudflare-tunnel

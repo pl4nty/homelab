@@ -164,16 +164,4 @@ spec:
 #   - backendRefs:
 #     - name: hyperglass-addon-codeserver
 #       port: 12321
----
-apiVersion: networking.cfargotunnel.com/v1alpha1
-kind: TunnelBinding
-metadata:
-  name: hyperglass
-  namespace: default
-subjects:
-  - name: hyperglass
-    spec:
-      fqdn: lg.tplant.com.au
-tunnelRef:
-  kind: ClusterTunnel
-  name: cloudflare-tunnel
+

@@ -45,16 +45,4 @@ spec:
     #       name: traefik-gateway
     #     hostnames:
     #     - jwt.tplant.com.au
----
-apiVersion: networking.cfargotunnel.com/v1alpha1
-kind: TunnelBinding
-metadata:
-  name: jwtplayground
-  namespace: default
-subjects:
-  - name: jwtplayground
-    spec:
-      fqdn: jwt.tplant.com.au
-tunnelRef:
-  kind: ClusterTunnel
-  name: cloudflare-tunnel
+
