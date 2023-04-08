@@ -24,8 +24,8 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    controllers:
-      replicas: 0
+    nodeSelector:
+      kubernetes.io/arch: amd64
     config:
       hostname: pl4nty's jungle
     statefulset:
