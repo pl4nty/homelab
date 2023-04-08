@@ -24,6 +24,11 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    podAnnotations:
+      instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
+    persistence:
+      data:
+        enabled: false
     hajimari:
       title: Tom's Lab
       showGreeting: false
