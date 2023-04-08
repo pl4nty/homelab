@@ -28,8 +28,6 @@ spec:
     image:
       repository: ghcr.io/pl4nty/wufb-ds@sha256
       tag: ecc061688b7f4f4f4df955b5b189f3fa0f53b7f33b5e00d8aa87321e99212008
-    podAnnotations:
-      instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
     service:
       main:
         ports:

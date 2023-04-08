@@ -28,18 +28,8 @@ spec:
     image:
       repository: mpepping/cyberchef
       tag: v10.4.0
-    podAnnotations:
-      instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
     service:
       main:
         ports:
           http:
             port: 8000
-    # route:
-    #   main:
-    #     enabled: true
-    #     parentRefs:
-    #     - namespace: default
-    #       name: traefik-gateway
-    #     hostnames:
-    #     - cyberchef.tplant.com.au
