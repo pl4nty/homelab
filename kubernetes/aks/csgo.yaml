@@ -31,15 +31,15 @@ spec:
     persistence:
       size: 32Gi
     statefulset:
-      sidecars:
-      - name: code-server
-        image: ghcr.io/coder/code-server:latest
-        args:
-        - --auth
-        - 'none'
-        volumeMounts:
-        - mountPath: /home/steam/csgo-dedicated/
-          name: home
+      # sidecars:
+      # - name: code-server
+      #   image: ghcr.io/coder/code-server:latest
+      #   args:
+      #   - --auth
+      #   - 'none'
+      #   volumeMounts:
+      #   - mountPath: /home/steam/csgo-dedicated/
+      #     name: home
       environment:
       - name: SRCDS_TOKEN
         valueFrom:
