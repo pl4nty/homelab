@@ -26,11 +26,27 @@ spec:
   values:
     nodeSelector:
       kubernetes.io/arch: amd64
-    config:
-      hostname: pl4nty's jungle
     persistence:
       size: 50Gi
+    config:
+      hostname: pl4nty's jungle
     statefulset:
+      environment:
+      - name: SRCDS_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: steam-token
+            key: SRCDS_TOKEN
+      livenessProbe:
+        initialDelaySeconds: 90
+      podSecurityContext:
+        fsGroup: 2000
+        runAsGroup: 1500
+        runAsUser: 1000
+      securityContext:
+        runAsGroup: 1500
+        runAsUser: 1000
+      # runAsGroup: 1000
       sidecars:
       - name: code-server
         image: ghcr.io/coder/code-server:latest
@@ -40,20 +56,6 @@ spec:
         volumeMounts:
         - mountPath: /home/steam/csgo-dedicated/
           name: home
-      environment:
-      - name: SRCDS_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: steam-token
-            key: SRCDS_TOKEN
-      podSecurityContext:
-        fsGroup: 2000
-        runAsGroup: 1500
-        runAsUser: 1000
-      securityContext:
-        runAsGroup: 1500
-        runAsUser: 1000
-      # runAsGroup: 1000
     # TODO externaldns entry
     service:
       type: LoadBalancer

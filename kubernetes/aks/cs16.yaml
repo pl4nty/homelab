@@ -25,11 +25,11 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    controller:
-      replicas: 1
     image:
       repository: ggoulart/cs1.6-server-more-maps@sha256
       tag: 6302368a0cabf25cda7b2eb0fa18a8d05f99eabd7568ad76b4d35599de3768ca
+    controller:
+      type: statefulset
     nodeSelector:
       kubernetes.io/arch: amd64
     persistence:
