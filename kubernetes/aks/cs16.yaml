@@ -32,6 +32,8 @@ spec:
       type: statefulset
     nodeSelector:
       kubernetes.io/arch: amd64
+    env:
+      SERVER_NAME: pl4nty's jungle
     service:
       main:
         type: LoadBalancer
@@ -39,10 +41,9 @@ spec:
           http:
             enabled: false
           tcp:
+            primary: true
             port: 27015
-            protocol: TCP
           udp:
-            primary: false
             port: 27015
             protocol: UDP
         
