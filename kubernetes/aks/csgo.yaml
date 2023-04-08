@@ -40,8 +40,12 @@ spec:
     statefulset:
       podSecurityContext:
         fsGroup: 2000
+        runAsGroup: 1500
+        runAsUser: 1000
       securityContext:
         fsGroup: 2000
+        runAsGroup: 1500
+        runAsUser: 1000
       # runAsGroup: 1000
     # TODO externaldns entry
     # service:
