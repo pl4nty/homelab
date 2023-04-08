@@ -34,6 +34,9 @@ spec:
       sidecars:
       - name: code-server
         image: ghcr.io/coder/code-server:latest
+        args:
+        - --auth
+        - 'none'
         volumeMounts:
         - mountPath: /home/steam/csgo-dedicated/
           name: home
