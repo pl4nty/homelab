@@ -1,0 +1,12 @@
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: stirling-pdf
+  namespace: default
+subjects:
+  - name: stirling-pdf
+    spec:
+      fqdn: pdf.tplant.com.au
+tunnelRef:
+  kind: ClusterTunnel
+  name: cloudflare-tunnel
