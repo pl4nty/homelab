@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ggoulart/cs1.6-server-more-maps@sha256
-      tag: 6302368a0cabf25cda7b2eb0fa18a8d05f99eabd7568ad76b4d35599de3768ca
+      repository: tractr/counter-strike-1.6-servers@sha256
+      tag: 36a5aa1714527cddd58b6d8abbb1e50ed5269cc2855c95e5a37940821ab596ac
     controller:
       type: statefulset
     nodeSelector:
