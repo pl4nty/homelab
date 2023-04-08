@@ -1,0 +1,52 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: cs-source
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: 1.3.2
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    image:
+      repository: tractr/counter-strike-source-servers@sha256
+      tag: 5af20c86f35f422be21545ee70efdd8eb54e859e174ff0f094ec73a740bf14c5
+    controller:
+      type: statefulset
+    nodeSelector:
+      kubernetes.io/arch: amd64
+    env:
+      CSS_HOSTNAME: pl4nty's jungle
+      CSS_SVLAN: 0
+    service:
+      main:
+        type: LoadBalancer
+        ports:
+          http:
+            enabled: false
+          tcp:
+            primary: true
+            port: 27015
+          udp:
+            port: 27015
+            protocol: UDP
+          tv:
+            port: 27020
+        
