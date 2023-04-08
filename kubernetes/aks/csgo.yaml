@@ -27,7 +27,7 @@ spec:
     nodeSelector:
       kubernetes.io/arch: amd64
     persistence:
-      size: 50Gi
+      size: 64Gi
     config:
       hostname: pl4nty's jungle
     statefulset:
@@ -39,6 +39,10 @@ spec:
             key: SRCDS_TOKEN
       podSecurityContext:
         fsGroup: 2000
+      ports:
+      - name: srcds-udp
+        containerPort: 27015
+        protocol: udp
       #   runAsGroup: 1500
       #   runAsUser: 1000
       # securityContext:
@@ -57,6 +61,9 @@ spec:
     # TODO externaldns entry
     service:
       type: LoadBalancer
+      extraPorts:
+      - name: srcds-udp
+        port: 27015
 # Steam doesn't support IPv6 proxies as of writing
 # ---
 # apiVersion: v1
