@@ -27,7 +27,9 @@ spec:
   values:
     controller:
       replicas: 0
-    image: timrabl/hyperglass:1.0.4-1.0.183
+    image:
+      repository: timrabl/hyperglass
+      tag: 1.0.4-1.0.183
     configMaps:
       config:
         enabled: true
