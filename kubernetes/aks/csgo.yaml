@@ -26,23 +26,23 @@ spec:
   values:
     nodeSelector:
       kubernetes.io/arch: amd64
-    config:
-      hostname: pl4nty's jungle
-    statefulset:
-      environment:
-      - name: SRCDS_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: csgo
-            key: SRCDS_TOKEN
+    # config:
+    #   hostname: pl4nty's jungle
+    # statefulset:
+    #   environment:
+    #   - name: SRCDS_TOKEN
+    #     valueFrom:
+    #       secretKeyRef:
+    #         name: csgo
+    #         key: SRCDS_TOKEN
     persistence:
       size: 32Gi
     # podSecurityContext:
     #   fsGroup: 2000
     #   runAsGroup: 1000
     # TODO externaldns entry
-    service:
-      type: LoadBalancer
+    # service:
+    #   type: LoadBalancer
 # Steam doesn't support IPv6 proxies as of writing
 # ---
 # apiVersion: v1
