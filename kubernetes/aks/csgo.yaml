@@ -34,7 +34,7 @@ spec:
     statefulset:
       sidecars:
       - name: code-server
-        image: coder/code-server:latest
+        image: ghcr.io/coder/code-server:latest
         volumeMounts:
         - mountPath: /home/steam/csgo-dedicated/
           name: home
