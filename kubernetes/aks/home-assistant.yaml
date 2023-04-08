@@ -59,9 +59,6 @@ spec:
         volumeMounts:
         - name: config
           mountPath: /config
-        resources:
-          requests:
-            memory: 100Mi
     podAnnotations:
       instrumentation.opentelemetry.io/inject-python: "monitoring/opentelemetry-instrumentation"
 # ---
