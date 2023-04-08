@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: ghcr.io/pl4nty/storeweb@sha256
-      tag: 8c55f13d81c49e4dbcb762ed7c9706dae9c009df65bbb5398271fc58eb1bc0e2
+      tag: 674e1b740aa1be187e46fe83631d1118677c982e5360b472b37a91b2003e426a
     command:
     - dotnet
     - StoreWeb.dll
