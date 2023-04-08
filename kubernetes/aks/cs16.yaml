@@ -32,15 +32,9 @@ spec:
       type: statefulset
     nodeSelector:
       kubernetes.io/arch: amd64
-    # persistence:
-    #   config:
-    #     enabled: true
-    #     mountPath: /home/steam/cs16
-    #     size: 4Gi
-    podSecurityContext:
-      fsGroup: 2000
     service:
       main:
+        type: LoadBalancer
         ports:
           http:
             enabled: false
