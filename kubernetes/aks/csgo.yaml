@@ -26,8 +26,8 @@ spec:
   values:
     nodeSelector:
       kubernetes.io/arch: amd64
-    # config:
-    #   hostname: pl4nty's jungle
+    config:
+      hostname: pl4nty's jungle
     persistence:
       size: 32Gi
     statefulset:
@@ -55,8 +55,8 @@ spec:
         runAsUser: 1000
       # runAsGroup: 1000
     # TODO externaldns entry
-    # service:
-    #   type: LoadBalancer
+    service:
+      type: LoadBalancer
 # Steam doesn't support IPv6 proxies as of writing
 # ---
 # apiVersion: v1
