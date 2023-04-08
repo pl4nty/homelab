@@ -62,8 +62,7 @@ spec:
     service:
       type: LoadBalancer
       extraPorts:
-      - name: srcds-udp
-        port: 27015
+      - srcds-udp
 # Steam doesn't support IPv6 proxies as of writing
 # ---
 # apiVersion: v1
