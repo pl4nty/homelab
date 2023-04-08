@@ -47,22 +47,4 @@ spec:
         ports:
           http:
             port: 80
-    # route:
-    #   main:
-    #     enabled: true
-    #     parentRefs:
-    #     - namespace: default
-    #       name: traefik-gateway
-    #     hostnames:
-    #     - tsuro.tplant.com.au
----
-apiVersion: networking.cfargotunnel.com/v1alpha1
-kind: TunnelBinding
-metadata:
-  name: tsuro
-  namespace: default
-subjects:
-  - name: tsuro
-tunnelRef:
-  kind: ClusterTunnel
-  name: cloudflare-tunnel
+            
