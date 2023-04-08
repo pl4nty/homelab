@@ -29,21 +29,24 @@ spec:
     # config:
     #   hostname: pl4nty's jungle
     # statefulset:
-    #   environment:
-    #   - name: SRCDS_TOKEN
-    #     valueFrom:
-    #       secretKeyRef:
-    #         name: csgo
-    #         key: SRCDS_TOKEN
     persistence:
       size: 32Gi
     statefulset:
+      sidecars:
+        registry: docker.io
+        repository: coder/code-server
+        tag: 4.11.0-bullseye
+      environment:
+      - name: SRCDS_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: csgo
+            key: SRCDS_TOKEN
       podSecurityContext:
         fsGroup: 2000
         runAsGroup: 1500
         runAsUser: 1000
       securityContext:
-        fsGroup: 2000
         runAsGroup: 1500
         runAsUser: 1000
       # runAsGroup: 1000
