@@ -38,7 +38,7 @@ spec:
             name: steam-token
             key: SRCDS_TOKEN
       livenessProbe:
-        initialDelaySeconds: 90
+        initialDelaySeconds: 240
       podSecurityContext:
         fsGroup: 2000
         runAsGroup: 1500
