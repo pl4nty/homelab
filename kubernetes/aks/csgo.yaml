@@ -33,7 +33,8 @@ spec:
       size: 32Gi
     statefulset:
       sidecars:
-      - image:
+      - name: code-server
+        image:
           registry: docker.io
           repository: coder/code-server
           tag: latest
