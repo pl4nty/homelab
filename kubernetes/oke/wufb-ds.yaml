@@ -30,30 +30,11 @@ spec:
       tag: 93f84112793b4adbe8b5492bed117dd8388145133fa572b8bfcea040dc64f385
     podAnnotations:
       instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
-    resources:
-      requests:
-        cpu: 5m
-        memory: 10Mi
-      limits:
-        cpu: 50m
-        memory: 100Mi
-    securityContext:
-      capabilities:
-        add:
-          - NET_BIND_SERVICE
     service:
       main:
         ports:
           http:
-            port: 80
-    # route:
-    #   main:
-    #     enabled: true
-    #     parentRefs:
-    #     - namespace: default
-    #       name: traefik-gateway
-    #     hostnames:
-    #     - wufb-ds.tplant.com.au
+            port: 8080
 ---
 apiVersion: networking.cfargotunnel.com/v1alpha1
 kind: TunnelBinding
