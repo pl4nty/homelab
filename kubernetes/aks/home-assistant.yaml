@@ -59,6 +59,7 @@ spec:
         volumeMounts:
         - name: config
           mountPath: /config
+    # setup fails for energy, history, logbook, recorder
     # podAnnotations:
     #   instrumentation.opentelemetry.io/inject-python: "monitoring/opentelemetry-instrumentation"
 # ---
