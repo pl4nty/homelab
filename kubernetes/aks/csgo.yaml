@@ -44,7 +44,7 @@ spec:
       - name: SRCDS_TOKEN
         valueFrom:
           secretKeyRef:
-            name: csgo
+            name: steam-token
             key: SRCDS_TOKEN
       podSecurityContext:
         fsGroup: 2000
