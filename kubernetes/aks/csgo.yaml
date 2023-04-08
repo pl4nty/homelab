@@ -42,7 +42,7 @@ spec:
       ports:
       - name: srcds-udp
         containerPort: 27015
-        protocol: udp
+        protocol: UDP
       #   runAsGroup: 1500
       #   runAsUser: 1000
       # securityContext:
@@ -61,8 +61,10 @@ spec:
     # TODO externaldns entry
     service:
       type: LoadBalancer
-      extraPorts:
-      - srcds-udp
+      # extraPorts:
+      # - name: srcds-udp
+      #   port: 27015
+      #   protocol: UDP
 # Steam doesn't support IPv6 proxies as of writing
 # ---
 # apiVersion: v1
