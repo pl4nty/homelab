@@ -1,7 +1,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: storeweb
+  name: jwtplayground
   namespace: default
 spec:
   interval: 15m
@@ -26,17 +26,12 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/pl4nty/storeweb@sha256
-      tag: 99093ff15b393dce254a2acadfca05375ccf9905c35270827a2ffedc140554d4
-    command:
-    - dotnet
-    - StoreWeb.dll
+      repository: ghcr.io/pl4nty/jwtplayground@sha256
+      tag: 3a4810e36dc4e5866eba8eb0a7632966b61c1708e8f3e5d1844a1fcd24a2cfae
     env:
-      ASPNETCORE_URLS: http://*:8080
-    nodeSelector:
-      kubernetes.io/arch: amd64
+      PORT: 8080
     podAnnotations:
-      instrumentation.opentelemetry.io/inject-dotnet: "monitoring/opentelemetry-instrumentation"
+      instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
     service:
       main:
         ports:
@@ -49,17 +44,17 @@ spec:
     #     - namespace: default
     #       name: traefik-gateway
     #     hostnames:
-    #     - msft-store.tplant.com.au
+    #     - jwt.tplant.com.au
 ---
 apiVersion: networking.cfargotunnel.com/v1alpha1
 kind: TunnelBinding
 metadata:
-  name: storeweb
+  name: jwtplayground
   namespace: default
 subjects:
-  - name: storeweb
+  - name: jwtplayground
     spec:
-      fqdn: msft-store.tplant.com.au
+      fqdn: jwt.tplant.com.au
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel

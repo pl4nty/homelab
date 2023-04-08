@@ -26,11 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/pl4nty/windowsupdates-webapplication-sample
-      tag: 0.1.0
-      pullPolicy: Always
-    nodeSelector:
-      kubernetes.io/arch: amd64
+      repository: ghcr.io/pl4nty/wufb-ds@sha256
+      tag: 93f84112793b4adbe8b5492bed117dd8388145133fa572b8bfcea040dc64f385
     podAnnotations:
       instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
     resources:

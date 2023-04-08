@@ -27,11 +27,9 @@ spec:
   values:
     image:
       repository: ghcr.io/pl4nty/mha@sha256
-      tag: 8d7dfc05d335ca0da71a2d774264b7b568d8c6bb569b043fe30e1d597c7f186e
+      tag: d90b4e8a6904ac5c38df8042343b1e496bdcb70c7f6bcad196af25c4f2fdad06
     env:
       SERVER_PORT: 8080
-    nodeSelector:
-      kubernetes.io/arch: amd64
     service:
       main:
         ports:
