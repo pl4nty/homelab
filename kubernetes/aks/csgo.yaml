@@ -29,7 +29,7 @@ spec:
     config:
       hostname: pl4nty's jungle
     persistence:
-      size: 32Gi
+      size: 50Gi
     statefulset:
       sidecars:
       - name: code-server
