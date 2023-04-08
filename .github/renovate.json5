@@ -72,8 +72,9 @@
     {
       "hostType": "docker",
       "matchHost": "msconnectedcacheprod.azurecr.io",
+      // can't be encrypted, otherwise Renovate will block PR messages that contain "pl4nty" eg selfhosted containers
+      "username": "pl4nty",
       "encrypted": {
-        "username": "wcFMA/xDdHCJBTolAQ//WweRMTnfhkXmLCx3s75Znn7gqYGPZOCtrl+ADEUHDtKr+zNMUXe7d6RNVCDO0QUCgcVIBi2U7blE52g0APS6oUWq0Nz/xRhhAK0vXsOD+EwqD/rEUyxAdImz7g8yvmbfDO7FUkxLKUAYPu0C05krLo4XKI5+9v3i74vMs5h7Uj7ab8nVNhXsYkgo15bJqZ/xwXprI8S2/jiwADgVQNc3hbjX/KcNFJRyf2JwuzpvCpdzG7xXMPPQyr1nXfxEZv08uyOKJEBiTu9gTbnksPSCSQ2w4pGI3cD+AROSmzJ27DlsOuOFhV2Xtn43JnOVMKCBf9aQjdNmJkrXQmF/wuMdwzkxIaZJbtmLs/hJMleVmgqSuVACXfBI6zuFoo/DJbu5ZFQmegzUV3MwHognqbYi/XiHXESR1pcxvJwORiFoozhzaGtDkbR6bXy0aCbC+gd4Htho+7aCv3tj5+DR8sdkVGFMiLwRaTwz8gZuh23i5wyVnroWiT0pbuYRbhAeiCUzoztrsAJ/UwkliIRDqROyDq1pcAIG3m0vn4FKeI42SQH32o11f2CZJQM9qulq1HUpswNC7jWaEHVZu9HBuqvHClKG1wfaVsbR5M/QM9iQ9MNhff6dKhVtjrCSnrtVW9QfzoM+r7DRTwMk4528USGyF3O46MVztTzCoceRj99hXaTSegFlTCq1u/a9wO1ZVJku/v7FxdU7fAheRnaODqJ7STgaw9KqokASKaYdgRlxsrmdIA58CX6CfOtPjt0GnKWiKAwXp0u9ZIPKjUb1HXvw+L4xRBDYUTvTexja9zMpd/NkxeKwOL4prtDKEADpOeEaxQu6zYBaO8qUOjCB",
         "password": "wcFMA/xDdHCJBTolAQ/9EUN7nyQHTrCYconW4iiPTdsPBrHhcJyYdJ9zGM+esIeblOuZtkObo60a7pwFYrh8F7uNrhXLIPBAvklAHURwQ15uQ3hxp5f/jm4JSQQVYJM+7n8OA6AwkSvnmC1gwKMENyHbHJ71fTiKOxHC2S1YFTesSMQMJrEW8R6Dynbf8oHM7DWf76WERH9Yk6p8clnrQzWzUFSBWzgVkN9yAaGtYuh8ST/sjtKCZewXdaTE4LWSxXSGYr8ee7vJ9KxQzX+tw5pHyu5JUBmHOB5Xh2TflUPlWA/KwQw5otmArTa1jEeEI7boBAFsXriISils5Hfwv9UuWz3/8zd7dJTuOjna/btMUmm9YVePrrjiGd1aLJm3dZBf5XP/u49BaD8IaC9qvtdD3OkYh/7hzzj6wh2j9sLlPhIcPNuFs8CmVlv366I+lbb9Vi1nQQuw041Xase+ojspmQrHoOY8OYnDQz3zgp08iuXuZK/ctU1Z6ARhng73AVpleGe4l6ip8DGcnRqzdRpA4UirvBjvp+bLdOYHWbIVE10aoKPgVirEMgViwMGQDy+SxGqyq3XHkVCfZMKXM4IIaU92fmUfRtK/mNdSU7ZC5WNkKeqhtsmZ11BJZoR03aiyqiplXVYEvxrEPjeRcokJ5ofmp+4Oi/1+2J9AYpf1t965g720itYVIpO7sxvSfgHsh9h4vVFvnK7apL418nbaZJYPirfUAtV7J8/lMA6Ss1sb5X/E662V54aT5Uk6+w8cMoc2k4OmHDymIbx91KzjKVcm9NyQyVT1ESakIduZhpInnWBJ/oSQkAXsSh/fRC7X56vLZadgoEknhOOFnhQHPmiBX1U85jOcAMCElw"
       }
     }
