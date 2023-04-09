@@ -27,7 +27,7 @@ spec:
     nodeSelector:
       kubernetes.io/arch: amd64
     persistence:
-      size: 64Gi
+      size: 64Gi # previously filled a 32Gi disk
     config:
       hostname: pl4nty's jungle
     statefulset:
