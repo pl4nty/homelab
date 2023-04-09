@@ -112,14 +112,17 @@ spec:
       fsGroupChangePolicy: OnRootMismatch
     probes:
       startup:
+        type: HTTP
         spec:
           initialDelaySeconds: 240
           periodSeconds: 10
       liveness:
+        type: HTTP
         spec:
           initialDelaySeconds: 240
           periodSeconds: 10
       readiness:
+        type: HTTP
         spec:
           initialDelaySeconds: 240
           periodSeconds: 10
