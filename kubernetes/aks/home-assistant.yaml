@@ -28,9 +28,10 @@ spec:
     image:
       repository: ghcr.io/home-assistant/home-assistant
       tag: 2023.4.1
-    # setup fails for energy, history, logbook, recorder
     podAnnotations:
       instrumentation.opentelemetry.io/inject-python: "monitoring/opentelemetry-instrumentation"
+    controller:
+      type: statefulset
     persistence:
       config:
         enabled: true
