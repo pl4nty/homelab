@@ -26,38 +26,10 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: joseluisq/static-web-server
-      tag: 2.15.0
-    env:
-      SERVER_PORT: 8080
-      SERVER_LOG_LEVEL: info
-    persistence:
-      config:
-        enabled: true
-        mountPath: /public
-        type: emptyDir
-    initContainers:
-      init-config:
-        image: alpine/git:2.36.3
-        args:
-        - clone
-        - -b
-        - gh-pages
-        - https://github.com/chunliu/vnet-capacity-planner.git
-        - /public
-        volumeMounts:
-        - name: config
-          mountPath: /public
+      repository: ghcr.io/pl4nty/vnet-capacity-planner@sha256
+      tag: 5d2b1b101580654eccbf8f58c475ed42ffc0e3ab6d9d8d986aebff29ff295c96
     service:
       main:
         ports:
           http:
             port: 8080
-    # route:
-    #   main:
-    #     enabled: true
-    #     parentRefs:
-    #     - namespace: default
-    #       name: traefik-gateway
-    #     hostnames:
-    #     - vnetplanner.tplant.com.au
