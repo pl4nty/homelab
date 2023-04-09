@@ -113,20 +113,20 @@ spec:
       fsGroupChangePolicy: OnRootMismatch
     probes:
       startup:
-        type: HTTP
+        # type: HTTP
         spec:
           initialDelaySeconds: 240
-          periodSeconds: 10
-      liveness:
-        type: HTTP
-        spec:
-          initialDelaySeconds: 240
-          periodSeconds: 10
-      readiness:
-        type: HTTP
-        spec:
-          initialDelaySeconds: 240
-          periodSeconds: 10
+          # periodSeconds: 10
+      # liveness:
+      #   type: HTTP
+      #   spec:
+      #     initialDelaySeconds: 240
+      #     periodSeconds: 10
+      # readiness:
+      #   type: HTTP
+      #   spec:
+      #     initialDelaySeconds: 240
+      #     periodSeconds: 10
     service:
       main:
         ports:
@@ -140,6 +140,7 @@ spec:
         name: ssh
         image: ghcr.io/pl4nty/ubuntu-ssh@sha256:ecaca0b76405780af43d5931280dad4e70e7f53451963609a1f015b3369edac6
         # allow ICMP access. net.ipv4.ping_group_range="0 [the uid ie 1000]" may still be required on the node
+        # note that Azure loadbalancers (node egress) don't support ICMP
         securityContext:
           capabilities:
             add:
