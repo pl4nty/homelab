@@ -85,10 +85,10 @@ spec:
                 ipv6:
                   source_address: 2001:db8::1
     persistence:
-      static:
-        enabled: true
-        type: emptyDir
-        mountPath: /opt/hyperglass/hyperglass/static
+      # static:
+      #   enabled: true
+      #   type: emptyDir
+      #   mountPath: /opt/hyperglass/hyperglass/static
       config-hyperglass:
         enabled: true
         type: configMap
