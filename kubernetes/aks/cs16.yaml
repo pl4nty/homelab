@@ -35,7 +35,11 @@ spec:
     env:
       SERVER_NAME: pl4nty's jungle
       ADMIN_STEAM: 0:1:81821348
-      RCON_PASSWORD: Q84Up6krj3GEZD
+      RCON_PASSWORD: 
+        valueFrom:
+          secretKeyRef:
+            name: srcds
+            key: CS16_RCON_PASSWORD
     service:
       main:
         type: LoadBalancer

@@ -35,7 +35,11 @@ spec:
     env:
       CSS_HOSTNAME: pl4nty's jungle
       CSS_SVLAN: 0
-      RCON_PASSWORD: Q84Up6krj3GEZD # docs say undefined=random, but it's actually "mysup3rs3cr3tpassw0rd"
+      RCON_PASSWORD:
+        valueFrom:
+          secretKeyRef:
+            name: srcds
+            key: CSSOURCE_RCON_PASSWORD
     service:
       main:
         type: LoadBalancer

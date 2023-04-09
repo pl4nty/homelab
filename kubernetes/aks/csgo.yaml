@@ -32,33 +32,23 @@ spec:
       hostname: pl4nty's jungle
     statefulset:
       environment:
+      - name: SRCDS_RCONPW
+        valueFrom:
+          secretKeyRef:
+            name: srcds
+            key: CSGO_RCON_PASSWORD
       - name: SRCDS_TOKEN
         valueFrom:
           secretKeyRef:
-            name: steam-token
+            name: srcds
             key: SRCDS_TOKEN
       podSecurityContext:
         fsGroup: 2000
+        fsGroupChangePolicy: OnRootMismatch
       ports:
       - name: srcds-udp
         containerPort: 27015
         protocol: UDP
-      #   runAsGroup: 1500
-      #   runAsUser: 1000
-      # securityContext:
-      #   runAsGroup: 1500
-      #   runAsUser: 1000
-      # runAsGroup: 1000
-      # sidecars:
-      # - name: code-server
-      #   image: ghcr.io/coder/code-server:latest
-      #   args:
-      #   - --auth
-      #   - 'none'
-      #   volumeMounts:
-      #   - mountPath: /home/steam/csgo-dedicated/
-      #     name: home
-    # TODO externaldns entry
     service:
       type: LoadBalancer
       extraPorts:
