@@ -1,97 +1,25 @@
 apiVersion: networking.cfargotunnel.com/v1alpha1
 kind: TunnelBinding
 metadata:
-  name: az-vnet-planner
+  name: cloudflare-tunnel
   namespace: default
 subjects:
   - name: az-vnet-planner
     spec:
       fqdn: vnetplanner.tplant.com.au
-tunnelRef:
-  kind: ClusterTunnel
-  name: cloudflare-tunnel
----
-apiVersion: networking.cfargotunnel.com/v1alpha1
-kind: TunnelBinding
-metadata:
-  name: cyberchef
-  namespace: default
-subjects:
   - name: cyberchef
-tunnelRef:
-  kind: ClusterTunnel
-  name: cloudflare-tunnel
----
-apiVersion: networking.cfargotunnel.com/v1alpha1
-kind: TunnelBinding
-metadata:
-  name: hajimari
-  namespace: default
-subjects:
   - name: hajimari
     spec:
       fqdn: lab.tplant.com.au
-tunnelRef:
-  kind: ClusterTunnel
-  name: cloudflare-tunnel
----
-apiVersion: networking.cfargotunnel.com/v1alpha1
-kind: TunnelBinding
-metadata:
-  name: hyperglass
-  namespace: default
-subjects:
-  - name: hyperglass
-    spec:
-      fqdn: lg.tplant.com.au
-tunnelRef:
-  kind: ClusterTunnel
-  name: cloudflare-tunnel
----
-apiVersion: networking.cfargotunnel.com/v1alpha1
-kind: TunnelBinding
-metadata:
-  name: jwtplayground
-  namespace: default
-subjects:
   - name: jwtplayground
     spec:
       fqdn: jwt.tplant.com.au
-tunnelRef:
-  kind: ClusterTunnel
-  name: cloudflare-tunnel
----
-apiVersion: networking.cfargotunnel.com/v1alpha1
-kind: TunnelBinding
-metadata:
-  name: mha
-  namespace: default
-subjects:
   - name: mha
-tunnelRef:
-  kind: ClusterTunnel
-  name: cloudflare-tunnel
----
-apiVersion: networking.cfargotunnel.com/v1alpha1
-kind: TunnelBinding
-metadata:
-  name: wufb-ds
-  namespace: default
-subjects:
+  - name: stirling-pdf
+    spec:
+      fqdn: pdf.tplant.com.au
   - name: wufb-ds
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel
----
-apiVersion: networking.cfargotunnel.com/v1alpha1
-kind: TunnelBinding
-metadata:
-  name: stirling-pdf
-  namespace: default
-subjects:
-  - name: stirling-pdf
-    spec:
-      fqdn: pdf.tplant.com.au
-tunnelRef:
-  kind: ClusterTunnel
-  name: cloudflare-tunnel
+# TODO well-known at root?
