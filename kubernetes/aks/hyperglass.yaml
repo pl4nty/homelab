@@ -39,6 +39,7 @@ spec:
           hyperglass.yaml: |
             cache:
               host: localhost
+            listen_address: 0.0.0.0
           commands.yaml: |
             linux:
               ipv4_default:
