@@ -25,13 +25,13 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    image:
+      repository: rclone/rclone
+      tag: 1.62.2
     controller:
       type: cronjob
       cronjob:
         schedule: "0 0 * * *"
-    image:
-      repository: rclone/rclone
-      tag: 1.62.2
     args:
     - copy
     - "onedrive:"
@@ -46,13 +46,6 @@ spec:
     # remotes have no hashes in common so can't use checksum, see rclone/rclone#6585
     # - --checksum
     - --size-only
-    # resources:
-    #   requests:
-    #     cpu: 150m
-    #     memory: 150Mi
-    #   limits:
-    #     cpu: 300m
-    #     memory: 200Mi
     persistence:
       config:
         enabled: true

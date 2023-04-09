@@ -35,11 +35,3 @@ spec:
         ports:
           http:
             port: 8080
-    # route:
-    #   main:
-    #     enabled: true
-    #     parentRefs:
-    #     - namespace: default
-    #       name: traefik-gateway
-    #     hostnames:
-    #     - mha.tplant.com.au

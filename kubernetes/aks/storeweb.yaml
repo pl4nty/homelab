@@ -28,26 +28,18 @@ spec:
     image:
       repository: ghcr.io/pl4nty/storeweb@sha256
       tag: be55e3866a02c44bbf3bd3a5a649ab26b9a5f7f1a0faeb67e1169fa0b1f657f8
-    command:
-    - dotnet
-    - StoreWeb.dll
-    env:
-      ASPNETCORE_URLS: http://*:8080
     # autoinstrumentation lacks arm64 support pending open-telemetry/opentelemetry-dotnet-instrumentation#2314
     nodeSelector:
       kubernetes.io/arch: amd64
     podAnnotations:
       instrumentation.opentelemetry.io/inject-dotnet: "monitoring/opentelemetry-instrumentation"
+    command:
+    - dotnet
+    - StoreWeb.dll
+    env:
+      ASPNETCORE_URLS: http://*:8080
     service:
       main:
         ports:
           http:
             port: 8080
-    # route:
-    #   main:
-    #     enabled: true
-    #     parentRefs:
-    #     - namespace: default
-    #       name: traefik-gateway
-    #     hostnames:
-    #     - msft-store.tplant.com.au

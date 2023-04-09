@@ -25,11 +25,9 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    controller:
-      replicas: 1
     image:
-      repository: ghcr.io/pl4nty/tsuro
-      tag: latest
+      repository: ghcr.io/pl4nty/tsuro@sha256
+      tag: 5d94fd4413734381e3f1e0bacd62a6cec83590534589003048e42796cb83c09e
     nodeSelector:
       kubernetes.io/arch: amd64
     podAnnotations:

@@ -13,10 +13,24 @@ spec:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
   values:
     image:
       repository: ghcr.io/home-assistant/home-assistant
       tag: 2023.4.1
+    # setup fails for energy, history, logbook, recorder
+    # podAnnotations:
+    #   instrumentation.opentelemetry.io/inject-python: "monitoring/opentelemetry-instrumentation"
     persistence:
       config:
         enabled: true
@@ -37,14 +51,6 @@ spec:
     #       bearerTokenSecret:
     #         name: 
     #         key: 
-    # route:
-    #   main:
-    #     enabled: true
-    #     parentRefs:
-    #     - namespace: default
-    #       name: traefik-gateway
-    #     hostnames:
-    #     - home-assistant.tplant.au
     addons:
       codeserver:
         enabled: true
@@ -59,23 +65,3 @@ spec:
         volumeMounts:
         - name: config
           mountPath: /config
-    # setup fails for energy, history, logbook, recorder
-    # podAnnotations:
-    #   instrumentation.opentelemetry.io/inject-python: "monitoring/opentelemetry-instrumentation"
-# ---
-# apiVersion: gateway.networking.k8s.io/v1alpha2
-# kind: HTTPRoute
-# metadata:
-#   name: home-assistant-codeserver
-#   namespace: default
-# spec:
-#   parentRefs:
-#   - namespace: default
-#     name: traefik-gateway
-#   hostnames:
-#   - hass-vscode.tplant.au
-#   rules:
-#   - backendRefs:
-#     - name: home-assistant-addon-codeserver
-#       port: 12321
-

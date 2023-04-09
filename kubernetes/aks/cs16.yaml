@@ -28,10 +28,10 @@ spec:
     image:
       repository: tractr/counter-strike-1.6-servers@sha256
       tag: 36a5aa1714527cddd58b6d8abbb1e50ed5269cc2855c95e5a37940821ab596ac
-    controller:
-      type: statefulset
     nodeSelector:
       kubernetes.io/arch: amd64
+    controller:
+      type: statefulset
     env:
       SERVER_NAME: pl4nty's jungle
       ADMIN_STEAM: 0:1:81821348
