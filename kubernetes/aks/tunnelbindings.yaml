@@ -4,9 +4,6 @@ metadata:
   name: cloudflare-tunnel
   namespace: default
 subjects:
-  - name: hyperglass
-    spec:
-      fqdn: lg.tplant.com.au
   - name: storeweb
     spec:
       fqdn: msft-store.tplant.com.au
