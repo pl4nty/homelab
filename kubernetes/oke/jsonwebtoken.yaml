@@ -28,6 +28,8 @@ spec:
     image:
       repository: ghcr.io/pl4nty/jsonwebtoken@sha256
       tag: 2e9de09bffe09fd93bc231a92ff26ffb605d9fe1868bdd0845e2286910a8eeca
+    podAnnotations:
+      instrumentation.opentelemetry.io/inject-sdk: "monitoring/opentelemetry-instrumentation"
     service:
       main:
         ports:
