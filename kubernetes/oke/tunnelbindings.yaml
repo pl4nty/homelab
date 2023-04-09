@@ -14,9 +14,12 @@ subjects:
   - name: hyperglass
     spec:
       fqdn: lg.tplant.com.au
-  - name: jwtplayground
+  - name: jsonwebtoken
     spec:
       fqdn: jwt.tplant.com.au
+  - name: jwtplayground
+    spec:
+      fqdn: jwtms.tplant.com.au
   - name: mha
   - name: stirling-pdf
     spec:
