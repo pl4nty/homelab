@@ -29,7 +29,7 @@ spec:
       replicas: 1
     image:
       repository: timrabl/hyperglass
-      tag: 1.0.4-1.0.183
+      tag: 1.0.4-1.0.203
     podAnnotations:
       instrumentation.opentelemetry.io/inject-python: "monitoring/opentelemetry-instrumentation"
     configMaps:
