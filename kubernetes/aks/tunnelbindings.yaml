@@ -4,6 +4,9 @@ metadata:
   name: cloudflare-tunnel
   namespace: default
 subjects:
+  - name: jsonwebtoken
+    spec:
+      fqdn: jwt.tplant.com.au
   - name: storeweb
     spec:
       fqdn: msft-store.tplant.com.au
