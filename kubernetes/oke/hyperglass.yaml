@@ -66,10 +66,10 @@ spec:
                 traceroute: traceroute6 {target}
           devices.yaml: |
             routers:
-            - name: Azure 1, Aus East
+            - name: Oracle Cloud, Aus East
               network:
-                name: azure
-                display_name: Azure
+                name: oracle-aue
+                display_name: oracle-aue
               nos: linux
               address: localhost
               port: 2222
