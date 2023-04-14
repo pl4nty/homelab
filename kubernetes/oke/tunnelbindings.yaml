@@ -11,6 +11,9 @@ subjects:
   - name: hajimari
     spec:
       fqdn: lab.tplant.com.au
+  - name: webhook-receiver
+    spec:
+      fqdn: flux-webhook.tplant.com.au
   - name: hyperglass
     spec:
       fqdn: lg.tplant.com.au

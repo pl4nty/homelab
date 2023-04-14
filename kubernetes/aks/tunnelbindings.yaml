@@ -4,6 +4,9 @@ metadata:
   name: cloudflare-tunnel
   namespace: default
 subjects:
+  - name: webhook-receiver
+    spec:
+      fqdn: flux-webhook.tplant.au
   - name: storeweb
     spec:
       fqdn: msft-store.tplant.com.au

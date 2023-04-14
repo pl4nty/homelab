@@ -54,16 +54,3 @@ spec:
 #   - backendRefs:
 #     - name: webhook-receiver-2
 #       port: 80
----
-apiVersion: networking.cfargotunnel.com/v1alpha1
-kind: TunnelBinding
-metadata:
-  name: webhook-receiver
-  namespace: flux-system
-subjects:
-  - name: webhook-receiver
-    spec:
-      fqdn: flux-webhook.tplant.au
-tunnelRef:
-  kind: ClusterTunnel
-  name: cloudflare-tunnel-private
