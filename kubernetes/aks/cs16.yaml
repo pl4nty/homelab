@@ -43,8 +43,7 @@ spec:
       ADMIN_STEAM: 0:1:81821348
     probes:
       startup:
-        spec:
-          initialDelaySeconds: 120
+        enabled: false
     service:
       main:
         type: LoadBalancer
