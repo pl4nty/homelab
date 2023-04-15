@@ -54,4 +54,5 @@ spec:
             protocol: UDP
           tv:
             port: 27020
+            protocol: UDP
         

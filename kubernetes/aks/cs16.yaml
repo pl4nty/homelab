@@ -41,6 +41,10 @@ spec:
             name: srcds
             key: CS16_RCON_PASSWORD
       ADMIN_STEAM: 0:1:81821348
+    probes:
+      startup:
+        spec:
+          initialDelaySeconds: 120
     service:
       main:
         type: LoadBalancer
@@ -55,3 +59,4 @@ spec:
             protocol: UDP
           tv:
             port: 27020
+            protocol: UDP
