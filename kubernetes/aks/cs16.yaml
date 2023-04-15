@@ -41,9 +41,6 @@ spec:
             name: srcds
             key: CS16_RCON_PASSWORD
       ADMIN_STEAM: 0:1:81821348
-    probes:
-      startup:
-        enabled: false
     service:
       main:
         type: LoadBalancer
