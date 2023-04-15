@@ -28,3 +28,4 @@ spec:
       kubernetes.io/arch: amd64 # arm64 binaries exist, but not containers
     persistence:
       clusterStorage: 4Gi
+      ipfsStorage: 4Gi
