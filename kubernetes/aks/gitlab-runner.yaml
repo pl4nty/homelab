@@ -28,3 +28,5 @@ spec:
     runners:
       secret: gitlab-runner
       privileged: true
+    rbac:
+      create: true
