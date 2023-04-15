@@ -25,8 +25,21 @@ spec:
     keepHistory: false
   values:
     gitlabUrl: https://gitlab.com/
-    runners:
-      secret: gitlab-runner
-      privileged: true
     rbac:
       create: true
+    runners:
+      privileged: true
+      secret: gitlab-runner
+      # loopback device access is required for fai-image-builder (eg Kali)
+      # the other config is inherited from values.yaml
+      config: |
+        [[runners]]
+          [runners.kubernetes]
+            namespace = "{{.Release.Namespace}}"
+            image = "ubuntu:16.04"
+
+            [[runners.kubernetes.volumes.host_path]]
+              name = "devices"
+              host_path = "/dev"
+              mount_path = "/dev"
+              read_only = true
