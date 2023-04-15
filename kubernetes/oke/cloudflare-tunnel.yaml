@@ -10,7 +10,7 @@ spec:
     accountName: tom@tplant.com.au
     domain: tplant.com.au
     secret: cloudflare-api
-  image: cloudflare/cloudflared:2023.3.1
+  image: cloudflare/cloudflared:2023.4.0
   newTunnel:
     name: lab-infra-oke
   size: 1
