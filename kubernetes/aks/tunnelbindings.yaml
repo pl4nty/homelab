@@ -8,6 +8,9 @@ subjects:
     spec:
       fqdn: msft-store.tplant.com.au
   - name: tsuro
+  - name: cs16
+    spec:
+      fqdn: dl.cs.tplant.com.au
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel

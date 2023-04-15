@@ -49,9 +49,8 @@ spec:
         type: LoadBalancer
         ports:
           http:
-            enabled: false
+            port: 80
           tcp:
-            primary: true
             port: 27015
           udp:
             port: 27015
