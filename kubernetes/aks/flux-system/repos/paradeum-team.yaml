@@ -1,0 +1,8 @@
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: paradeum-team
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: https://paradeum-team.github.io/helm-charts/
