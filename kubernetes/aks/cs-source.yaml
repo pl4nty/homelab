@@ -42,17 +42,19 @@ spec:
             key: CSSOURCE_RCON_PASSWORD
     service:
       main:
-        type: LoadBalancer
         ports:
           http:
             enabled: false
-          tcp:
+          rcon:
             primary: true
             port: 27015
-          udp:
-            port: 27015
-            protocol: UDP
           tv:
             port: 27020
+            protocol: UDP
+      srcds:
+        type: LoadBalancer
+        ports:
+          udp:
+            port: 27015
             protocol: UDP
         
