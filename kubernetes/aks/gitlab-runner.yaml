@@ -32,11 +32,14 @@ spec:
       secret: gitlab-runner
       # loopback device access is required for fai-image-builder (eg Kali)
       # the other config is inherited from values.yaml
+      # 800Mi to avoid node reclaim
       config: |
         [[runners]]
           [runners.kubernetes]
             namespace = "{{.Release.Namespace}}"
             image = "ubuntu:16.04"
+
+            ephemeral_storage_request = "800Mi"
 
             [[runners.kubernetes.volumes.host_path]]
               name = "devices"
