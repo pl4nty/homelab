@@ -10,7 +10,7 @@ subjects:
   - name: tsuro
   - name: cs16
     spec:
-      fqdn: dl.cs.tplant.com.au
+      fqdn: cs-dl.tplant.com.au
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel
