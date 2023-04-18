@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: frooodle/s-pdf
-      tag: 0.4.8
+      tag: 0.5.0
     podAnnotations:
       instrumentation.opentelemetry.io/inject-java: "monitoring/opentelemetry-instrumentation"
     # probes:
