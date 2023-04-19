@@ -5,7 +5,7 @@ metadata:
   namespace: networking
 spec:
   endpoints:
-  - port: http
+  - port: metrics
     interval: 1m
     metricRelabelings:
     - action: keep
