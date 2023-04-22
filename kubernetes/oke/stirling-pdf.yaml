@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: frooodle/s-pdf
-      tag: 0.5.0
+      repository: ghcr.io/frooodle/s-pdf
+      tag: 0.6.0-alpha
     podAnnotations:
       instrumentation.opentelemetry.io/inject-java: "monitoring/opentelemetry-instrumentation"
     # probes:
