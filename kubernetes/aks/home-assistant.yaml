@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: ghcr.io/home-assistant/home-assistant
-      tag: 2023.4.5
+      tag: 2023.4.6
     podAnnotations:
       instrumentation.opentelemetry.io/inject-python: "monitoring/opentelemetry-instrumentation"
     controller:
