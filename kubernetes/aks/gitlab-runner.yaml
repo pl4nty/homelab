@@ -30,7 +30,7 @@ spec:
     volumeMounts:
     - name: build
       mountPath: /builds/pl4nty/kali-cloud
-    volumes: []
+    volumes:
     - name: build
       persistentVolumeClaim:
         claimName: gitlab-runner
