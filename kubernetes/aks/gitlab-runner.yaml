@@ -27,6 +27,14 @@ spec:
     gitlabUrl: https://gitlab.com/
     rbac:
       create: true
+    volumeMounts:
+    - name: build
+      mountPath: /builds/pl4nty/kali-cloud
+    volumes: []
+    - name: build
+      persistentVolumeClaim:
+        claimName: gitlab-runner
+
     runners:
       privileged: true
       secret: gitlab-runner
@@ -47,3 +55,15 @@ spec:
               host_path = "/dev"
               mount_path = "/dev"
               read_only = true
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gitlab-runner
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: default
+  resources:
+    requests:
+      storage: 64Gi
