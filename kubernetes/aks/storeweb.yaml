@@ -38,6 +38,12 @@ spec:
     - StoreWeb.dll
     env:
       ASPNETCORE_URLS: http://*:8080
+    persistence:
+      config:
+        enabled: true
+        type: secret
+        mountPath: /app/appsettings.json
+        subPath: appsettings.json
     service:
       main:
         ports:
