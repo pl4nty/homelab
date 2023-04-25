@@ -42,6 +42,7 @@ spec:
       config:
         enabled: true
         type: secret
+        name: storeweb
         mountPath: /app/appsettings.json
         subPath: appsettings.json
     service:
