@@ -6,8 +6,7 @@ Kubernetes manifests deployed to clusters with Flux in a pull-only model. Base m
 
 Networking:
 * [Cloudflare authoritative DNS](https://www.cloudflare.com/dns/)
-* [Cloudflare Tunnels](https://www.cloudflare.com/products/tunnel/) HTTP routing and TLS termination
-* [Cloudflare Operator](https://github.com/adyanth/cloudflare-operator) route orchestration, pending [Gateway API](https://gateway-api.sigs.k8s.io/) support
+* [Cloudflare Tunnels](https://www.cloudflare.com/products/tunnel/) and [Operator](https://github.com/adyanth/cloudflare-operator) HTTP routing and TLS termination
 * [Cloudflare Access](https://www.cloudflare.com/products/zero-trust/access/) authentication broker
 * [Azure AD](https://www.microsoft.com/microsoft-365/p/microsoft-365-personal/cfq7ttc0k5bf) IdP
 
