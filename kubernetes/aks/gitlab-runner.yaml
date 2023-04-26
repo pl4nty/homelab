@@ -47,9 +47,6 @@ spec:
             namespace = "{{.Release.Namespace}}"
             image = "ubuntu:16.04"
 
-            ephemeral_storage_request = "4Gi"
-            helper_ephemeral_storage_request = "48Ki"
-
             [[runners.kubernetes.volumes.host_path]]
               name = "devices"
               host_path = "/dev"
