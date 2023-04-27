@@ -24,6 +24,9 @@ subjects:
   - name: stirling-pdf
     spec:
       fqdn: pdf.tplant.com.au
+  - name: it-tools
+    spec:
+      fqdn: tools.tplant.com.au
   - name: wufb-ds
 tunnelRef:
   kind: ClusterTunnel
