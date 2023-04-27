@@ -1,0 +1,8 @@
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: rocketchat
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: https://rocketchat.github.io/helm-charts/

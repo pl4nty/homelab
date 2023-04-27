@@ -4,6 +4,9 @@ metadata:
   name: cloudflare-tunnel
   namespace: default
 subjects:
+  - name: rocketchat
+    spec:
+      fqdn: chat.tplant.com.au
   - name: hrconvert2
     spec:
       fqdn: convert.tplant.com.au
