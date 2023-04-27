@@ -35,32 +35,39 @@ spec:
       darkTheme: espresso
       lightTheme: paper
       customApps:
-      - group: apps
+      - group: msft
         apps:
         - name: Azure vnet planner
           url: https://vnetplanner.tplant.com.au
-        - name: CyberChef
-          url: https://cyberchef.tplant.com.au
-        - name: JWT decoder
-          url: https://jwt.tplant.com.au
-        - name: Network looking glass
-          url: https://lg.tplant.com.au
         - name: Message Header Analyser
           url: https://mha.tplant.com.au
         - name: Msft Store package tools
           url: https://msft-store.tplant.com.au
-        - name: PDF editor
-          url: https://pdf.tplant.com.au
-        - name: Tsuro boardgame
-          url: https://tsuro.tplant.com.au
+        - name: Msft JWT decoder
+          url: https://jwtms.tplant.com.au
         - name: WUfB deployment service
           url: https://wufb-ds.tplant.com.au
+      - group: tools
+        - name: Network looking glass
+          url: https://lg.tplant.com.au
+        - name: CyberChef
+          url: https://cyberchef.tplant.com.au
+        - name: JWT decoder
+          url: https://jwt.tplant.com.au
+        - name: Misc IT tools
+          url: https://tools.tplant.com.au
+        - name: File converter
+          url: https://convert.tplant.com.au
+        - name: PDF editor
+          url: https://pdf.tplant.com.au
       - group: games
         apps:
         - name: CS:GO
           url: steam://connect/play.tplant.com.au:27015
         - name: Factorio
           url: play.tplant.com.au:31497
+        - name: Tsuro boardgame
+          url: https://tsuro.tplant.com.au
       globalBookmarks:
       - group: dependencies
         bookmarks:
