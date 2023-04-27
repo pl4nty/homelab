@@ -48,6 +48,7 @@ spec:
         - name: WUfB deployment service
           url: https://wufb-ds.tplant.com.au
       - group: tools
+        apps:
         - name: Network looking glass
           url: https://lg.tplant.com.au
         - name: CyberChef
