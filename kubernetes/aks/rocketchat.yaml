@@ -24,7 +24,8 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    nameOverride: rocketchat
+    # nameOverride: rocketchat
+    host: chat.tplant.com.au
     mongodb:
       auth:
         passwords:
