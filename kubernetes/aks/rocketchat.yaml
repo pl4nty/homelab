@@ -24,7 +24,6 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    host: chat.tplant.com.au
     mongodb:
       auth:
         passwords:
