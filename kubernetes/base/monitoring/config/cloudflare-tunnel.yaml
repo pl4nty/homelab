@@ -1,10 +1,10 @@
 apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
+kind: PodMonitor
 metadata:
   name: cloudflare-tunnel
   namespace: monitoring
 spec:
-  endpoints:
+  podMetricsEndpoints:
   - port: metrics
     metricRelabelings:
     - action: keep
