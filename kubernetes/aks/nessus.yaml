@@ -45,7 +45,7 @@ spec:
     persistence:
       shared:
         enabled: true
-        mountPath: /opt/nessus/var/nessus/logs
+        mountPath: /opt/nessus/var/nessus
     service:
       main:
         ports:
