@@ -34,10 +34,18 @@ spec:
     - secretRef:
         name: nessus
     probes:
-      startup:
+      # startup:
+      #   spec:
+      #     # 5 minutes
+      #     failureThreshold: 60
+      readiness:
         spec:
-          # 5 minutes
-          failureThreshold: 60
+          # 1 minute
+          failureThreshold: 6
+      liveness:
+        spec:
+          # 1 minute
+          failureThreshold: 6
     service:
       main:
         ports:
