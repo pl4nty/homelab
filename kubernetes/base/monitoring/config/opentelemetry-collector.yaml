@@ -14,8 +14,6 @@ spec:
     enabled: true
     prometheusCR:
       enabled: true
-      serviceMonitorSelector:
-        app.kubernetes.io/managed-by: Helm
   volumes:
   - name: varlogpods
     hostPath:
