@@ -44,6 +44,7 @@ spec:
           failureThreshold: 6
     persistence:
       logs:
+        enabled: true
         type: emptyDir
         mountPath: /opt/nessus/var/nessus/logs
     service:
