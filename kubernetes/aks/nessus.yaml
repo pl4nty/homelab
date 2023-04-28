@@ -36,7 +36,7 @@ spec:
     probes:
       readiness:
         spec:
-          initialDelaySeconds: 30
+          initialDelaySeconds: 60
     service:
       main:
         ports:
