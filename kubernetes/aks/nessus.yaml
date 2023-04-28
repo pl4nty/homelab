@@ -33,18 +33,14 @@ spec:
     envFrom:
     - secretRef:
         name: nessus
+    # can't use startup probe, because it succeeds while Nessus is autorestarting
     probes:
-      # startup:
-      #   spec:
-      #     # 5 minutes
-      #     failureThreshold: 60
       readiness:
         spec:
           # 1 minute
           failureThreshold: 6
       liveness:
         spec:
-          # 1 minute
           failureThreshold: 6
     service:
       main:
