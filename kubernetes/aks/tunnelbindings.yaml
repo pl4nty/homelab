@@ -32,6 +32,8 @@ subjects:
     spec:
       fqdn: hass-vscode.tplant.au
   - name: nessus
+    spec:
+      protocol: https
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel-private
