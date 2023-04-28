@@ -43,9 +43,9 @@ spec:
         spec:
           failureThreshold: 6
     persistence:
-      shared:
-        enabled: true
-        mountPath: /opt/nessus/var/nessus
+      logs:
+        type: emptyDir
+        mountPath: /opt/nessus/var/nessus/logs
     service:
       main:
         ports:
