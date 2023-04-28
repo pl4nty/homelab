@@ -14,6 +14,8 @@ spec:
     enabled: true
     prometheusCR:
       enabled: true
+      serviceMonitorSelector:
+        app.kubernetes.io/managed-by: Helm
   volumes:
   - name: varlogpods
     hostPath:
@@ -245,9 +247,6 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: opentelemetry-collector
-  namespace: monitoring
-- kind: ServiceAccount
-  name: opentelemetry-targetallocator
   namespace: monitoring
 ---
 apiVersion: opentelemetry.io/v1alpha1
