@@ -30,9 +30,9 @@ spec:
       tag: 10.5.1-ubuntu-20230424
     nodeSelector:
       kubernetes.io/arch: amd64
-    env:
-      USERNAME: admin
-      PASSWORD: admin
+    envFrom:
+    - secretRef:
+        name: nessus
     service:
       main:
         ports:

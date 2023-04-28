@@ -1,0 +1,30 @@
+kind: Secret
+apiVersion: v1
+metadata:
+    name: nessus
+    namespace: default
+type: Opaque
+stringData:
+    USERNAME: ENC[AES256_GCM,data:k111CDM=,iv:iGX+QaLmLHar9OX7jJtW2lrYLz4NyzTYpbiAiNtH3rk=,tag:mfq1n9dzZQylW2oKR/N1gA==,type:str]
+    PASSWORD: ENC[AES256_GCM,data:hixEr+w=,iv:niPCpGRTK3WbkHpmczLtsOErtIKeWku1uKzlfyplWoU=,tag:4SfKx6Jc0XtNaiOHlo4koA==,type:str]
+    ACTIVATION_CODE: ENC[AES256_GCM,data:+KiZoa6IHDr5l7/EQ2zOKPaehXu2Ng8F,iv:COnmxlitjjWbE1xDDZeW1AU6sbOTLsa12FCteFyyCP0=,tag:/1EJXSlbRrDDVPzbZXztug==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBoSkdhMDdyQmVlMGR3ODJn
+            ZjVaTnJXOGZ2MU1XZU9UQzIrZnJnQzlCcEZnClZyZ2tEUzJzNFZxKzQ1ZkVZSWts
+            L2gyT1VLRmpSZ2JEd1FsNE1YcTV6bjgKLS0tIGY0Tm5DUTB4Nk5jY2Z4SHBWUGUr
+            WkJXTFRoQ1JJVzh2MmVXdkF4SGRwS00KWCfYB0LkmGiR8Ofde5Ce4yybYSgSxaoR
+            h+IZD/Ax75+i+0JM8WfyzqW6Y7lXeRv+tAS0nj75FOvUXv3m9nuq9A==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-04-28T10:27:23Z"
+    mac: ENC[AES256_GCM,data:YaDLt4MJ1v9WV5bk5oknKDUTu/zayoGm6g0fjgzQN5PrCV2Qxdg1QmwX0UhXlOKmIt2Dvq8ElciAkLkgXVyk/38VjoubaPAMDeUIojo4KCz/a9CLqdHsvppE4w1YJJ2KMEOXswk73i3Y4fE/g9GhI3z7c8+jKhIyLpAQDwQknhk=,iv:FlyeHCsShy/fWrK9eF/3bDNymVknC/z70NlqZ3agSow=,tag:ozzYmMdWnsn50UIIj36s9g==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData)$
+    version: 3.7.3
