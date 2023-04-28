@@ -34,8 +34,7 @@ subjects:
   - name: nessus
     spec:
       protocol: https
-      originRequest:
-        noTLSVerify: true
+      noTLSVerify: true
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel-private
