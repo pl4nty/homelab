@@ -1,12 +1,11 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: cloudflared
+  name: cloudflare-tunnel
   namespace: networking
 spec:
   endpoints:
   - port: metrics
-    interval: 1m
     metricRelabelings:
     - action: keep
       regex: quic.*|cloudflared.*

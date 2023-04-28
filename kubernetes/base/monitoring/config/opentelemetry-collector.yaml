@@ -246,6 +246,9 @@ subjects:
 - kind: ServiceAccount
   name: opentelemetry-collector
   namespace: monitoring
+- kind: ServiceAccount
+  name: opentelemetry-targetallocator
+  namespace: monitoring
 ---
 apiVersion: opentelemetry.io/v1alpha1
 kind: Instrumentation
