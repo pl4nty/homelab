@@ -42,6 +42,10 @@ spec:
       liveness:
         spec:
           failureThreshold: 6
+    persistence:
+      shared:
+        enabled: true
+        mountPath: /opt/nessus/var/nessus/logs
     service:
       main:
         ports:
