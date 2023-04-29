@@ -27,13 +27,6 @@ spec:
     gitlabUrl: https://gitlab.com/
     rbac:
       create: true
-    volumeMounts:
-    - name: build
-      mountPath: /tmp
-    volumes:
-    - name: build
-      persistentVolumeClaim:
-        claimName: gitlab-runner
 
     runners:
       privileged: true
@@ -54,6 +47,10 @@ spec:
               host_path = "/dev"
               mount_path = "/dev"
               read_only = true
+
+            [[runners.kubernetes.volumes.pvc]]
+              name = "gitlab-runner"
+              mount_path = "/tmp"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
