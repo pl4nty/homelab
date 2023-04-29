@@ -52,7 +52,8 @@ spec:
               name = "gitlab-runner"
               mount_path = "/tmp"
             [runners.kubernetes.pod_security_context]
-              fs_group = 200
+              fs_group = 1001
+              run_as_group = 1001
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
