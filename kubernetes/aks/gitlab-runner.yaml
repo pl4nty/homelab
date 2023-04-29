@@ -33,8 +33,7 @@ spec:
       privileged: true
       secret: gitlab-runner
       # loopback device access is required for fai-image-builder (eg Kali)
-      # the other config is inherited from values.yaml
-      # 800Mi to avoid node reclaim
+      # ephemeral is enough for single 12GB artifact, but not conversion to VHD for Azure upload
       config: |
         [[runners]]
           [runners.kubernetes]
@@ -47,28 +46,28 @@ spec:
               mount_path = "/dev"
               read_only = true
 
-      #   [[runners.kubernetes.pod_spec]]
-      #     name = "ephemeral-disk"
-      #     patch_type = "strategic"
-      #     patch = '''
-      #       containers:
-      #       - name: build
-      #         volumeMounts:
-      #         - name: builds
-      #           mountPath: /builds
-      #       volumes:
-      #       - name: builds
-      #         ephemeral:
-      #           volumeClaimTemplate:
-      #             spec:
-      #               accessModes: [ ReadWriteOnce ]
-      #               storageClassName: default
-      #               resources:
-      #                 requests:
-      #                   storage: 64Gi
-      #     '''
-      # [runners.feature_flags]
-      #   FF_USE_ADVANCED_POD_SPEC_CONFIGURATION = true
+            [[runners.kubernetes.pod_spec]]
+              name = "ephemeral-disk"
+              patch_type = "strategic"
+              patch = '''
+                containers:
+                - name: build
+                  volumeMounts:
+                  - name: builds
+                    mountPath: /builds
+                volumes:
+                - name: builds
+                  ephemeral:
+                    volumeClaimTemplate:
+                      spec:
+                        accessModes: [ ReadWriteOnce ]
+                        storageClassName: default
+                        resources:
+                          requests:
+                            storage: 32Gi
+              '''
+          [runners.feature_flags]
+            FF_USE_ADVANCED_POD_SPEC_CONFIGURATION = true
 ---
 # pending generic ephemeral support in config
 # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/27835
