@@ -68,20 +68,3 @@ spec:
               '''
           [runners.feature_flags]
             FF_USE_ADVANCED_POD_SPEC_CONFIGURATION = true
----
-# pending generic ephemeral support in config
-# https://gitlab.com/gitlab-org/gitlab-runner/-/issues/27835
-# could use a pod spec patch once it leaves alpha
-# https://docs.gitlab.com/runner/executors/kubernetes.html#overwrite-generated-pod-specifications-alpha
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: gitlab-runner
-  namespace: default
-spec:
-  accessModes:
-  - ReadWriteOnce
-  storageClassName: default
-  resources:
-    requests:
-      storage: 64Gi
