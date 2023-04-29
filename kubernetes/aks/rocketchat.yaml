@@ -24,6 +24,7 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    nameOverride: ''
     mongodb:
       auth:
         passwords:
