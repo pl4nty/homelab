@@ -14,9 +14,6 @@ subjects:
     spec:
       fqdn: msft-store.tplant.com.au
   - name: tsuro
-  - name: cs16
-    spec:
-      fqdn: cs-dl.tplant.com.au
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel
@@ -31,10 +28,6 @@ subjects:
   - name: home-assistant-addon-codeserver
     spec:
       fqdn: hass-vscode.tplant.au
-  - name: nessus
-    spec:
-      protocol: https
-      noTlsVerify: true
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel-private
