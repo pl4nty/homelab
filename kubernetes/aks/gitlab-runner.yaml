@@ -47,11 +47,28 @@ spec:
               mount_path = "/dev"
               read_only = true
 
-            [[runners.kubernetes.volumes.pvc]]
-              name = "gitlab-runner"
-              mount_path = "/builds"
-      # [runners.kubernetes.pod_security_context]
-      #   fs_group = 59417
+      #   [[runners.kubernetes.pod_spec]]
+      #     name = "ephemeral-disk"
+      #     patch_type = "strategic"
+      #     patch = '''
+      #       containers:
+      #       - name: build
+      #         volumeMounts:
+      #         - name: builds
+      #           mountPath: /builds
+      #       volumes:
+      #       - name: builds
+      #         ephemeral:
+      #           volumeClaimTemplate:
+      #             spec:
+      #               accessModes: [ ReadWriteOnce ]
+      #               storageClassName: default
+      #               resources:
+      #                 requests:
+      #                   storage: 64Gi
+      #     '''
+      # [runners.feature_flags]
+      #   FF_USE_ADVANCED_POD_SPEC_CONFIGURATION = true
 ---
 # pending generic ephemeral support in config
 # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/27835
