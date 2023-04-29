@@ -27,6 +27,7 @@ spec:
     gitlabUrl: https://gitlab.com/
     rbac:
       create: true
+    unregisterRunners: true
 
     runners:
       privileged: true
@@ -39,9 +40,6 @@ spec:
           [runners.kubernetes]
             namespace = "{{.Release.Namespace}}"
             image = "ubuntu:16.04"
-
-            memory_request = "3Gi"
-            memory_limit = "3.5Gi"
 
             [[runners.kubernetes.volumes.host_path]]
               name = "devices"
@@ -57,6 +55,8 @@ spec:
 ---
 # pending generic ephemeral support in config
 # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/27835
+# could use a pod spec patch once it leaves alpha
+# https://docs.gitlab.com/runner/executors/kubernetes.html#overwrite-generated-pod-specifications-alpha
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
