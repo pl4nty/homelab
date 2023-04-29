@@ -52,8 +52,6 @@ spec:
               name = "gitlab-runner"
               mount_path = "/tmp"
             [runners.kubernetes.pod_security_context]
-              run_as_user = 59417
-              run_as_group = 59417
               fs_group = 59417
 ---
 # pending generic ephemeral support in config
