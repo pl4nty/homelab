@@ -33,6 +33,10 @@ spec:
     envFrom:
     - secretRef:
         name: nessus
+    securityContext:
+      capabilities:
+        add:
+        - CAP_NET_ADMIN
     # can't use startup probe, because it succeeds while Nessus is autorestarting
     probes:
       readiness:
