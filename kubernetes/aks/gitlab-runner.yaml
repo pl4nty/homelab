@@ -50,9 +50,9 @@ spec:
 
             [[runners.kubernetes.volumes.pvc]]
               name = "gitlab-runner"
-              mount_path = "/tmp"
-            [runners.kubernetes.pod_security_context]
-              fs_group = 59417
+              mount_path = "/builds"
+      # [runners.kubernetes.pod_security_context]
+      #   fs_group = 59417
 ---
 # pending generic ephemeral support in config
 # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/27835
