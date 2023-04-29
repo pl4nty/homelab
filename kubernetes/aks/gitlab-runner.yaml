@@ -40,7 +40,8 @@ spec:
             namespace = "{{.Release.Namespace}}"
             image = "ubuntu:16.04"
 
-            memory_request = "2.5Gi"
+            memory_request = "3Gi"
+            memory_limit = "3.5Gi"
 
             [[runners.kubernetes.volumes.host_path]]
               name = "devices"
