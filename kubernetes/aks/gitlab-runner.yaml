@@ -47,6 +47,8 @@ spec:
             namespace = "{{.Release.Namespace}}"
             image = "ubuntu:16.04"
 
+            memory_request = "2.5Gi"
+
             [[runners.kubernetes.volumes.host_path]]
               name = "devices"
               host_path = "/dev"
