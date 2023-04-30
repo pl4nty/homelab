@@ -33,7 +33,7 @@ spec:
       secret: gitlab-runner-kali
       nodeSelector:
         kubernetes.io/arch: "$CLOUD_ARCH"
-      envVars:
+      env:
       - name: CLOUD_ARCH
         value: "$CLOUD_ARCH"
       tags: build # running tests on k8s hits node volume limits, as pod_spec can't be scoped to just build jobs (eg annotations)
