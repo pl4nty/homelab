@@ -46,9 +46,6 @@ spec:
               mount_path = "/dev"
               read_only = true
 
-            [[runners.kubernetes.volumes.pvc]]
-              name = "gitlab-runner"
-              mount_path = "/builds"
             [[runners.kubernetes.pod_spec]]
               name = "ephemeral-disk"
               patch_type = "strategic"
@@ -71,6 +68,9 @@ spec:
               '''
           [runners.feature_flags]
             FF_USE_ADVANCED_POD_SPEC_CONFIGURATION = true
+      # [[runners.kubernetes.volumes.pvc]]
+      #   name = "gitlab-runner"
+      #   mount_path = "/builds"
     # doesn't seem to persist across steps? "no such file or directory" after checkout
 ---
 # pending generic ephemeral support in config
