@@ -48,7 +48,7 @@ spec:
             helper_image = "ghcr.io/pl4nty/gitlab-runner-helper:sha-3f4e98d"
 
             [runners.kubernetes.node_selector]
-              kubernetes.io/arch = "$CLOUD_ARCH"
+              "kubernetes.io/arch" = "$CLOUD_ARCH"
 
             [[runners.kubernetes.volumes.host_path]]
               name = "devices"
