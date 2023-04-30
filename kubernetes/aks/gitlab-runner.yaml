@@ -55,6 +55,10 @@ spec:
                   volumeMounts:
                   - name: builds
                     mountPath: /builds
+                - name: helper
+                  volumeMounts:
+                  - name: builds
+                    mountPath: /builds
                 volumes:
                 - name: builds
                   ephemeral:
