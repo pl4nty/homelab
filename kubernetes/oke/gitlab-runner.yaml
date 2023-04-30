@@ -60,13 +60,13 @@ spec:
                   - name: builds
                     mountPath: /builds
                   command:
-                  - "/bin/sh"
+                  - sh
                 - name: helper
                   volumeMounts:
                   - name: builds
                     mountPath: /builds
                   command:
-                  - "/bin/sh"
+                  - sh
                 volumes:
                 - name: builds
                   ephemeral:
