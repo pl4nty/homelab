@@ -1,7 +1,7 @@
 kind: Secret
 apiVersion: v1
 metadata:
-    name: gitlab-runner-kali
+    name: gitlab-runner
     namespace: default
 type: Opaque
 stringData:
@@ -22,8 +22,8 @@ sops:
             V0JvMFA3dm9sWG02VTRTL1lkYjVXNTQKAbHl6ANhVH0FcEIBXNkQOUoncw56Mpdj
             sFFglArYtz/6dbeWj/jJvZIQctKx6CGxsUR8ceuo+FIQVbPg3NuHMA==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-04-30T08:45:21Z"
-    mac: ENC[AES256_GCM,data:DkmZQxF5szZI4X0Kx6U1uUvW1GascDkAu5a6LhynUDq0542Xk+8MdAE/Jk1XK/I5lzfy8XLwgSv2zEFS72ua9D85z40Q51ttocD+fE07jCQpX/8NqYZqoAaxoq2pP8O3lxOcUwY1qdgECzWt6AYm9ouuDA/V5yofs8IL+Anp6Tg=,iv:TE/2R1EnAtURMZDC9e1wZO1HHy/AZqQPXQ1Xow9ox5k=,tag:fVjuFtlHhQxh0e7JUKhNYQ==,type:str]
+    lastmodified: "2023-04-30T10:17:30Z"
+    mac: ENC[AES256_GCM,data:Q169FjMp1o9AL/aMlZINa4p2mlsIhcBvSxaXEh+U+5GA4sy92713+vI3NteP+r3HujJj6/oBbUak23TFxp0DBEpCiQSIZfQyoGy6A6ukJ9L2YAS7w3Qp9zh8SYBC51MophpFAwlR2uemrd0gbnYlz8oKZak1b7fsjV5XsFOhPwQ=,iv:0GeuRT12JgwHCFtjcfPmimE0SL8LPcWrPYXTHHF4Mns=,tag:pwfKJaBWcpbFq7HbIrFpCQ==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.7.3
