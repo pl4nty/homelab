@@ -41,7 +41,7 @@ spec:
         [[runners]]
           [runners.kubernetes]
             namespace = "{{.Release.Namespace}}"
-            image = "bitnami/gitlab-runner"
+            image = "alpinelinux/gitlab-runner"
             helper_image = "bitnami/gitlab-runner-helper"
 
             [[runners.kubernetes.volumes.host_path]]
