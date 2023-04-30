@@ -1,7 +1,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: gitlab-runner
+  name: gitlab-runner-kali
   namespace: default
 spec:
   interval: 15m
@@ -28,10 +28,9 @@ spec:
     rbac:
       create: true
     unregisterRunners: true
-
     runners:
       privileged: true
-      secret: gitlab-runner
+      secret: gitlab-runner-kali
       tags: build # running tests on k8s hits node volume limits, as pod_spec can't be scoped to just build jobs (eg annotations)
       # default GitLab images are arch-specific, but Bitnami provide multi-arch images (Alpine multiarch have broken sh)
       # TODO arch-specific runner tags to avoid running on wrong arch?
@@ -42,6 +41,9 @@ spec:
           [runners.kubernetes]
             namespace = "{{.Release.Namespace}}"
             helper_image = "ghcr.io/pl4nty/gitlab-runner-helper:sha-3f4e98d"
+            
+            [runners.kubernetes.node_selector]
+              kubernetes.io/arch: "$CLOUD_ARCH"
 
             [[runners.kubernetes.volumes.host_path]]
               name = "devices"
