@@ -47,7 +47,7 @@ spec:
               read_only = true
 
             [[runners.kubernetes.pod_spec]]
-              name = "ephemeral-disk"
+              name = "ephemeral-builds"
               patch_type = "strategic"
               patch = '''
                 containers:
@@ -65,7 +65,6 @@ spec:
                     volumeClaimTemplate:
                       spec:
                         accessModes: [ ReadWriteOnce ]
-                        storageClassName: default
                         resources:
                           requests:
                             storage: 32Gi
