@@ -34,8 +34,7 @@ spec:
       nodeSelector:
         kubernetes.io/arch: "$CLOUD_ARCH"
       env:
-      - name: CLOUD_ARCH
-        value: "$CLOUD_ARCH"
+        CLOUD_ARCH: "$CLOUD_ARCH"
       tags: build # running tests on k8s hits node volume limits, as pod_spec can't be scoped to just build jobs (eg annotations)
       # default GitLab images are arch-specific, but Bitnami provide multi-arch images (Alpine multiarch have broken sh)
       # TODO arch-specific runner tags to avoid running on wrong arch?
