@@ -33,7 +33,7 @@ spec:
       privileged: true
       secret: gitlab-runner
       tags: build # running tests on k8s hits node volume limits, as pod_spec can't be scoped to just build jobs (eg annotations)
-      # default GitLab images are arch-specific, but Alpine provide multi-arch images
+      # default GitLab images are arch-specific, but Alpine provide multi-arch images. also have to override container.command
       # TODO arch-specific runner tags to avoid running on wrong arch?
       # loopback device access is required for fai-image-builder (eg Kali)
       # node ephemeral disk is enough for build artifacts (~12GB), but not conversion to VHD for Azure upload
@@ -59,10 +59,18 @@ spec:
                   volumeMounts:
                   - name: builds
                     mountPath: /builds
+                  command:
+                  - sh
+                  - -c
+                  - "/bin/sh"
                 - name: helper
                   volumeMounts:
                   - name: builds
                     mountPath: /builds
+                  command:
+                  - sh
+                  - -c
+                  - "/bin/sh"
                 volumes:
                 - name: builds
                   ephemeral:
