@@ -41,7 +41,7 @@ spec:
         [[runners]]
           [runners.kubernetes]
             namespace = "{{.Release.Namespace}}"
-            helper_image = "alpinelinux/gitlab-runner-helper"
+            helper_image = "ghcr.io/pl4nty/gitlab-runner-helper:sha-3f4e98d"
 
             [[runners.kubernetes.volumes.host_path]]
               name = "devices"
