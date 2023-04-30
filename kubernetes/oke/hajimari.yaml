@@ -73,25 +73,28 @@ spec:
       - group: dependencies
         bookmarks:
         - name: github
-          url: https://github.com/pl4nty
+          url: https://www.githubstatus.com
           icon: simple-icons:github
         - name: renovate
-          url: https://app.renovatebot.com/dashboard
+          url: https://status.mend.io
           icon: simple-icons:renovatebot
         - name: backblaze
-          url: https://secure.backblaze.com/user_signin.htm
+          url: https://status.backblaze.com
           icon: simple-icons:backblaze
         - name: grafana
-          url: https://tplant.grafana.net
+          url: https://status.grafana.com
           icon: simple-icons:grafana
         - name: cloudflare
-          url: https://dash.cloudflare.com
+          url: https://www.cloudflarestatus.com
           icon: simple-icons:cloudflare
         - name: aussiebb
-          url: https://lg.aussiebroadband.com.au
+          url: https://www.aussiebroadband.com.au/help-centre/system-outages
         - name: azure
           url: https://azure.status.microsoft
           icon: simple-icons:microsoftazure
+        - name: oracle cloud
+          url: https://ocistatus.oraclecloud.com
+          icon: simple-icons:oracle
       - group: utils
         bookmarks:
         - name: k8s-at-home search
