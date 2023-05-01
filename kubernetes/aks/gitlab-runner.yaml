@@ -62,14 +62,14 @@ spec:
                 containers:
                 - name: build
                   volumeMounts:
-                  - name: repo
+                  - name: builds
                     mountPath: /builds
                 - name: helper
                   volumeMounts:
-                  - name: repo
+                  - name: builds
                     mountPath: /builds
                 volumes:
-                - name: repo
+                - name: builds
                   ephemeral:
                     volumeClaimTemplate:
                       spec:
