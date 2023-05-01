@@ -42,12 +42,14 @@ spec:
       # TODO arch-specific runner tags to avoid running on wrong arch?
       # loopback device access is required for fai-image-builder (eg Kali)
       # node ephemeral disk is enough for build artifacts (~12GB), but not conversion to VHD for Azure upload
+      
+      # fails with "mkdir: cannot create directory '/builds/pl4nty': Permission denied"
+      # helper_image = "ghcr.io/pl4nty/gitlab-runner-helper:sha-3f4e98d"
 
       config: |
         [[runners]]
           [runners.kubernetes]
             namespace = "{{.Release.Namespace}}"
-            helper_image = "ghcr.io/pl4nty/gitlab-runner-helper:sha-3f4e98d"
 
             [[runners.kubernetes.volumes.host_path]]
               name = "devices"
