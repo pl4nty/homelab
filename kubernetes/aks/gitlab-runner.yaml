@@ -39,7 +39,7 @@ spec:
       tags: amd64
 
       pod_security_context:
-        fsGroup: 1001
+        fs_group: 1001
       
       # default GitLab helper image is arch-specific, but Bitnami provides multi-arch image
       # TODO arch-specific runner tags to avoid running on wrong arch?
