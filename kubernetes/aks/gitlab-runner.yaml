@@ -36,7 +36,7 @@ spec:
       #   "kubernetes.io/arch" = "$CLOUD_ARCH"
       # we need a tag anyway - running tests on k8s hits node volume limits, as pod_spec can't be scoped to just build jobs (eg annotations)
       # this would break multiarch clusters...
-      tags: arm64
+      tags: amd64
       
       # default GitLab helper image is arch-specific, but Bitnami provides multi-arch image
       # TODO arch-specific runner tags to avoid running on wrong arch?
