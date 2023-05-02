@@ -50,6 +50,7 @@ spec:
         [[runners]]
           [runners.kubernetes]
             namespace = "{{.Release.Namespace}}"
+            helper_image = "bitnami/gitlab-runner-helper:15.11.0-debian-11-r3"
 
             [[runners.kubernetes.volumes.host_path]]
               name = "devices"
