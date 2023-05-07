@@ -4,6 +4,7 @@ metadata:
   name: cloudflare-tunnel
   namespace: default
 subjects:
+  - name: family-archive
   - name: rocketchat-rocketchat
     spec:
       fqdn: chat.tplant.com.au

@@ -1,0 +1,28 @@
+kind: Secret
+apiVersion: v1
+metadata:
+    name: family-archive
+    namespace: default
+type: Opaque
+stringData:
+    PHOTOPRISM_ADMIN_PASSWORD: ENC[AES256_GCM,data:YyVPa54fPdIx5af4KwRus3HkHUsnntBX,iv:QPk1ysTr+EqY4a8TGgJ09kMs/vRJ1Jyf+EoTD0YSA6Q=,tag:4v8b1K6sjO4RMg9Ma/c9Bg==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBtQ1lZeU9YOHRXOEhka1RF
+            cmwvWUFEbGZ6cGJHd0NrNW5kSFhUTktGT2drCjlJMWRTdzFSZUN3aWhtNzlybko5
+            WWtWL1JmNTBFZWt3TEtpN1g4NGU4K0kKLS0tIHBCNGVaNXNwbkhTd2VpZmlxNk1K
+            VUpCTkhCRHE5SlU1azJjY3lXVGZHRjQK9+FNuD9mDnqc7L3149Gs1nsyo8JOJj5d
+            awQtwHIaKhAuVmILeMi8fT8j2DJYMdyEP7gQ+6qbBMcdyDOblnKHLA==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-05-07T10:06:10Z"
+    mac: ENC[AES256_GCM,data:/P5jhRY2rUaVwxFFoAV7kq3j1+yf4ONg9B4bXlC8I5oL6wc+68+bxhm3hZe9GXGkeDBwrr4tGpHQkL2GZsle6nXmi9c1hL8KcfGK/Zni+Udu6tu+3xe0u0jNKyb6utTxB4TfkSZFyS6KvZ7cozjFRXtmymzOHdGV9ANxk0PGQ78=,iv:JIjp58qfWR5OIoRMwuC4qHZY0k9xRXmKw+XI6j/YQtc=,tag:Ghe09hASzNGScum6DGKCbQ==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData)$
+    version: 3.7.3
