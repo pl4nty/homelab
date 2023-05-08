@@ -47,15 +47,13 @@ spec:
     persistence:
       config:
         enabled: true
-        mountPath: /photoprism
-        subPath: storage
         size: 8Gi
         retain: true
-      originals:
-        enabled: true
-        mountPath: /photoprism
-        subPath: originals
-        existingClaim: family-archive-config
+        subPath:
+        - path: storage
+          mountPath: /photoprism/storage
+        - path: originals
+          mountPath: /photoprism/originals
     probes:
       readiness:
         type: HTTP
