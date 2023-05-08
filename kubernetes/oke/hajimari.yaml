@@ -84,6 +84,9 @@ spec:
         - name: grafana
           url: https://status.grafana.com
           icon: simple-icons:grafana
+        - name: bunny.net
+          url: https://status.bunny.net
+          icon: logos:bunny-net-icon
         - name: cloudflare
           url: https://www.cloudflarestatus.com
           icon: simple-icons:cloudflare
