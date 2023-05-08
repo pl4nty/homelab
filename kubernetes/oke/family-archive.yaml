@@ -59,11 +59,17 @@ spec:
         spec:
           httpGet:
             path: /api/v1/status
+      liveness:
+        type: HTTP
+        spec:
+          httpGet:
+            path: /api/v1/status
     service:
       main:
         ports:
           http:
             port: 2342
+      # require CDN-ServerId header?
       cdn:
         type: LoadBalancer
         annotations:
