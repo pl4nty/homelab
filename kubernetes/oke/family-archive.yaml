@@ -36,6 +36,7 @@ spec:
       # PHOTOPRISM_CDN_VIDEO: https://family-archive.b-cdn.net
       # review other themes pending membership processing. text contract on search page is poor
       PHOTOPRISM_DEFAULT_THEME: Lavender
+      PHOTOPRISM_LOG_LEVEL: trace
       # PHOTOPRISM_APP_MODE
       # PHOTOPRISM_APP_ICON
       # PHOTOPRISM_LEGAL_INFO
