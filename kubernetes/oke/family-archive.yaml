@@ -32,8 +32,8 @@ spec:
       type: statefulset
     env:
       PHOTOPRISM_APP_NAME: Family Archive
-      # PHOTOPRISM_CDN_URL: https://cdn.family-archive.tplant.com.au
-      # PHOTOPRISM_CDN_VIDEO: 
+      # PHOTOPRISM_CDN_URL: https://family-archive.b-cdn.net
+      # PHOTOPRISM_CDN_VIDEO: https://family-archive.b-cdn.net
       # PHOTOPRISM_DEFAULT_THEME
       # PHOTOPRISM_APP_MODE
       # PHOTOPRISM_APP_ICON
@@ -68,7 +68,7 @@ spec:
         type: LoadBalancer
         annotations:
           service.beta.kubernetes.io/oci-load-balancer-shape: flexible
-          service.beta.kubernetes.io/oci-load-balancer-shape-flex-max: 10
+          service.beta.kubernetes.io/oci-load-balancer-shape-flex-max: '10'
         ports:
           cdn:
             port: 2342
