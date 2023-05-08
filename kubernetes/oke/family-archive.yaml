@@ -33,7 +33,7 @@ spec:
     env:
       PHOTOPRISM_APP_NAME: Family Archive
       PHOTOPRISM_CDN_URL: https://cdn.family-archive.tplant.com.au
-      PHOTOPRISM_CDN_VIDEO: https://cdn.family-archive.tplant.com.au
+      PHOTOPRISM_CDN_VIDEO: true
       # review other themes pending membership processing. text contract on search page is poor
       PHOTOPRISM_DEFAULT_THEME: Lavender
       PHOTOPRISM_LOG_LEVEL: debug # default is info
