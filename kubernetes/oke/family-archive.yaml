@@ -55,9 +55,10 @@ spec:
         mountPath: /photoprism/storage
     probes:
       readiness:
-        httpGet:
-          path: /api/v1/status
-          port: http
+        type: HTTP
+        spec:
+          httpGet:
+            path: /api/v1/status
     service:
       main:
         ports:
@@ -65,6 +66,9 @@ spec:
             port: 2342
       cdn:
         type: LoadBalancer
+        annotations:
+          service.beta.kubernetes.io/oci-load-balancer-shape: flexible
+          service.beta.kubernetes.io/oci-load-balancer-shape-flex-max: 10
         ports:
           cdn:
             port: 2342
