@@ -27,25 +27,32 @@ spec:
   values:
     image:
       repository: photoprism/photoprism
-      tag: 230506-ce
+      tag: 230506
     controller:
       type: statefulset
     env:
-      PHOTOPRISM_HTTP_HOST: 0.0.0.0
+      PHOTOPRISM_APP_NAME: Family Archive
+      # PHOTOPRISM_CDN_URL: https://cdn.family-archive.tplant.com.au
+      # PHOTOPRISM_CDN_VIDEO: 
+      # PHOTOPRISM_DEFAULT_THEME
+      # PHOTOPRISM_APP_MODE
+      # PHOTOPRISM_APP_ICON
+      # PHOTOPRISM_LEGAL_INFO
+      # PHOTOPRISM_LEGAL_URL
+      # PHOTOPRISM_WALLPAPER_URI
+    #   PHOTOPRISM_HTTP_HOST: 0.0.0.0
     envFrom:
     - secretRef:
         name: family-archive
     persistence:
       config:
         enabled: true
-        mountPath: /photoprism/storage
-        size: 1Gi
+        mountPath: /photoprism/originals
+        size: 8Gi
         retain: true
       shared:
         enabled: true
-        mountPath: /photoprism/originals
-        size: 1Gi
-        retain: true
+        mountPath: /photoprism/storage
     probes:
       readiness:
         httpGet:
@@ -53,6 +60,11 @@ spec:
           port: http
     service:
       main:
+        ports:
+          http:
+            port: 2342
+      cdn:
+        type: LoadBalancer
         ports:
           http:
             port: 2342
