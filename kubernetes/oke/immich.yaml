@@ -29,11 +29,15 @@ spec:
       enabled: true
     redis:
       enabled: true
+      persistence:
+        test:
+          type: emptyDir
     typesense:
       enabled: true
       persistence:
         tsdata:
           enabled: true
+          type: emptyDir
 
     immich:
       persistence:
