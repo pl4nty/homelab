@@ -31,6 +31,9 @@ spec:
       enabled: true
     typesense:
       enabled: true
+      persistence:
+        tsdata:
+          enabled: true
 
     immich:
       persistence:
