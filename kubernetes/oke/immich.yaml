@@ -29,8 +29,9 @@ spec:
       enabled: true
     redis:
       enabled: true
+      volumeClaimTemplates: []
       persistence:
-        test:
+        redis-data:
           type: emptyDir
     typesense:
       enabled: true
