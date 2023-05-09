@@ -28,8 +28,6 @@ spec:
     postgresql:
       enabled: true
       primary:
-        persistence:
-          existingClaim: family-archive-config
         livenessProbe: 
           initialDelaySeconds: 180
     redis:
@@ -50,10 +48,11 @@ spec:
           type: pvc
           accessMode: ReadWriteOnce
 
+    # chart can't create PVC for library?
     immich:
       persistence:
         library:
-          existingClaim: family-archive-config
+          existingClaim: immich-library
 
     env:
       LOG_LEVEL: verbose
@@ -61,3 +60,14 @@ spec:
     image:
       # renovate: datasource=github-releases depName=immich-app/immich
       tag: v1.54.1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-library
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 15Gi
