@@ -27,12 +27,14 @@ spec:
   values:
     postgresql:
       enabled: true
+      primary:
+        persistence:
+          existingClaim: family-archive-config
     redis:
       enabled: true
-      volumeClaimTemplates: []
-      persistence:
-        redis-data:
-          type: emptyDir
+      master:
+        persistence:
+          enabled: false
     typesense:
       enabled: true
       persistence:
