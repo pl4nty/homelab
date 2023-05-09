@@ -65,6 +65,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: immich-library
+  namespace: default
 spec:
   accessModes:
   - ReadWriteOnce
