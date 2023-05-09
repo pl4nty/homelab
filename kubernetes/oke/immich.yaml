@@ -30,6 +30,8 @@ spec:
       primary:
         persistence:
           existingClaim: family-archive-config
+        livenessProbe: 
+          initialDelaySeconds: 180
     redis:
       enabled: true
       master:
