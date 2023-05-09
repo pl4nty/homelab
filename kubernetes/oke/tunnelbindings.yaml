@@ -11,6 +11,7 @@ subjects:
   - name: hajimari
     spec:
       fqdn: lab.tplant.com.au
+  - name: immich
   - name: family-archive
   - name: hyperglass
     spec:
