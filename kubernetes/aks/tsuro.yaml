@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/pl4nty/tsuro@sha256
-      tag: 5d94fd4413734381e3f1e0bacd62a6cec83590534589003048e42796cb83c09e
+      repository: ghcr.io/pl4nty/tsuro
+      tag: sha-dfc195e
     nodeSelector:
       kubernetes.io/arch: amd64
     podAnnotations:
