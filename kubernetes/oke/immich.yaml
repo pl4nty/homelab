@@ -40,6 +40,11 @@ spec:
           enabled: true
           type: emptyDir
 
+    machine-learning:
+      persistence:
+        cache:
+          type: pvc
+
     immich:
       persistence:
         library:
