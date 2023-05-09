@@ -29,7 +29,7 @@ spec:
       enabled: true
       primary:
         livenessProbe: 
-          initialDelaySeconds: 180
+          initialDelaySeconds: 240
     redis:
       enabled: true
       master:
