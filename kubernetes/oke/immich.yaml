@@ -25,7 +25,7 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    postgres:
+    postgresql:
       enabled: true
     redis:
       enabled: true
