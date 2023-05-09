@@ -29,7 +29,7 @@ spec:
       enabled: true
       primary:
         livenessProbe: 
-          initialDelaySeconds: 600 # tries to automatically recover and takes ages
+          initialDelaySeconds: 1800 # tries to automatically recover and takes ages
     redis:
       enabled: true
       master:
