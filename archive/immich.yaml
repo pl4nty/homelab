@@ -28,8 +28,11 @@ spec:
     postgresql:
       enabled: true
       primary:
+        # tries to automatically recover and takes ages
         livenessProbe: 
-          initialDelaySeconds: 1800 # tries to automatically recover and takes ages
+          initialDelaySeconds: 1800
+        readinessProbe:
+          initialDelaySeconds: 1800
     redis:
       enabled: true
       master:
