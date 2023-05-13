@@ -38,6 +38,8 @@ spec:
           initialDelaySeconds: 1800
     redis:
       enabled: true
+      image:
+        tag: 7.0.8-debian-11-r16 # default doesn't have ARM as of writing
       master:
         persistence:
           enabled: false
