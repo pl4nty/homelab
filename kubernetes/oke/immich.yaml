@@ -28,6 +28,9 @@ spec:
     postgresql:
       enabled: true
       primary:
+        resources:
+          requests:
+            memory: 2Gi
         # tries to automatically recover and takes ages
         livenessProbe: 
           initialDelaySeconds: 1800
