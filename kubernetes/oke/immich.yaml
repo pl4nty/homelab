@@ -62,5 +62,5 @@ spec:
     web:
       image:
         repository: ghcr.io/pl4nty/immich-web
-        tag: main
+        tag: main@sha256:b7af83697095588254a0a6cb6072b6788bd7b94c40e0253cbd6db69ed0596bd3
         
