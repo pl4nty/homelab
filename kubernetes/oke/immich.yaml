@@ -28,18 +28,13 @@ spec:
     postgresql:
       enabled: true
       image:
-        debug: true
-        tag: 14.7.0-debian-11-r31 # default doesn't have ARM as of writing
-      primary:
-        # tries to automatically recover and takes ages
-        livenessProbe: 
-          initialDelaySeconds: 1800
-        readinessProbe:
-          initialDelaySeconds: 1800
+        # default doesn't have ARM as of writing
+        tag: 14.7.0-debian-11-r31
     redis:
       enabled: true
       image:
-        tag: 7.0.8-debian-11-r16 # default doesn't have ARM as of writing
+        # default doesn't have ARM as of writing
+        tag: 7.0.8-debian-11-r16
       master:
         persistence:
           enabled: false
@@ -61,13 +56,10 @@ spec:
       persistence:
         library:
           existingClaim: immich-library
-
+    image:
+      tag: v1.54.1
     env:
       LOG_LEVEL: verbose
-    
-    image:
-      # renovate: datasource=github-releases depName=immich-app/immich
-      tag: v1.54.1
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
