@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: photoprism/photoprism
-      tag: 230506
+      tag: 20220121
     controller:
       type: statefulset
     env:
