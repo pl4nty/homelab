@@ -1,7 +1,7 @@
 kind: Secret
 apiVersion: v1
 metadata:
-    name: family-archive
+    name: photoprism
     namespace: default
 type: Opaque
 stringData:
@@ -21,8 +21,8 @@ sops:
             VUpCTkhCRHE5SlU1azJjY3lXVGZHRjQK9+FNuD9mDnqc7L3149Gs1nsyo8JOJj5d
             awQtwHIaKhAuVmILeMi8fT8j2DJYMdyEP7gQ+6qbBMcdyDOblnKHLA==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-05-07T10:06:10Z"
-    mac: ENC[AES256_GCM,data:/P5jhRY2rUaVwxFFoAV7kq3j1+yf4ONg9B4bXlC8I5oL6wc+68+bxhm3hZe9GXGkeDBwrr4tGpHQkL2GZsle6nXmi9c1hL8KcfGK/Zni+Udu6tu+3xe0u0jNKyb6utTxB4TfkSZFyS6KvZ7cozjFRXtmymzOHdGV9ANxk0PGQ78=,iv:JIjp58qfWR5OIoRMwuC4qHZY0k9xRXmKw+XI6j/YQtc=,tag:Ghe09hASzNGScum6DGKCbQ==,type:str]
+    lastmodified: "2023-05-13T14:11:05Z"
+    mac: ENC[AES256_GCM,data:5DZK+pYgywnKeTzvaiJzqPEieoCKhrTUo0YYAXkl/iBtXaxBdqUfP4gLVD8kbslbcv7ET1oOYlza1P4d7vY35RbVOAp43qHQzG0mhcprtyF/ugvajOPoHDxOX0u/6p+R7G5YKjx+88mblQ0hbYawxdBPgsNnTbr0Zn7CEBk/l9I=,iv:rPM+K9oYq8sU3OCctiBnpXHR8EwVba+8p90c108JcOk=,tag:ybqP1/D01HrGp3tVoAlC4Q==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.7.3

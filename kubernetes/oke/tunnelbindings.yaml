@@ -13,8 +13,7 @@ subjects:
       fqdn: lab.tplant.com.au
   - name: immich-proxy
     spec:
-      fqdn: photos.tplant.com.au
-  - name: family-archive
+      fqdn: family-archive.tplant.com.au
   - name: hyperglass
     spec:
       fqdn: lg.tplant.com.au
