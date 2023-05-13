@@ -30,6 +30,10 @@ spec:
       image:
         # default doesn't have ARM as of writing
         tag: 14.7.0-debian-11-r31
+      audit:
+        logHostname: true
+        logConnections: true
+        logDisconnections: true
     redis:
       enabled: true
       image:
