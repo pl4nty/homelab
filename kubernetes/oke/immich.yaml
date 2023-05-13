@@ -27,6 +27,8 @@ spec:
   values:
     postgresql:
       enabled: true
+      image:
+        debug: true
       primary:
         resources:
           requests:
