@@ -30,10 +30,6 @@ spec:
       image:
         # default doesn't have ARM as of writing
         tag: 14.7.0-debian-11-r31
-      audit:
-        logHostname: true
-        logConnections: true
-        logDisconnections: true
     redis:
       enabled: true
       image:
@@ -61,18 +57,4 @@ spec:
         library:
           existingClaim: immich-library
     image:
-      tag: v1.54.1
-    env:
-      LOG_LEVEL: verbose
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: immich-library
-  namespace: default
-spec:
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 15Gi
+      tag: v1.55.1
