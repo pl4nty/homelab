@@ -58,3 +58,9 @@ spec:
           existingClaim: immich-library
     image:
       tag: v1.55.1
+
+    web:
+      image:
+        repository: ghcr.io/pl4nty/immich-web
+        tag: main
+        
