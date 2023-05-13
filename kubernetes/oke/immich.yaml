@@ -29,6 +29,7 @@ spec:
       enabled: true
       image:
         debug: true
+        tag: 14.7.0-debian-11-r31 # default doesn't have ARM as of writing
       primary:
         # tries to automatically recover and takes ages
         livenessProbe: 
