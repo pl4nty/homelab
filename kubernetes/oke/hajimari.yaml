@@ -92,12 +92,16 @@ spec:
           icon: simple-icons:cloudflare
         - name: aussiebb
           url: https://www.aussiebroadband.com.au/help-centre/system-outages
+          icon: https://www.aussiebroadband.com.au/assets/favicons/android-icon-192x192.png
         - name: azure
           url: https://azure.status.microsoft
           icon: simple-icons:microsoftazure
         - name: oracle cloud
           url: https://ocistatus.oraclecloud.com
           icon: simple-icons:oracle
+        - name: ventraip
+          url: https://status.ventraip.com.au
+          icon: https://ventraip.com.au/wp-content/uploads/2020/08/logo-ventraip-australia.png
       - group: utils
         bookmarks:
         - name: k8s-at-home search
