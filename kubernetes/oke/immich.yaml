@@ -69,7 +69,7 @@ spec:
       persistence:
         config:
           enabled: true
-          type: ConfigMap
+          type: configMap
           name: immich-config
           mountPath: /usr/src/app/build/client/_app/immutable/assets/immich-logo.18dcdcef.svg
           subPath: immich-logo.18dcdcef.svg
