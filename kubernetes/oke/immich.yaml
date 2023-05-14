@@ -66,6 +66,18 @@ spec:
         tag: pr-2180@sha256:41a4b4a0793832a0f74dff6de79f8e96378d828f9683db56156ca6785d8de363
 
     web:
+      persistence:
+        config:
+          enabled: true
+          type: ConfigMap
+          name: config
+          mountPath: /usr/src/app/build/client/_app/immutable/assets/immich-logo.18dcdcef.svg
+          subPath: immich-logo.18dcdcef.svg
+      configMaps:
+        config:
+          enabled: true
+          data:
+            immich-logo.svg: ''
       image:
         # repository: ghcr.io/pl4nty/immich-web
         # tag: main@sha256:b7af83697095588254a0a6cb6072b6788bd7b94c40e0253cbd6db69ed0596bd3
