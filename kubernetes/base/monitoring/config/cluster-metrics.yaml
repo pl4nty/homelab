@@ -48,7 +48,7 @@ spec:
   - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
     honorLabels: true
     honorTimestamps: false
-    interval: 60s
+    interval: 2m
     metricRelabelings:
     - action: keep
       regex: "container_cpu_cfs_periods_total|\
