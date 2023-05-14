@@ -141,8 +141,6 @@ spec:
           authenticator: basicauth/logs
 
     processors:
-      spanmetrics:
-        metrics_exporter: prometheusremotewrite
       batch:
         send_batch_size: 1000
         send_batch_max_size: 5000
@@ -184,7 +182,6 @@ spec:
           exporters: [ otlp ]
         metrics:
           receivers: [ prometheus ]
-          processors: [ batch ]
           exporters: [ prometheusremotewrite ]
         logs:
           receivers: [ filelog, k8s_events ]
