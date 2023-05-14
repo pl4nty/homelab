@@ -50,7 +50,19 @@ spec:
         cache:
           type: pvc
           accessMode: ReadWriteOnce
+      image:
+        tag: pr-2180@sha256:b1ca7d3d39fbb9f15426c504c7d2aee6912bf36e9209b5ba101cf59f96c4fb88
 
+    server:
+      image:
+        tag: pr-2180@sha256:41a4b4a0793832a0f74dff6de79f8e96378d828f9683db56156ca6785d8de363
+
+    web:
+      image:
+        # repository: ghcr.io/pl4nty/immich-web
+        # tag: main@sha256:b7af83697095588254a0a6cb6072b6788bd7b94c40e0253cbd6db69ed0596bd3
+        tag: pr-2180@sha256:a2d71863888e9e7f96424dd3a8c5756b5ebaadda0be5b53a824723c1e036bdee
+        
     # chart can't create PVC for library?
     immich:
       persistence:
@@ -58,9 +70,3 @@ spec:
           existingClaim: immich-library
     image:
       tag: v1.55.1
-
-    web:
-      image:
-        repository: ghcr.io/pl4nty/immich-web
-        tag: main@sha256:b7af83697095588254a0a6cb6072b6788bd7b94c40e0253cbd6db69ed0596bd3
-        
