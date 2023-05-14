@@ -50,7 +50,7 @@ var token = listServiceSAS(resourceId('rg-sharedservices', 'Microsoft.Storage/st
   signedExpiry: '2023-07-01T00:00:00Z'
 }).serviceSasToken
 
-resource vms 'Microsoft.Compute/virtualMachineScaleSets/virtualMachines/runCommands@2022-11-01' = {
+resource vms 'Microsoft.Compute/virtualMachineScaleSets/virtualMachines/runCommands@2023-03-01' = {
   name: '${vmss.name}/0/install'
   dependsOn: [
     vmss
