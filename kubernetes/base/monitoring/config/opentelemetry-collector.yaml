@@ -182,6 +182,10 @@ spec:
           receivers: [ otlp ]
           processors: [ batch ]
           exporters: [ otlp ]
+        metrics:
+          receivers: [ prometheus ]
+          processors: [ batch ]
+          exporters: [ prometheusremotewrite ]
         logs:
           receivers: [ filelog, k8s_events ]
           processors: [ attributes, resource, batch ]
@@ -228,7 +232,7 @@ rules:
 # k8s events
 - apiGroups: [""]
   resources: ["events"]
-  verbs: ["list"]
+  verbs: ["list", "watch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
