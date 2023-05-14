@@ -70,7 +70,7 @@ spec:
         config:
           enabled: true
           type: configMap
-          name: immich-config
+          name: immich-web-config
           mountPath: /usr/src/app/build/client/_app/immutable/assets/immich-logo.18dcdcef.svg
           subPath: immich-logo.18dcdcef.svg
       configMaps:
