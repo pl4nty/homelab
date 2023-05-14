@@ -19,7 +19,7 @@ resource umi 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = if 
   location: location
 }
 
-resource vmss 'Microsoft.Compute/virtualMachineScaleSets@2022-11-01' = {
+resource vmss 'Microsoft.Compute/virtualMachineScaleSets@2023-03-01' = {
   name: 'vmss-${name}'
   location: location
   identity: {
