@@ -52,22 +52,22 @@ spec:
           accessMode: ReadWriteOnce
       image:
         repository: ghcr.io/immich/immich-machine-learning
-        tag: pr-2180@sha256:b1ca7d3d39fbb9f15426c504c7d2aee6912bf36e9209b5ba101cf59f96c4fb88
+        tag: main@sha256:fb48ec2e73a1c8da5de62c4dab5baa73a8e52db2cb65f8f07e04c18e6dc6b8ea
 
     microservices:
       image:
-        repository: ghcr.io/immich/immich-microservices
-        tag: pr-2180@sha256:41a4b4a0793832a0f74dff6de79f8e96378d828f9683db56156ca6785d8de363
+        repository: ghcr.io/immich/immich-server
+        tag: main@sha256:f01c1615c7c8c0054cf5e69aa59b620057a72e8d0cf4ffe59ee81981a5c896a8
 
     proxy:
       image:
         repository: ghcr.io/immich/immich-proxy
-        tag: pr-2180@sha256:5b4da779676b05341e06017bea1fba742f54481e73d14018791081952620c039
+        tag: main@sha256:f2ceee678856100fc7ed094c1be9691dc0ef5feef5aa01d8987d97cdb642b97e
 
     server:
       image:
         repository: ghcr.io/immich/immich-server
-        tag: pr-2180@sha256:41a4b4a0793832a0f74dff6de79f8e96378d828f9683db56156ca6785d8de363
+        tag: main@sha256:f01c1615c7c8c0054cf5e69aa59b620057a72e8d0cf4ffe59ee81981a5c896a8
 
     web:
       persistence:
@@ -83,9 +83,10 @@ spec:
           data:
             immich-logo.18dcdcef.svg: ''
       image:
-        # repository: ghcr.io/pl4nty/immich-web
+        repository: ghcr.io/immich/immich-web
+        # pl4nty
         # tag: main@sha256:b7af83697095588254a0a6cb6072b6788bd7b94c40e0253cbd6db69ed0596bd3
-        tag: pr-2180@sha256:a2d71863888e9e7f96424dd3a8c5756b5ebaadda0be5b53a824723c1e036bdee
+        tag: main@sha256:e450662892fb57488db8129aa826eaa74a4b45a043c954fb567b9cea514f44fd
         
     # chart can't create PVC for library?
     immich:
