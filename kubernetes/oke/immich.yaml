@@ -51,18 +51,22 @@ spec:
           type: pvc
           accessMode: ReadWriteOnce
       image:
+        repository: ghcr.io/immich/immich-machine-learning
         tag: pr-2180@sha256:b1ca7d3d39fbb9f15426c504c7d2aee6912bf36e9209b5ba101cf59f96c4fb88
 
     microservices:
       image:
+        repository: ghcr.io/immich/immich-microservices
         tag: pr-2180@sha256:41a4b4a0793832a0f74dff6de79f8e96378d828f9683db56156ca6785d8de363
 
     proxy:
       image:
+        repository: ghcr.io/immich/immich-proxy
         tag: pr-2180@sha256:5b4da779676b05341e06017bea1fba742f54481e73d14018791081952620c039
 
     server:
       image:
+        repository: ghcr.io/immich/immich-server
         tag: pr-2180@sha256:41a4b4a0793832a0f74dff6de79f8e96378d828f9683db56156ca6785d8de363
 
     web:
