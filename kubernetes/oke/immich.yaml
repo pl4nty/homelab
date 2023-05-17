@@ -70,18 +70,18 @@ spec:
         tag: main@sha256:f01c1615c7c8c0054cf5e69aa59b620057a72e8d0cf4ffe59ee81981a5c896a8
 
     web:
-      persistence:
-        config:
-          enabled: true
-          type: configMap
-          name: immich-web-config
-          mountPath: /usr/src/app/build/client/_app/immutable/assets/immich-logo.18dcdcef.svg
-          subPath: immich-logo.18dcdcef.svg
-      configMaps:
-        config:
-          enabled: true
-          data:
-            immich-logo.18dcdcef.svg: ''
+      # persistence:
+      #   config:
+      #     enabled: true
+      #     type: configMap
+      #     name: immich-web-config
+      #     mountPath: /usr/src/app/build/client/_app/immutable/assets/immich-logo.18dcdcef.svg
+      #     subPath: immich-logo.18dcdcef.svg
+      # configMaps:
+      #   config:
+      #     enabled: true
+      #     data:
+      #       immich-logo.18dcdcef.svg: ''
       image:
         repository: ghcr.io/immich-app/immich-web
         # pl4nty
