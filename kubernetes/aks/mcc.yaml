@@ -59,7 +59,8 @@ spec:
         annotations:
           # https://cloud-provider-azure.sigs.k8s.io/topics/loadbalancer/#loadbalancer-annotations
           # consider ipFamilyPolicy/ipFamilies? and/or IPv6 prefix, or dynamic IPv6 with external-dns
-          service.beta.kubernetes.io/azure-pip-name: 4715ee78-52e1-4d6e-870a-9cd3849b0b4d
+          # service.beta.kubernetes.io/azure-pip-name: 4715ee78-52e1-4d6e-870a-9cd3849b0b4d
+          service.beta.kubernetes.io/azure-load-balancer-ipv4: 20.248.228.10
         ports:
           http:
             port: 80
