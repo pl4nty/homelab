@@ -31,8 +31,8 @@ spec:
     nodeSelector:
       kubernetes.io/arch: amd64
     args:
-      --p1 human
-      --p2 ai
+    - --p1 human
+    - --p2 ai
     service:
       main:
         ports:
