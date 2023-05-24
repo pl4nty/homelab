@@ -1,0 +1,38 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: ataxx
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: 1.4.0
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    image:
+      repository: ghcr.io/pl4nty/ataxx:sha-068d38f@sha256
+      tag: 877621f1c8cdadc98964df51a752494470ef6df8a0bbbd8480c507cf9afcac1b
+    nodeSelector:
+      kubernetes.io/arch: amd64
+    service:
+      main:
+        ports:
+          http:
+            port: 3000
+            
