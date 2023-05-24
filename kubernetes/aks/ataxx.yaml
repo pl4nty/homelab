@@ -30,6 +30,9 @@ spec:
       tag: 877621f1c8cdadc98964df51a752494470ef6df8a0bbbd8480c507cf9afcac1b
     nodeSelector:
       kubernetes.io/arch: amd64
+    args:
+      --p1 human
+      --p2 ai
     service:
       main:
         ports:
