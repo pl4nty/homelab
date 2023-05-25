@@ -44,7 +44,9 @@ spec:
           periodSeconds: 300
           exec:
             command:
-            - bash -c "exit 1"
+            - bash
+            - -c
+            - "exit 1"
 
     service:
       main:
