@@ -35,6 +35,17 @@ spec:
     - human
     - --p2
     - ai
+    probes:
+      liveness:
+        custom: true
+        spec:
+          failureThreshold: 1
+          initialDelaySeconds: 300
+          periodSeconds: 60
+          exec:
+            command:
+            - exit $(test $(date +%M) -eq 0 && echo 1 || echo 0)
+
     service:
       main:
         ports:
