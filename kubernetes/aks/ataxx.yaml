@@ -43,7 +43,8 @@ spec:
           failureThreshold: 1
           periodSeconds: 300
           exec:
-            command: bash -c "exit 1"
+            command:
+            - bash -c "exit 1"
 
     service:
       main:
