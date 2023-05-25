@@ -35,6 +35,7 @@ spec:
     - human
     - --p2
     - ai
+    - --comp1130
     probes:
       liveness:
         custom: true
