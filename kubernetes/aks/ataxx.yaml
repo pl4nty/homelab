@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/pl4nty/ataxx:sha-068d38f@sha256
-      tag: 877621f1c8cdadc98964df51a752494470ef6df8a0bbbd8480c507cf9afcac1b
+      repository: ghcr.io/pl4nty/ataxx
+      tag: sha-fda052c
     nodeSelector:
       kubernetes.io/arch: amd64
     args:
