@@ -40,11 +40,9 @@ spec:
         custom: true
         spec:
           failureThreshold: 1
-          initialDelaySeconds: 300
-          periodSeconds: 60
+          periodSeconds: 300
           exec:
-            command:
-            - exit $(test $(date +%M) -eq 0 && echo 1 || echo 0)
+            command: bash -c "exit 1"
 
     service:
       main:
