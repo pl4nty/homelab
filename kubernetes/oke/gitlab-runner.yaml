@@ -29,7 +29,6 @@ spec:
       create: true
     unregisterRunners: true
     runners:
-      privileged: true
       secret: gitlab-runner
       # not sure why, but this variable doesn't get filled
       # [runners.kubernetes.node_selector]
@@ -47,7 +46,7 @@ spec:
         [[runners]]
           [runners.kubernetes]
             namespace = "{{.Release.Namespace}}"
-            helper_image = "ghcr.io/pl4nty/gitlab-runner-helper:sha-71af69f"
+            privileged = true
 
             [[runners.kubernetes.volumes.host_path]]
               name = "devices"
