@@ -15,6 +15,7 @@ subjects:
       fqdn: msft-store.tplant.com.au
   - name: tsuro
   - name: ataxx
+  - name: shapes
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel
