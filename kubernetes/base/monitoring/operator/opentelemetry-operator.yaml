@@ -31,5 +31,6 @@ spec:
       serviceMonitor:
         enabled: true
     admissionWebhooks:
+      autoGenerateCert: true
       certManager:
         enabled: false
