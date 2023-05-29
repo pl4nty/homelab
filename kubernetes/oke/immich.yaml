@@ -50,43 +50,20 @@ spec:
         cache:
           type: pvc
           accessMode: ReadWriteOnce
-      image:
-        repository: ghcr.io/immich-app/immich-machine-learning
-        tag: main@sha256:fb48ec2e73a1c8da5de62c4dab5baa73a8e52db2cb65f8f07e04c18e6dc6b8ea
 
-    microservices:
-      image:
-        repository: ghcr.io/immich-app/immich-server
-        tag: main@sha256:f01c1615c7c8c0054cf5e69aa59b620057a72e8d0cf4ffe59ee81981a5c896a8
-
-    proxy:
-      image:
-        repository: ghcr.io/immich-app/immich-proxy
-        tag: main@sha256:f2ceee678856100fc7ed094c1be9691dc0ef5feef5aa01d8987d97cdb642b97e
-
-    server:
-      image:
-        repository: ghcr.io/immich-app/immich-server
-        tag: main@sha256:f01c1615c7c8c0054cf5e69aa59b620057a72e8d0cf4ffe59ee81981a5c896a8
-
-    web:
-      # persistence:
-      #   config:
-      #     enabled: true
-      #     type: configMap
-      #     name: immich-web-config
-      #     mountPath: /usr/src/app/build/client/_app/immutable/assets/immich-logo.18dcdcef.svg
-      #     subPath: immich-logo.18dcdcef.svg
-      # configMaps:
-      #   config:
-      #     enabled: true
-      #     data:
-      #       immich-logo.18dcdcef.svg: ''
-      image:
-        repository: ghcr.io/immich-app/immich-web
-        # pl4nty
-        # tag: main@sha256:b7af83697095588254a0a6cb6072b6788bd7b94c40e0253cbd6db69ed0596bd3
-        tag: main@sha256:e450662892fb57488db8129aa826eaa74a4b45a043c954fb567b9cea514f44fd
+    # web:
+    #   persistence:
+    #     config:
+    #       enabled: true
+    #       type: configMap
+    #       name: immich-web-config
+    #       mountPath: /usr/src/app/build/client/_app/immutable/assets/immich-logo.18dcdcef.svg
+    #       subPath: immich-logo.18dcdcef.svg
+    #   configMaps:
+    #     config:
+    #       enabled: true
+    #       data:
+    #         immich-logo.18dcdcef.svg: ''
         
     # chart can't create PVC for library?
     immich:
@@ -94,4 +71,5 @@ spec:
         library:
           existingClaim: immich-library
     image:
-      tag: v1.55.1
+      # datasource=github-releases depName=immich-app/immich
+      tag: v1.57.1
