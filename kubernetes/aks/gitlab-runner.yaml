@@ -27,6 +27,11 @@ spec:
     gitlabUrl: https://gitlab.com/
     rbac:
       create: true
+      clusterWideAccess: false
+      rules: 
+      - apiGroups: [""]
+        resources: ["*"]
+        verbs: ["*"]
     unregisterRunners: true
     runners:
       secret: gitlab-runner
