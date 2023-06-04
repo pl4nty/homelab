@@ -8,6 +8,7 @@ subjects:
     spec:
       fqdn: vnetplanner.tplant.com.au
   - name: cyberchef
+  - name: excel2latex
   - name: hajimari
     spec:
       fqdn: lab.tplant.com.au
