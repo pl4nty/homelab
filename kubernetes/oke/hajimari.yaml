@@ -61,12 +61,18 @@ spec:
           url: https://convert.tplant.com.au
         - name: PDF editor
           url: https://pdf.tplant.com.au
+        - name: Shape drawing canvas
+          url: https://shapes.tplant.com.au
       - group: games
         apps:
         - name: CS:GO
           url: steam://connect/play.tplant.com.au:27015
         - name: Factorio
           url: play.tplant.com.au:31497
+        - name: Ataxx boardgame
+          url: https://ataxx.tplant.com.au
+        - name: Temple Trap boardgame
+          url: https://temple-trap.tplant.com.au
         - name: Tsuro boardgame
           url: https://tsuro.tplant.com.au
       globalBookmarks:
