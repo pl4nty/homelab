@@ -28,6 +28,7 @@ subjects:
   - name: stirling-pdf
     spec:
       fqdn: pdf.tplant.com.au
+  - name: temple-trap
   - name: it-tools
     spec:
       fqdn: tools.tplant.com.au
