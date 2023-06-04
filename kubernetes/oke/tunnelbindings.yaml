@@ -29,6 +29,7 @@ subjects:
     spec:
       fqdn: pdf.tplant.com.au
   - name: temple-trap
+  - name: tsuro
   - name: it-tools
     spec:
       fqdn: tools.tplant.com.au

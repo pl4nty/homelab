@@ -13,7 +13,6 @@ subjects:
   - name: storeweb
     spec:
       fqdn: msft-store.tplant.com.au
-  - name: tsuro
   - name: ataxx
   - name: shapes
 tunnelRef:
