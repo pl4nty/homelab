@@ -27,6 +27,7 @@ subjects:
   - name: stirling-pdf
     spec:
       fqdn: pdf.tplant.com.au
+  - name: signal-proxy
   - name: it-tools
     spec:
       fqdn: tools.tplant.com.au
