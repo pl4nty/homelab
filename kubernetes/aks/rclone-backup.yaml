@@ -53,16 +53,16 @@ spec:
         retain: true
     # if state is lost, refresh token must be manually regenerated
     # this wouldn't be required if client secret auth was implemented in rclone (rather than delegated)
-    addons:
-      codeserver:
-        enabled: true
-        workingDir: /config/rclone
-        args:
-          - --auth
-          - 'none'
-        volumeMounts:
-        - name: config
-          mountPath: /config/rclone
+    # addons:
+    #   codeserver:
+    #     enabled: true
+    #     workingDir: /config/rclone
+    #     args:
+    #       - --auth
+    #       - 'none'
+    #     volumeMounts:
+    #     - name: config
+    #       mountPath: /config/rclone
     service:
       main:
         ports:
