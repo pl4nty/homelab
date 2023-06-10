@@ -28,6 +28,10 @@ spec:
     keepHistory: false
   values:
     manager:
+      image:
+        tag: 0.79.0
+      collectorImage:
+        tag: 0.79.0
       serviceMonitor:
         enabled: true
       targetAllocatorImage:
