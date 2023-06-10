@@ -216,6 +216,7 @@ spec:
         send_batch_size: 1000
         send_batch_max_size: 3000
     exporters:
+      logging:
       otlp:
         endpoint: $${env:TRACES_ENDPOINT}
         tls:
@@ -228,7 +229,7 @@ spec:
         traces:
           receivers: [ otlp ]
           processors: [ batch ]
-          exporters: [ otlp ]
+          exporters: [ otlp, logging ]
 ---
 # TODO move to operator
 apiVersion: rbac.authorization.k8s.io/v1
@@ -339,7 +340,8 @@ spec:
   exporter:
     endpoint: http://localhost:4317
   propagators:
-    - jaeger
+    - tracecontext
+    - baggage
     - b3
   sampler:
     type: parentbased_traceidratio
