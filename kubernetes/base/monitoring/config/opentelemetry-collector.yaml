@@ -40,7 +40,7 @@ spec:
           collector_id: $${env:POD_NAME}
       filelog:
         include: [ /var/log/pods/*/*/*.log ]
-        exclude: []
+        exclude: [ /var/log/pods/default_home-assistant-0_*/opentelemetry-auto-instrumentation/0.log ]
         start_at: beginning
         include_file_path: true
         include_file_name: false
