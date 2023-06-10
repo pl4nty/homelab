@@ -353,3 +353,7 @@ spec:
     # https://opentelemetry.io/docs/reference/specification/sdk-environment-variables/#exporter-selection
     - name: OTEL_METRICS_EXPORTER
       value: none
+  go:
+    resources:
+      limits:
+        memory: 320Mi
