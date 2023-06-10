@@ -189,6 +189,42 @@ spec:
           processors: [ attributes, resource, batch ]
           exporters: [ loki ]
 ---
+apiVersion: opentelemetry.io/v1alpha1
+kind: OpenTelemetryCollector
+metadata:
+  name: opentelemetry-sidecar
+  namespace: monitoring
+spec:
+  mode: sidecar
+  envFrom:
+  - secretRef:
+      name: opentelemetry-collector
+  config: |
+    extensions:
+      basicauth/traces:
+        client_auth:
+          username: $${env:TRACES_USERNAME}
+          password: $${env:METRICS_PASSWORD}
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+          http:
+    exporters:
+      otlp:
+        endpoint: $${env:TRACES_ENDPOINT}
+        tls:
+          insecure: false
+        auth:
+          authenticator: basicauth/traces
+    service:
+      extensions: [ basicauth/traces, basicauth/metrics, basicauth/logs ]
+      pipelines:
+        traces:
+          receivers: [ otlp ]
+          processors: [ batch ]
+          exporters: [ otlp ]
+---
 # TODO move to operator
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -287,3 +323,27 @@ spec:
         value: http://opentelemetry-collector.monitoring:4318
   apacheHttpd:
     configPath: /etc/php/7.2/apache2/conf.d # HRConvert2
+---
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: opentelemetry-instrumentation-sidecar
+  namespace: monitoring
+spec:
+  exporter:
+    endpoint: http://opentelemetry-sidecar.monitoring:4317
+  propagators:
+    - tracecontext
+    - baggage
+    - b3
+  sampler:
+    type: parentbased_traceidratio
+    argument: "0.25"
+  resource:
+    resourceAttributes:
+      k8s.cluster.name: ${CLUSTER_NAME}
+  env:
+    # disable due to ingest limits
+    # https://opentelemetry.io/docs/reference/specification/sdk-environment-variables/#exporter-selection
+    - name: OTEL_METRICS_EXPORTER
+      value: none
