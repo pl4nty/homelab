@@ -25,6 +25,7 @@ spec:
     keepHistory: false
   values:
     podAnnotations:
+      sidecar.opentelemetry.io/inject: "true" # go currently requires sidecar, but it's not enabled automatically
       instrumentation.opentelemetry.io/inject-go: "monitoring/opentelemetry-instrumentation"
       instrumentation.opentelemetry.io/otel-go-auto-target-exe: "/usr/bin/gitlab-runner"
     gitlabUrl: https://gitlab.com/
