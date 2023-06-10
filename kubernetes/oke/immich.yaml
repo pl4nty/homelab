@@ -46,8 +46,9 @@ spec:
           type: emptyDir
 
     machine-learning:
-      podAnnotations:
-        instrumentation.opentelemetry.io/inject-python: "monitoring/opentelemetry-instrumentation"
+      # crash due to missing musl?
+      # podAnnotations:
+      #   instrumentation.opentelemetry.io/inject-python: "monitoring/opentelemetry-instrumentation"
       persistence:
         cache:
           type: pvc
