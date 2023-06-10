@@ -46,12 +46,24 @@ spec:
           type: emptyDir
 
     machine-learning:
+      podAnnotations:
+        instrumentation.opentelemetry.io/inject-python: "monitoring/opentelemetry-instrumentation"
       persistence:
         cache:
           type: pvc
           accessMode: ReadWriteOnce
 
-    # web:
+    microservices:
+      podAnnotations:
+        instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
+
+    server:
+      podAnnotations:
+        instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
+
+    web:
+      podAnnotations:
+        instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
     #   persistence:
     #     config:
     #       enabled: true
