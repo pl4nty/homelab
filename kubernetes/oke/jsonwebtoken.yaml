@@ -26,12 +26,11 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/pl4nty/jsonwebtoken@sha256
-      tag: a614aa3e9b0c28b34072db01c0201f0f6a3d84298aaa5131d6319da579fc2d33
-    podAnnotations:
-      instrumentation.opentelemetry.io/inject-sdk: "monitoring/opentelemetry-instrumentation"
+      repository: ghcr.io/pl4nty/jsonwebtoken
+      tag: sha-a3a596b
     env:
       SERVER_LOG_LEVEL: info
+      SERVER_PORT: 8080
     service:
       main:
         ports:
