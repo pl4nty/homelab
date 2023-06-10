@@ -30,8 +30,8 @@ spec:
       tag: b893624e4b4dad46469b30a1d094557670db1af3374394b4a4a60324df570652
     nodeSelector:
       kubernetes.io/arch: amd64
-    # podAnnotations:
-    #   instrumentation.opentelemetry.io/inject-apache-httpd: "monitoring/opentelemetry-instrumentation"
+    podAnnotations:
+      instrumentation.opentelemetry.io/inject-apache-httpd: "monitoring/opentelemetry-instrumentation"
     securityContext:
       capabilities:
         add:
