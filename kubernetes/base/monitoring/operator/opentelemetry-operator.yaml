@@ -34,3 +34,5 @@ spec:
       autoGenerateCert: true
       certManager:
         enabled: false
+    # TODO remove once on by default
+    featureGates: operator.autoinstrumentation.go
