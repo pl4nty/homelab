@@ -217,6 +217,9 @@ spec:
         send_batch_max_size: 3000
     exporters:
       logging:
+      file/trace:
+        path: /tmp/trace.json
+        rotation:
       otlp:
         endpoint: $${env:TRACES_ENDPOINT}
         tls:
@@ -229,7 +232,7 @@ spec:
         traces:
           receivers: [ otlp ]
           processors: [ batch ]
-          exporters: [ otlp, logging ]
+          exporters: [ otlp, logging, file/trace ]
 ---
 # TODO move to operator
 apiVersion: rbac.authorization.k8s.io/v1
