@@ -30,9 +30,9 @@ spec:
     manager:
       serviceMonitor:
         enabled: true
+      # TODO remove once on by default
+      featureGates: operator.autoinstrumentation.go
     admissionWebhooks:
       autoGenerateCert: true
       certManager:
         enabled: false
-    # TODO remove once on by default
-    featureGates: operator.autoinstrumentation.go
