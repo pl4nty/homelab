@@ -269,7 +269,7 @@ spec:
     - name: OTEL_METRICS_EXPORTER
       value: none
   python:
-    # image: ghcr.io/pl4nty/opentelemetry-operator/autoinstrumentation-python@sha256:0087c4243845e3f764cf6d2ee6e67d5a56a50c9680c4e50d651e995257b1eb80
+    image: ghcr.io/pl4nty/opentelemetry-operator/autoinstrumentation-python@sha256:0087c4243845e3f764cf6d2ee6e67d5a56a50c9680c4e50d651e995257b1eb80
     env:
       # Required if endpoint is set to 4317.
       # Python autoinstrumentation uses http/proto by default
