@@ -337,7 +337,7 @@ metadata:
   namespace: monitoring
 spec:
   exporter:
-    endpoint: http://opentelemetry-sidecar.monitoring:4317
+    endpoint: http://localhost:4317
   propagators:
     - tracecontext
     - baggage
