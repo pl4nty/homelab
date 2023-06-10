@@ -354,6 +354,6 @@ spec:
     - name: OTEL_METRICS_EXPORTER
       value: none
   go:
-    resources:
+    resourceRequirements:
       limits:
         memory: 320Mi
