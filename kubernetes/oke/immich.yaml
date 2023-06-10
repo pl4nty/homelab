@@ -34,7 +34,7 @@ spec:
       enabled: true
       image:
         # default doesn't have ARM as of writing
-        tag: 7.0.8-debian-11-r16
+        tag: 7.0.11-debian-11-r18
       master:
         persistence:
           enabled: false
