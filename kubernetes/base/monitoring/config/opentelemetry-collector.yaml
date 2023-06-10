@@ -210,6 +210,10 @@ spec:
         protocols:
           grpc:
           http:
+    processors:
+      batch:
+        send_batch_size: 1000
+        send_batch_max_size: 3000
     exporters:
       otlp:
         endpoint: $${env:TRACES_ENDPOINT}
@@ -218,7 +222,7 @@ spec:
         auth:
           authenticator: basicauth/traces
     service:
-      extensions: [ basicauth/traces, basicauth/metrics, basicauth/logs ]
+      extensions: [ basicauth/traces ]
       pipelines:
         traces:
           receivers: [ otlp ]
