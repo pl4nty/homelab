@@ -303,6 +303,7 @@ spec:
   resource:
     resourceAttributes:
       k8s.cluster.name: ${CLUSTER_NAME}
+    addK8sUIDAttributes: true
   env:
     # disable due to ingest limits
     # https://opentelemetry.io/docs/reference/specification/sdk-environment-variables/#exporter-selection
@@ -346,6 +347,7 @@ spec:
   resource:
     resourceAttributes:
       k8s.cluster.name: ${CLUSTER_NAME}
+    addK8sUIDAttributes: true
   env:
     # disable due to ingest limits
     # https://opentelemetry.io/docs/reference/specification/sdk-environment-variables/#exporter-selection
