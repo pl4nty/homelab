@@ -285,5 +285,5 @@ spec:
       # See https://github.com/open-telemetry/opentelemetry-dotnet-instrumentation/blob/888e2cd216c77d12e56b54ee91dafbc4e7452a52/docs/config.md#otlp
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
         value: http://opentelemetry-collector.monitoring:4318
-  apache:
+  apacheHttpd:
     configPath: /etc/php/7.2/apache2/conf.d # HRConvert2
