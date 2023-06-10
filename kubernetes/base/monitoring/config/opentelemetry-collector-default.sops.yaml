@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: opentelemetry-collector
+    namespace: default
+stringData:
+    TRACES_ENDPOINT: ENC[AES256_GCM,data:jvklRcola9eP8tNik2r0iTfbsCCO9qbeVGbyxWa8jdHSZ2LMjL3pHlv2uaQ=,iv:fFeP20N0z1I4hzoAnqk5QEHqwyrHPgzFZ1JyBplc73w=,tag:rF9y1NtEyyzD7Qj5+4lkpw==,type:str]
+    TRACES_USERNAME: ENC[AES256_GCM,data:j7aNU0rY,iv:PxeYyRqm6Oy48ccxPpz96RBzAvK1K1W2bKwQebEm8aE=,tag:xD0fzBQpjD5FqQct6lGOhQ==,type:str]
+    TRACES_PASSWORD: ENC[AES256_GCM,data:0grSJcQwS9c6wcUhBw2rBIA2+T3G4tY4MeU5syxsxq6kTNKzS/cwa63d2G2QC0kuqQCF67pfhEgPILmuDnN5wJQvorcrvwGK+zl2yQumZFH3LUjzX7Wvyy/eRJUqOG/IR3DdtQiqgAd8X//9ZSRJ0msYHRUXPSleKm1o7JeWQZjwBB19+JLO7Q==,iv:yqckdWnxRmAtXQK43oV8+Tvvos8/GWnJS9HJJ9FWGq8=,tag:0Sk3Ogtcg2VSzKztW2VDPg==,type:str]
+type: Opaque
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBGZjZvM1doMk8wbm1pU1N2
+            d1ROOWtZY0JVM0VyOS8zWG8yN1VDV1FKZlVjClV2aHNzZkFWeWpNbWRJMkY2MHNN
+            U25yak94eVQ0ZEtxWUVVTERYN0Q5aWMKLS0tIEQxc3N3OEU4MGZ2ZTZZV0JIc0NN
+            QXUyU25TeVk5UnEvRmFDUTZwOERsejAKCTKqCv/ZuGuppXYE4fsVjAVWsBZ2XhDv
+            +t1xzpfCM76c1VELWTy0Ehf6fwy7bsyNz0aHMW67OzN/gEm9k+g8Dw==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-06-10T08:44:14Z"
+    mac: ENC[AES256_GCM,data:nJHdImNnZhjLTaC8irXyYFhpguZK4EXSttUp9K4e0ExqqTVinodjLotewURpvKEi7+fJeyZboWlLd0+RPdJu1wMToDouKAu1bEqtoOW5iWHNIU9p2B6RIX0n6zc/vFVZxdGA5rEnwF/7aQzUyLBrveWsKwOmpq9U5l5bQCiGz7Y=,iv:ttJOJXbYf3OZn3bRXL0x7SaFUz8qL/ynwFIBsYguUO0=,tag:bek8+MM0sMMVcKwXTWKGaQ==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData)$
+    version: 3.7.3

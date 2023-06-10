@@ -204,7 +204,7 @@ spec:
       basicauth/traces:
         client_auth:
           username: $${env:TRACES_USERNAME}
-          password: $${env:METRICS_PASSWORD}
+          password: $${env:TRACES_PASSWORD}
     receivers:
       otlp:
         protocols:
