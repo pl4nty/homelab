@@ -25,7 +25,7 @@ spec:
     keepHistory: false
   values:
     podAnnotations:
-      instrumentation.opentelemetry.io/inject-go: "true"
+      instrumentation.opentelemetry.io/inject-go: "monitoring/opentelemetry-instrumentation"
       instrumentation.opentelemetry.io/otel-go-auto-target-exe: "/usr/bin/gitlab-runner"
     gitlabUrl: https://gitlab.com/
     rbac:
