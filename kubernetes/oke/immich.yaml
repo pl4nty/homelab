@@ -84,5 +84,5 @@ spec:
         library:
           existingClaim: immich-library
     image:
-      # renovate: datasource=github-releases depName=immich-app/immich
+      # datasource=github-releases depName=immich-app/immich
       tag: v1.60.0
