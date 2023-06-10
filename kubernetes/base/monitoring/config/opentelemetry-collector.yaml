@@ -12,7 +12,7 @@ spec:
   mode: statefulset
   targetAllocator:
     enabled: true
-    image: ghcr.io/open-telemetry/opentelemetry-operator/target-allocator:v0.77.0
+    image: ghcr.io/open-telemetry/opentelemetry-operator/target-allocator:v0.79.0
     prometheusCR:
       enabled: true
   volumes:
