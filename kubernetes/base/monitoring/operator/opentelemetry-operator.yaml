@@ -30,6 +30,8 @@ spec:
     manager:
       serviceMonitor:
         enabled: true
+      targetAllocatorImage:
+        tag: v0.77.0
       # TODO remove once on by default
       featureGates: operator.autoinstrumentation.go
     admissionWebhooks:
