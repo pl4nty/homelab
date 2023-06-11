@@ -38,6 +38,11 @@ spec:
         mountPath: /config
         size: 1Gi
         retain: true
+      cloudflare-warp:
+        enabled: true
+        type: secret
+        name: cloudflare-warp
+        mountPath: '-'
     service:
       main:
         ports:
@@ -72,15 +77,13 @@ spec:
         name: warp
         image: ghcr.io/pl4nty/cloudflare-warp:sha-c638676
         # no ARM binaries yet, and auth for Wireguard is tricky
-        nodeSelector:
-          kubernetes.io/arch: amd64
-        persistence:
-          config:
-            enabled: true
-            type: secret
-            name: cloudflare-warp
-            mountPath: /var/lib/cloudflare-warp/mdm.xml
-            subPath: mdm.xml
+        # only works for pods, not sidecar
+        # nodeSelector:
+        #   kubernetes.io/arch: amd64
+        volumeMounts:
+        - name: cloudflare-warp
+          mountPath: /var/lib/cloudflare-warp/mdm.xml
+          subPath: mdm.xml
         securityContext:
           capabilities:
             add:
