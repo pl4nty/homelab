@@ -105,4 +105,4 @@ spec:
         lifecycle:
           preStop:
             exec:
-              command: [ "warp-cli", "delete", "--accept-tos" ]
+              command: [ "warp-cli", "--accept-tos", "delete" ]
