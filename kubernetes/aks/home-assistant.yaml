@@ -102,3 +102,7 @@ spec:
             # - SYS_PTRACE
             # https://community.cloudflare.com/t/warp-failed-to-increase-the-number-of-allowed-open-fds/447693/3
             # - CAP_SYS_RESOURCE
+        lifecycle:
+          preStop:
+            exec:
+              command: [ "warp-cli", "delete" ]
