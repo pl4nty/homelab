@@ -92,8 +92,13 @@ spec:
         - name: dev-net-tun
           mountPath: /dev/net/tun
         securityContext:
-          # privileged: true
           capabilities:
             add:
+            # warp-svc, archwiki, and boringtun
+            # bare minimum to connect
             - NET_ADMIN
+            # from /lib/systemd/system/warp-svc.service
             # - NET_BIND_SERVICE
+            # - SYS_PTRACE
+            # https://community.cloudflare.com/t/warp-failed-to-increase-the-number-of-allowed-open-fds/447693/3
+            # - CAP_SYS_RESOURCE
