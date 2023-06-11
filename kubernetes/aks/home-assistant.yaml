@@ -80,7 +80,7 @@ spec:
     sidecars:
       warp:
         name: cloudflare-warp
-        image: ghcr.io/pl4nty/cloudflare-warp:sha-c638676
+        image: ghcr.io/pl4nty/cloudflare-warp:sha-1ce6ba8
         # no ARM binaries yet, and auth for Wireguard is tricky
         # only works for pods, not sidecar
         # nodeSelector:
