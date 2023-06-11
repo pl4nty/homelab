@@ -66,3 +66,23 @@ spec:
         volumeMounts:
         - name: config
           mountPath: /config
+
+    sidecars:
+      image:
+        repository: ghcr.io/pl4nty/cloudflare-warp
+        tag: sha-c638676
+      # no ARM binaries yet, and auth for Wireguard is tricky
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      persistence:
+        config:
+          enabled: true
+          type: secret
+          name: cloudflare-warp
+          mountPath: /var/lib/cloudflare-warp/mdm.xml
+          subPath: mdm.xml
+      securityContext:
+        capabilities:
+          add:
+          - NET_ADMIN
+          - NET_BIND_SERVICE
