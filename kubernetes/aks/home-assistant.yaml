@@ -85,6 +85,7 @@ spec:
           mountPath: /var/lib/cloudflare-warp/mdm.xml
           subPath: mdm.xml
         securityContext:
+          privileged: true
           capabilities:
             add:
             - NET_ADMIN
