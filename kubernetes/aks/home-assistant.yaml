@@ -43,6 +43,11 @@ spec:
         type: secret
         name: cloudflare-warp
         mountPath: '-'
+      dev-net-tun:
+        enabled: true
+        type: hostPath
+        hostPath: /dev/net/tun
+        mountPath: '-'
     service:
       main:
         ports:
@@ -84,6 +89,8 @@ spec:
         - name: cloudflare-warp
           mountPath: /var/lib/cloudflare-warp/mdm.xml
           subPath: mdm.xml
+        - name: dev-net-tun
+          mountPath: /dev/net/tun
         securityContext:
           # privileged: true
           capabilities:
