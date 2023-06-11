@@ -30,18 +30,6 @@ spec:
       tag: sha-d708cb2
     nodeSelector:
       kubernetes.io/arch: amd64
-    probes:
-      liveness:
-        custom: true
-        spec:
-          failureThreshold: 1
-          periodSeconds: 300
-          exec:
-            command:
-            - bash
-            - -c
-            - "exit 1"
-
     service:
       main:
         ports:
