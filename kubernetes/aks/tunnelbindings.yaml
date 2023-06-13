@@ -15,6 +15,9 @@ subjects:
       fqdn: msft-store.tplant.com.au
   - name: ataxx
   - name: shapes
+  - name: debian-xfce-vnc
+    spec:
+      protocol: tcp
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel
