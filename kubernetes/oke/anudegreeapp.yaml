@@ -39,7 +39,6 @@ spec:
     # https://github.com/open-telemetry/opentelemetry-operator/blob/846046ccccf3d2bde63be9cb7f75537af5332638/pkg/instrumentation/apachehttpd.go#L53
     probes:
       liveness:
-        custom: true
         type: HTTP
         spec:
           periodSeconds: 43200 # 12 hours
@@ -47,7 +46,6 @@ spec:
           httpGet:
             path: /scraper/subplan_scraper.php
       readiness:
-        custom: true
         type: HTTP
         spec:
           periodSeconds: 43200 # 12 hours
@@ -55,7 +53,6 @@ spec:
           httpGet:
             path: /scraper/course_scraper.php
       startup:
-        custom: true
         type: HTTP
         spec:
           periodSeconds: 43200 # 12 hours
