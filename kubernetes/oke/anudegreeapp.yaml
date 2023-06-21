@@ -42,17 +42,20 @@ spec:
         type: HTTP
         path: /scraper/subplan_scraper.php
         spec:
+          initialDelaySeconds: 30
           periodSeconds: 43200 # 12 hours
           timeoutSeconds: 120
       readiness:
         type: HTTP
         path: /scraper/course_scraper.php
         spec:
+          initialDelaySeconds: 30
           periodSeconds: 43200 # 12 hours
           timeoutSeconds: 120
       startup:
         type: HTTP
         path: /scraper/plan_scraper.php
         spec:
+          initialDelaySeconds: 30
           periodSeconds: 43200 # 12 hours
           timeoutSeconds: 120
