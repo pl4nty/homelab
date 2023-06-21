@@ -35,3 +35,12 @@ spec:
         ports:
           http:
             port: 80
+    # OTel httpd injection creates an initContainer clone, inheriting probes (which aren't allowed on initContainers)
+    # https://github.com/open-telemetry/opentelemetry-operator/blob/846046ccccf3d2bde63be9cb7f75537af5332638/pkg/instrumentation/apachehttpd.go#L53
+    probes:
+      liveness:
+        enabled: false
+      readiness:
+        enabled: false
+      startup:
+        enabled: false
