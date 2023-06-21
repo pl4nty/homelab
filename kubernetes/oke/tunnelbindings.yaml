@@ -34,6 +34,9 @@ subjects:
     spec:
       fqdn: tools.tplant.com.au
   - name: wufb-ds
+  - name: anudegreeapp
+    spec:
+      fqdn: degree-planner.tplant.com.au
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel
