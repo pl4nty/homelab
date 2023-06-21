@@ -40,22 +40,19 @@ spec:
     probes:
       liveness:
         type: HTTP
+        path: /scraper/subplan_scraper.php
         spec:
           periodSeconds: 43200 # 12 hours
           timeoutSeconds: 120
-          httpGet:
-            path: /scraper/subplan_scraper.php
       readiness:
         type: HTTP
+        path: /scraper/course_scraper.php
         spec:
           periodSeconds: 43200 # 12 hours
           timeoutSeconds: 120
-          httpGet:
-            path: /scraper/course_scraper.php
       startup:
         type: HTTP
+        path: /scraper/plan_scraper.php
         spec:
           periodSeconds: 43200 # 12 hours
           timeoutSeconds: 120
-          httpGet:
-            path: /scraper/plan_scraper.php
