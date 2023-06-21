@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: ghcr.io/pl4nty/anudegreeapp
-      tag: sha-04866cc
+      tag: sha-55b1625
     # podAnnotations:
     #   instrumentation.opentelemetry.io/inject-apache-httpd: "monitoring/opentelemetry-instrumentation"
     service:
