@@ -28,8 +28,8 @@ spec:
     image:
       repository: ghcr.io/pl4nty/anudegreeapp
       tag: sha-04866cc
-    podAnnotations:
-      instrumentation.opentelemetry.io/inject-apache-httpd: "monitoring/opentelemetry-instrumentation"
+    # podAnnotations:
+    #   instrumentation.opentelemetry.io/inject-apache-httpd: "monitoring/opentelemetry-instrumentation"
     service:
       main:
         ports:
