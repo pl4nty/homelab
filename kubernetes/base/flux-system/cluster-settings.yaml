@@ -5,3 +5,4 @@ metadata:
   namespace: flux-system
 data:
   TIMEZONE: Australia/Canberra
+  PUBLIC_DOMAIN: tplant.com.au

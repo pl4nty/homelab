@@ -1,0 +1,29 @@
+kind: Secret
+apiVersion: v1
+metadata:
+    name: your-spotify
+    namespace: default
+type: Opaque
+stringData:
+    SPOTIFY_PUBLIC: ENC[AES256_GCM,data:cuWCPBz4IdRTNiIVKJEjLhmQL6WR/5IMqy4Bu9mCFaw=,iv:PKPT4ve+ZnfV2ElwfEsiFYiR2mjZfFSnmmyU+JfCWM4=,tag:lAHnHJj53n8O2GS0Trr/LQ==,type:str]
+    SPOTIFY_SECRET: ENC[AES256_GCM,data:Cxw9yvSb7lKhjug1N9lVXSnx/swYZ1qLxgqP8QXXEmM=,iv:/lNn2zvrtI/bsNRrrLoCcKndDvQicZLp7x2ovMcayO0=,tag:kEDv+NmbKu0Tfc4FLD2ikg==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSB6OG5lbEwwY000YzV4M1hI
+            cUxkRVM0YjFwSENjM3lMK0VqK0RrZ3R5bmxRCjBGWTNNdDVsMGNqZXpiNVF3cnI0
+            TVorK1NJN1JiZnJ4V2NNZjY2UDRzcmsKLS0tIDJYa3lsWUR0U3BteTQ1SG14Q0k0
+            cUs1NEk5L0pkYWV4T0RldW5Ta3l4UEkK69KmR4STRimmW0NKkycs6BRQebBKYga1
+            Kg3nJ0IcBuZEgRBKCkI8mk9Isj5X7k91b9xwzNcJ3G1sai9LjXaJ0w==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-06-22T11:40:00Z"
+    mac: ENC[AES256_GCM,data:ssCG4h5imXjt9D5l6gP6Dyr4t7gGPNfpn/E/HOguR/zG8csdfn0O+vzrdu+WA4CO1YEpn46gl38OOfpvNFB/9FPP5gLHZjFEJNuRp4l7g7CKflb5+lwXfJfFgLoMaqMrPOeeBKIOOPZbqYSdEzWpXJE2ciLW3JkyhJvf+gG2HIM=,iv:8ryl8pAI4SSnS6OMIhu4HMt7cYj1mGbyAlZxp7lZcNk=,tag:wNa9WOTgE55tP/ErpMHgxQ==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData)$
+    version: 3.7.3

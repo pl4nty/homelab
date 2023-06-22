@@ -6,40 +6,46 @@ metadata:
 subjects:
   - name: az-vnet-planner
     spec:
-      fqdn: vnetplanner.tplant.com.au
+      fqdn: vnetplanner.${PUBLIC_DOMAIN}
   - name: cyberchef
   - name: excel2latex
   - name: hajimari
     spec:
-      fqdn: lab.tplant.com.au
+      fqdn: lab.${PUBLIC_DOMAIN}
   - name: immich-proxy
     spec:
-      fqdn: family-archive.tplant.com.au
+      fqdn: family-archive.${PUBLIC_DOMAIN}
   - name: hyperglass
     spec:
-      fqdn: lg.tplant.com.au
+      fqdn: lg.${PUBLIC_DOMAIN}
   - name: jsonwebtoken
     spec:
-      fqdn: jwt.tplant.com.au
+      fqdn: jwt.${PUBLIC_DOMAIN}
   - name: jwtplayground
     spec:
-      fqdn: jwtms.tplant.com.au
+      fqdn: jwtms.${PUBLIC_DOMAIN}
   - name: mha
   - name: stirling-pdf
     spec:
-      fqdn: pdf.tplant.com.au
+      fqdn: pdf.${PUBLIC_DOMAIN}
   - name: temple-trap
   - name: tsuro
   - name: it-tools
     spec:
-      fqdn: tools.tplant.com.au
+      fqdn: tools.${PUBLIC_DOMAIN}
   - name: wufb-ds
   - name: anudegreeapp
     spec:
-      fqdn: degree-planner.tplant.com.au
+      fqdn: degree-planner.${PUBLIC_DOMAIN}
   - name: openssl-webterm
     spec:
-      fqdn: openssl.tplant.com.au
+      fqdn: openssl.${PUBLIC_DOMAIN}
+  - name: your-spotify-client
+    spec:
+      fqdn: spotify.${PUBLIC_DOMAIN}
+  - name: your-spotify-server
+    spec:
+      fqdn: spotify-api.${PUBLIC_DOMAIN}
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel
