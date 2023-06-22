@@ -63,8 +63,12 @@ spec:
           url: https://tools.tplant.com.au
         - name: File converter
           url: https://convert.tplant.com.au
+        - name: OpenSSL web terminal
+          url: https://openssl.tplant.com.au
         - name: PDF editor
           url: https://pdf.tplant.com.au
+        - name: ANU degree planner
+          url: https://degree-planner.tplant.com.au
         - name: Shape drawing canvas
           url: https://shapes.tplant.com.au
       - group: games
