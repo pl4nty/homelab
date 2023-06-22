@@ -71,6 +71,8 @@ spec:
           url: https://degree-planner.tplant.com.au
         - name: Shape drawing canvas
           url: https://shapes.tplant.com.au
+        - name: Spotify analytics
+          url: https://spotify.tplant.com.au
       - group: games
         apps:
         - name: CS:GO
