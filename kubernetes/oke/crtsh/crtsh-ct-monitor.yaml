@@ -25,8 +25,6 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    controller:
-      replicas: 1
     image:
       repository: ghcr.io/pl4nty/ct-monitor
       tag: sha-88bbca0
