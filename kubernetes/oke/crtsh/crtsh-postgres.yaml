@@ -7,6 +7,8 @@
 # ALTER TYPE disclosure_status_type ADD VALUE 'CRLDisclosureIncompleteForPossiblyDormantCA';
 # exit
 # rm ct_log.csv
+# UPDATE ct_log SET is_active='f' WHERE url='https://mammoth.ct.comodo.com';
+# \l+ to check db size
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
