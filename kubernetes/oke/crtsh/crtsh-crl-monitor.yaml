@@ -37,6 +37,18 @@ spec:
     args:
       - -conninfo
       - "host=crtsh-postgres port=5432 dbname=certwatch user=crtsh password=$CERTWATCH_PASSWORD sslmode=disable"
+    configMaps:
+      files:
+        enabled: true
+        data:
+          default.toml: ''
+    persistence:
+      shared:
+        enabled: true
+        type: configMap
+        name: crtsh-crl-monitor-files
+        mountPath: /default.toml
+        subPath: default.toml
     service:
       main:
         enabled: false
