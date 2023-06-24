@@ -30,7 +30,7 @@ spec:
       tag: sha-61da935
     args:
       - -conninfo
-      - - "host=crtsh-postgres port=5432 dbname=certwatch user=certwatch password=certwatch sslmode=disable"
+      - "host=crtsh-postgres port=5432 dbname=certwatch user=certwatch password=certwatch sslmode=disable"
     configMaps:
       files:
         enabled: true
