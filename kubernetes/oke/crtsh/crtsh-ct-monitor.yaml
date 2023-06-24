@@ -30,6 +30,7 @@ spec:
       tag: sha-16243eb
     env:
       CTMONITOR_CERTWATCHDB_HOST: crtsh-postgres
+      CTMONITOR_CERTWATCHDB_USER: crtsh
       CTMONITOR_CERTWATCHDB_PASSWORD:
         valueFrom:
           secretKeyRef:
