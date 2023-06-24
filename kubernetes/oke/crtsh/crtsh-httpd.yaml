@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: ghcr.io/pl4nty/crtsh-httpd
-      tag: sha-a5c8b8e
+      tag: sha-5579cd2
     env:
       # httpd account doesn't have required perms
       CONNINFO: host=crtsh-postgres port=5432 dbname=certwatch user=certwatch password=certwatch
