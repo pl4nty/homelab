@@ -9,6 +9,15 @@
 # rm ct_log.csv
 # UPDATE ct_log SET is_active='f' WHERE url='https://mammoth.ct.comodo.com';
 # \l+ to check db size
+# https://ct.googleapis.com/logs/ xenon2022, argon2022, 2023
+# https://ct.cloudflare.com/logs/nimbus2022, 2023
+# https://oak.ct.letsencrypt.org/2022 2023
+# https://nessie2023.ct.digicert.com/log 2022
+# https://sabre.ct.comodo.com
+# https://ct.googleapis.com/logs/eu1/xenon2024 us1/argon2024
+# https://yeti2023.ct.digicert.com/log 2024
+# https://ct.cloudflare.com/logs/nimbus2024
+
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
