@@ -40,7 +40,7 @@ spec:
     persistence:
       shared:
         enabled: true
-        mountPath: /
+        mountPath: /default.toml
         subPath: default.toml
     service:
       main:
