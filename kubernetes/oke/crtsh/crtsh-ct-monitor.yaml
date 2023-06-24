@@ -30,12 +30,7 @@ spec:
       tag: sha-88bbca0
     env:
       CTMONITOR_CERTWATCHDB_HOST: crtsh-postgres
-      CTMONITOR_CERTWATCHDB_USER: crtsh
-      CTMONITOR_CERTWATCHDB_PASSWORD:
-        valueFrom:
-          secretKeyRef:
-            name: crtsh
-            key: CERTWATCH_PASSWORD
+      CTMONITOR_CERTWATCHDB_PASSWORD: certwatch
     service:
       main:
         ports:
