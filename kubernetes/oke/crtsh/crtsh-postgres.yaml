@@ -29,7 +29,7 @@ spec:
       type: statefulset
     image:
       repository: ghcr.io/pl4nty/crtsh-postgres
-      tag: sha-ae5ae9f
+      tag: sha-750ae88
     env:
       POSTGRES_PASSWORD:
         valueFrom:
