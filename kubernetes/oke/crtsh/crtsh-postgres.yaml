@@ -34,6 +34,10 @@ spec:
           secretKeyRef:
             name: crtsh
             key: POSTGRES_PASSWORD
+    persistence:
+      config:
+        enabled: true
+        mountPath: /var/lib/postgresql/data
     service:
       main:
         ports:
