@@ -36,7 +36,7 @@ spec:
             key: CERTWATCH_PASSWORD
     args:
       - -conninfo
-      - "host=crtsh-postgres port=5432 dbname=certwatch user=certwatch password=$CERTWATCH_PASSWORD"
+      - "host=crtsh-postgres port=5432 dbname=certwatch user=crtsh password=$CERTWATCH_PASSWORD"
     service:
       main:
         enabled: false
