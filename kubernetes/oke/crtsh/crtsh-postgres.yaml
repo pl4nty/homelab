@@ -43,6 +43,9 @@ spec:
         enabled: true
         mountPath: /var/lib/postgresql/data
         subPath: pgdata
+    podSecurityContext:
+      fsGroup: 26
+      fsGroupChangePolicy: OnRootMismatch
     service:
       main:
         ports:
