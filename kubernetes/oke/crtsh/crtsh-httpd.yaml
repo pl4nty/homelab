@@ -29,7 +29,7 @@ spec:
       repository: ghcr.io/pl4nty/crtsh-httpd
       tag: sha-fa1212e
     env:
-      CONNINFO: "host=crtsh-postgres port=5432 dbname=certwatch user=httpd password=httpd"
+      CONNINFO: host=crtsh-postgres port=5432 dbname=certwatch user=httpd password=httpd
     service:
       main:
         ports:
