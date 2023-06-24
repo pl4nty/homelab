@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: ghcr.io/pl4nty/ct-monitor
-      tag: sha-16243eb
+      tag: sha-88bbca0
     env:
       CTMONITOR_CERTWATCHDB_HOST: crtsh-postgres
       CTMONITOR_CERTWATCHDB_USER: crtsh

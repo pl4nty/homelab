@@ -1,3 +1,10 @@
+# psql -h crt.sh -p 5432 -U guest certwatch
+# \COPY (SELECT * FROM ct_log) TO 'ct_log.csv' WITH CSV DELIMITER ',' HEADER;
+# exit
+# psql -U postgres certwatch
+# \COPY ct_log (id,operator,url,name,public_key,is_active,latest_update,latest_sth_timestamp,mmd_in_seconds,tree_size,batch_size,chunk_size,google_uptime,chrome_version_added,chrome_inclusion_status,chrome_issue_number,chrome_final_tree_size,chrome_disqualified_at,apple_inclusion_status,apple_last_status_change,requests_concurrent,requests_throttle) FROM 'ct_log.csv' CSV HEADER;
+# exit
+# rm ct_log.csv
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
