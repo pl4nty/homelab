@@ -1,0 +1,29 @@
+kind: Secret
+apiVersion: v1
+metadata:
+    name: crtsh
+    namespace: default
+type: Opaque
+stringData:
+    POSTGRES_PASSWORD: ENC[AES256_GCM,data:1yFSwhsHC/ct+UBqaLu0ljNo8T16CmWI,iv:VP2gbvDLbpPiRDdR8QpiC8yRZr4Y5VdqvLPqrAVDFEI=,tag:aFz2JofMwdkKx5fPJizV8g==,type:str]
+    CERTWATCH_PASSWORD: ENC[AES256_GCM,data:impwrYn7cWr+,iv:dQC+Pq5UH4M7fkQBBu+7fT1IebisotiMqtK8MUxupaA=,tag:GQ8vlThKwtL6cz4SaPvzjg==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBBcUtEdG05QWRNNEg5VUxO
+            UWVoZERwMFRSS3FNMms1TnVkNUp1Mk9CY2c4CjNDcFNjUzFBTmdZaTFMSWNFRDN1
+            ZmNRWUVCNFRSZysxdy9GRElkWXBJWncKLS0tIEFDczdub09QblBZM1I0bU5hbytC
+            TUE0bWUxMlZuUEJSd0h1Q3VjdkNMdlUKl+rSq0XEh+AkDShhv3CygQMBwuQl0gJe
+            t6OSQSCQFIpV/HHIRxu3WTNpS41oHoInD3Atroi7MYEsNJWSdYK5Kw==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-06-24T01:19:52Z"
+    mac: ENC[AES256_GCM,data:gVMy4o+IN98kq+vkCIGksBSHEltmNjcII3ZkZBxvMLr3cImUK1Z7ozHVZrsnEEiDaBSbt/92/GH0Z21PPQYUGefb75F7bLDo1xz/2ztf5PIr/IlUtRgQ8sMThwcdzws6YKk69Rh0yvieVOt94Rm72646UIQiBbrCMpQNVv8fWpM=,iv:/pO9uTNnx3jqkjjBgL8Tzn8ZKP/kEnx1gpLjDmdl7J8=,tag:wwBrYa4Og+mcqUEnjdknUg==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData)$
+    version: 3.7.3

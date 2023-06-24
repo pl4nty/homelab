@@ -1,0 +1,39 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: crtsh-crl-monitor
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.1
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    image:
+      repository: ghcr.io/pl4nty/crl-monitor
+      tag: sha-9a63bc3
+    env:
+      CERTWATCH_PASSWORD:
+        valueFrom:
+          secretKeyRef:
+            name: crtsh
+            key: CERTWATCH_PASSWORD
+    args:
+      - -conninfo
+      - - "host=crtsh-postgres port=5432 dbname=certwatch user=certwatch password=$CERTWATCH_PASSWORD"

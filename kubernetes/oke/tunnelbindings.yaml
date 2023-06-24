@@ -46,6 +46,9 @@ subjects:
   - name: your-spotify-server
     spec:
       fqdn: spotify-api.${PUBLIC_DOMAIN}
+  - name: crtsh-httpd
+    spec:
+      fqdn: crt.${PUBLIC_DOMAIN}
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel
