@@ -25,6 +25,8 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    controller:
+      type: statefulset
     image:
       repository: ghcr.io/pl4nty/crtsh-postgres
       tag: sha-ae5ae9f
