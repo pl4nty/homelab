@@ -41,3 +41,6 @@ spec:
     - "&&"
     - curl
     - anudegreeapp/scraper/course_scraper.php
+    service:
+      main:
+        enabled: false
