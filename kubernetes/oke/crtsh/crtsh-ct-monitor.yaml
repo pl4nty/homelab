@@ -35,8 +35,8 @@ spec:
           secretKeyRef:
             name: crtsh
             key: CERTWATCH_PASSWORD
-      service:
-        main:
-          ports:
-            http:
-              port: 8081
+    service:
+      main:
+        ports:
+          http:
+            port: 8081
