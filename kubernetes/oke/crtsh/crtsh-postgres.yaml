@@ -39,7 +39,8 @@ spec:
     persistence:
       config:
         enabled: true
-        mountPath: /var/lib/postgresql/data
+        mountPath: /var/lib/postgresql
+        subPath: data
     service:
       main:
         ports:
