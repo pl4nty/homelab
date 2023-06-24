@@ -30,7 +30,7 @@ spec:
       tag: sha-a5c8b8e
     env:
       # httpd account doesn't have required perms
-      CONNINFO: host=crtsh-postgres port=5432 dbname=certwatch user=crtsh password=crtsh
+      CONNINFO: host=crtsh-postgres port=5432 dbname=certwatch user=certwatch password=certwatch
     service:
       main:
         ports:
