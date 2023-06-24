@@ -36,7 +36,7 @@ spec:
             key: CERTWATCH_PASSWORD
     args:
       - -conninfo
-      - "host=crtsh-postgres port=5432 dbname=certwatch user=crtsh password=$CERTWATCH_PASSWORD sslmode=disable"
+      - "host=crtsh-postgres port=5432 dbname=certwatch user=crtsh password=crtsh sslmode=disable"
     configMaps:
       files:
         enabled: true
