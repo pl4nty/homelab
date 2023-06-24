@@ -5,7 +5,8 @@ metadata:
   namespace: default
 spec:
   accessModes:
-  - ReadWriteMany
+  # migrate to ReadWriteMany
+  - ReadWriteOnce
   resources:
     requests:
       storage: 15Gi
