@@ -1,39 +1,61 @@
-# apiVersion: helm.toolkit.fluxcd.io/v2beta1
-# kind: HelmRelease
-# metadata:
-#   name: crtsh-ocsp-monitor
-#   namespace: default
-# spec:
-#   interval: 15m
-#   chart:
-#     spec:
-#       chart: app-template
-#       version: 1.5.1
-#       sourceRef:
-#         kind: HelmRepository
-#         name: bjw-s
-#         namespace: flux-system
-#   maxHistory: 3
-#   install:
-#     createNamespace: true
-#     remediation:
-#       retries: 3
-#   upgrade:
-#     cleanupOnFail: true
-#     remediation:
-#       retries: 3
-#   uninstall:
-#     keepHistory: false
-#   values:
-#     image:
-#       repository: ghcr.io/pl4nty/ocsp-monitor
-#       tag: sha-9a63bc3
-#     env:
-#       CERTWATCH_PASSWORD:
-#         valueFrom:
-#           secretKeyRef:
-#             name: crtsh
-#             key: CERTWATCH_PASSWORD
-#     args:
-#       - -conninfo
-#       - - "host=crtsh-postgres port=5432 dbname=certwatch user=certwatch password=$CERTWATCH_PASSWORD"
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: crtsh-ocsp-monitor
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.1
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    image:
+      repository: ghcr.io/pl4nty/ocsp-monitor
+      tag: sha-61da935
+    args:
+      - -conninfo
+      - - "host=crtsh-postgres port=5432 dbname=certwatch user=certwatch password=certwatch sslmode=disable"
+    configMaps:
+      files:
+        enabled: true
+        data:
+          default.toml: |
+            # Default DB connection settings
+            # conninfo to be supplied via the "-conninfo" command-line parameter.
+            connopen = 2
+            connidle = 2
+            connlife = "10m"
+
+            # Default workload settings
+            interval = "30s"
+            batch = 500
+            concurrent = 50
+
+            # Other default settings
+            httptimeout = "30s"
+    persistence:
+      shared:
+        enabled: true
+        type: configMap
+        name: crtsh-ocsp-monitor-files
+        mountPath: /default.toml
+        subPath: default.toml
+    service:
+      main:
+        enabled: false
