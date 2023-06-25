@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/pl4nty/caissuer-monitor
-      tag: sha-74a6409
+      repository: ghcr.io/pl4nty/caissuer-monitor@sha256
+      tag: ed654bee547073e60c4ed4edd8d5497abef2a4c3aa7f415bad94e65d2828c428
     args:
       - -conninfo
       - "host=crtsh-postgres port=5432 dbname=certwatch user=certwatch password=certwatch sslmode=disable"

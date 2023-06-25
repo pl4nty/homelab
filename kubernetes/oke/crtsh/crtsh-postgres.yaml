@@ -1,15 +1,3 @@
-# psql -h crt.sh -p 5432 -U guest certwatch
-# \COPY (SELECT * FROM ct_log) TO 'ct_log.csv' WITH CSV DELIMITER ',' HEADER;
-# exit
-# psql -U postgres certwatch
-# \COPY ct_log (id,operator,url,name,public_key,is_active,latest_update,latest_sth_timestamp,mmd_in_seconds,tree_size,batch_size,chunk_size,google_uptime,chrome_version_added,chrome_inclusion_status,chrome_issue_number,chrome_final_tree_size,chrome_disqualified_at,apple_inclusion_status,apple_last_status_change,requests_concurrent,requests_throttle) FROM 'ct_log.csv' CSV HEADER;
-# CREATE TABLE ct_log_entry_2023 PARTITION OF ct_log_entry FOR VALUES FROM ('2023-01-01T00:00:00'::timestamp) TO ('2024-01-01T00:00:00'::timestamp);
-# ALTER TYPE disclosure_status_type ADD VALUE 'CRLDisclosureIncompleteForPossiblyDormantCA';
-# ALTER TABLE ocsp_responder ADD COLUMN unencoded_plus_result text;
-# ALTER TABLE ocsp_responder ADD COLUMN unencoded_plus_dump bytea;
-# ALTER TABLE ocsp_responder ADD COLUMN unencoded_plus_duration bigint;
-# exit
-# rm ct_log.csv
 # UPDATE ct_log SET is_active='f' WHERE url='https://mammoth.ct.comodo.com';
 # \l+ to check db size
 # https://ct.googleapis.com/logs/ xenon2022, argon2022, 2023
@@ -51,8 +39,8 @@ spec:
     controller:
       type: statefulset
     image:
-      repository: ghcr.io/pl4nty/crtsh-postgres
-      tag: sha-ca14c9d
+      repository: ghcr.io/pl4nty/crtsh-postgres@sha256
+      tag: 1a2c6e2bb3dc34dde8fcfa99b365d1ee05126e8492c88830816b4e3f51327725
     env:
       TZ: ${TIMEZONE}
       PGDATA: /var/lib/postgresql/data/pgdata

@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/pl4nty/ct-monitor
-      tag: sha-88bbca0
+      repository: ghcr.io/pl4nty/ct-monitor@sha256
+      tag: 4fb99fc361a80236cfb1e41c25d59caff9ef673662a9cd5afaa0d31a24665384
     env:
       CTMONITOR_CERTWATCHDB_HOST: crtsh-postgres
       CTMONITOR_CERTWATCHDB_PASSWORD: certwatch
@@ -36,3 +36,4 @@ spec:
         ports:
           http:
             port: 8081
+            

@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/pl4nty/crtsh-httpd
-      tag: sha-5579cd2
+      repository: ghcr.io/pl4nty/crtsh-httpd@sha256
+      tag: e7e77b01c2d564ffee551fa003e00b63c8fa49aa53f53f037bcc98b1609664c9
     env:
       # httpd account doesn't have required perms
       CONNINFO: host=crtsh-postgres port=5432 dbname=certwatch user=certwatch password=certwatch
@@ -36,3 +36,4 @@ spec:
         ports:
           http:
             port: 80
+            
