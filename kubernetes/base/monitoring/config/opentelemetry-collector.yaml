@@ -253,6 +253,7 @@ rules:
   - services
   - endpoints
   - pods
+  - namespaces
   verbs: ["get", "list", "watch"]
 - apiGroups: [""]
   resources:
