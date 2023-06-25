@@ -86,3 +86,15 @@ spec:
     image:
       # datasource=github-releases depName=immich-app/immich
       tag: v1.60.0
+
+    # current volume is ReadWriteOnce, so need affinity until we can get ReadWriteMany
+    affinity:
+      podAffinity: 
+        requiredDuringSchedulingIgnoredDuringExecution: 
+        - labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/instance
+              operator: In 
+              values:
+              - immich 
+          topologyKey: kubernetes.io/hostname
