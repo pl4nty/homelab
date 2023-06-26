@@ -49,6 +49,7 @@ subjects:
   - name: crtsh-httpd
     spec:
       fqdn: crt.${PUBLIC_DOMAIN}
+  - name: leekspin
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel

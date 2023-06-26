@@ -53,6 +53,8 @@ spec:
           url: https://wufb-ds.tplant.com.au
       - group: tools
         apps:
+        - name: Certificate transparency search
+          url: https://crt.tplant.com.au
         - name: Network looking glass
           url: https://lg.tplant.com.au
         - name: CyberChef
@@ -85,6 +87,8 @@ spec:
           url: https://temple-trap.tplant.com.au
         - name: Tsuro boardgame
           url: https://tsuro.tplant.com.au
+        - name: LEEKSPIN
+          url: https://leekspin.tplant.com.au
       globalBookmarks:
       - group: dependencies
         bookmarks:
