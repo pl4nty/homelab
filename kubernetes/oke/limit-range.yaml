@@ -5,6 +5,8 @@ metadata:
   namespace: default
 spec:
   limits:
-  - default: # this section defines default limits
+  - default:
       ephemeral-storage: 1Gi
+    defaultRequest:
+      ephemeral-storage: 1Mi
     type: Container
