@@ -118,6 +118,11 @@ spec:
       startup:
         spec:
           initialDelaySeconds: 240
+    resources:
+      requests:
+        ephemeral-storage: 1Gi
+      limits:
+        ephemeral-storage: 2Gi
     sidecars:
       redis:
         name: redis
