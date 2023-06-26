@@ -53,6 +53,7 @@ spec:
       config:
         enabled: true
         mountPath: /var/lib/postgresql/data
+        size: 100Gi
     service:
       main:
         ports:
