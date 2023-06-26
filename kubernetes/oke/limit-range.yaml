@@ -6,5 +6,5 @@ metadata:
 spec:
   limits:
   - default: # this section defines default limits
-      ephemeral-storage: 2Gi
+      ephemeral-storage: 1Gi
     type: Container
