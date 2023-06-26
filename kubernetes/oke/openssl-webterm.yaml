@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/pl4nty/openssl-webterm
-      tag: sha-71f4cf5
+      repository: ghcr.io/pl4nty/openssl-webterm@sha256
+      tag: af7292405f01e446e09e9e8ccd7ebd641765a1f2fe9fd0e922e9fdd20191c88e
     service:
       main:
         ports:

@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/pl4nty/anudegreeapp
-      tag: sha-b8ec75c
+      repository: ghcr.io/pl4nty/anudegreeapp@sha256
+      tag: f857fce336c2d7a3ce736c0f894927f39b3d8298ade63d3fca927326e61c43ae
     # podAnnotations:
     #   instrumentation.opentelemetry.io/inject-apache-httpd: "monitoring/opentelemetry-instrumentation"
     service:

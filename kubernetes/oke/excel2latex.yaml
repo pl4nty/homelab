@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/pl4nty/excel2latex
-      tag: sha-ef39604
+      repository: ghcr.io/pl4nty/excel2latex@sha256
+      tag: ef24c2f77c2f4a1fe0d13d560281e946a6eeeff653d6529632af7299876d0146
     env:
       SERVER_PORT: 8080
       SERVER_LOG_LEVEL: info
