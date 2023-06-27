@@ -36,17 +36,23 @@ spec:
           http:
             port: 80
     # probes don't seem to run???
-    # probes:
+    probes:
+      readiness:
+        custom: true
+        spec:
+          exec:
+            command:
+            - curl
+            - localhost/scraper/course_scraper.php
+            - "&&"
+            - curl
+            - localhost/scraper/plan_scraper.php
+            - "&&"
+            - curl
+            - localhost/scraper/subplan_scraper.php
     #   liveness:
     #     type: HTTP
     #     path: /scraper/subplan_scraper.php
-    #     spec:
-    #       initialDelaySeconds: 30
-    #       periodSeconds: 43200 # 12 hours
-    #       timeoutSeconds: 120
-    #   readiness:
-    #     type: HTTP
-    #     path: /scraper/course_scraper.php
     #     spec:
     #       initialDelaySeconds: 30
     #       periodSeconds: 43200 # 12 hours
