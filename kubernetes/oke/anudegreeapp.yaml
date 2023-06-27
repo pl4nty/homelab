@@ -40,6 +40,8 @@ spec:
       readiness:
         custom: true
         spec:
+          timeoutSeconds: 300
+          failureThreshold: 1
           exec:
             command:
             - curl
