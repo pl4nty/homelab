@@ -31,6 +31,9 @@ spec:
     args:
       - -conninfo
       - "host=crtsh-postgres port=5432 dbname=certwatch user=certwatch password=certwatch sslmode=disable"
+    resources:
+      limits:
+        memory: 4Gi
     configMaps:
       files:
         enabled: true
