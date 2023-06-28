@@ -5,8 +5,10 @@ metadata:
   namespace: default
 spec:
   limits:
-  - default:
-      ephemeral-storage: 1Gi
-    defaultRequest:
+  - defaultRequest:
+      cpu: 10m
       ephemeral-storage: 1Mi
+    default:
+      cpu: 500m
+      ephemeral-storage: 1Gi
     type: Container
