@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/pl4nty/mha:latest@sha256
-      tag: d90b4e8a6904ac5c38df8042343b1e496bdcb70c7f6bcad196af25c4f2fdad06
+      repository: ghcr.io/pl4nty/mha
+      tag: latest@sha256:d90b4e8a6904ac5c38df8042343b1e496bdcb70c7f6bcad196af25c4f2fdad06
     env:
       SERVER_PORT: 8080
     service:
