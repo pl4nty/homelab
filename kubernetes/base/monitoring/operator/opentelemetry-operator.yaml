@@ -29,8 +29,10 @@ spec:
   values:
     manager:
       image:
-        tag: 0.79.0
+        repository: ghcr.io/open-telemetry/opentelemetry-operator/opentelemetry-operator
+        tag: v0.79.0
       collectorImage:
+        repository: otel/opentelemetry-collector-contrib
         tag: 0.79.0
       serviceMonitor:
         enabled: true
