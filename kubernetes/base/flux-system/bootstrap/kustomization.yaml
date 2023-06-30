@@ -12,6 +12,8 @@
 # kubectl get receiver -A
 
 # create GitHub webhook on lab-infra repo, using receiver webhook path and secret from flux-receiver.sops.yaml
+
+# kubectl annotate ns/default volsync.backube/privileged-movers=true
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:

@@ -11,3 +11,5 @@ spec:
     keySecret: volsync
     address: 20.92.217.137
     copyMethod: Snapshot
+    moverSecurityContext:
+      fsGroup: 9999
