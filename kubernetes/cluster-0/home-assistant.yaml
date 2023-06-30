@@ -32,7 +32,6 @@ spec:
       instrumentation.opentelemetry.io/inject-python: "monitoring/opentelemetry-instrumentation"
     controller:
       type: statefulset
-      replicas: 0
     persistence:
       config:
         enabled: true
