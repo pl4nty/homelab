@@ -7,7 +7,7 @@ spec:
   interval: 15m
   chart:
     spec:
-      chart: volsync
+      chart: helm/volsync
       version: 0.7.1
       sourceRef:
         kind: GitRepository
