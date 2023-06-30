@@ -6,12 +6,8 @@ metadata:
 spec:
   sourcePVC: home-assistant-config
   trigger:
-    manual: id-manual
+    schedule: "*/5 * * * *"
   rsyncTLS:
     keySecret: volsync
     address: 20.92.217.137
     copyMethod: Snapshot
-    # moverSecurityContext:
-    #   fsGroup: 0
-    #   runAsUser: 0
-    #   runAsGroup: 0

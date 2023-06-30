@@ -10,3 +10,4 @@ spec:
     accessModes: ["ReadWriteOnce"]
     keySecret: volsync
     serviceType: LoadBalancer
+    destinationPVC: home-assistant-config
