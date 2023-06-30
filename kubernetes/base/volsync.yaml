@@ -25,9 +25,12 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    nodeSelector:
-      kubernetes.io/arch: amd64
+    # nodeSelector:
+    #   kubernetes.io/arch: amd64
     manageCRDs: true
     metrics:
       disableAuth: true
+    image:
+      repository: ghcr.io/pl4nty/volsync@sha256
+      tag: 8ca807694dce2c2606c1dc8a7b1a4c95c2acf48c988afdb3687911cf384fb598
       
