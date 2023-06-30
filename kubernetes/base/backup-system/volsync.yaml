@@ -10,7 +10,7 @@ spec:
       chart: volsync
       version: 0.7.1
       sourceRef:
-        kind: HelmRepository
+        kind: GitRepository
         name: backube
         namespace: flux-system
   maxHistory: 3

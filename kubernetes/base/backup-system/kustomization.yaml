@@ -7,4 +7,3 @@ resources:
 - https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/master/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml
 - volsync.yaml
 - volsync.sops.yaml
-- clusterrole-manager.yaml
