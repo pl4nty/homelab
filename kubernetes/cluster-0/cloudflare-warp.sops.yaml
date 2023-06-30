@@ -1,0 +1,28 @@
+kind: Secret
+apiVersion: v1
+metadata:
+    name: cloudflare-warp
+    namespace: default
+type: Opaque
+stringData:
+    mdm.xml: ENC[AES256_GCM,data:zhGHCZh0OaD27wHDDsPtjushCkkPjGVBroP9EnzKGM/thCqwEltl6NXKdv5VXr0RXRz8HFElOr8EcMs87ClbE0yTph0EQrKKiWazr6MnZirUlj2HdZvlnaSn/0EgcBVhO6NHgFHC4reB/IdXXV99t6PRJyP1k0zz3R0j89yVvJq/VARVxeNz8RiebDCMBt2J8XVHtMYFds3VOenc/bdoKHPyZpH+2ydV4LI2KuwAizFOR6F8I6YsoZ/kZMaKex5TvGpt+8/E9zCUB+OmhhQnHrA8QYoAeIxFtu6+Cg5Lu9AdVVlaojbcOZBw520HdeWRNpYEWPYcg8Lfybe3nHj2nBbCCjtK5zJpsnDdvD+P5U5uzoDChpoJXIb0nBSpXdzi7DvSaHpX6c2QfExW3Ofzgb5+IGYjXHzOYYzN2LeQn5we8/W4SutPQYmJzdX2DOLwtXzIjWxUHsJfJJ8bFePy199h8DNH8OWk+s6CEXUKcLZfruWTpCEJOm+Lw2wFCDx7gIjCgvPcbx0=,iv:/XGpmzugfecJC5gTZt5FnO3W1oMzvIiJGRWBy0Tf/Gk=,tag:2hLXiEnpQaymXSlhQ5z9WQ==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBsMk8wU2NMbzZ2UDhtdHA5
+            S3pPL0NQbFhnQWh2SnVUOGxHeUlaZEZUMHg4CjZZVkRMQWtUendUNmRlUjR1REZJ
+            b2pNVDUxbzhmT1RQUWgvZWZLVGEyb3MKLS0tIGVTY25NRkdBL2FueWhUbEtmS0E3
+            VDRVVjFIYXZzVTNFSytLdDYvUHBhcjAKgZNDdvfl/UN53U3+QxhamxGaNvNaq18A
+            6NGrX7hh7d23tDThLxn5pyWfJTwxnrYHiNDENeCU7+h4f9x1vuZV1Q==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-06-30T15:35:04Z"
+    mac: ENC[AES256_GCM,data:2jEJXRS3toyzNVbTVfe1fGVEZ+mrxePMYGw0x8wWWuOKWO+nSMjbpigUHWv2T8uWuSFm6GZqnVG5ZKXefstPhMOBRkS3DbdwmIM1HFtsZ8Ssx7qO2VmiXn2l80UvWAcTlear07HSQdyQR8FqbqKMkZitB4gHCDUqFtc+TcPh73o=,iv:PD0fD+sSNgtabhvWBPZXWzGY185b39KsqxUMCiq+U2I=,tag:+rYS1JeElTFAlVwMB9p0vQ==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData)$
+    version: 3.7.3
