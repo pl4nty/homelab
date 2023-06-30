@@ -1,0 +1,12 @@
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: home-assistant
+  namespace: default
+spec:
+  sourcePVC: home-assistant-config
+  trigger:
+    schedule: "*/15 * * * *"
+  rsyncTLS:
+    keySecret: volsync
+    address: 20.92.217.137
