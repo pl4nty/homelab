@@ -30,22 +30,12 @@ spec:
     manageCRDs: true
     metrics:
       disableAuth: true
-    image:
+    image: &image
       repository: ghcr.io/pl4nty/volsync@sha256
       tag: 8ca807694dce2c2606c1dc8a7b1a4c95c2acf48c988afdb3687911cf384fb598
-    rclone:
-      repository: ghcr.io/pl4nty/volsync@sha256
-      tag: 8ca807694dce2c2606c1dc8a7b1a4c95c2acf48c988afdb3687911cf384fb598
-    restic:
-      repository: ghcr.io/pl4nty/volsync@sha256
-      tag: 8ca807694dce2c2606c1dc8a7b1a4c95c2acf48c988afdb3687911cf384fb598
-    rsync:
-      repository: ghcr.io/pl4nty/volsync@sha256
-      tag: 8ca807694dce2c2606c1dc8a7b1a4c95c2acf48c988afdb3687911cf384fb598
-    rsync-tls:
-      repository: ghcr.io/pl4nty/volsync@sha256
-      tag: 8ca807694dce2c2606c1dc8a7b1a4c95c2acf48c988afdb3687911cf384fb598
-    syncthing:
-      repository: ghcr.io/pl4nty/volsync@sha256
-      tag: 8ca807694dce2c2606c1dc8a7b1a4c95c2acf48c988afdb3687911cf384fb598
+    rclone: *image
+    restic: *image
+    rsync: *image
+    rsync-tls: *image
+    syncthing: *image
       
