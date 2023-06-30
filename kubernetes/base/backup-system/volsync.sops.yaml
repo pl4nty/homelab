@@ -1,0 +1,28 @@
+kind: Secret
+apiVersion: v1
+metadata:
+    name: volsync
+    namespace: backup-system
+type: Opaque
+stringData:
+    psk.txt: ENC[AES256_GCM,data:PdXUrNm/PzBryyTQOz7RWevZHAR0ippdLSbEJLfpn8vWR1Eg4B04zIvN04EpoKk5FvN+GENKIFiOhrfY4ijWjA==,iv:f5AAyzJhr+0q4eXc75FHY/cDY1yj4zY26tUU1lox/cw=,tag:4FybQJ+rR+L6ehACea8NuQ==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBkR0R2YlFQTVFFQ1NEdkFl
+            VllweXh1ODVxQ2ZkV1ptQ0RIVCtKOFVJcGxnClRFT2xGcXMwVnJGM1A3NVVNdXQr
+            VEFjZXlnYitBZU1LUlIzSThORXZXTkEKLS0tIHdRYXlwOFFMNVMvaDZKcjhWMG5O
+            VEJVUFlWVEI5R0Irb1JHZ1MzcTV4WXMKKKNiX3QZpZTdDtUIza6YX01SRIy0IFMz
+            YJgCbfCTbDMwYmi3nzY/JEaUl+Vi3TwMfYX9rhEQaTKOQQYW2YZYrw==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-06-30T11:45:18Z"
+    mac: ENC[AES256_GCM,data:280BQ7LyKqxihKNLVwCX9StyCriBQ9vkNOqVnCWdSD7Ki7Gsb6ppAED6YmN9evrh4+Ks8Do6R0vVpsubMj5vHNn8gYJk9EkTF8yVCfP7da7mZAbXtvgUZfQNu0pR5oaqCscCVYmK+Od2FNw14b6/F2xnfR/S7f1vXz+MjdJ2E0k=,iv:yafSrgGBhBZCWgtBYDMfo+gFxiAIXYnjdfCkDtrPIFc=,tag:o0fYTKV+2PHi3Qe2h9Ptyw==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData)$
+    version: 3.7.3
