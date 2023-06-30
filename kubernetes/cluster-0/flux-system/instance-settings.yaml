@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: instance-settings
+  namespace: flux-system
+data:
+  CLUSTER_NAME: cluster-0
