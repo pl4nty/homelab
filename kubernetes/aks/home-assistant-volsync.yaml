@@ -13,3 +13,5 @@ spec:
     copyMethod: Snapshot
     moverSecurityContext:
       fsGroup: 9999
+      runAsUser: 9999
+      
