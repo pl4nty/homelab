@@ -27,6 +27,9 @@
   "kubernetes": {
     "fileMatch": ["kubernetes/[^.]+\\.ya?ml$"]
   },
+  "kustomize": {
+    "fileMatch": ["kubernetes/(^|/)kustomization\\.ya?ml$"]
+  },
   "regexManagers": [
     {
       "description": "Process CRD dependencies",
