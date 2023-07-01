@@ -220,6 +220,10 @@ spec:
   - honorLabels: true
     interval: 60s
     metricRelabelings:
+    - action: drop
+      sourceLabels:
+      - namespace
+      regex: flux-system
     - action: replace
       targetLabel: job
       replacement: integrations/kubernetes/kube-state-metrics
