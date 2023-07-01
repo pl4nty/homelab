@@ -28,17 +28,11 @@ spec:
     keepHistory: false
   values:
     manager:
-      image:
-        repository: ghcr.io/open-telemetry/opentelemetry-operator/opentelemetry-operator
-        tag: v0.80.0
-      collectorImage:
-        repository: otel/opentelemetry-collector-contrib
-        tag: 0.80.0
       serviceMonitor:
         enabled: true
-      targetAllocatorImage:
-        repository: ghcr.io/open-telemetry/opentelemetry-operator/target-allocator
-        tag: v0.77.0
+      # targetAllocatorImage:
+      #   repository: ghcr.io/open-telemetry/opentelemetry-operator/target-allocator
+      #   tag: v0.77.0
       # TODO remove once on by default
       featureGates: operator.autoinstrumentation.go
     admissionWebhooks:
