@@ -331,7 +331,7 @@ spec:
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
         value: http://opentelemetry-collector.monitoring:4318
   apacheHttpd:
-    configPath: /etc/php/7.2/apache2/conf.d # HRConvert2
+    configPath: /etc/php/7.4/apache2/conf.d # HRConvert2
 ---
 apiVersion: opentelemetry.io/v1alpha1
 kind: Instrumentation
