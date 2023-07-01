@@ -39,8 +39,8 @@ spec:
     controller:
       type: statefulset
     image:
-      repository: ghcr.io/pl4nty/crtsh-postgres@sha256
-      tag: bdcdc5be2a59887c0ec1c4d4136010b52c792308abb5eef2001b338b8a081cc3
+      repository: ghcr.io/pl4nty/crtsh-postgres
+      tag: latest@sha256:bdcdc5be2a59887c0ec1c4d4136010b52c792308abb5eef2001b338b8a081cc3
     env:
       TZ: ${TIMEZONE}
       PGDATA: /var/lib/postgresql/data/pgdata

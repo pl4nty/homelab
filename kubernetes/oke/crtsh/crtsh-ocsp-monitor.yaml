@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/pl4nty/ocsp-monitor@sha256
-      tag: b0d3d95150ed61052ea0179876945062e016924cfb4d2a4b35c70becf1275bac
+      repository: ghcr.io/pl4nty/ocsp-monitor
+      tag: latest@sha256:b0d3d95150ed61052ea0179876945062e016924cfb4d2a4b35c70becf1275bac
     args:
       - -conninfo
       - "host=crtsh-postgres port=5432 dbname=certwatch user=certwatch password=certwatch sslmode=disable"

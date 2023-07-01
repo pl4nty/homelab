@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/pl4nty/crl-monitor@sha256
-      tag: 4c4708faa832d8583418c20a57b2723a647c901fad0f6a863db4acb9c6bc189d
+      repository: ghcr.io/pl4nty/crl-monitor
+      tag: latest@sha256:4c4708faa832d8583418c20a57b2723a647c901fad0f6a863db4acb9c6bc189d
     args:
       - -conninfo
       - "host=crtsh-postgres port=5432 dbname=certwatch user=certwatch password=certwatch sslmode=disable"
