@@ -49,6 +49,11 @@ spec:
           secretKeyRef:
             name: crtsh
             key: POSTGRES_PASSWORD
+    resources:
+      requests:
+        cpu: 100m
+      limits:
+        cpu: 2
     persistence:
       config:
         enabled: true
