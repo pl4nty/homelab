@@ -120,8 +120,10 @@ spec:
           initialDelaySeconds: 240
     resources:
       requests:
+        cpu: 10m
         ephemeral-storage: 1Gi
       limits:
+        cpu: 1
         ephemeral-storage: 2Gi
     sidecars:
       redis:
