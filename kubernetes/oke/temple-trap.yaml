@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/pl4nty/temple-trap@sha256
-      tag: 6f181376477ab7f83deefa7c4550615d479ed824ada16608122e8139786bd6d7
+      repository: ghcr.io/pl4nty/temple-trap
+      tag: latest@sha256:a2900e601aea0fe3abbe9a8c7c9f8fce16eb5571e6ec3c49bbdcacd18e7b7ac3
     podAnnotations:
       instrumentation.opentelemetry.io/inject-java: "monitoring/opentelemetry-instrumentation"
     service:

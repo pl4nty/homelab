@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/pl4nty/tsuro@sha256
-      tag: 0b91599ec540d851e5af1c29e2a185eedf29c26f721b8983307e8be32b0b83ad
+      repository: ghcr.io/pl4nty/tsuro
+      tag: latest@sha256:bc08ce63c98e54942d8b442eefcdb7e584cbdbc6ba2e1615f0b8b04bff72c013
     podAnnotations:
       instrumentation.opentelemetry.io/inject-java: "monitoring/opentelemetry-instrumentation"
     resources:

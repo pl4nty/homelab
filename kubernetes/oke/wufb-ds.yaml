@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/pl4nty/wufb-ds@sha256
-      tag: 6b0f23b2023cf885b1ee0f6f72a3f2a78c1c63fc8d76698e65c09152d69f10ce
+      repository: ghcr.io/pl4nty/wufb-ds
+      tag: latest@sha256:205bd0520b87fb331c63f34b64928ce05ca4790d0edb9016259ac3c49945d647
     service:
       main:
         ports:

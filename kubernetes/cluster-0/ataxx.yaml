@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: ghcr.io/pl4nty/ataxx
-      tag: sha-fda052c
+      tag: latest@sha256:b579772dd8510b7b969880cf44f4c98968378ee45b91796d44c5891c7e0d783b
     nodeSelector:
       kubernetes.io/arch: amd64
     args:

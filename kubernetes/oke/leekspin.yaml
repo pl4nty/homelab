@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/pl4nty/leekspin-no-js@sha256
-      tag: e71371b3eb9011f4d52aef8171b81a44bc0c93767eaf1194051a093ef69267c1
+      repository: ghcr.io/pl4nty/leekspin-no-js
+      tag: latest@sha256:e71371b3eb9011f4d52aef8171b81a44bc0c93767eaf1194051a093ef69267c1
     env:
       SERVER_PORT: 8080
     service:

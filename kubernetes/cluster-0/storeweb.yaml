@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/pl4nty/storeweb@sha256
-      tag: be55e3866a02c44bbf3bd3a5a649ab26b9a5f7f1a0faeb67e1169fa0b1f657f8
+      repository: ghcr.io/pl4nty/storeweb
+      tag: latest@sha256:be55e3866a02c44bbf3bd3a5a649ab26b9a5f7f1a0faeb67e1169fa0b1f657f8
     # autoinstrumentation lacks arm64 support pending open-telemetry/opentelemetry-dotnet-instrumentation#2314
     nodeSelector:
       kubernetes.io/arch: amd64

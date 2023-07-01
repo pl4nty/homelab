@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/pl4nty/jsonwebtoken@sha256
-      tag: 30cd0738cb7413801e9e1f4996d2448b5ccdd355f0742003c4c7f0020c2427dd
+      repository: ghcr.io/pl4nty/jsonwebtoken
+      tag: latest@sha256:03e2d5378e5751f3ffc957df0dee8c86856e70b6a5fe4df6595ca6246b49deef
     env:
       SERVER_LOG_LEVEL: info
       SERVER_PORT: 8080

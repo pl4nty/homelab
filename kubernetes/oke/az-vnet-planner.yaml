@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/pl4nty/vnet-capacity-planner@sha256
-      tag: ba4701dbbde9c2d741c0e5bae1feaa7256f5a65079802342dc36f5c4b51cacbd
+      repository: ghcr.io/pl4nty/vnet-capacity-planner
+      tag: latest@sha256:5add7b1f06aeacb94407c274e1b1dce4e4eb9db573caee120f7d1602d1ddbfe5
     service:
       main:
         ports:

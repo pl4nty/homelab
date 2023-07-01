@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: ghcr.io/pl4nty/jwtplayground@sha256
-      tag: 49f5c00662605fca4504557722ca9e9bcbb3a27892322bc02064a5e70a831c50
+      repository: ghcr.io/pl4nty/jwtplayground
+      tag: latest@sha256:6cadbdf0752e88d04835ba9f3b552d4d9498f8d4fa443f6bbddd008cdc936e29
     podAnnotations:
       instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
     env:
@@ -37,12 +37,3 @@ spec:
         ports:
           http:
             port: 8080
-    # route:
-    #   main:
-    #     enabled: true
-    #     parentRefs:
-    #     - namespace: default
-    #       name: traefik-gateway
-    #     hostnames:
-    #     - jwt.tplant.com.au
-
