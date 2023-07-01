@@ -30,8 +30,9 @@ spec:
       tag: latest@sha256:b893624e4b4dad46469b30a1d094557670db1af3374394b4a4a60324df570652
     nodeSelector:
       kubernetes.io/arch: amd64
-    podAnnotations:
-      instrumentation.opentelemetry.io/inject-apache-httpd: "monitoring/opentelemetry-instrumentation"
+    # doesn't produce traces, maybe an unsupported version?
+    # podAnnotations:
+    #   instrumentation.opentelemetry.io/inject-apache-httpd: "monitoring/opentelemetry-instrumentation"
     securityContext:
       capabilities:
         add:
@@ -41,12 +42,3 @@ spec:
         ports:
           http:
             port: 80
-    # OTel httpd injection creates an initContainer clone, inheriting probes (which aren't allowed on initContainers)
-    # https://github.com/open-telemetry/opentelemetry-operator/blob/846046ccccf3d2bde63be9cb7f75537af5332638/pkg/instrumentation/apachehttpd.go#L53
-    probes:
-      liveness:
-        enabled: false
-      readiness:
-        enabled: false
-      startup:
-        enabled: false

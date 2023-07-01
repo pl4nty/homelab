@@ -330,8 +330,8 @@ spec:
       # See https://github.com/open-telemetry/opentelemetry-dotnet-instrumentation/blob/888e2cd216c77d12e56b54ee91dafbc4e7452a52/docs/config.md#otlp
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
         value: http://opentelemetry-collector.monitoring:4318
-  apacheHttpd:
-    configPath: /etc/php/7.4/apache2/conf.d # HRConvert2
+  # apacheHttpd:
+  #   configPath: /etc/php/7.4/apache2/conf.d # HRConvert2
 ---
 apiVersion: opentelemetry.io/v1alpha1
 kind: Instrumentation
