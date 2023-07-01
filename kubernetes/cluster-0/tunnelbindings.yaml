@@ -1,27 +1,24 @@
-# apiVersion: networking.cfargotunnel.com/v1alpha1
-# kind: TunnelBinding
-# metadata:
-#   name: cloudflare-tunnel
-#   namespace: default
-# subjects:
-#   - name: rocketchat-rocketchat
-#     spec:
-#       fqdn: chat.tplant.com.au
-#   - name: hrconvert2
-#     spec:
-#       fqdn: convert.tplant.com.au
-#   - name: storeweb
-#     spec:
-#       fqdn: msft-store.tplant.com.au
-#   - name: ataxx
-#   - name: shapes
-#   - name: debian-xfce-vnc
-#     spec:
-#       protocol: tcp
-# tunnelRef:
-#   kind: ClusterTunnel
-#   name: cloudflare-tunnel
-# ---  
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: cloudflare-tunnel
+  namespace: default
+subjects:
+  - name: ataxx
+  - name: debian-xfce-vnc
+    spec:
+      protocol: tcp
+  - name: hrconvert2
+    spec:
+      fqdn: convert.tplant.com.au
+  - name: shapes
+  - name: storeweb
+    spec:
+      fqdn: msft-store.tplant.com.au
+tunnelRef:
+  kind: ClusterTunnel
+  name: cloudflare-tunnel
+---  
 apiVersion: networking.cfargotunnel.com/v1alpha1
 kind: TunnelBinding
 metadata:
