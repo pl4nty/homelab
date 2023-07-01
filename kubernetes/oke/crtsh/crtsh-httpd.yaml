@@ -28,8 +28,9 @@ spec:
     image:
       repository: ghcr.io/pl4nty/crtsh-httpd
       tag: latest@sha256:792a6be183bef0181714436c2c5df1485b85bda1329c1e2f04433296eab0119a
-    podAnnotations:
-      instrumentation.opentelemetry.io/inject-apache-httpd: "monitoring/opentelemetry-instrumentation"
+    # no ARM image as of autoinstrumentation-apache-httpd:1.0.3
+    # podAnnotations:
+    #   instrumentation.opentelemetry.io/inject-apache-httpd: "monitoring/opentelemetry-instrumentation"
     env:
       # httpd account doesn't have required perms
       CONNINFO: host=crtsh-postgres port=5432 dbname=certwatch user=certwatch password=certwatch
