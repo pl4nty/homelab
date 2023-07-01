@@ -20,6 +20,10 @@ spec:
         enabled: true
         interval: 2m
         metricRelabelings:
+        - action: drop
+          sourceLabels:
+          - namespace
+          regex: flux-system
         - action: labeldrop
           regex: pod
         - action: keep
