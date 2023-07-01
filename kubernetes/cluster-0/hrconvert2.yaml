@@ -30,10 +30,8 @@ spec:
       tag: latest@sha256:b893624e4b4dad46469b30a1d094557670db1af3374394b4a4a60324df570652
     nodeSelector:
       kubernetes.io/arch: amd64
-    # configPath argument isn't respected so clone cp fails
-    # pending open-telemetry/opentelemetry-operator#1821
-    # podAnnotations:
-    #   instrumentation.opentelemetry.io/inject-apache-httpd: "monitoring/opentelemetry-instrumentation"
+    podAnnotations:
+      instrumentation.opentelemetry.io/inject-apache-httpd: "monitoring/opentelemetry-instrumentation"
     securityContext:
       capabilities:
         add:
