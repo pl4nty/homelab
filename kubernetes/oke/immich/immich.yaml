@@ -52,6 +52,9 @@ spec:
       # OTel overrides PYTHONPATH: open-telemetry/opentelemetry-operator#1884
       # so we add the expected path manually
       command:
+      - /bin/sh
+      - -c
+      args:
       - PYTHONPATH=$PYTHONPATH:/usr/src
       - python
       - -m
