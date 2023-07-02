@@ -53,12 +53,9 @@ spec:
       # so we add the expected path manually
       command:
       - /bin/sh
-      - -c
       args:
-      - PYTHONPATH=$PYTHONPATH:/usr/src
-      - python
-      - -m
-      - app.main
+      - -c
+      - "PYTHONPATH=$PYTHONPATH:/usr/src python -m app.main"
       persistence:
         cache:
           type: pvc
