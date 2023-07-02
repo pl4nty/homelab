@@ -49,9 +49,12 @@ spec:
     machine-learning:
       podAnnotations:
         instrumentation.opentelemetry.io/inject-python: "monitoring/opentelemetry-instrumentation"
-      # override PYTHONPATH from OTel to include image's /usr/src
-      env:
-        PYTHONPATH: /usr/src:/otel-auto-instrumentation/opentelemetry/instrumentation/auto_instrumentation:/otel-auto-instrumentation
+      # OTel overrides PYTHONPATH: open-telemetry/opentelemetry-operator#1884
+      # so we set the module path manually
+      command:
+      - python
+      - -m
+      - /usr/src/app/app.main
       persistence:
         cache:
           type: pvc
