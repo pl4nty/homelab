@@ -28,8 +28,10 @@ spec:
     image:
       repository: ghcr.io/home-assistant/home-assistant
       tag: 2023.6.3
-    podAnnotations:
-      instrumentation.opentelemetry.io/inject-python: "monitoring/opentelemetry-instrumentation"
+    # incompatible boto3 version as of 2023.6.3. can only specify image at collector level
+    # eg open-telemetry/opentelemetry-operator#1774
+    # podAnnotations:
+    #   instrumentation.opentelemetry.io/inject-python: "monitoring/opentelemetry-instrumentation"
     controller:
       type: statefulset
     persistence:
