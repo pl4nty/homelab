@@ -27,12 +27,10 @@ spec:
   values:
     env:
       DB_HOSTNAME: immich-cnpg-rw
-
-    postgresql:
-      enabled: true
-      image:
-        # default doesn't have ARM as of writing
-        tag: 14.7.0-debian-11-r31
+      DB_DATABASE_NAME: immich
+    envFrom:
+    - secretRef:
+        name: immich
     redis:
       enabled: true
       image:

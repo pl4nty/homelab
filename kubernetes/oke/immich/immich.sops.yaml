@@ -1,0 +1,29 @@
+kind: Secret
+apiVersion: v1
+metadata:
+    name: immich-cnpg
+    namespace: default
+type: Opaque
+stringData:
+    DB_USERNAME: ENC[AES256_GCM,data:QnNKByHA,iv:4QQJZpcyQ+1AdWuuyIUWFW+sVWu448s7ne6pzhHDbH4=,tag:dOc6QRXUYQxlZAvBW7+sww==,type:str]
+    DB_PASSWORD: ENC[AES256_GCM,data:OjJiUNXVYG6rTg==,iv:MDqPypEZhtvUF56iJQ7aISp7VXWOuZaBEMDqgDMy4F8=,tag:CnqZ+PknwpQ749J5LHtd8Q==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSByZ0lkVHEwelFYbHlyOWhJ
+            Yzc5T3pneTZxSXRJbmZvM093bTFWcFFnWUY0CklBeldnK241Y1IxTlpZc0JJNkJy
+            Q2N4UmVYdVF0elhXd3lWOWU3TVBmOGsKLS0tIHI0bTNkSytEQ3F3bDVsUzV3Z1Nt
+            YTlPOXY0Z1dIdFF2U2tlWC9BdVUwRm8K1cjvFgdaATyXLBdK+mpqLNE3eH7BLTV+
+            VAVNbgWCXquqEcHjZ2hEUJZXBPLAj060snI4kH2TBd5K5aM9Pc0etg==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-07-02T03:14:23Z"
+    mac: ENC[AES256_GCM,data:EVMuLfG3Gb/3zjFnP19IYmNr1urNys4JTxkvjhqjx8PakvvjPq6oLx1Q5BIRfjbUoVPWtcUFnm1UJU4ZbSBdph4eZUkeKIod5wSc3CUsNVu8rJOpjll8RqbXFvzInaoWtbAtt/PRKueejLKvW7HtqJkr5/5RGA/ty7LjEBLQdAU=,iv:mbp3h1BAaBegTNyZzP6TsF7/deWfPIxLpgYMsjWdZNk=,tag:ON0TiswKGXdFCdjbIWolRQ==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData)$
+    version: 3.7.3
