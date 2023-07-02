@@ -85,8 +85,9 @@ spec:
         library:
           existingClaim: immich-library
     image:
-      # renovate: datasource=github-releases depName=immich-app/immich
-      tag: v1.60.0
+      # quotes are required for regex
+      # datasource=github-releases depName=immich-app/immich
+      tag: "v1.60.0"
 
     # current volume is ReadWriteOnce, so need affinity until we can get ReadWriteMany
     affinity:

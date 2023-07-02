@@ -28,7 +28,7 @@
     "fileMatch": ["kubernetes/[^.]+\\.ya?ml$"]
   },
   "kustomize": {
-    "fileMatch": ["kubernetes/(^|/)kustomization\\.ya?ml$"]
+    "fileMatch": ["kubernetes/[^.]+kustomization\\.ya?ml$"]
   },
   "regexManagers": [
     {
@@ -36,13 +36,22 @@
       "fileMatch": ["kubernetes/[^.]+\\.ya?ml$"],
       "matchStrings": [
         // GitRepository where 'Git release/tag' matches 'Helm' version
-        "registryUrl=(?<registryUrl>\\S+) chart=(?<depName>\\S+)\n.*?(?<currentValue>[^-\\s]*)\n",
-        // Kustomization where 'GitHub release artifact URL' matches 'Docker image' version
-        "datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( versioning=(?<versioning>\\S+))?\n.*?\"(?<currentValue>.*)\"\n"
+        "registryUrl=(?<registryUrl>\\S+) chart=(?<depName>\\S+)\n.*?(?<currentValue>[^-\\s]*)\n"
       ],
       "datasourceTemplate": "{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}",
       "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
     },
+    {
+      "description": "Process custom dependencies",
+      "fileMatch": [
+        "\\.ya?ml$"
+      ],
+      "matchStrings": [
+        "datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( versioning=(?<versioning>\\S+))?\n.*?\"(?<currentValue>.*)\"\n"
+      ],
+      "datasourceTemplate": "{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}",
+      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
+    }
     {
       "description": "Process raw GitHub URLs",
       "fileMatch": ["kubernetes/[^.]+\\.ya?ml$"],
