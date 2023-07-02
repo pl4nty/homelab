@@ -310,7 +310,7 @@ spec:
       targetLabel: job
       replacement: integrations/node_exporter
     - action: labeldrop
-      regex: pod
+      regex: pod|mountpoint
     - action: keep
       regex: "node_filesystem_device_error|\
         node_filesystem_files|\
