@@ -51,7 +51,7 @@
       ],
       "datasourceTemplate": "{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}",
       "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
-    }
+    },
     {
       "description": "Process raw GitHub URLs",
       "fileMatch": ["kubernetes/[^.]+\\.ya?ml$"],
@@ -62,7 +62,7 @@
       "versioningTemplate": "semver"
     }
   ],
-  hostRules: [
+  "hostRules": [
     {
       "hostType": "docker",
       "matchHost": "docker.io",
