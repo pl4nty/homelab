@@ -1,7 +1,7 @@
 kind: Secret
 apiVersion: v1
 metadata:
-    name: immich-cnpg
+    name: immich
     namespace: default
 type: Opaque
 stringData:
@@ -22,8 +22,8 @@ sops:
             YTlPOXY0Z1dIdFF2U2tlWC9BdVUwRm8K1cjvFgdaATyXLBdK+mpqLNE3eH7BLTV+
             VAVNbgWCXquqEcHjZ2hEUJZXBPLAj060snI4kH2TBd5K5aM9Pc0etg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-07-02T03:14:23Z"
-    mac: ENC[AES256_GCM,data:EVMuLfG3Gb/3zjFnP19IYmNr1urNys4JTxkvjhqjx8PakvvjPq6oLx1Q5BIRfjbUoVPWtcUFnm1UJU4ZbSBdph4eZUkeKIod5wSc3CUsNVu8rJOpjll8RqbXFvzInaoWtbAtt/PRKueejLKvW7HtqJkr5/5RGA/ty7LjEBLQdAU=,iv:mbp3h1BAaBegTNyZzP6TsF7/deWfPIxLpgYMsjWdZNk=,tag:ON0TiswKGXdFCdjbIWolRQ==,type:str]
+    lastmodified: "2023-07-02T03:18:28Z"
+    mac: ENC[AES256_GCM,data:HiglKS/AufrRswI4fHNJ81hGSaZEhJD1LeM61H7rWGniDhNvTG5ga57DruFJ4qdX8szUKx7TORPOVtscniN8Chl+5jaw19vEhLb3zHne4YAcKQfwXnR7m9vMHi0bEBS7pu0sKqHSfiLZ1lu3iD/sBVv7/sr/NNZlWL9fCaDCo+k=,iv:Yd0ZIpaOZDNxf2c7xhDk/odSaKVaZnzTW8b7wNVzyiU=,tag:WWfewHR2jcPO7gDQow1LQw==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.7.3
