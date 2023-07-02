@@ -18,7 +18,7 @@ spec:
   - name: immich-postgresql
     connectionParameters:
       host: immich-postgresql
-      user: postgres
+      user: streaming_replica
     password:
       name: immich-postgresql
       key: postgres-password
