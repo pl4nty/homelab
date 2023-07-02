@@ -4,7 +4,8 @@ metadata:
   name: hyperglass
   namespace: default
 spec:
-  interval: 15m
+  timeout: 15m
+  interval: 30m
   chart:
     spec:
       chart: app-template
