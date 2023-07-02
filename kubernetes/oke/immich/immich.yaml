@@ -47,6 +47,11 @@ spec:
           type: emptyDir
 
     machine-learning:
+      resources:
+        requests:
+          cpu: 10m
+        limits:
+          cpu: 3
       podAnnotations:
         instrumentation.opentelemetry.io/inject-python: "monitoring/opentelemetry-instrumentation"
       # OTel overrides PYTHONPATH: open-telemetry/opentelemetry-operator#1884
