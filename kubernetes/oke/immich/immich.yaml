@@ -47,9 +47,11 @@ spec:
           type: emptyDir
 
     machine-learning:
-      # crash due to missing musl?
       podAnnotations:
         instrumentation.opentelemetry.io/inject-python: "monitoring/opentelemetry-instrumentation"
+      # override PYTHONPATH from OTel to include image's /usr/src
+      env:
+        PYTHONPATH: /usr/src:/otel-auto-instrumentation/opentelemetry/instrumentation/auto_instrumentation:/otel-auto-instrumentation
       persistence:
         cache:
           type: pvc
