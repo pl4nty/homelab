@@ -54,7 +54,7 @@ spec:
       command:
       - python
       - -m
-      - /usr/src/app/app.main
+      - /usr/src/app.main
       persistence:
         cache:
           type: pvc
