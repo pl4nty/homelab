@@ -11,7 +11,9 @@ spec:
     size: 4Gi
 
   bootstrap:
-    pg_basebackup: immich-postgresql
+    pg_basebackup:
+      source: immich-postgresql
+
   externalClusters:
   - name: immich-postgresql
     connectionParameters:
