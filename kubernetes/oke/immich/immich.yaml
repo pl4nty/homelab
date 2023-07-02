@@ -48,8 +48,8 @@ spec:
 
     machine-learning:
       # crash due to missing musl?
-      # podAnnotations:
-      #   instrumentation.opentelemetry.io/inject-python: "monitoring/opentelemetry-instrumentation"
+      podAnnotations:
+        instrumentation.opentelemetry.io/inject-python: "monitoring/opentelemetry-instrumentation"
       persistence:
         cache:
           type: pvc
