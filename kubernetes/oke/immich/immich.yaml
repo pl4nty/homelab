@@ -25,6 +25,9 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    env:
+      DB_HOSTNAME: immich-cnpg-rw
+
     postgresql:
       enabled: true
       image:

@@ -1,0 +1,23 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: immich-cnpg
+  namespace: default
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:14.7
+
+  storage:
+    size: 4Gi
+
+  bootstrap:
+    pg_basebackup: immich-postgresql
+  externalClusters:
+  - name: immich-postgresql
+    connectionParameters:
+      host: immich-postgresql
+      user: streaming_replica
+    password:
+      name: immich-postgresql
+      key: postgres-password
+            
