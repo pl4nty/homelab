@@ -50,11 +50,12 @@ spec:
       podAnnotations:
         instrumentation.opentelemetry.io/inject-python: "monitoring/opentelemetry-instrumentation"
       # OTel overrides PYTHONPATH: open-telemetry/opentelemetry-operator#1884
-      # so we set the module path manually
+      # so we add the expected path manually
       command:
+      - PYTHONPATH=$PYTHONPATH:/usr/src
       - python
       - -m
-      - /usr/src/app.main
+      - app.main
       persistence:
         cache:
           type: pvc
