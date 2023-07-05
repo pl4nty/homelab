@@ -1,7 +1,7 @@
 database:
   name: app
-  username: ${username}
-  password: ${password}
+  username: ${username:=test}
+  password: $${password}
   host: kasm-cnpg
   port: 5432
   type: postgres
