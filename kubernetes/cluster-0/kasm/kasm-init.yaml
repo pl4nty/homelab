@@ -1,0 +1,60 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: kasm-init
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.1
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    controller:
+      type: CronJob
+      cronjob:
+        schedule: "*/5 * * * *"
+    image:
+      repository: kasmweb/api
+      tag: 1.13.1
+    command:
+    - /usr/bin/kasm_server.so
+    - --initialize-database
+    - --cfg
+    - /opt/kasm/current/conf/app/api.app.config.yaml
+    - --populate-production
+    - --seed-file /tmp/default_properties.yaml
+    persistence:
+      config:
+        enabled: true
+        type: secret
+        name: kasm
+        mountPath: /opt/kasm/current/conf/app/api.app.config.yaml
+        subPath: api.app.config.yaml
+      tmp:
+        enabled: true
+        type: ConfigMap
+        name: kasm-seed-data
+        mountPath: /tmp/default_properties.yaml
+        subPath: default_properties.yaml
+    service:
+      main:
+        ports:
+          http:
+            port: 8080
+            

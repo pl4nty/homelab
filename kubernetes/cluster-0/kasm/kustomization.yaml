@@ -13,6 +13,11 @@ secretGenerator:
   type: Opaque
   files:
   - api.app.config.yaml
+- name: kasm-seed-data
+  namespace: default
+  type: Opaque
+  files:
+  - default_properties.yaml
 
 generatorOptions:
   disableNameSuffixHash: true
