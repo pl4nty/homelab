@@ -5,7 +5,6 @@ resources:
 - kasm-cnpg.sops.yaml
 - kasm-cnpg.yaml
 - kasm-init.yaml
-- kasm-agent.yaml
 - kasm-api.yaml
 - kasm-guac.yaml
 - kasm-manager.yaml
