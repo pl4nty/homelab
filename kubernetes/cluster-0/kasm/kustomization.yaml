@@ -8,6 +8,10 @@ resources:
 
 secretGenerator:
 - name: kasm
+  namespace: default
   type: Opaque
   files:
   - api.app.config.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true
