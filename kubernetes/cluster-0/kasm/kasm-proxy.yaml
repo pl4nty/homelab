@@ -40,6 +40,12 @@ spec:
         name: kasm-proxy-files
         mountPath: /etc/nginx/conf.d/upstream_agent.conf
         subPath: upstream_agent.conf
+      files2:
+        enabled: true
+        type: configMap
+        name: kasm-proxy-files
+        mountPath: /etc/nginx/conf.d/services.d/agent.conf
+        subPath: agent.conf
     #   config:
     #     enabled: true
     #     existingClaim: kasm-agent-config
