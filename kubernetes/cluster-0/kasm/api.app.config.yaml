@@ -1,15 +1,16 @@
+# SOPS 4-space indentation causes parsing failure
 database:
   name: app
-  username: ${username:=test}
-  password: $${password}
-  host: kasm-cnpg
+  username: app
+  password: CqK4GAMfPcSFmtQEJaBOVT6zkd71QlVry7AMAiiL9sJXJlkO3HlT2msZM3nD0JjE
+  host: kasm-cnpg-rw
   port: 5432
   type: postgres
   ssl: false
   pool_size: 10
   max_overflow: 20
 redis:
-  host: kasm-redis
+  host: kasm_redis
   port: 6379
   redis_password: ""
 manager:
