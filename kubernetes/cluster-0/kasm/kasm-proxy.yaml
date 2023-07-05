@@ -28,7 +28,17 @@ spec:
     image:
       repository: ghcr.io/pl4nty/kasm-nginx
       tag: latest@sha256:d45d43a799425f6f7692dbaa78d9c6bfa761a1398355b09f4c92cadfcf232919
-    # persistence:
+    configMaps:
+      files:
+        enabled: true
+        data:
+          upstream_agent.conf: ''
+    persistence:
+      file:
+        type: configMap
+        name: kasm-proxy-files
+        mountPath: /etc/nginx/conf.d/upstream_agent.conf
+        subPath: upstream_agent.conf
     #   config:
     #     enabled: true
     #     existingClaim: kasm-agent-config
