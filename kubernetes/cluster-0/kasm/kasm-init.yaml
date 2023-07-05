@@ -28,7 +28,7 @@ spec:
     controller:
       type: cronjob
       cronjob:
-        schedule: "*/5 * * * *"
+        schedule: "@yearly" # kubectl create job --from=cronjob/kasm-init kasm-init-manual
     image:
       repository: kasmweb/api
       tag: 1.13.1
@@ -48,7 +48,7 @@ spec:
         subPath: api.app.config.yaml
       tmp:
         enabled: true
-        type: ConfigMap
+        type: configmap
         name: kasm-seed-data
         mountPath: /tmp/default_properties.yaml
         subPath: default_properties.yaml
