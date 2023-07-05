@@ -48,7 +48,7 @@ spec:
         subPath: api.app.config.yaml
       tmp:
         enabled: true
-        type: configMap
+        type: secret
         name: kasm-seed-data
         mountPath: /tmp/default_properties.yaml
         subPath: default_properties.yaml
