@@ -1,8 +1,8 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
-  name: default-kasm
-  namespace: flux-system
+  name: kasm
+  namespace: default
 spec:
   interval: 30m
   path: kubernetes/cluster-0/kasm/app
@@ -18,4 +18,3 @@ spec:
     substituteFrom:
     - kind: Secret
       name: kasm-cnpg-app
-      namespace: default
