@@ -183,10 +183,10 @@ spec:
     honorTimestamps: false
     interval: 1m
     metricRelabelings:
-    - action: keep
-      sourceLabels:
-      - __name__
-      regex: *grafana 
+    # - action: keep
+    #   sourceLabels:
+    #   - __name__
+    #   regex: *grafana 
     - action: keep
       regex: "container_cpu_cfs_periods_total|\
         container_cpu_cfs_throttled_periods_total|\
@@ -241,10 +241,10 @@ spec:
   - honorLabels: true
     interval: 60s
     metricRelabelings:
-    - action: keep
-      sourceLabels:
-      - __name__
-      regex: *grafana 
+    # - action: keep
+    #   sourceLabels:
+    #   - __name__
+    #   regex: *grafana 
     - action: drop
       sourceLabels:
       - namespace
@@ -302,10 +302,10 @@ spec:
   - honorLabels: true
     interval: 60s
     metricRelabelings:
-    - action: keep
-      sourceLabels:
-      - __name__
-      regex: *grafana
+    # - action: keep
+    #   sourceLabels:
+    #   - __name__
+    #   regex: *grafana
     - action: replace
       targetLabel: job
       replacement: integrations/node_exporter
