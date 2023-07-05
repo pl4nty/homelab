@@ -1,0 +1,139 @@
+database:
+  name: app
+  username: ${username}
+  password: ${password}
+  host: kasm-cnpg
+  port: 5432
+  type: postgres
+  ssl: false
+  pool_size: 10
+  max_overflow: 20
+redis:
+  host: kasm-redis
+  port: 6379
+  redis_password: ""
+manager:
+  manager_id: 00000000-0000-0000-0000-000000000000
+  update_timer: 86400
+server:
+  server_id: 00000000-0000-0000-0000-000000000000
+  server_hostname: kasm-proxy
+  zone_name: default
+  sanitize_errors: true
+share:
+  share_id: 00000000-0000-0000-0000-000000000000
+logging:
+  agent:
+    formatters:
+      standard:
+        format: '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+    handlers:
+      stream:
+        class: logging.StreamHandler
+        formatter: standard
+        level: INFO
+    loggers:
+      ? ''
+      : handlers:
+        - stream
+        level: DEBUG
+        propagate: true
+    version: 1
+  kasm_share:
+    formatters:
+      standard:
+        format: '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+    handlers:
+      stream:
+        class: logging.StreamHandler
+        formatter: standard
+        level: DEBUG
+    loggers:
+      ? ''
+      : handlers:
+        - stream
+        level: DEBUG
+        propagate: true
+      tornado.application:
+        level: DEBUG
+      tornado.access:
+        level: DEBUG
+      tornado.general:
+        level: DEBUG
+    version: 1
+  manager_api_server:
+    filters:
+      internal_log_filter:
+        (): log.handlers.InternalLogFilter
+    formatters:
+      standard:
+        format: '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+    handlers:
+      stream:
+        class: logging.StreamHandler
+        formatter: standard
+        level: INFO
+        filters: [ internal_log_filter ]
+    loggers:
+      ? ''
+      : handlers:
+        - stream
+        level: DEBUG
+        propagate: true
+      __main__.handler:
+        level: DEBUG
+      googleapiclient.discovery_cache:
+        level: ERROR
+      provider_manager:
+        level: DEBUG
+      provider:
+        level: DEBUG
+      tornado:
+        level: INFO
+      sqlalchemy.pool:
+        level: WARNING
+      sqlalchemy.pool.status:
+        level: WARNING
+      sqlalchemy.engine:
+        level: WARNING
+      sqlalchemy.dialects:
+        level: WARNING
+      sqlalchemy.orm:
+        level: WARNING
+      botocore:
+        level: WARNING
+      azure:
+        level: WARNING
+    version: 1
+  api_server:
+    formatters:
+      standard:
+        format: '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+    handlers:
+      stream:
+        class: logging.StreamHandler
+        formatter: standard
+        level: DEBUG
+    loggers:
+      ? ''
+      : handlers:
+        - stream
+        level: DEBUG
+        propagate: true
+      cherrypy.error:
+        level: INFO
+      cherrypy.access:
+        level: INFO
+      sqlalchemy.pool:
+        level: WARNING
+      sqlalchemy.pool.status:
+        level: WARNING
+      sqlalchemy.engine:
+        level: WARNING
+      sqlalchemy.dialects:
+        level: WARNING
+      sqlalchemy.orm:
+        level: WARNING
+      requests_oauthlib:
+        level: INFO
+    version: 1

@@ -1,0 +1,21 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: default-kasm
+  namespace: flux-system
+spec:
+  interval: 30m
+  path: kubernetes/cluster-0/kasm/app
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: home-kubernetes
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
+  postBuild:
+    substituteFrom:
+    - kind: Secret
+      name: kasm-cnpg-app
+      namespace: default
