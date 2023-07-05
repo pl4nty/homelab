@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: bitnami/redis
-      tag: 5
+      tag: 5.0
     master:
       persistence:
         enabled: false
