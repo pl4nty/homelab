@@ -26,7 +26,7 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: kasmweb/agent
+      repository: redhat/ubi8 # kasmweb/agent
       tag: 1.13.1
     persistence:
       config:
