@@ -9,6 +9,7 @@ resources:
 - kasm-api.yaml
 - kasm-guac.yaml
 - kasm-manager.yaml
+- kasm-proxy.yaml
 
 secretGenerator:
 - name: kasm

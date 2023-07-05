@@ -1,7 +1,7 @@
 kasmguac:
   id: 57c16a7623284807b84df74c68a17218
   port: 3000
-  server_address: kasm_guac
+  server_address: kasm-guac
   server_port: 443
   zone: default
   registration_token: lKnLSMPRNkxasvbxGwjn
@@ -14,8 +14,8 @@ kasmguac:
     timestampFormat: YYYY-MM-DD HH:mm:ss.SSS
 api:
   hostnames:
-  - 'kasm-proxy'
+  - kasm-proxy
   port: 443
-  auth_token: 3bb6603c97fd4f668c778ad222b713fc
+  auth_token: GUACTOKEN
   allow_self_signed_cert: true
   hostname_refresh_interval: 30

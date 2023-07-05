@@ -31,6 +31,9 @@ spec:
     persistence:
       config:
         enabled: true
+        mountPath: /etc/nginx/conf.d/containers.d
+      file:
+        enabled: true
         type: secret
         name: kasm
         mountPath: /opt/kasm/current/conf/app/agent.app.config.yaml

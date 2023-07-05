@@ -1,7 +1,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: kasm-guac
+  name: kasm-proxy
   namespace: default
 spec:
   interval: 15m
@@ -26,22 +26,17 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: kasmweb/kasm-guac
-      tag: 1.13.1
+      repository: ghcr.io/pl4nty/kasm-nginx
+      tag: latest@sha256:902d88feb4d6af4818b47f90309d209ce304b874d6bf69160d877ad39122bf67
     persistence:
       config:
         enabled: true
-        type: secret
-        name: kasm
-        mountPath: /opt/kasm/current/conf/app/kasmguac.app.config.yaml
-        subPath: kasmguac.app.config.yaml
-      shared:
-        enabled: true
-        mountPath: /opt/kasm/current/log
-        size: 1Gi
+        name: kasm-agent-config
+        mountPath: /etc/nginx/conf.d/containers.d
+        readOnly: true
     service:
       main:
         ports:
           http:
-            port: 3000
+            port: 443
             
