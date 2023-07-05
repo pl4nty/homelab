@@ -31,7 +31,7 @@ spec:
     persistence:
       config:
         enabled: true
-        name: kasm-agent-config
+        existingClaim: kasm-agent-config
         mountPath: /etc/nginx/conf.d/containers.d
         readOnly: true
     service:
