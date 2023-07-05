@@ -33,9 +33,8 @@ spec:
         enabled: true
         type: secret
         name: kasm
-        mountPath: /opt/kasm/current/conf/app/kasmguac.app.config.yaml
+        mountPath: /tmp/kasmguac.app.config.yaml
         subPath: kasmguac.app.config.yaml
-        defaultMode: 438
       shared:
         enabled: true
         mountPath: /opt/kasm/current/log
@@ -49,7 +48,14 @@ spec:
       # doesn't have to be before entrypoint, service will do 10 attempts
       postStart:
         exec:
-          command: [ "chown", "kasm:kasm", "/opt/kasm/current/conf/app/kasmguac.app.config.yaml" ]
+          command:
+          - mkdir
+          - -p
+          - /opt/kasm/current/conf/app
+          - "&&"
+          - cp
+          - /tmp/kasmguac.app.config.yaml
+          - /opt/kasm/current/conf/app/kasmguac.app.config.yaml
     service:
       main:
         ports:
