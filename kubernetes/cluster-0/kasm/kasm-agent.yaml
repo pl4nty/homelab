@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: redhat/ubi8 # kasmweb/agent
-      tag: latest #1.13.1
+      repository: kasmweb/agent
+      tag: 1.13.1
     persistence:
       config:
         enabled: true
@@ -43,6 +43,20 @@ spec:
         type: hostPath
         hostPath: /var/run/containerd/containerd.sock
         mountPath: /var/run/docker.sock
+    addons:
+      codeserver:
+        enabled: true
+        workingDir: '/home'
+        args:
+          - --user-data-dir
+          - '/home'
+          - --auth
+          - 'none'
+          - --extensions-dir
+          - '/home'
+        volumeMounts:
+        - name: socket
+          mountPath: /var/run/docker.sock
     service:
       main:
         ports:
