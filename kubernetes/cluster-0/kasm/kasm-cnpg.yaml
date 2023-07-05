@@ -10,6 +10,7 @@ spec:
   storage:
     size: 4Gi
 
-  initdb:
-    secret:
-      name: kasm-cnpg
+  bootstrap:
+    initdb:
+      secret:
+        name: kasm-cnpg
