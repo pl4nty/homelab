@@ -33,6 +33,7 @@ spec:
         enabled: true
         data:
           upstream_agent.conf: ''
+          agent.conf: ''
     persistence:
       files:
         enabled: true
