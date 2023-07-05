@@ -35,7 +35,7 @@ spec:
         name: kasm
         mountPath: /opt/kasm/current/conf/app/kasmguac.app.config.yaml
         subPath: kasmguac.app.config.yaml
-        defaultMode: 666
+        defaultMode: 438
       shared:
         enabled: true
         mountPath: /opt/kasm/current/log
