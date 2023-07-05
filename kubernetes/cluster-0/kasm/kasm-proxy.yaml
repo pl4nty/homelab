@@ -34,7 +34,7 @@ spec:
         data:
           upstream_agent.conf: ''
     persistence:
-      file:
+      files:
         type: configMap
         name: kasm-proxy-files
         mountPath: /etc/nginx/conf.d/upstream_agent.conf
