@@ -1,6 +1,7 @@
 # kubectl apply --kustomize kubernetes/base/flux-system/bootstrap
 # SOPS_AGE_KEY=""
 # echo $SOPS_AGE_KEY | kubectl -n flux-system create secret generic sops-age --from-file=age.agekey=/dev/stdin
+# echo $SOPS_AGE_KEY | kubectl -n default create secret generic sops-age --from-file=age.agekey=/dev/stdin
 # sops --decrypt kubernetes/base/flux-system/cluster-secrets.sops.yaml | kubectl apply -f -
 # kubectl apply -f kubernetes/base/flux-system/cluster-settings.yaml
 # kubectl apply -f kubernetes/base/flux-system/flux-config.yaml
