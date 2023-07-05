@@ -39,3 +39,9 @@ spec:
         enabled: true
         mountPath: /opt/kasm/current/log
         sizeLimit: 1Gi
+    service:
+      main:
+        ports:
+          http:
+            port: 8080
+            
