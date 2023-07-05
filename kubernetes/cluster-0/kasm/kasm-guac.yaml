@@ -33,7 +33,7 @@ spec:
         enabled: true
         type: secret
         name: kasm
-        mountPath: /tmp/kasmguac.app.config.yaml
+        mountPath: /opt/kasm/current/conf/app/kasmguac.app.config.yaml
         subPath: kasmguac.app.config.yaml
       shared:
         enabled: true
@@ -44,18 +44,6 @@ spec:
         type: emptyDir
         mountPath: /opt/kasm/current/tmp
         size: 1Gi
-    lifecycle:
-      # doesn't have to be before entrypoint, service will do 10 attempts
-      postStart:
-        exec:
-          command:
-          - mkdir
-          - -p
-          - /opt/kasm/current/conf/app
-          - "&&"
-          - cp
-          - /tmp/kasmguac.app.config.yaml
-          - /opt/kasm/current/conf/app/kasmguac.app.config.yaml
     service:
       main:
         ports:
