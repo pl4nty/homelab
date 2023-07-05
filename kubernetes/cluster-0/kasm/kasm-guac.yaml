@@ -39,6 +39,11 @@ spec:
         enabled: true
         mountPath: /opt/kasm/current/log
         size: 1Gi
+      tmp:
+        enabled: true
+        type: emptyDir
+        mountPath: /opt/kasm/current/tmp
+        size: 1Gi
     service:
       main:
         ports:
