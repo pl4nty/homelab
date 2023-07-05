@@ -32,6 +32,7 @@ subjects:
   - name: kasm-proxy
     spec:
       fqdn: kasm.tplant.au
+      noTlsVerify: true
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel-private
