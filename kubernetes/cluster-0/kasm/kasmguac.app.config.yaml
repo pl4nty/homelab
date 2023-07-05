@@ -13,8 +13,7 @@ kasmguac:
     dateFormat: YYYY.MM.DD
     timestampFormat: YYYY-MM-DD HH:mm:ss.SSS
 api:
-  hostnames:
-  - kasm-proxy
+  hostnames: ['localhost','kasm-proxy']
   port: 443
   auth_token: GUACTOKEN
   allow_self_signed_cert: true
