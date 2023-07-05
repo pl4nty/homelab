@@ -1,5 +1,5 @@
 kasmguac:
-  id: 7a38d22fab2c4ea3a9765c07680d38f2
+  id: 9679caf7fac1403cbf418b0c3bee2bca
   port: 3000
   server_address: kasm-guac
   server_port: 443
