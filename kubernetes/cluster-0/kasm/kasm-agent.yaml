@@ -45,6 +45,8 @@ spec:
         mountPath: /var/run/docker.sock
     service:
       main:
+        # hardcoded in nginx config
+        nameOverride: kasm_agent
         ports:
           http:
             port: 4444
