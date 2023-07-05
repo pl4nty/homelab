@@ -37,7 +37,7 @@ spec:
         subPath: kasmguac.app.config.yaml
       shared:
         enabled: true
-        mountPath: /opt/kasm/current/log
+        mountPath: /opt/kasm/current
         size: 1Gi
     service:
       main:
