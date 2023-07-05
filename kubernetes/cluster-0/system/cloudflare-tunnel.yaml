@@ -18,6 +18,7 @@ spec:
   newTunnel:
     name: lab-infra-cluster-0
   size: 1
+  noTlsVerify: true
 ---
 apiVersion: networking.cfargotunnel.com/v1alpha1
 kind: ClusterTunnel
@@ -35,3 +36,4 @@ spec:
   newTunnel:
     name: lab-infra-cluster-0-private
   size: 1
+  noTlsVerify: true
