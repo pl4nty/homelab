@@ -6,6 +6,7 @@ resources:
 - kasm-cnpg.yaml
 - kasm-api.yaml
 - kasm-manager.yaml
+- kasm-init.yaml
 
 secretGenerator:
 - name: kasm
