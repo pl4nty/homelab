@@ -28,12 +28,12 @@ spec:
     image:
       repository: ghcr.io/pl4nty/kasm-nginx
       tag: latest@sha256:d45d43a799425f6f7692dbaa78d9c6bfa761a1398355b09f4c92cadfcf232919
-    persistence:
-      config:
-        enabled: true
-        existingClaim: kasm-agent-config
-        mountPath: /etc/nginx/conf.d/containers.d
-        readOnly: true
+    # persistence:
+    #   config:
+    #     enabled: true
+    #     existingClaim: kasm-agent-config
+    #     mountPath: /etc/nginx/conf.d/containers.d
+    #     readOnly: true
     service:
       main:
         ports:
