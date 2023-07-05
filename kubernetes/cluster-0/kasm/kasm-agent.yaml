@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: redhat/ubi8 # kasmweb/agent
-      # tag: 1.13.1
+      tag: latest #1.13.1
     persistence:
       config:
         enabled: true
