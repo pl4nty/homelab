@@ -14,7 +14,7 @@ subjects:
   - name: kasm-proxy
     spec:
       fqdn: kasm.tplant.com.au
-      noTlsVerify: true
+      noTLSVerify: true
   - name: shapes
   - name: storeweb
     spec:
