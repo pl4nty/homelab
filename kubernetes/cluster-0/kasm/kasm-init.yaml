@@ -50,7 +50,7 @@ spec:
       tmp:
         enabled: true
         type: secret
-        name: kasm-seed-data
+        name: kasm
         mountPath: /tmp/default_properties.yaml
         subPath: default_properties.yaml
     service:

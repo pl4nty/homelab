@@ -5,7 +5,7 @@ metadata:
   namespace: default
 spec:
   instances: 1
-  imageName: ghcr.io/cloudnative-pg/postgresql:12
+  imageName: ghcr.io/cloudnative-pg/postgresql:12.15-7
 
   storage:
     size: 4Gi
@@ -14,3 +14,8 @@ spec:
     initdb:
       secret:
         name: kasm-cnpg
+      # uuid-ossp is trusted so we can install in app context
+      postInitApplicationSQLRefs:
+        secretRefs:
+        - name: kasm
+          key: data.sql
