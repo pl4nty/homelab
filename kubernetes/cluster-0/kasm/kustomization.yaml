@@ -14,6 +14,8 @@ secretGenerator:
   type: Opaque
   files:
   - api.app.config.yaml
+  - agent.app.config.yaml
+  - kasmguac.app.config.yaml
   - default_properties.yaml
   - data.sql
 

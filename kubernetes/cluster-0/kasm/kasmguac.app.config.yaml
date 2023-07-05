@@ -1,0 +1,21 @@
+kasmguac:
+  id: 57c16a7623284807b84df74c68a17218
+  port: 3000
+  server_address: kasm_guac
+  server_port: 443
+  zone: default
+  registration_token: lKnLSMPRNkxasvbxGwjn
+  kasm_delete_session_watch_interval: 60
+  logging:
+    errorEventName: error
+    logDirectory: /opt/kasm/current/log/
+    fileNamePattern: kasmguac-<DATE>.log
+    dateFormat: YYYY.MM.DD
+    timestampFormat: YYYY-MM-DD HH:mm:ss.SSS
+api:
+  hostnames:
+  - 'kasm-proxy'
+  port: 443
+  auth_token: 3bb6603c97fd4f668c778ad222b713fc
+  allow_self_signed_cert: true
+  hostname_refresh_interval: 30
