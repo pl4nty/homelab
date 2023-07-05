@@ -45,6 +45,11 @@ spec:
         type: emptyDir
         mountPath: /opt/kasm/current/tmp
         size: 1Gi
+    lifecycle:
+      # doesn't have to be before entrypoint, service will do 10 attempts
+      postStart:
+        exec:
+          command: [ "chown", "kasm:kasm", "/opt/kasm/current/conf/app/kasmguac.app.config.yaml" ]
     service:
       main:
         ports:
