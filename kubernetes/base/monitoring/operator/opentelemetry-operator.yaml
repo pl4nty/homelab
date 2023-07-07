@@ -33,7 +33,7 @@ spec:
       #   enabled: true
       targetAllocatorImage:
         repository: ghcr.io/open-telemetry/opentelemetry-operator/target-allocator
-        tag: v0.80.0
+        tag: v0.81.0
       # TODO remove once on by default
       featureGates: operator.autoinstrumentation.go
     admissionWebhooks:
