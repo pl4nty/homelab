@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: ghcr.io/pl4nty/kasm-nginx
-      tag: latest@sha256:ae82528b70f3a54f476533cbb34bf7b6a48586f7177337b4f2ba868715636540
+      tag: latest@sha256:93b026796188e8753cf0ced475a520320c5f3d38a70ab74f1b6c4724a70f2f9f
     configMaps:
       files:
         enabled: true
