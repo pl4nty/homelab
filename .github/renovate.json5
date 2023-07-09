@@ -17,7 +17,6 @@
   ],
   "ignoreTests": true,
   "suppressNotifications": ["prIgnoreNotification"],
-  "schedule": ["every saturday"],
   "flux": {
     "fileMatch": ["kubernetes/[^.]+\\.ya?ml$"]
   },
