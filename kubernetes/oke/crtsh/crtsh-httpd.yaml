@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: ghcr.io/pl4nty/crtsh-httpd
-      tag: latest@sha256:81fd0d1cb0f5ad78c77543150027322556b0c12f46889e2a33eee126b82363bd
+      tag: latest@sha256:aed9a0126772260af1c6720b9c82d14da389ad5b4daa8623f8b0edb403e1158e
     # no ARM image as of autoinstrumentation-apache-httpd:1.0.3
     podAnnotations:
       instrumentation.opentelemetry.io/inject-apache-httpd: "monitoring/opentelemetry-instrumentation"
