@@ -15,6 +15,7 @@
     "github>pl4nty/lab-infra//.github/renovate/semanticCommits.json5",
     "helpers:pinGitHubActionDigests"
   ],
+  "ignoreTests": true,
   "suppressNotifications": ["prIgnoreNotification"],
   "rebaseWhen": "conflicted",
   "schedule": ["every saturday"],
