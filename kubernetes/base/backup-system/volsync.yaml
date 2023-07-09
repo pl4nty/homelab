@@ -32,7 +32,7 @@ spec:
       disableAuth: true
     image: &image
       repository: ghcr.io/pl4nty/volsync
-      tag: latest@sha256:8ca807694dce2c2606c1dc8a7b1a4c95c2acf48c988afdb3687911cf384fb598
+      tag: latest@sha256:badb717674f94ca32a04c94edec580ad2581922493b277c42eac2d5560c84ea7
     rclone: *image
     restic: *image
     rsync: *image
