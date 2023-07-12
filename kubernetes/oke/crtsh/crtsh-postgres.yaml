@@ -40,7 +40,7 @@ spec:
       type: statefulset
     image:
       repository: ghcr.io/pl4nty/crtsh-postgres
-      tag: latest@sha256:22b549801c65fee7bf2045148ee68894f0ad84325202c7f019525d39b219076d
+      tag: latest@sha256:9e6715ed53efe76262777d1874a5f55d459910052564401e9344b7bb77b82a3d
     env:
       TZ: ${TIMEZONE}
       PGDATA: /var/lib/postgresql/data/pgdata
