@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: ghcr.io/pl4nty/crl-monitor
-      tag: latest@sha256:4c4708faa832d8583418c20a57b2723a647c901fad0f6a863db4acb9c6bc189d
+      tag: latest@sha256:9ccc64720dcd1ec0bc11cec3980fbe9ab9b952a112a86840375c37d10ed883bb
     args:
       - -conninfo
       - "host=crtsh-postgres port=5432 dbname=certwatch user=certwatch password=certwatch sslmode=disable"
