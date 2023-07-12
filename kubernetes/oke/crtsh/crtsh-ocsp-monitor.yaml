@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: ghcr.io/pl4nty/ocsp-monitor
-      tag: latest@sha256:b0d3d95150ed61052ea0179876945062e016924cfb4d2a4b35c70becf1275bac
+      tag: latest@sha256:7b1779a8aeb47986ade8e097c257a52823771a5f56f54920fe96387f24a71d15
     args:
       - -conninfo
       - "host=crtsh-postgres port=5432 dbname=certwatch user=certwatch password=certwatch sslmode=disable"
