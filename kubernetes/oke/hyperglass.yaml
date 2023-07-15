@@ -132,7 +132,7 @@ spec:
         image: redis:7.0.12
       ssh:
         name: ssh
-        image: ghcr.io/pl4nty/ubuntu-ssh:latest@sha256:8ac9353b27f9ff564389e98521a4dcbdf85a92f665f907e799887563b08a7f45
+        image: ghcr.io/pl4nty/ubuntu-ssh:latest@sha256:7078a8ae08ef03746f0641d796314bdd9ffb6bac709976a3d4bc9dcb7b689b5a
         # allow ICMP access. net.ipv4.ping_group_range="0 [the uid ie 1000]" may still be required on the node
         # note that Azure loadbalancers (node egress) don't support ICMP
         securityContext:
