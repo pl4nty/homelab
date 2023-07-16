@@ -11,12 +11,6 @@ subjects:
   - name: hrconvert2
     spec:
       fqdn: convert.tplant.com.au
-  - name: kasm-proxy
-    spec:
-      fqdn: kasm.tplant.com.au
-      # defaults to https, but noTlsVerify is ignored unless we explicitly set protocol
-      protocol: https
-      noTlsVerify: true
   - name: shapes
   - name: storeweb
     spec:
