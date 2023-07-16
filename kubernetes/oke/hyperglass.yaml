@@ -118,7 +118,7 @@ spec:
     probes:
       startup:
         spec:
-          initialDelaySeconds: 600
+          initialDelaySeconds: 300
     resources:
       requests:
         cpu: 10m
