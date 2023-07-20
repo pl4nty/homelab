@@ -98,7 +98,7 @@ spec:
     image:
       # quotes are required for regex
       # datasource=github-releases depName=immich-app/immich
-      tag: "v1.67.2"
+      tag: "v1.68.0"
 
     # current volume is ReadWriteOnce, so need affinity until we can get ReadWriteMany
     affinity:
