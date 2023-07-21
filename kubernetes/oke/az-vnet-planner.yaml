@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: ghcr.io/pl4nty/vnet-capacity-planner
-      tag: latest@sha256:cf5352c2511149469d4e8d9edbc18ef617aeae2a8eda11ecccb80935fb6d1476
+      tag: latest@sha256:3bdc8bc788ab63b7dc867e24ac074c65100bcdafaaf901dd2cd9707f2c9d5bd3
     service:
       main:
         ports:
