@@ -61,10 +61,11 @@ spec:
       args:
       - -c
       - "PYTHONPATH=$PYTHONPATH:/usr/src python -m app.main"
-      persistence:
-        cache:
-          type: pvc
-          accessMode: ReadWriteOnce
+      # persistence:
+      #   cache:
+      #     # 10Gi, avoid downloading ML models every startup
+      #     type: pvc
+      #     accessMode: ReadWriteOnce
 
     microservices:
       podAnnotations:
@@ -77,30 +78,18 @@ spec:
     web:
       podAnnotations:
         instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
-    #   persistence:
-    #     config:
-    #       enabled: true
-    #       type: configMap
-    #       name: immich-web-config
-    #       mountPath: /usr/src/app/build/client/_app/immutable/assets/immich-logo.18dcdcef.svg
-    #       subPath: immich-logo.18dcdcef.svg
-    #   configMaps:
-    #     config:
-    #       enabled: true
-    #       data:
-    #         immich-logo.18dcdcef.svg: ''
         
-    # chart can't create PVC for library?
-    immich:
-      persistence:
-        library:
-          existingClaim: immich-library
     image:
       # quotes are required for regex
       # datasource=github-releases depName=immich-app/immich
       tag: "v1.68.0"
 
-    # current volume is ReadWriteOnce, so need affinity until we can get ReadWriteMany
+    # chart can't create PVC for library?
+    immich:
+      persistence:
+        library:
+          existingClaim: immich-library
+    # affinity for ReadWriteOnce library volume
     affinity:
       podAffinity: 
         requiredDuringSchedulingIgnoredDuringExecution: 
