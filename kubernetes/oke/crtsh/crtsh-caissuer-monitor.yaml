@@ -26,7 +26,7 @@ spec:
     keepHistory: false
   values:
     controller:
-      replicas: 0
+      replicas: 1
     image:
       repository: ghcr.io/pl4nty/caissuer-monitor
       tag: latest@sha256:079e6e7d4b33e4dc0e028b3cfa4450b519d749f76c25cc95cc95b43c672af943
