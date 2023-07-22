@@ -37,7 +37,7 @@ spec:
       requests:
         memory: 8Gi
       limits:
-        memory: 16Gi
+        memory: 12Gi
     configMaps:
       files:
         enabled: true
