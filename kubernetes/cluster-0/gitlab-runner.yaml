@@ -25,10 +25,10 @@ spec:
     keepHistory: false
   values:
     # doesn't seem to support bpf_probe_write_user
-    # podAnnotations:
-    #   sidecar.opentelemetry.io/inject: "monitoring/opentelemetry-sidecar" # go currently requires sidecar, but it's not enabled automatically
-    #   instrumentation.opentelemetry.io/inject-go: "monitoring/opentelemetry-instrumentation-sidecar"
-    #   instrumentation.opentelemetry.io/otel-go-auto-target-exe: "/usr/bin/gitlab-runner"
+    podAnnotations:
+      sidecar.opentelemetry.io/inject: "monitoring/opentelemetry-sidecar" # go currently requires sidecar, but it's not enabled automatically
+      instrumentation.opentelemetry.io/inject-go: "monitoring/opentelemetry-instrumentation-sidecar"
+      instrumentation.opentelemetry.io/otel-go-auto-target-exe: "/usr/bin/gitlab-runner"
     gitlabUrl: https://gitlab.com/
     rbac:
       create: true
