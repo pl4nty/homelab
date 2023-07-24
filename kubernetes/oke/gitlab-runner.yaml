@@ -37,6 +37,7 @@ spec:
         resources: ["*"]
         verbs: ["*"]
     unregisterRunners: true
+    image: gitlab/gitlab-runner:ubuntu-v16.2.0 # was alpine
     runners:
       secret: gitlab-runner
       # not sure why, but this variable doesn't get filled
