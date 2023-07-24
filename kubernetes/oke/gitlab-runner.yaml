@@ -26,7 +26,7 @@ spec:
   values:
     podAnnotations:
       sidecar.opentelemetry.io/inject: "monitoring/opentelemetry-sidecar" # go currently requires sidecar, but it's not enabled automatically
-      instrumentation.opentelemetry.io/inject-go: "monitoring/opentelemetry-instrumentation-sidecar"
+      instrumentation.opentelemetry.io/inject-go: "monitoring/opentelemetry-instrumentation-sidecar-gitlab"
       instrumentation.opentelemetry.io/otel-go-auto-target-exe: "/usr/bin/gitlab-runner"
     gitlabUrl: https://gitlab.com/
     rbac:
@@ -37,11 +37,6 @@ spec:
         resources: ["*"]
         verbs: ["*"]
     unregisterRunners: true
-    image:
-      # list registry and image for renovate
-      registry: registry.gitlab.com
-      image: gitlab-org/gitlab-runner
-      tag: ubuntu-v16.2.0 # was alpine
     runners:
       secret: gitlab-runner
       # not sure why, but this variable doesn't get filled
