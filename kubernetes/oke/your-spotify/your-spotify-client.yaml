@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: yooooomi/your_spotify_client
-      tag: 1.6.0
+      tag: 1.7.0
     env:
       TIMEZONE: ${TIMEZONE}
       API_ENDPOINT: https://spotify-api.${PUBLIC_DOMAIN}
