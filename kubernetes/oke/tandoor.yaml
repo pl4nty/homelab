@@ -39,11 +39,11 @@ spec:
       POSTGRES_PORT: "5432"
       POSTGRES_USER: 
         secretKeyRef:
-          name: tandoor-app
+          name: tandoor-cnpg-app
           key: username
       POSTGRES_PASSWORD:
         secretKeyRef:
-          name: tandoor-app
+          name: tandoor-cnpg-app
           key: password
       POSTGRES_DB: app
       # GUNICORN_MEDIA: "0"
