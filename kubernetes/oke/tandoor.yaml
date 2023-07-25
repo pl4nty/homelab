@@ -1,0 +1,155 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: tandoor
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.1
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    image:
+      repository: vabene1111/recipes
+      tag: 1.5.4
+    envFrom:
+    - secretRef:
+        name: tandoor
+    env:
+      # DEBUG: "0"
+      # ALLOWED_HOSTS: "*"
+      DB_ENGINE: django.db.backends.postgresql
+      POSTGRES_HOST: tandoor-cnpg-rw
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: 
+        secretKeyRef:
+          name: tandoor-app
+          key: username
+      POSTGRES_PASSWORD:
+        secretKeyRef:
+          name: tandoor-app
+          key: password
+      POSTGRES_DB: app
+      # GUNICORN_MEDIA: "0"
+      # TIMEZONE: ${TIMEZONE}
+      # TANDOOR_PORT: 8888
+      # FRACTION_PREF_DEFAULT: "0"
+      # COMMENT_PREF_DEFAULT: "1"
+      # SHOPPING_MIN_AUTOSYNC_INTERVAL: "5"
+    # command:
+    #   - /opt/recipes/venv/bin/gunicorn
+    #   - -b
+    #   - :8888
+    #   - --access-logfile
+    #   - "-"
+    #   - --error-logfile
+    #   - "-"
+    #   - --log-level
+    #   - INFO
+    #   - recipes.wsgi
+    service:
+      main:
+        ports:
+          http:
+            port: 8080
+          # nginx:
+          #   port: &port2 8080
+    persistence:
+      config:
+        enabled: true
+        mountPath: /opt/recipes/mediafiles
+      # nginx-config:
+      #   enabled: "true"
+      #   mountPath: /etc/nginx/nginx.conf
+      #   subPath: nginx-config
+      #   type: "custom"
+      #   volumeSpec:
+      #     configMap:
+      #       name: tandoor-configmap
+      # django-js-reverse:
+      #   enabled: true
+      #   type: emptyDir
+      #   mountPath: /opt/recipes/cookbook/static/django_js_reverse
+      static:
+        enabled: true
+        mountPath: /opt/recipes/staticfiles
+        type: emptyDir
+      # cache:
+      #   enabled: true
+      #   mountPath: /mnt/cache
+      #   type: emptyDir
+    # podSecurityContext:
+    #   runAsUser: 568
+    #   runAsGroup: 568
+    #   fsGroup: 568
+    #   fsGroupChangePolicy: "OnRootMismatch"
+    # resources:
+    #   requests:
+    #     cpu: 100m
+    #     memory: 256Mi
+    #   limits:
+    #     memory: 512Mi
+    # initContainers:
+    #   01-init-migrate:
+    #     image: vabene1111/recipes:1.5.4
+    #     env:
+    #       - name: DB_ENGINE
+    #         value: django.db.backends.postgresql_psycopg2
+    #       - name: POSTGRES_HOST
+    #         value: tandoor-cnpg-rw
+    #       - name: POSTGRES_PORT
+    #         value: "5432"
+    #       - name: POSTGRES_DB
+    #         value: app
+    #     envFrom:
+    #       - secretRef:
+    #           name: tandoor-secret
+    #     command:
+    #     - sh
+    #     - -c
+    #     - |
+    #       set -e
+    #       source /opt/recipes/venv/bin/activate
+    #       echo "Updating database"
+    #       python3 /opt/recipes/manage.py migrate
+    #       python3 /opt/recipes/manage.py collectstatic_js_reverse
+    #       python3 /opt/recipes/manage.py collectstatic --noinput
+    #     volumeMounts:
+    #       - name: django-js-reverse
+    #         mountPath: /opt/recipes/cookbook/static/django_js_reverse
+    #       - name: static
+    #         mountPath: /opt/recipes/staticfiles
+    # sidecars:
+    #   nginx:
+    #     image: nginxinc/nginx-unprivileged:1.25.1-alpine
+    #     imagePullPolicy: IfNotPresent
+    #     ports:
+    #       - name: nginx
+    #         containerPort: *port2
+    #     volumeMounts:
+    #       - name: nginx-config
+    #         readOnly: true
+    #         mountPath: /etc/nginx/nginx.conf
+    #         subPath: nginx-config
+    #       - name: files
+    #         mountPath: /media
+    #       - name: static
+    #         mountPath: /static
+    #       - name: cache
+    #         mountPath: /var/cache/nginx

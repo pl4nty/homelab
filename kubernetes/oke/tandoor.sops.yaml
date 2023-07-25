@@ -1,0 +1,28 @@
+kind: Secret
+apiVersion: v1
+metadata:
+    name: tandoor
+    namespace: default
+type: Opaque
+stringData:
+    SECRET_KEY: ENC[AES256_GCM,data:WXOlApmVF8aXvAdi8IXfnXGH7+++e0hcDg==,iv:RFmhbYQJtxgWogXQITlgAMtvKj/0qotfbRHZZ8NHEmg=,tag:dtioU6/nAKsJHKI+hAj57A==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBnbll4V05qUUNxMmhmQnpV
+            bkcyZldvNUQ1K0krTHlrZU9yQzkrVXdYeVJnCk5Dbkk3MXJCZkZPY0VISTRoR0g2
+            Y1paK2ZJcnpmRG5HczZPUTlBK2FTeWsKLS0tIFE4NTZmS2dYbU9kbzZFWm9hd2Nz
+            VnloS3pQL0R6enlraWtXSDlXQys1dDAKDp2qtedSAIWTjsZZAZpGrqjxWtp7qpml
+            l2IEk3kxzCtmZooZHo6LVl9zKxbPcJQwophA+dhZ0UMwXUfxcT+R2w==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-07-25T11:39:00Z"
+    mac: ENC[AES256_GCM,data:DH1uWOdA0cVpuJgKIzn+4agwZfNM+a/GmdiL+MZDO1gHY5yIUA9ch9XA1BVCwo1mIJO2K0Gj4CHUuSCxsocj7EBaFJjOyb1s8yMlqbqjnVKRahp4C1EjrCzmkvzaD1TJjpKdWfTENW3rWofqbjo5+SyLG5NK3h6cZIPwr11W1yM=,iv:u1tINacVItViB9p1vdn42xcnLLDpGihkDxM0paHVbPQ=,tag:NTZDsyTmKhbCHO0E/3Qm8w==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData)$
+    version: 3.7.3
