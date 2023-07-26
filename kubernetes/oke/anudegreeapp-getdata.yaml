@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: quay.io/curl/curl
-      tag: 8.2.0
+      tag: 8.2.1
     controller:
       type: cronjob
       cronjob:
