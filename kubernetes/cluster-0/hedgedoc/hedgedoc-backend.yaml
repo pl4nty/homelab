@@ -28,20 +28,12 @@ spec:
     image:
       repository: ghcr.io/hedgedoc/hedgedoc/backend
       tag: develop
+    podAnnotations:
+      instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
     env:
       HD_BASE_URL: https://hedgedoc.${PUBLIC_DOMAIN}
-      HD_DATABASE_TYPE: postgres
-      HD_DATABASE_HOST: hedgedoc-cnpg-rw
-      HD_DATABASE_PORT: '5432'
-      HD_DATABASE_NAME: app
-      HD_DATABASE_USER: 
-        secretKeyRef:
-          name: hedgedoc-cnpg-app
-          key: username
-      HD_DATABASE_PASS:
-        secretKeyRef:
-          name: hedgedoc-cnpg-app
-          key: password
+      HD_DATABASE_TYPE: sqlite
+      HD_DATABASE_NAME: hedgedoc.sqlite
       HD_MEDIA_BACKEND: filesystem
       HD_MEDIA_BACKEND_FILESYSTEM_UPLOAD_PATH: uploads/
       HD_AUTH_LOCAL_ENABLE_LOGIN: 'true'

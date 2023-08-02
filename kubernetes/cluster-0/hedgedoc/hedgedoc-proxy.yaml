@@ -44,6 +44,10 @@ spec:
               format console
             }
 
+            tracing {
+              span proxy
+            }
+
             reverse_proxy /realtime http://hedgedoc-backend:3000
             reverse_proxy /api/* http://hedgedoc-backend:3000
             reverse_proxy /public/* http://hedgedoc-backend:3000
