@@ -29,7 +29,7 @@ spec:
       repository: ghcr.io/hedgedoc/hedgedoc/frontend
       tag: develop
     env:
-      HD_BASE_URL: hedgedoc.${PUBLIC_DOMAIN}
+      HD_BASE_URL: https://hedgedoc.${PUBLIC_DOMAIN}
     service:
       main:
         ports:

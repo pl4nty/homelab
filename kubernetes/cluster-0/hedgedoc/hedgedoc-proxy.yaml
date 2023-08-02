@@ -30,7 +30,7 @@ spec:
       repository: caddy
       tag: latest
     env:
-      HD_BASE_URL: http://hedgedoc.${PUBLIC_DOMAIN}
+      HD_BASE_URL: https://hedgedoc.${PUBLIC_DOMAIN}
     configMaps:
       config:
         enabled: true
@@ -50,6 +50,8 @@ spec:
             reverse_proxy /uploads/* http://hedgedoc-backend:3000
             reverse_proxy /apidoc/* http://hedgedoc-backend:3000
             reverse_proxy /* http://hedgedoc-frontend:3001
+
+            auto_https: off
     persistence:
       caddyfile:
         enabled: true
@@ -61,4 +63,4 @@ spec:
       main:
         ports:
           http:
-            port: 80
+            port: 443
