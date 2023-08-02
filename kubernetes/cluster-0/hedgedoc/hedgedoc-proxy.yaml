@@ -40,7 +40,7 @@ spec:
 
             log {
               output stdout
-              level WARN
+              level DEBUG
               format console
             }
 
