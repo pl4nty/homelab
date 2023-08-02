@@ -36,15 +36,11 @@ spec:
         enabled: true
         data:
           Caddyfile: |
-            {
-              debug
-            }
-
             {$HD_BASE_URL}
 
             log {
               output stdout
-              level DEBUG
+              level WARN
               format console
             }
 
