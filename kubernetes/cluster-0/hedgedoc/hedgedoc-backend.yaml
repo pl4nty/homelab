@@ -57,4 +57,4 @@ spec:
       main:
         ports:
           http:
-            port: 3001
+            port: 3000
