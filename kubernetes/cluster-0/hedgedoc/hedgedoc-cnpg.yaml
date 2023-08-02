@@ -1,0 +1,10 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: hedgedoc-cnpg
+  namespace: default
+spec:
+  instances: 1
+
+  storage:
+    size: 4Gi

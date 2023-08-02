@@ -1,0 +1,64 @@
+# Until this is merged: https://github.com/adyanth/cloudflare-operator/pull/89
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: hedgedoc-proxy
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.1
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    image:
+      repository: caddy
+      tag: latest
+    env:
+      HD_BASE_URL: https://hedgedoc.${PUBLIC_DOMAIN}
+    configMaps:
+      config:
+        enabled: true
+        data:
+          Caddyfile: |
+            {$HD_BASE_URL}
+
+            log {
+              output stdout
+              level WARN
+              format console
+            }
+
+            reverse_proxy /realtime http://hedgedoc-backend:3000
+            reverse_proxy /api/* http://hedgedoc-backend:3000
+            reverse_proxy /public/* http://hedgedoc-backend:3000
+            reverse_proxy /uploads/* http://hedgedoc-backend:3000
+            reverse_proxy /apidoc/* http://hedgedoc-backend:3000
+            reverse_proxy /* http://hedgedoc-frontend:3001
+    persistence:
+      caddyfile:
+        enabled: true
+        type: configMap
+        name: hedgedoc-proxy-config
+        mountPath: /etc/caddy/Caddyfile
+        subPath: Caddyfile
+    service:
+      main:
+        ports:
+          http:
+            port: 80
