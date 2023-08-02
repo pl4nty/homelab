@@ -36,7 +36,17 @@ spec:
         enabled: true
         data:
           Caddyfile: |
+            {
+              debug
+            }
+
             {$HD_BASE_URL}
+
+            log {
+              output stdout
+              level DEBUG
+              format console
+            }
 
             reverse_proxy /realtime http://hedgedoc-backend:3000
             reverse_proxy /api/* http://hedgedoc-backend:3000
