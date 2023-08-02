@@ -30,7 +30,7 @@ spec:
       repository: caddy
       tag: latest
     env:
-      HD_BASE_URL: https://hedgedoc.${PUBLIC_DOMAIN}
+      HD_BASE_URL: http://localhost
     configMaps:
       config:
         enabled: true
