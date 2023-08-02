@@ -36,6 +36,10 @@ spec:
         enabled: true
         data:
           Caddyfile: |
+            {
+              auto_https off
+            }
+
             {$HD_BASE_URL}
 
             log {
@@ -50,8 +54,6 @@ spec:
             reverse_proxy /uploads/* http://hedgedoc-backend:3000
             reverse_proxy /apidoc/* http://hedgedoc-backend:3000
             reverse_proxy /* http://hedgedoc-frontend:3001
-
-            auto_https: off
     persistence:
       caddyfile:
         enabled: true
