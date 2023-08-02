@@ -30,16 +30,12 @@ spec:
       repository: caddy
       tag: latest
     env:
-      HD_BASE_URL: https://hedgedoc.${PUBLIC_DOMAIN}
+      HD_BASE_URL: http://hedgedoc.${PUBLIC_DOMAIN}
     configMaps:
       config:
         enabled: true
         data:
           Caddyfile: |
-            {
-              auto_https off
-            }
-
             {$HD_BASE_URL}
 
             log {
