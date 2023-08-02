@@ -11,6 +11,7 @@ subjects:
   - name: hedgedoc-proxy
     spec:
       fqdn: hedgedoc.tplant.com.au
+      noTlsVerify: true
   - name: hrconvert2
     spec:
       fqdn: convert.tplant.com.au
