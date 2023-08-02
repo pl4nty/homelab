@@ -30,7 +30,6 @@ spec:
       tag: develop
     env:
       HD_BASE_URL: https://hedgedoc.${PUBLIC_DOMAIN}
-      HD_RENDERER_BASE_URL: http://hedgedoc.${PUBLIC_DOMAIN}
     service:
       main:
         ports:
