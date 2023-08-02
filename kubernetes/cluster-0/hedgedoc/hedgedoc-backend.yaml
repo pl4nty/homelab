@@ -29,7 +29,7 @@ spec:
       repository: ghcr.io/hedgedoc/hedgedoc/backend
       tag: develop
     env:
-      HD_BASE_URL: https://hedgedoc.${PUBLIC_DOMAIN}
+      HD_BASE_URL: http://hedgedoc.${PUBLIC_DOMAIN}
       HD_DATABASE_TYPE: postgres
       HD_DATABASE_HOST: hedgedoc-cnpg-rw
       HD_DATABASE_PORT: '5432'
