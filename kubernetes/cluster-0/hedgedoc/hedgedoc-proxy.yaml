@@ -49,9 +49,9 @@ spec:
             reverse_proxy /public/* http://hedgedoc-backend:3000
             reverse_proxy /uploads/* http://hedgedoc-backend:3000
             reverse_proxy /apidoc/* http://hedgedoc-backend:3000
-            reverse_proxy /* http://hedgedoc-frontend:3001
-            
-            header_up Host "https://hedgedoc.${PUBLIC_DOMAIN}"
+            reverse_proxy /* http://hedgedoc-frontend:3001 {
+              header_up Host "https://hedgedoc.${PUBLIC_DOMAIN}"
+            }
     persistence:
       caddyfile:
         enabled: true
