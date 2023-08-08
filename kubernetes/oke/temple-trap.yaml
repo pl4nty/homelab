@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: ghcr.io/pl4nty/temple-trap
-      tag: latest@sha256:870ecc50cff6f52f2e532f316ba06783e172aca4bc5e06711c32c43381b6c0d5
+      tag: latest@sha256:974fe7d9a734aa62a7150975cde427f73d174c983bfab188bff8b6623df167a8
     podAnnotations:
       instrumentation.opentelemetry.io/inject-java: "monitoring/opentelemetry-instrumentation"
     service:
