@@ -77,6 +77,10 @@ programs:
       installed: false
     test:
       installed: false
+    # fix incorrect url
+    home_assistant:
+      template_args:
+        url: "http://home-assistant:8123/api/conversation/process"
 
   snd:
     udp_raw:
