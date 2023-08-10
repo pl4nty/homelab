@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     image:
-      repository: rhasspy/rhasspy3-addon-base
-      tag: en-0.0.1
+      repository: ghcr.io/pl4nty/rhasspy3-addon
+      tag: sha256:855317da0080eade2eec353688901d3fd2cd29fb14482c579064d55a38ef61b9
     command:
     - script/http_server
     - --debug

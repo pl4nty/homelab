@@ -11,8 +11,8 @@ programs:
       installed: false
 
   wake:
-    porcupine1:
-      installed: false
+    # porcupine1:
+    #   installed: false
     snowboy:
       installed: false
     precise-lite:
