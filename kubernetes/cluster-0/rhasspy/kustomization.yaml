@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- rhasspy.sops.yaml
+- rhasspy.yaml
+- rhasspy3_configuration.yaml
+
+configMapGenerator:
+- name: rhasspy
+  namespace: default
+  files:
+  - rhasspy3_configuration.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true

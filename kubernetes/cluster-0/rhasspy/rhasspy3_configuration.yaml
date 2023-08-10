@@ -1,0 +1,105 @@
+# https://github.com/rhasspy/hassio-addons/blob/master/rhasspy3-en/rhasspy3_configuration.yaml
+programs:
+  mic:
+    pyaudio:
+      installed: false
+    sounddevice:
+      installed: false
+    gstreamer_udp:
+      installed: false
+    udp_raw:
+      installed: false
+
+  wake:
+    porcupine1:
+      installed: false
+    snowboy:
+      installed: false
+    precise-lite:
+      installed: false
+
+  vad:
+    webrtcvad:
+      installed: false
+    energy:
+      installed: false
+
+  asr:
+    vosk:
+      installed: false
+    vosk.client:
+      installed: false
+    coqui-stt:
+      installed: false
+    coqui-stt.client:
+      installed: false
+    pocketsphinx:
+      installed: false
+    pocketsphinx.client:
+      installed: false
+    whisper:
+      installed: false
+    whisper.client:
+      installed: false
+    whisper-cpp:
+      installed: false
+    whisper-cpp.client:
+      installed: false
+
+  tts:
+    larynx1:
+      installed: false
+    larynx1.client:
+      installed: false
+    espeak-ng:
+      installed: false
+    flite:
+      installed: false
+    festival:
+      installed: false
+    coqui-tts:
+      installed: false
+    coqui-tts.client:
+      installed: false
+    marytts:
+      installed: false
+    mimic3:
+      installed: false
+    mimic3.client:
+      installed: false
+
+  intent:
+    regex:
+      installed: false
+
+  handle:
+    date_time:
+      installed: false
+    test:
+      installed: false
+
+  snd:
+    udp_raw:
+      installed: false
+
+servers:
+  asr:
+    faster-whisper:
+      template_args:
+        language: "en"
+  tts:
+    larynx2:
+      template_args:
+        model: "${data_dir}/en-us-blizzard_lessac-medium.onnx"
+
+
+pipelines:
+  default:
+    asr:
+      name: faster-whisper.client
+    handle:
+      name: home_assistant
+      template_args:
+        url: "http://home-assistant:8123/api/conversation/process"
+    tts:
+      name: larynx2.client

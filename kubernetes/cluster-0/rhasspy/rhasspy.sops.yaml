@@ -1,0 +1,28 @@
+kind: Secret
+apiVersion: v1
+metadata:
+    name: rhasspy
+    namespace: default
+type: Opaque
+stringData:
+    token: ENC[AES256_GCM,data:2xZasw5bSk8i46J4ig4LVZOZImT1NGe2qvGxp20GLrxFSLFTO57sYael7MGRPOVrAz/FfV6iz0UztcnX2bd1j5DldHUNkJSAf8USe5X+I704kMwvmfoaF29Oy+0SjUJjKZUuX4rWEMhMF2VESc7a5ArYfa9WHyilzZYeqwIxc9Js7g1ceNuarDgpyepvodgxWCh+YPy1dAnnxtyz/1jZr6X+FOGf8A0b4GE38zOJbr7Y9+Qjzr0T,iv:FXI3+BNEAsRTRrDu1VIfnyurOMZr0Ey4gDZwq9v5vI0=,tag:+ZD8nHu8+qal02F2DJTdNQ==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSB0UEtqR0tJT0xTdEt3bG5Z
+            S2hWUUFIYTBIQ0lJODdkbG5UNkpabzRkcHhzCktocTY5cDIrK21HYS9tMVY1d3FI
+            dXVQZGE1NjVNYUh1Wkw4VFpOM2dhZ2sKLS0tIHZlQWhxaW9TZ1RxVFhVYWUrclZt
+            RHJXOXFNdG9LZjh3ZXRGaGlBb0JLRDAKjJ/VbjcsPuT4cwq86Q5rnioAp4xQTaaZ
+            fCokRKESUwEIlooUbY94KuJuXrlTQMNs0GtMv+RgBQotPYiaBXEU9g==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-08-10T09:34:14Z"
+    mac: ENC[AES256_GCM,data:xdiAyXGiy0vrrkwiT0OINz9sm56+TNrsbDYaGXsjPPP3eqG5KARKpLxR84z2IQ4Ds6js70nlFaeuThXwq6i7QSzaSSGmAA3+MTJqdBpvs0U+ejy79mYYhxMNAd2LDN+FGnnTajwKYD3CO3Dd+QSHXB04gT/syx8QM6T7EqED03Y=,iv:vSTRG2vEOwzq8zaqwFt5AL6SGyrln8Ej4KOFbVHkUII=,tag:iI0K+w74y1ra/A8m4PZA7Q==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData)$
+    version: 3.7.3
