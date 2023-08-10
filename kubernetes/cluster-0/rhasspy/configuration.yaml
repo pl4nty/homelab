@@ -107,3 +107,5 @@ pipelines:
         url: "http://home-assistant:8123/api/conversation/process"
     tts:
       name: larynx2.client
+    wake:
+      name: porcupine1
