@@ -9,7 +9,7 @@ configMapGenerator:
 - name: rhasspy
   namespace: default
   files:
-  - rhasspy3_configuration.yaml
+  - configuration.yaml
 
 generatorOptions:
   disableNameSuffixHash: true
