@@ -4,7 +4,6 @@ kind: Kustomization
 resources:
 - rhasspy.sops.yaml
 - rhasspy.yaml
-- rhasspy3_configuration.yaml
 
 configMapGenerator:
 - name: rhasspy
