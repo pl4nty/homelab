@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: ghcr.io/pl4nty/rhasspy3-addon
-      tag: latest@sha256:855317da0080eade2eec353688901d3fd2cd29fb14482c579064d55a38ef61b9
+      tag: latest@sha256:033737bebecf121d8f10430042ea84b6caf7c33aa3979968d65b6fc6932a47cc
     command:
     - script/http_server
     - --debug
