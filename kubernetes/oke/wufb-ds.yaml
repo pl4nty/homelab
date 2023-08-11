@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: ghcr.io/pl4nty/wufb-ds
-      tag: latest@sha256:bd166ecb389e7fc741248a8a9ba421df6ded6eb156613b5081b8c9360ba3c240
+      tag: latest@sha256:60e62a24343cd56d30859c29c27b7e5fbf0ffd21511a6219c559c24913748378
     service:
       main:
         ports:
