@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: ghcr.io/pl4nty/tsuro
-      tag: latest@sha256:13a6581937103e83005d55553d1cf8a09339b01e9ab31426ee8acb9bb152c2e3
+      tag: latest@sha256:e9f01ac41ffb5d85efbd8529bb7f4814eaba1407c8b46620685d4209ce0e7a4d
     podAnnotations:
       instrumentation.opentelemetry.io/inject-java: "monitoring/opentelemetry-instrumentation"
     resources:
