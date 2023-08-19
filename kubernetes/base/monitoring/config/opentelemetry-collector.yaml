@@ -113,14 +113,6 @@ spec:
             to: body
 
     extensions:
-      health_check:
-        port: 13133
-      pprof:
-        endpoint: "localhost:1777"
-        block_profile_fraction: 0
-        mutex_profile_fraction: 0
-      zpages:
-        endpoint: "localhost:55679"
       basicauth/traces:
         client_auth:
           username: $${env:TRACES_USERNAME}
@@ -186,7 +178,7 @@ spec:
           value: namespace, pod, container, cluster
 
     service:
-      extensions: [ health_check, pprof, zpages, basicauth/traces, basicauth/metrics, basicauth/logs ]
+      extensions: [ basicauth/traces, basicauth/metrics, basicauth/logs ]
       pipelines:
         traces:
           receivers: [ otlp ]
