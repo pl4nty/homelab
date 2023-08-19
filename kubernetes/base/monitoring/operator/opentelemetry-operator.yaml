@@ -31,9 +31,6 @@ spec:
       # controller_runtime_webhook_latency_seconds_bucket has high cardinality, no option to drop as of 0.33.0
       # serviceMonitor:
       #   enabled: true
-      targetAllocatorImage:
-        repository: ghcr.io/open-telemetry/opentelemetry-operator/target-allocator
-        tag: v0.83.0
       # TODO remove once on by default
       featureGates: operator.autoinstrumentation.go
     admissionWebhooks:
