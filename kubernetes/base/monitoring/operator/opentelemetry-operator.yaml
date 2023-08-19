@@ -33,6 +33,8 @@ spec:
       #   enabled: true
       # TODO remove once on by default
       featureGates: operator.autoinstrumentation.go
+      image:
+        tag: v0.81.0 # v0.81 generates a 0 port in collector which can't deploy
     admissionWebhooks:
       certManager:
         enabled: false
