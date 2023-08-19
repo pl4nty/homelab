@@ -122,9 +122,6 @@ spec:
         client_auth:
           username: $${env:LOGS_USERNAME}
           password: $${env:METRICS_PASSWORD}
-      health_check:
-        service:
-          extensions: [health_check]
 
     exporters:
       otlp:
@@ -178,7 +175,7 @@ spec:
           value: namespace, pod, container, cluster
 
     service:
-      extensions: [ basicauth/traces, basicauth/metrics, basicauth/logs ]
+      extensions: [ health_check, pprof, zpages, basicauth/traces, basicauth/metrics, basicauth/logs ]
       pipelines:
         traces:
           receivers: [ otlp ]
