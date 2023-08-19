@@ -30,7 +30,10 @@ spec:
         protocols:
           grpc:
           http:
-      k8s_events: {}
+      k8sobjects:
+        objects:
+          - name: events
+            mode: watch
       prometheus:
         config:
           scrape_configs:
