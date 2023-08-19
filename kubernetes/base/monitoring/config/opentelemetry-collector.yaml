@@ -189,7 +189,7 @@ spec:
           processors: [ batch ]
           exporters: [ prometheusremotewrite ]
         logs:
-          receivers: [ filelog, k8s_events ]
+          receivers: [ filelog, k8sobjects ]
           processors: [ attributes, resource, batch ]
           exporters: [ loki ]
 ---
