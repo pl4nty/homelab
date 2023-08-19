@@ -122,6 +122,9 @@ spec:
         client_auth:
           username: $${env:LOGS_USERNAME}
           password: $${env:METRICS_PASSWORD}
+      health_check:
+        service:
+          extensions: [health_check]
 
     exporters:
       otlp:

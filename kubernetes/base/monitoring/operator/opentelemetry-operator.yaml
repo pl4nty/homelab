@@ -34,6 +34,5 @@ spec:
       # TODO remove once on by default
       featureGates: operator.autoinstrumentation.go
     admissionWebhooks:
-      autoGenerateCert: true
       certManager:
         enabled: false
