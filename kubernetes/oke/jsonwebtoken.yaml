@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: ghcr.io/pl4nty/jsonwebtoken
-      tag: latest@sha256:967f3d57bbb1630b80dff83a3955511985c145104ee75ad89612cbfb9adeecee
+      tag: latest@sha256:75b5df3b02d001f4f2f6835a2723e55a5c1dfb54268082fd2ad59d059c004c62
     env:
       SERVER_LOG_LEVEL: info
       SERVER_PORT: 8080
