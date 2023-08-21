@@ -37,7 +37,7 @@ spec:
 apiVersion: networking.cfargotunnel.com/v1alpha1
 kind: TunnelBinding
 metadata:
-  name: cloudflare-tunnel
+  name: winget
   namespace: default
 subjects:
   - name: winget
