@@ -50,6 +50,7 @@ subjects:
   - name: tandoor
     spec:
       fqdn: recipes.${PUBLIC_DOMAIN}
+  - name: winget
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel
