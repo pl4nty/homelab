@@ -10,7 +10,7 @@ spec:
     accountName: tom@tplant.com.au
     domain: tplant.com.au
     secret: cloudflare-api
-  image: cloudflare/cloudflared:2023.7.3
+  image: cloudflare/cloudflared:2023.8.0
   newTunnel:
     name: lab-infra-cluster-1
   size: 1
