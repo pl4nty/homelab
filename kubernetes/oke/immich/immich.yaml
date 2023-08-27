@@ -83,7 +83,7 @@ spec:
     image:
       # quotes are required for regex
       # datasource=github-releases depName=immich-app/immich
-      tag: "v1.75.1"
+      tag: "v1.75.2"
 
     # chart can't create PVC for library?
     immich:
