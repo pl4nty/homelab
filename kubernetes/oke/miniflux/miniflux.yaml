@@ -31,8 +31,9 @@ spec:
     env:
       RUN_MIGRATIONS: "1"
       CREATE_ADMIN: "1"
-      BASE_URL: http://rss.${PUBLIC_DOMAIN}
+      BASE_URL: rss.${PUBLIC_DOMAIN}
       DEBUG: "1"
+      LISTEN_ADDR: 0.0.0.0:8080
     envFrom:
     - secretRef:
         name: miniflux
