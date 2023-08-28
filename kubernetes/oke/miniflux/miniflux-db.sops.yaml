@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: miniflux-db
+    namespace: default
+type: kubernetes.io/basic-auth
+data:
+    username: ENC[AES256_GCM,data:R5c+,iv:H2bZ2Up4taOGEPjmVbaVbTovpSJo/S/BheJYEKtw8vc=,tag:PJpIxIdKsdHcZtrMLJSFbQ==,type:str]
+    password: ENC[AES256_GCM,data:BYT4oh5gmNEqNSa5lYOV0gOlJX9uYkYR,iv:nVUGHIiNDZ2X649LJboGKRXR5aRNe5eV7sVABE2p1u0=,tag:RVM4Q23DWLMLAxn7B5MUWw==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBnSUJhSzc2OFVuUlNlTFAz
+            KzdwaVlaeS9OdnpIdGtGMHVFT2Y5T0J4Q1ZFCktwS0g3QXZYUldhNkpMb3ozQjJz
+            YzNQelQxM2wwZERwTmFWMGgzLzBpYU0KLS0tIE9ZTlpPejZNM0VvemV2QTV5cWdB
+            dThqdFFmb0p6U3hQUEZuMDJHY09Ud1EKuS5P1CP/XtrQFfgWl6JGpxIJljgdy/rZ
+            Z6wBW6hyB9RYW4XzTAkiY1NhciWmdhwu4DazBqrVbJDfywn0m8GJRw==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-08-28T09:16:00Z"
+    mac: ENC[AES256_GCM,data:qozbhW5pEKzge4qQJddYdhaaxBkVgUjLNIMYJr/vbwDWm9XY/jcwdNqkHYNLb59ihevCz3EnqiApFA/dDMybGJvIitkQrqjuQ0Q1/YTZBd9HSoa9FQ30KGx831lu7odO7y6i55M6QrxB1rOkzJ0+zMv4nxNJp84PKUo9pVTQm5I=,iv:PlElYKXHc3+HuZNw0NBS84FHvce2koFb1Wy2S1b8JAs=,tag:U2MUCwfMfNaa29+7LKC4lg==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData)$
+    version: 3.7.3

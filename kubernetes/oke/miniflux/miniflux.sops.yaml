@@ -1,0 +1,30 @@
+kind: Secret
+apiVersion: v1
+metadata:
+    name: miniflux
+    namespace: default
+type: Opaque
+stringData:
+    ADMIN_USERNAME: ENC[AES256_GCM,data:kT7YHkwumI5C/7w9VZDT1BY=,iv:LbfRZeAFXQaiVY7QOzBkVnPdBMujcQJFMfCupDHD4To=,tag:OpH5CF2xeKqOk+HU1iU2Lw==,type:str]
+    ADMIN_PASSWORD: ENC[AES256_GCM,data:j3BUMu3q2LhJBObMHdv5qgP2tA==,iv:+sHD293HAerk0ouElBfayTgYciAKUCOTj8INU83/Px4=,tag:F9EPKXrBtIc9/VITPR+TOg==,type:str]
+    DATABASE_URL: ENC[AES256_GCM,data:mADDZtTb33z4t7T4TIwIWrkXweWeON4ECpDUv7Gm+K0mtinwGgv9ZHJPNhQJsrGITQQnAl3gdbhq7HQk62aw3iwYgzhHYg==,iv:mQdQbYSVS+rVQ3UtuBqCqPDIBUv5lYP22UpqU9kOlBs=,tag:U2hW9lXmSF79QWXYCl3HaA==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBmVDV5bVBMcHZyWlBVUHlZ
+            dWRvS2hnd1VhTE9xZ2Y2MnZiblhra0xNbUVzClJ0V1dLb05ad0JnSTduc2tMQWs3
+            bGMrZXdHc2hScE9ONTBIL1pNYVFhSHcKLS0tIEVEd01XN0EyeUNtejFKalhvWEpa
+            RUFiSG9oTTh0b2I0VDg4UEZBcUdiWVEKjyrrPJJNyUqezQtS6VafB6SvB7qW0i6Y
+            ohSh86vYoDJ25eoQAdam10LSc2DA5pKHmrSLuv729nwuXZ5xZIZtvg==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-08-28T09:16:45Z"
+    mac: ENC[AES256_GCM,data:ZeFseB8plilpYbCs5xjCOEC1SpPCrq1XyW+5FsSP7nE798kggDoflY5fiB2Isbv3+TTiPRV8/q7SKEeu8YYGVXkm2Tnxu+jK+OseCMvaMQj9JQpjFZu0SS/6ESw6E2ZNcQ5Y9Ao4ZV1NQreJUIHq1xFWkssEsjSa4ru+2pSje4w=,iv:x1gw81EzR2DBJ7EIreVaM+ltHIp+JgdkEAHivAt2cdA=,tag:fS+l84nge9/hsIQpS97C/Q==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData)$
+    version: 3.7.3

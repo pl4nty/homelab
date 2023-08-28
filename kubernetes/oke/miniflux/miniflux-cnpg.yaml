@@ -1,0 +1,16 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: miniflux-cnpg
+  namespace: default
+spec:
+  instances: 1
+
+  storage:
+    size: 4Gi
+
+  # miniflux requires a formatted connection string, so we can't use the default secret
+  bootstrap:
+    initdb:
+      secret:
+        name: miniflux-db
