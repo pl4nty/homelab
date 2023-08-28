@@ -50,7 +50,9 @@ subjects:
   - name: tandoor
     spec:
       fqdn: recipes.${PUBLIC_DOMAIN}
-  - name: winget
+  - name: miniflux``
+    spec:
+      fqdn: rss.${PUBLIC_DOMAIN}
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel
