@@ -4,7 +4,7 @@ metadata:
   name: immich-cnpg
   namespace: default
 spec:
-  instances: 2
+  instances: 1
   imageName: ghcr.io/cloudnative-pg/postgresql:14.7
 
   storage:

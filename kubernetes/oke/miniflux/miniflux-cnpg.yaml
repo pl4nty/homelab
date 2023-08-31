@@ -4,7 +4,7 @@ metadata:
   name: miniflux-cnpg
   namespace: default
 spec:
-  instances: 2
+  instances: 1
 
   storage:
     size: 4Gi
