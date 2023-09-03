@@ -1,30 +1,14 @@
-# LoadBalancer Service ports only support one protocol without a v1.20 alpha flag
-# Tracked on:
-# https://github.com/Azure/AKS/issues/2193
-# https://github.com/Azure/AKS/issues/2058
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: tf2-vanilla-store
-spec:
-  accessModes:
-  - ReadWriteOnce
-  storageClassName: default
-  resources:
-    requests:
-      storage: 15Gi
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: tf2-vanilla
-  labels:
-    app: tf2-vanilla
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: tf2-vanilla
+  replicas: 1
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
@@ -36,16 +20,28 @@ spec:
       - name: volume
         persistentVolumeClaim:
           claimName: tf2-vanilla-store
+      - name: tf2-vanilla-mapcycle
+        configMap:
+          name: tf2-vanilla-config
+          items:
+          - key: mapcycle.txt
+            path: mapcycle.txt
       containers:
       - name: tf2-vanilla
         image: cm2network/tf2:latest
         resources:
           requests:
-            memory: "1Gi"
-            cpu: "1"
+            memory: 900Mi
+            cpu: 30m
+          limits:
+            memory: 1500Mi
+            cpu: 200m
         volumeMounts:
-        - mountPath: "/home/steam/tf-dedicated"
+        - mountPath: /home/steam/tf-dedicated
           name: volume
+        - name: tf2-vanilla-mapcycle
+          mountPath: /home/steam/tf-dedicated/tf/cfg/mapcycle.txt
+          subPath: mapcycle.txt
         ports:
         - containerPort: 27015
           protocol: TCP
@@ -55,69 +51,98 @@ spec:
           protocol: UDP
         env:
         - name: SRCDS_TOKEN
-          value: C34AC753844955C042A954C4328B191E
+          valueFrom:
+            secretKeyRef:
+              name: steam-creds
+              key: SRCDS_TOKEN
         - name: SRCDS_RCONPW
-          value: k8s_pain
-        - name: SRCDS_PW
-          value: k8s_pain
+          valueFrom:
+            secretKeyRef:
+              name: steam-creds
+              key: SRCDS_RCONPW
         - name: SRCDS_PORT
           value: "27015"
         - name: SRCDS_TV_PORT
           value: "27020"
-        - name: SRCDS_FPSMAX
-          value: "300"
-        - name: SRCDS_TICKRATE
-          value: "66"
-        - name: SRCDS_MAXPLAYERS
-          value: "24"
+        - name: SRCDS_HOSTNAME
+          value: "[AU] pl4nty's jungle" 
+        - name: SRCDS_STARTMAP
+          value: plr_hightower
         - name: SRCDS_REGION
           value: "5"
-        - name: SRCDS_HOSTNAME
-          value: pl4nty's jungle
-        - name: SRCDS_WORKSHOP_START_MAP
-          value: "0"
-        - name: SRCDS_HOST_WORKSHOP_COLLECTION
-          value: "0"
-        - name: SRCDS_WORKSHOP_AUTHKEY
+        - name: SRCDS_MAXPLAYERS
+          value: "24"
+        - name: SRCDS_PW
           value: ""
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: tf2-vanilla
-  labels:
-    run: tf2-vanilla
 spec:
-  type: ClusterIP
+  type: LoadBalancer
+  loadBalancerIP: 13.70.81.98
   ports:
-  - name: rcon
-    port: 27015
-    targetPort: 27015
-    protocol: TCP
   - name: game
+    protocol: UDP
     port: 27015
-    targetPort: 27015
-    protocol: UDP
+  # Disable RCON as mixed-protocol LoadBalancers are behind MixedProtocolLBService feature gate
+  # - name: rcon
+  #   protocol: TCP
+  #   port: 27015
+  #   nodePort: 30015
   - name: sourcetv
-    port: 27020
-    targetPort: 27020
     protocol: UDP
+    port: 27020
   selector:
-    run: tf2-vanilla
+    app: tf2-vanilla
+---
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: tcp-services
+#   namespace: ingress-nginx
+# data:
+#   27015: default/tf2-vanilla:27015
+# ---
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: udp-services
+#   namespace: ingress-nginx
+# data:
+#   27015: default/tf2-vanilla:27015
+#   27020: default/tf2-vanilla:27020
+# ---
+# LoadBalancer Service ports only support one protocol without a v1.20 alpha flag
+# Tracked on:
+# https://github.com/Azure/AKS/issues/2193
+# https://github.com/Azure/AKS/issues/2058
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tf2-vanilla-store
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  # Local debugging
+  # volumeMode: Filesystem
 ---
 apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: tcp-services
-  namespace: ingress
+kind: Secret
 data:
-  27015: default/tf2-vanilla:27015
+  SRCDS_TOKEN: ""
+  SRCDS_RCONPW: "Z3ZJOTA3OG5mS3Rz"
+metadata:
+  name: steam-creds
 ---
 apiVersion: v1
+data:
+  mapcycle.txt: |
+    plr_hightower
 kind: ConfigMap
 metadata:
-  name: udp-services
-  namespace: ingress
-data:
-  27015: default/tf2-vanilla:27015
-  27020: default/tf2-vanilla:27020
+  name: tf2-vanilla-config
