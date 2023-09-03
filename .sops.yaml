@@ -1,3 +1,5 @@
 creation_rules:
+- path_regex: .+private-[0-9]+.sops.yaml$
+  encrypted_regex: ^(repository|env|mountPath)$
 - path_regex: .+.sops.yaml$
   encrypted_regex: ^(data|stringData)$

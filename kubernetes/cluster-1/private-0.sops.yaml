@@ -1,0 +1,75 @@
+lueapiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+    name: private-0
+    namespace: default
+spec:
+    interval: 15m
+    chart:
+        spec:
+            chart: app-template
+            version: 1.5.1
+            sourceRef:
+                kind: HelmRepository
+                name: bjw-s
+                namespace: flux-system
+    maxHistory: 3
+    install:
+        createNamespace: true
+        remediation:
+            retries: 3
+    upgrade:
+        cleanupOnFail: true
+        remediation:
+            retries: 3
+    uninstall:
+        keepHistory: false
+    values:
+        image:
+            repository: ENC[AES256_GCM,data:vXKobmNkalmScXMJ0/0=,iv:qKsbctbzrXfn4r46VMpZbFh0xcmu1OFQqmmdrnXKvpE=,tag:20bvnQ43Yx2ljzvCUcrtmw==,type:str]
+            tag: v0.22.1
+        env:
+            - name: ENC[AES256_GCM,data:J8wgTxrsMrxP7Dw=,iv:NCxR60oQt3zd4lni3QGscSeytNzBwukLMcPvqwiBDVE=,tag:oPy/IMFHWiV43AyLwGA4Zw==,type:str]
+              value: ENC[AES256_GCM,data:01JlNXA0c93mE4Y=,iv:sHu0Azmzb6N9VF9HLLMsAiaWUJW4jt0ULBKYJVAvNkc=,tag:CFAlz1bTmF+H8pf0gdenVA==,type:str]
+            - name: ENC[AES256_GCM,data:H8d1yTzowfXlU2aAKAgY,iv:vqJqk84isLIimcpR1UwROZN6dTngnK0FHOc1hOLjBvI=,tag:cJI4XeaJ2RItvUs4M9ockg==,type:str]
+              value: ENC[AES256_GCM,data:0+PGoiF9x9/elAKOYVeG7A==,iv:1SOAUW0efdHxYeEA84iLiwmdXfPljJdMLdCNarl9EMI=,tag:MU8/UZ+capC5jOlci3B0ug==,type:str]
+            - name: ENC[AES256_GCM,data:V8WUAPAE8Mmx59LwbJc=,iv:5sSIIvS1w9N/s6qBaKBfYxKMjEYNs/cEPXV3qwjBaLw=,tag:Eg3YRFDOouKIYiJk24oqtg==,type:str]
+              value: ENC[AES256_GCM,data:Kb4cwyvjIqHYcRD05DpT,iv:z3UfpU/aAUQZ8jlaYkcw8ssF3Iphc/5RBLePEULi9Xc=,tag:6RSEq3j3Gxxnjo5uCeEWMg==,type:str]
+            - name: ENC[AES256_GCM,data:Km2QXaFqsqNsOnU=,iv:ktGKKulkegpi+5KYFICqGKOAuqExFMF5Z+sn3scojgg=,tag:j0pFotJ4H8YURrPhXOFYEw==,type:str]
+              value: ENC[AES256_GCM,data:W6pfQ/w5Fg==,iv:fnzBhXRLM38CkAsNpAYaO/QF54neFOTyJ/bOmOwNn4Y=,tag:Dso8/+YOvWWLaLQ7SGWQgA==,type:str]
+        persistence:
+            config:
+                enabled: true
+                mountPath: ENC[AES256_GCM,data:5jkKCggldAvgeGhh,iv:r+QXgqAm1s2kyT1RxJH9OHzxBslIJA2sQrOUXHwMXcY=,tag:bPzU1L4xJ0sA/NuuTIz+LQ==,type:str]
+            data:
+                enabled: true
+                mountPath: ENC[AES256_GCM,data:gWM81ys=,iv:aT3yrR2bf679oDoz6K0QXsNbtMSGCYVo+OScIjRMokA=,tag:49iLuaN/XniFhZjkYBrj4Q==,type:str]
+            cache:
+                enabled: true
+                type: emptyDir
+                mountPath: ENC[AES256_GCM,data:nzXWcZAy,iv:5YsLfyjWXn+tCkAj2LTehLJvGwJ2wqjoKPAhfQmOJmg=,tag:ZaOmlRGXO1PQxk/rdUWkdQ==,type:str]
+        service:
+            main:
+                ports:
+                    http:
+                        port: 9999
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBIcEVPaW50RGNyRGh0VEFF
+            Uk5CbUdoT3JwdXFsMS9McXRRRWJTNHVubHpvCjZGV2EzUWFZTkxCVUhuSzdIb1kr
+            bGJrelk3TnN2YzZ6aTBqcXRsc0prSDQKLS0tIHA0M2x1RG8wNkorRGhFeERKNk1Z
+            UjNiMzI2U2xsTjliZmNyTXV1N0hHdEkKowHZIaC6J82lI7jYN8T8PzL7sJRoLQV3
+            L0/mF2dNUA9i36yGz30ok7TkefUps0jzKsq8os+Ak0bXIg8WMo4mqA==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-09-03T10:15:14Z"
+    mac: ENC[AES256_GCM,data:O9qyXl64FSyo0ld60Rf4/6apQB/kZadicL8jNd7B3gaEqZQqoTLGAKVL7io6vKSm1qBRhB1ic0XGKB+gKEFe3aWCrUt5OcdGDA1TUjSkF+UtQiEsV7+ZhJJ6JovrOOXZaW/K6N62F66r4flaLjK0CrsS0xwaGu+RZnesmNiBU6A=,iv:XJbd+6FKi7hSPMHeZ0dPPzIlo/ztQ1W68o3FNR6VszI=,tag:VLm+6Lrsd8zyAOpvuYqT+g==,type:str]
+    pgp: []
+    encrypted_regex: ^(repository|env|mountPath)$
+    version: 3.7.3

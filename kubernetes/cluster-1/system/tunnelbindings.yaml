@@ -1,0 +1,9 @@
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: cloudflare-tunnel
+  namespace: default
+subjects: []
+tunnelRef:
+  kind: ClusterTunnel
+  name: cloudflare-tunnel

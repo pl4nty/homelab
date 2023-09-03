@@ -1,0 +1,38 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: cluster-1
+  namespace: flux-system
+spec:
+  interval: 30m
+  path: ./kubernetes/cluster-1
+  prune: true
+  wait: false
+  sourceRef:
+    kind: GitRepository
+    name: home-kubernetes
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
+  postBuild:
+    substituteFrom:
+    - kind: ConfigMap
+      name: cluster-settings
+    - kind: Secret
+      name: cluster-secrets
+    - kind: ConfigMap
+      name: instance-settings
+---
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: webhook-receiver
+  namespace: flux-system
+subjects:
+  - name: webhook-receiver
+    spec:
+      fqdn: flux-cluster-1.tplant.com.au
+tunnelRef:
+  kind: ClusterTunnel
+  name: cloudflare-tunnel
