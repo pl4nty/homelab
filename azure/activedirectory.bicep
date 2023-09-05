@@ -12,7 +12,7 @@ param domainAdminUsername string = 'admin-labs'
 param domainAdminPassword string = 'Pasta9-Fiction-Employer'
 param domainFQDN string = 'corp.axsymlabs.au'
 
-resource vmss 'Microsoft.Compute/virtualMachineScaleSets@2023-03-01' = {
+resource vmss 'Microsoft.Compute/virtualMachineScaleSets@2023-07-01' = {
   name: 'vmss-${name}'
   location: location
   sku: {
