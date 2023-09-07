@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: ghcr.io/hedgedoc/hedgedoc/backend
-      tag: develop@sha256:2d651d97eb73dce71f265adeb9e063735fe523e68655980339187336187a7dbc
+      tag: develop@sha256:ea35701b527f69a45d0e894f2549c8816b5a51abe0b5dca9ab8581744a382cb4
     podAnnotations:
       instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
     env:
