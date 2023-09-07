@@ -129,7 +129,7 @@ spec:
     sidecars:
       redis:
         name: redis
-        image: redis:7.2.0
+        image: redis:7.2.1
       ssh:
         name: ssh
         image: ghcr.io/pl4nty/ubuntu-ssh:latest@sha256:7078a8ae08ef03746f0641d796314bdd9ffb6bac709976a3d4bc9dcb7b689b5a
