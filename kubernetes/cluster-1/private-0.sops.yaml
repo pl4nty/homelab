@@ -52,9 +52,11 @@ spec:
                 mountPath: ENC[AES256_GCM,data:nzXWcZAy,iv:5YsLfyjWXn+tCkAj2LTehLJvGwJ2wqjoKPAhfQmOJmg=,tag:ZaOmlRGXO1PQxk/rdUWkdQ==,type:str]
         service:
             main:
+                type: NodePort
                 ports:
                     http:
                         port: 9999
+                        nodePort: 9999
 sops:
     kms: []
     gcp_kms: []
@@ -70,8 +72,8 @@ sops:
             UjNiMzI2U2xsTjliZmNyTXV1N0hHdEkKowHZIaC6J82lI7jYN8T8PzL7sJRoLQV3
             L0/mF2dNUA9i36yGz30ok7TkefUps0jzKsq8os+Ak0bXIg8WMo4mqA==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-09-09T03:47:15Z"
-    mac: ENC[AES256_GCM,data:d8BALPALLX6NIk2c1AlhCCTlGq1LTH3s4sgMX5zhRT8iOjAoohyYugI/Je3FvcPjSZ89lBbwVzFMS9gTMwSjopsNMBAWCBZWNxCMQwyZU2QDW4Dtf5ZuNaGm5DZOrop66gvOu1EuYaYVy8BAQ2b40TZpfflWUpgC1nRT6GdmA88=,iv:RqmXcugiEH5YRl0CideTTD9z3RIZ3NKu1jJSxi1+CN4=,tag:IysejhYp7fi/mHqDwHuJVA==,type:str]
+    lastmodified: "2023-09-09T04:18:34Z"
+    mac: ENC[AES256_GCM,data:X3Y2fOMMRLy9h1+8TREFu5dwHbfQ5/4MB2RGpbQYzx7L8x6rcxhtukebcCAieL4DOTNK7MHt/znGLEEMqjAMVc8K4pXnTJHNgw3fAOu0ZZK/QdVG93Ywq60G1sPNKdrwYPPRh+uKBoeOJ5SJLAtYq5BZ9MyIg11GMjzT5lyKopc=,iv:CZPngWK0uOdkVzmMf8ASadxUdfLPyRIiRbsSu2GHbMA=,tag:lT2q41I6hKOX3AcY6xgYDg==,type:str]
     pgp: []
     encrypted_regex: ^(repository|env|mountPath)$
     version: 3.7.3
