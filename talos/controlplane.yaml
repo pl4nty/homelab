@@ -235,19 +235,20 @@ machine:
     #         containers:
     #             - image: nginx
     #               name: nginx
-    # # Used to partition, format and mount additional disks.
-    # # MachineDisks list example.
-    # disks:
-    #     - device: /dev/sdb # The name of the disk to use.
-    #       # A list of partitions to create on the disk.
-    #       partitions:
-    #         - mountpoint: /var/mnt/extra # Where to mount the partition.
-    #           
-    #           # # The size of partition: either bytes or human readable representation. If `size:` is omitted, the partition is sized to occupy the full disk.
-    #           # # Human readable representation.
-    #           # size: 100 MB
-    #           # # Precise value in bytes.
-    #           # size: 1073741824
+    # Used to partition, format and mount additional disks.
+    # MachineDisks list example.
+    disks:
+        # The name of the disk to use.
+        - device: /dev/sda
+          # A list of partitions to create on the disk.
+          partitions:
+            # Where to mount the partition.
+            - mountpoint: /var/mnt/extra
+              # # The size of partition: either bytes or human readable representation. If `size:` is omitted, the partition is sized to occupy the full disk.
+              # # Human readable representation.
+              # size: 100 MB
+              # # Precise value in bytes.
+              # size: 1073741824
     # # Allows the addition of user specified files.
     # # MachineFiles usage example.
     # files:
@@ -497,8 +498,8 @@ sops:
             V0I1bi9vTjVtTVNWa0JBYVM3UEVoU0UKlIziv/nIPnsfATFf5HirkiJHwFgTtaKf
             7E0q7iB3tN/eFb3aegc2/3gvV/qb4I8a9gq8xvxsDs04V4QNke4+8Q==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-09-09T02:55:07Z"
-    mac: ENC[AES256_GCM,data:QXVvUWtrqcD3mbIKJe7POcriEMcLCXeiduI+m+CMN3EV0R1m0d5qMansLpzSS/vuknwJmvZZHXYMeBZvltZHlalPZpEpwwYJc0lDRKXqqYfg+0OVNX/1c1VtURGkW7MPdFHi1gVtDmIdhnbJqgTxLcU02poQNmH1kx4QBwWSRR8=,iv:XxTWGq9j2C2TsA6Qke3syHFmteq2UPGDcwG08fXdVUo=,tag:VHg25fooWV5uQ9/cOAQprA==,type:str]
+    lastmodified: "2023-09-09T05:39:42Z"
+    mac: ENC[AES256_GCM,data:Akwosk1aMu/zA/Ld8iCxzvZdBgQ85P1kHUuyqGqq06ZdybgOisH+j/h6RbOl8RCavybkBsa52UIJNZryN30J471ygeZ9vNxVVpxFmFs65v+0VDHRMdQVBUQRWSkBqvte9iWB9z2fyJrRRFLRKZggtijScWx08YKu4cIRN+vT+CM=,iv:FlU+64nglP+i0wVft+hSf7rGF5qnOsUBvguVMADGbMU=,tag:8gSqAiijdxbyTupzTZNCdA==,type:str]
     pgp: []
     encrypted_regex: ^(token|crt|key|id|secret|secretboxEncryptionSecret)$
     version: 3.7.3
