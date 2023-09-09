@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: ghcr.io/pl4nty/jwtplayground
-      tag: latest@sha256:62d20769708edfe5bedc634c3928f230ee974868d922afba30ccfc620736ae1a
+      tag: latest@sha256:5841abe21a010ea0e0b9566750e3e1001ca7f345f4e51d8e3f25744fe096176d
     podAnnotations:
       instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
     env:
