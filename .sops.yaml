@@ -1,6 +1,6 @@
 creation_rules:
 - path_regex: .+private-[0-9]+.sops.yaml$
-  encrypted_regex: ^(repository|env|mountPath)$
+  encrypted_regex: ^(repository|env|mountPath|image)$
 - path_regex: .+.sops.yaml$
   encrypted_regex: ^(data|stringData)$
 - path_regex: ^talos/.+
