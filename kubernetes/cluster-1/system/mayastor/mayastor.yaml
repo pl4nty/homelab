@@ -25,3 +25,14 @@ spec:
       retries: 3
   uninstall:
     keepHistory: false
+  values:
+    loki-stack:
+      enabled: false
+    eventing:
+      enabled: false
+    obs:
+      callhome:
+        enabled: false
+    etcd:
+      image:
+        tag: 3.5.9-debian-11-r118

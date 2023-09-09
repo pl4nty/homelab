@@ -36,25 +36,25 @@ machine:
         # # The `extraArgs` field is used to provide additional flags to the kubelet.
         extraArgs:
             rotate-server-certificates: true
-            # # The `extraMounts` field is used to add additional mounts to the kubelet container.
-            # extraMounts:
-            #     - destination: /var/lib/example
-            #       type: bind
-            #       source: /var/lib/example
-            #       options:
-            #         - bind
-            #         - rshared
-            #         - rw
-            # # The `extraConfig` field is used to provide kubelet configuration overrides.
-            # extraConfig:
-            #     serverTLSBootstrap: true
-            # # The `nodeIP` field is used to configure `--node-ip` flag for the kubelet.
-            # nodeIP:
-            #     # The `validSubnets` field configures the networks to pick kubelet node IP from.
-            #     validSubnets:
-            #         - 10.0.0.0/8
-            #         - '!10.0.0.3/32'
-            #         - fdc7::/16
+        # The `extraMounts` field is used to add additional mounts to the kubelet container.
+        extraMounts:
+            - destination: /var/local/localpv-hostpath
+              type: bind
+              source: /var/local/localpv-hostpath
+              options:
+                - bind
+                - rshared
+                - rw
+                # # The `extraConfig` field is used to provide kubelet configuration overrides.
+                # extraConfig:
+                #     serverTLSBootstrap: true
+                # # The `nodeIP` field is used to configure `--node-ip` flag for the kubelet.
+                # nodeIP:
+                #     # The `validSubnets` field configures the networks to pick kubelet node IP from.
+                #     validSubnets:
+                #         - 10.0.0.0/8
+                #         - '!10.0.0.3/32'
+                #         - fdc7::/16
     # Provides machine specific network configuration options.
     network: {}
     # # `interfaces` is used to define the network interface configuration.
@@ -498,8 +498,8 @@ sops:
             V0I1bi9vTjVtTVNWa0JBYVM3UEVoU0UKlIziv/nIPnsfATFf5HirkiJHwFgTtaKf
             7E0q7iB3tN/eFb3aegc2/3gvV/qb4I8a9gq8xvxsDs04V4QNke4+8Q==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-09-09T05:39:42Z"
-    mac: ENC[AES256_GCM,data:Akwosk1aMu/zA/Ld8iCxzvZdBgQ85P1kHUuyqGqq06ZdybgOisH+j/h6RbOl8RCavybkBsa52UIJNZryN30J471ygeZ9vNxVVpxFmFs65v+0VDHRMdQVBUQRWSkBqvte9iWB9z2fyJrRRFLRKZggtijScWx08YKu4cIRN+vT+CM=,iv:FlU+64nglP+i0wVft+hSf7rGF5qnOsUBvguVMADGbMU=,tag:8gSqAiijdxbyTupzTZNCdA==,type:str]
+    lastmodified: "2023-09-09T06:47:41Z"
+    mac: ENC[AES256_GCM,data:HesysB93JejUnT5wGn3KTRMjVs9sisskZBYtPPyR7zdoS/31/KoP92VZu7i0V73sLdxZx98c8Y40/xM7nzaC+kXRXYifT0c5T2ajjavYcnZybLq/nhq5wOf/tl/q1pnymri8xmhYEIz92Y8MIEGjw2s1Is9bOSS3DpEYQSZ/Jt4=,iv:H3JWxXS+IaUAIX9Z9XvjpXbHYR48HXIws486CU5mIeU=,tag:p8S8KoajN30H+R83z0irig==,type:str]
     pgp: []
     encrypted_regex: ^(token|crt|key|id|secret|secretboxEncryptionSecret)$
     version: 3.7.3
