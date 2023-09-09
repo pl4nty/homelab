@@ -34,5 +34,6 @@ spec:
       callhome:
         enabled: false
     etcd:
+      replicaCount: 1
       image:
         tag: 3.5.9-debian-11-r118
