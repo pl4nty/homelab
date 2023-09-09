@@ -1,3 +1,4 @@
+# talosctl apply-config -e 192.168.1.131 -n 192.168.1.131 --file ./talos/.decrypted~controlplane.yaml --talosconfig ./talos/.decrypted~talosconfig
 # Indicates the schema used to decode the contents.
 version: v1alpha1
 # Enable verbose logging to the console.
@@ -496,8 +497,8 @@ sops:
             V0I1bi9vTjVtTVNWa0JBYVM3UEVoU0UKlIziv/nIPnsfATFf5HirkiJHwFgTtaKf
             7E0q7iB3tN/eFb3aegc2/3gvV/qb4I8a9gq8xvxsDs04V4QNke4+8Q==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-09-09T02:41:05Z"
-    mac: ENC[AES256_GCM,data:gmlSrH/UvmxlxJvcpoMB9LfA4BMOx3dYTdklqOwpHRV8Jk4KieYc+TeqzM4HxFw4p74Nw0QcrHUbdghnxmZyMFjBsBtd/0QakCvrRot26ZrUxe13eW6uxfttbHHBah0VAtPSclIb1WXdasPujTXlEe30HSpc9ou5hp9bJcvHFGc=,iv:/ixCDFZdbxjdbTITwXzgTHGs4jyRKlu8Sjns8en22Bk=,tag:yhEqR3QC06tgEMPNcVPBEA==,type:str]
+    lastmodified: "2023-09-09T02:55:07Z"
+    mac: ENC[AES256_GCM,data:QXVvUWtrqcD3mbIKJe7POcriEMcLCXeiduI+m+CMN3EV0R1m0d5qMansLpzSS/vuknwJmvZZHXYMeBZvltZHlalPZpEpwwYJc0lDRKXqqYfg+0OVNX/1c1VtURGkW7MPdFHi1gVtDmIdhnbJqgTxLcU02poQNmH1kx4QBwWSRR8=,iv:XxTWGq9j2C2TsA6Qke3syHFmteq2UPGDcwG08fXdVUo=,tag:VHg25fooWV5uQ9/cOAQprA==,type:str]
     pgp: []
     encrypted_regex: ^(token|crt|key|id|secret|secretboxEncryptionSecret)$
     version: 3.7.3

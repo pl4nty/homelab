@@ -1,4 +1,4 @@
-lueapiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
     name: private-0
@@ -68,8 +68,8 @@ sops:
             UjNiMzI2U2xsTjliZmNyTXV1N0hHdEkKowHZIaC6J82lI7jYN8T8PzL7sJRoLQV3
             L0/mF2dNUA9i36yGz30ok7TkefUps0jzKsq8os+Ak0bXIg8WMo4mqA==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-09-03T10:15:14Z"
-    mac: ENC[AES256_GCM,data:O9qyXl64FSyo0ld60Rf4/6apQB/kZadicL8jNd7B3gaEqZQqoTLGAKVL7io6vKSm1qBRhB1ic0XGKB+gKEFe3aWCrUt5OcdGDA1TUjSkF+UtQiEsV7+ZhJJ6JovrOOXZaW/K6N62F66r4flaLjK0CrsS0xwaGu+RZnesmNiBU6A=,iv:XJbd+6FKi7hSPMHeZ0dPPzIlo/ztQ1W68o3FNR6VszI=,tag:VLm+6Lrsd8zyAOpvuYqT+g==,type:str]
+    lastmodified: "2023-09-09T03:36:24Z"
+    mac: ENC[AES256_GCM,data:Z9XDkMgoDlyOqbFsHFGWQoFlRaYSfim1Y81mO1fTtWGF5qcWtEoz5A0KD+Zp5KQiZf2Vwt9t/KILRrE2RYTfWvwbGrQ1lfWzoQzMrHj39lVP/teit+DX/KJVZiA18JbNZqqfIhlE1gMjqLvRcenlp3Lq4qOYUsJr2hh3bmPnoik=,iv:mZGiY2aF3JY1ZlekXsjmt/SkDqQL/t6C5bJx9vSO+tE=,tag:f3TVsPoBp3EeWHnOF09Wnw==,type:str]
     pgp: []
     encrypted_regex: ^(repository|env|mountPath)$
     version: 3.7.3
