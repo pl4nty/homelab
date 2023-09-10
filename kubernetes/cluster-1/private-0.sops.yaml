@@ -46,14 +46,17 @@ spec:
                 enabled: true
                 mountPath: ENC[AES256_GCM,data:VE4WfdoJ,iv:ao0baOXPe/HyLi9fo4d4Ll8n7Ayhk4uAqsb93sj5Em8=,tag:A4AkDr+f4ZKaxvlX+qFKdA==,type:str]
                 size: 8Gi
+                accessMode: ReadWriteOnce
             meta:
                 enabled: true
                 mountPath: ENC[AES256_GCM,data:BsXO1Gc=,iv:DY8neJ3VxPsfsDurbXNpBil60Yt/7RJYM2XcfehyNCo=,tag:YCY9COCmr8tm9BpCxzCDHg==,type:str]
                 size: 2Gi
+                accessMode: ReadWriteOnce
             cache:
                 enabled: true
                 type: emptyDir
                 mountPath: ENC[AES256_GCM,data:RezyZksT,iv:WE4ejWz8LKt0sifQGE0PV13fHbYEpiqzNfnZ8YLXq2I=,tag:+NjJ36/uRu+MWvP7MjExRg==,type:str]
+                accessMode: ReadWriteOnce
         service:
             main:
                 type: NodePort
@@ -86,8 +89,8 @@ sops:
             ZUgyNzgrSmkvaE9YUnN2OUJrZWxnY2sKb4Zp67/JX57k38PFV79enq4VpRXMr8Ls
             0XmonUvQIP4ba+bFuAqyolz9ZlSNW8oe3uuuaEnPL/SUJGbvTQe9Sw==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-09-10T03:54:41Z"
-    mac: ENC[AES256_GCM,data:wrSmuU0W1AwAAH49A3ciq17M7JpdopAa2O2thccvj/PoZJddXuxD+nlWscCcALuvWqyoeD3FAiNz3HxotdAyzNkCPthvYq+cq1NxYIrLUPkD9hTs7beU6Ipcwmy87Egj+tHnJsQTHePvVuBquX1vjQA5bndbDOBWWELnFP1DSdg=,iv:SGgSdp/TNm9KuQXIb0rOyrpT7aSkF1GyW/t02PN9Ihw=,tag:+t184ohVktQfMxbTCVRklQ==,type:str]
+    lastmodified: "2023-09-10T03:59:10Z"
+    mac: ENC[AES256_GCM,data:Hrthp8/4nfl6NhV1O73YZec/p8k3ZTXGmHiQo8FlBF3rvYKBCiS9SiEGvxnaHj5mCItVJNiB+dWNdz2uwUzWXV7K9j395BmtHhT4aSpYwCQ3hYKQZpsLoPfcXVhgbxdoLRhXk3J4lDYVK1zXBOuypklKTubY3TZLLeu3rWGNXo0=,iv:2/5ekxjBPHry0TOM4QSl2nfdju2cYrC7YxcSGGk5Qrg=,tag:o3KfZ82iMJ7puTGfv4ukEw==,type:str]
     pgp: []
     encrypted_regex: ^(repository|env|mountPath|image)$
     version: 3.7.3
