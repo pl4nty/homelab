@@ -37,4 +37,8 @@ spec:
       replicaCount: 1
       persistence:
         enabled: false
-        
+    io_engine:
+      # envcontext: iova-mode=pa
+      resources:
+        requests:
+          cpu: 1 # default is 2
