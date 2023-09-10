@@ -74,6 +74,16 @@ spec:
                 volumeMounts:
                     - name: data
                       mountPath: ENC[AES256_GCM,data:5jI2vl+T,iv:jfBEHpA7Hn3OGGrGqgNKiQbkiINOGxMRG+bXFQlfcnw=,tag:RIGgpZ2KOmjEADFovWQ4Hg==,type:str]
+        addons:
+            codeserver:
+                enabled: true
+                workingDir: /config/root
+                args:
+                    - --auth
+                    - none
+                volumeMounts:
+                    - name: config
+                mountPath: ENC[AES256_GCM,data:o1geNf0Yjw==,iv:j4t82i/f4xiKsy1k+gyqc3uo8ZNGsnYTVIdi1RfyIg4=,tag:mFVobdzYVxbf9zWTu88x2Q==,type:str]
 sops:
     kms: []
     gcp_kms: []
@@ -89,8 +99,8 @@ sops:
             ZUgyNzgrSmkvaE9YUnN2OUJrZWxnY2sKb4Zp67/JX57k38PFV79enq4VpRXMr8Ls
             0XmonUvQIP4ba+bFuAqyolz9ZlSNW8oe3uuuaEnPL/SUJGbvTQe9Sw==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-09-10T03:59:10Z"
-    mac: ENC[AES256_GCM,data:Hrthp8/4nfl6NhV1O73YZec/p8k3ZTXGmHiQo8FlBF3rvYKBCiS9SiEGvxnaHj5mCItVJNiB+dWNdz2uwUzWXV7K9j395BmtHhT4aSpYwCQ3hYKQZpsLoPfcXVhgbxdoLRhXk3J4lDYVK1zXBOuypklKTubY3TZLLeu3rWGNXo0=,iv:2/5ekxjBPHry0TOM4QSl2nfdju2cYrC7YxcSGGk5Qrg=,tag:o3KfZ82iMJ7puTGfv4ukEw==,type:str]
+    lastmodified: "2023-09-10T04:27:43Z"
+    mac: ENC[AES256_GCM,data:/qD8kT6bAntn4+uWUj8U/OPHhRPGVJqlIftCMUZ6elt6yH/uuYJmRSPPKqfAE3rPGkZZVRj9OhXchVeTbpJB/UdnZrBBKFNyNNT6WMHdx282G+zdG0MFA2Yi5qf4MaR6933ZUNFD3447miZ7XXNLAxF5JUeYNvOpmQCORLR1XaM=,iv:jjJZI8+e3fO7aQ92p96wcHPwHw62o8HNTDY8PsQcxTs=,tag:84PqHwijZQ8i8vnXFASkdg==,type:str]
     pgp: []
     encrypted_regex: ^(repository|env|mountPath|image)$
     version: 3.7.3
