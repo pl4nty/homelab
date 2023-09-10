@@ -156,7 +156,7 @@ machine:
         # The disk used for installations.
         disk: /dev/nvme0n1
         # Allows for supplying the image used to perform the installation.
-        image: ghcr.io/siderolabs/installer:v1.5.1
+        image: ghcr.io/siderolabs/installer:v1.5.2
         # Indicates if the installation disk should be wiped at installation time.
         wipe: false
         # # Look up disk using disk attributes like model, size, serial and others.
@@ -498,8 +498,8 @@ sops:
             V0I1bi9vTjVtTVNWa0JBYVM3UEVoU0UKlIziv/nIPnsfATFf5HirkiJHwFgTtaKf
             7E0q7iB3tN/eFb3aegc2/3gvV/qb4I8a9gq8xvxsDs04V4QNke4+8Q==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-09-09T06:47:41Z"
-    mac: ENC[AES256_GCM,data:HesysB93JejUnT5wGn3KTRMjVs9sisskZBYtPPyR7zdoS/31/KoP92VZu7i0V73sLdxZx98c8Y40/xM7nzaC+kXRXYifT0c5T2ajjavYcnZybLq/nhq5wOf/tl/q1pnymri8xmhYEIz92Y8MIEGjw2s1Is9bOSS3DpEYQSZ/Jt4=,iv:H3JWxXS+IaUAIX9Z9XvjpXbHYR48HXIws486CU5mIeU=,tag:p8S8KoajN30H+R83z0irig==,type:str]
+    lastmodified: "2023-09-10T12:35:44Z"
+    mac: ENC[AES256_GCM,data:2RxubTiUhD963f7VhaWRtylPLW5Jn2yqhQQZzoR/GvFeZGIGPIlrCW/O9XHKMXeiRw1pCWf4d+ASi767lbLFqkz+qKaUGQBH/cQJqVs5RuF6ghprwi5E9eg1VQJRUE4xeeboVIs3ckgCkrGpQtECQJaDRvJQfvwe/rXafNCi9QQ=,iv:8jzpM6JvYMWgqVHd5Cwm7D2Zba9YFAixZt6+ftagjlw=,tag:KA5DrpgoYBQREvCMM02OWg==,type:str]
     pgp: []
     encrypted_regex: ^(token|crt|key|id|secret|secretboxEncryptionSecret)$
     version: 3.7.3

@@ -3,7 +3,7 @@ kind: StorageClass
 metadata:
   name: mayastor-0
   # could also use built-in storageclass and manually label it as default
-  labels:
+  annotations:
     storageclass.kubernetes.io/is-default-class: 'true'
 parameters:
   ioTimeout: "30"
