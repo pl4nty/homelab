@@ -27,7 +27,7 @@ spec:
   values:
     image:
       repository: ghcr.io/home-assistant/home-assistant
-      tag: 2023.9.1
+      tag: 2023.9.2
     # incompatible boto3 version as of 2023.6.3. can only specify image at collector level
     # eg open-telemetry/opentelemetry-operator#1774
     # podAnnotations:
