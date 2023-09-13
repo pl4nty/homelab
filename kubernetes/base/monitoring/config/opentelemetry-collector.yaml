@@ -361,7 +361,7 @@ spec:
     - name: OTEL_METRICS_EXPORTER
       value: none
   go:
-    image: ghcr.io/open-telemetry/opentelemetry-go-instrumentation/autoinstrumentation-go:v0.2.2-alpha
+    image: ghcr.io/open-telemetry/opentelemetry-go-instrumentation/autoinstrumentation-go:v0.3.0-alpha
     resourceRequirements:
       limits:
         memory: 320Mi
@@ -391,7 +391,7 @@ spec:
     - name: OTEL_METRICS_EXPORTER
       value: none
   go:
-    image: ghcr.io/open-telemetry/opentelemetry-go-instrumentation/autoinstrumentation-go:v0.2.1-alpha
+    image: ghcr.io/open-telemetry/opentelemetry-go-instrumentation/autoinstrumentation-go:v0.3.0-alpha
     resourceRequirements:
       limits:
         memory: 320Mi
