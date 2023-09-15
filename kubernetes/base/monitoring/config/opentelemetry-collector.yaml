@@ -24,7 +24,6 @@ spec:
         protocols:
           grpc:
           http:
-
     extensions:
       basicauth/traces:
         client_auth:
@@ -34,11 +33,6 @@ spec:
         client_auth:
           username: $${env:METRICS_USERNAME}
           password: $${env:METRICS_PASSWORD}
-      basicauth/logs:
-        client_auth:
-          username: $${env:LOGS_USERNAME}
-          password: $${env:METRICS_PASSWORD}
-
     exporters:
       otlp:
         endpoint: $${env:TRACES_ENDPOINT}
@@ -52,18 +46,12 @@ spec:
           authenticator: basicauth/metrics
         external_labels:
           cluster: $${env:CLUSTER_NAME}
-      loki:
-        endpoint: $${env:LOGS_ENDPOINT}
-        auth:
-          authenticator: basicauth/logs
-
     processors:
       batch:
         send_batch_size: 1000
         send_batch_max_size: 3000
-
     service:
-      extensions: [ basicauth/traces, basicauth/metrics, basicauth/logs ]
+      extensions: [ basicauth/traces, basicauth/metrics ]
       pipelines:
         traces:
           receivers: [ otlp ]
