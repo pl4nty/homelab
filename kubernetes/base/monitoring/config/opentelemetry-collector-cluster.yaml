@@ -89,3 +89,7 @@ spec:
         enabled: true
       kubernetesEvents:
         enabled: true
+    livenessProbe:
+      initialDelaySeconds: 120
+    readinessProbe:
+      initialDelaySeconds: 120
