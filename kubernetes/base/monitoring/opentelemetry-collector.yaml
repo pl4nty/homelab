@@ -1,0 +1,88 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: opentelemetry-collector
+  namespace: monitoring
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: opentelemetry-collector
+      version: 0.85.0
+      sourceRef:
+        kind: HelmRepository
+        name: opentelemetry
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+    crds: CreateReplace
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+    crds: CreateReplace
+  uninstall:
+    keepHistory: false
+  values:
+    mode: daemonset # allows node metrics/logs, but would cause duplicate clusterMetrics
+    config:
+      extensions:
+        basicauth/traces:
+          client_auth:
+            username: $${env:TRACES_USERNAME}
+            password: $${env:METRICS_PASSWORD}
+        basicauth/metrics:
+          client_auth:
+            username: $${env:METRICS_USERNAME}
+            password: $${env:METRICS_PASSWORD}
+        basicauth/logs:
+          client_auth:
+            username: $${env:LOGS_USERNAME}
+            password: $${env:METRICS_PASSWORD}
+      exporters:
+        prometheusremotewrite:
+          endpoint: $${env:METRICS_ENDPOINT}
+          auth:
+            authenticator: basicauth/metrics
+          external_labels:
+            cluster: $${env:CLUSTER_NAME}
+        loki:
+          endpoint: $${env:LOGS_ENDPOINT}
+          auth:
+            authenticator: basicauth/logs
+        otlp:
+          endpoint: $${env:TRACES_ENDPOINT}
+          tls:
+            insecure: false
+          auth:
+            authenticator: basicauth/traces
+      service:
+        extensions:
+        - basicauth/traces
+        - basicauth/metrics
+        - basicauth/logs
+        pipelines:
+          metrics:
+            exporters:
+            - prometheusremotewrite
+          logs:
+            exporters:
+            - loki
+          traces:
+            exporters:
+            - otlp
+    presets:
+      logsCollection:
+        enabled: true
+        includeCollectorLogs: true
+      hostMetrics:
+        enabled: true
+      kubernetesAttributes:
+        enabled: true
+      kubeletMetrics:
+        enabled: true
+      kubernetesEvents:
+        enabled: true
