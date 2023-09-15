@@ -28,7 +28,7 @@ spec:
     keepHistory: false
   values:
     mode: daemonset # allows node metrics/logs, but would cause duplicate clusterMetrics
-    envFrom:
+    extraEnvsFrom:
     - secretRef:
         name: opentelemetry-collector
     config:
