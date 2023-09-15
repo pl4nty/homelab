@@ -57,6 +57,34 @@ spec:
         probabilistic_sampler:
           hash_seed: 22
           sampling_percentage: 20
+        attributes:
+          actions:
+          - action: insert
+            key: __path__
+            from_attribute: log.file.path
+          - action: insert
+            key: loki.attribute.labels
+            value: __path__
+        resource:
+          attributes:
+          - action: insert
+            key: loki.format
+            value: raw
+          - action: insert
+            key: namespace
+            from_attribute: k8s.namespace.name
+          - action: insert
+            key: pod
+            from_attribute: k8s.pod.name
+          - action: insert
+            key: container
+            from_attribute: k8s.container.name
+          - action: insert
+            key: cluster
+            value: $${env:CLUSTER_NAME}
+          - action: insert
+            key: loki.resource.labels
+            value: namespace, pod, container, cluster
       extensions:
         health_check:
           endpoint: 0.0.0.0:13134
@@ -101,6 +129,8 @@ spec:
           logs:
             processors:
             - probabilistic_sampler
+            - attributes
+            - resource
             - memory_limiter
             - batch
             exporters:
