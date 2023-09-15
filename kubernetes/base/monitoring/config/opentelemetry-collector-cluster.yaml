@@ -31,12 +31,33 @@ spec:
     extraEnvsFrom:
     - secretRef:
         name: opentelemetry-collector
+    # avoid hostNetwork conflict with Operator
+    livenessProbe:
+      httpGet:
+        port: 13134
+    readinessProbe:
+      httpGet:
+        port: 13134
+    presets:
+      logsCollection:
+        enabled: true
+        includeCollectorLogs: true
+      hostMetrics:
+        enabled: true
+      kubernetesAttributes:
+        enabled: true
+      kubeletMetrics:
+        enabled: true
+      kubernetesEvents:
+        enabled: true
     config:
       processors:
         probabilistic_sampler:
           hash_seed: 22
           sampling_percentage: 20
       extensions:
+        health_check:
+          health_check: 0.0.0.0:13134
         basicauth/traces:
           client_auth:
             username: $${env:TRACES_USERNAME}
@@ -85,22 +106,3 @@ spec:
           traces:
             exporters:
             - otlp
-    presets:
-      logsCollection:
-        enabled: true
-        includeCollectorLogs: true
-      hostMetrics:
-        enabled: true
-      kubernetesAttributes:
-        enabled: true
-      kubeletMetrics:
-        enabled: true
-      kubernetesEvents:
-        enabled: true
-    # avoid hostNetwork conflict with Operator
-    livenessProbe:
-      httpGet:
-        port: 13134
-    readinessProbe:
-      httpGet:
-        port: 13134
