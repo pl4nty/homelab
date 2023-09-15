@@ -4,3 +4,4 @@ resources:
 - ks.yaml
 - https://raw.githubusercontent.com/prometheus-operator/kube-prometheus/release-0.12/manifests/setup/0podmonitorCustomResourceDefinition.yaml
 - https://raw.githubusercontent.com/prometheus-operator/kube-prometheus/release-0.12/manifests/setup/0servicemonitorCustomResourceDefinition.yaml
+- opentelemetry-collector-cluster
