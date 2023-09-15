@@ -32,6 +32,10 @@ spec:
     - secretRef:
         name: opentelemetry-collector
     config:
+      processors:
+        probabilistic_sampler:
+          hash_seed: 22
+          sampling_percentage: 20
       extensions:
         basicauth/traces:
           client_auth:
@@ -72,6 +76,10 @@ spec:
             exporters:
             - prometheusremotewrite
           logs:
+            processors:
+            - probabilistic_sampler
+            - memory_limiter
+            - batch
             exporters:
             - loki
           traces:
