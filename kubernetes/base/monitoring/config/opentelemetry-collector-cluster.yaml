@@ -57,7 +57,7 @@ spec:
           sampling_percentage: 20
       extensions:
         health_check:
-          health_check: 0.0.0.0:13134
+          endpoint: 0.0.0.0:13134
         basicauth/traces:
           client_auth:
             username: $${env:TRACES_USERNAME}
