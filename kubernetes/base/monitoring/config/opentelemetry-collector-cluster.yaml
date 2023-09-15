@@ -34,10 +34,10 @@ spec:
     # avoid hostNetwork conflict with Operator
     livenessProbe:
       httpGet:
-        port: 13134
+        port: 8888 # default or health_check ports always fail :(
     readinessProbe:
       httpGet:
-        port: 13134
+        port: 8888
     presets:
       logsCollection:
         enabled: true
