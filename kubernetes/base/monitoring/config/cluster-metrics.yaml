@@ -1,367 +1,367 @@
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: kubelet-monitor
-  namespace: monitoring
-spec:
-  endpoints:
-  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
-    honorLabels: true
-    interval: 1m
-    metricRelabelings:
-    - action: keep
-      regex: "kubelet_volume_stats_capacity_bytes|\
-        kubelet_volume_stats_inodes|\
-        kubelet_volume_stats_inodes_used|\
-        process_cpu_seconds_total|\
-        rest_client_requests_total|\
-        process_resident_memory_bytes|\
-        kubelet_volume_stats_used_bytes|\
-        kubelet_volume_stats_used_bytes"
-      sourceLabels:
-      - __name__
-    - action: keep
-      sourceLabels:
-      - __name__
-      # Grafana agent defaults as of 02.7.23
-      regex: &grafana "kubelet_running_containers|\
-        go_goroutines|\
-        kubelet_runtime_operations_errors_total|\
-        cluster:namespace:pod_cpu:active:kube_pod_container_resource_limits|\
-        namespace_memory:kube_pod_container_resource_limits:sum|\
-        kubelet_volume_stats_inodes_used|\
-        kubelet_certificate_manager_server_ttl_seconds|\
-        namespace_workload_pod:kube_pod_owner:relabel|\
-        kubelet_node_config_error|\
-        kube_daemonset_status_number_misscheduled|\
-        kube_pod_container_resource_requests|\
-        namespace_cpu:kube_pod_container_resource_limits:sum|\
-        container_memory_working_set_bytes|\
-        container_fs_reads_bytes_total|\
-        kube_node_status_condition|\
-        namespace_cpu:kube_pod_container_resource_requests:sum|\
-        kubelet_server_expiration_renew_errors|\
-        container_fs_writes_total|\
-        kube_horizontalpodautoscaler_status_desired_replicas|\
-        node_filesystem_avail_bytes|\
-        kube_pod_status_reason|\
-        node_filesystem_size_bytes|\
-        kube_deployment_spec_replicas|\
-        kube_statefulset_metadata_generation|\
-        namespace_workload_pod|\
-        storage_operation_duration_seconds_count|\
-        kubelet_certificate_manager_client_expiration_renew_errors|\
-        kube_pod_container_resource_limits|\
-        kube_statefulset_status_replicas_updated|\
-        node_namespace_pod_container:container_memory_rss|\
-        kube_statefulset_status_observed_generation|\
-        node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate|\
-        kubelet_pleg_relist_interval_seconds_bucket|\
-        kube_job_status_start_time|\
-        kube_deployment_status_observed_generation|\
-        kubelet_pod_worker_duration_seconds_bucket|\
-        container_memory_cache|\
-        kube_resourcequota|\
-        kube_horizontalpodautoscaler_spec_min_replicas|\
-        namespace_memory:kube_pod_container_resource_requests:sum|\
-        kube_persistentvolumeclaim_resource_requests_storage_bytes|\
-        kube_daemonset_status_number_available|\
-        kube_job_failed|\
-        storage_operation_errors_total|\
-        cluster:namespace:pod_memory:active:kube_pod_container_resource_limits|\
-        container_fs_writes_bytes_total|\
-        kube_statefulset_replicas|\
-        kube_replicaset_owner|\
-        container_network_receive_bytes_total|\
-        volume_manager_total_volumes|\
-        kube_horizontalpodautoscaler_spec_max_replicas|\
-        kube_daemonset_status_desired_number_scheduled|\
-        kube_pod_container_status_waiting_reason|\
-        process_cpu_seconds_total|\
-        kube_node_status_allocatable|\
-        kube_deployment_status_replicas_available|\
-        kube_daemonset_status_updated_number_scheduled|\
-        container_network_receive_packets_total|\
-        container_memory_rss|\
-        container_cpu_usage_seconds_total|\
-        kube_namespace_status_phase|\
-        cluster:namespace:pod_memory:active:kube_pod_container_resource_requests|\
-        kubelet_volume_stats_available_bytes|\
-        kube_deployment_status_replicas_updated|\
-        kubelet_running_container_count|\
-        kube_node_info|\
-        container_network_transmit_packets_dropped_total|\
-        kubelet_certificate_manager_client_ttl_seconds|\
-        kube_pod_owner|\
-        kubelet_volume_stats_inodes|\
-        kubelet_runtime_operations_total|\
-        container_cpu_cfs_throttled_periods_total|\
-        kubelet_cgroup_manager_duration_seconds_bucket|\
-        kubelet_running_pod_count|\
-        container_network_transmit_packets_total|\
-        kubelet_node_name|\
-        kube_daemonset_status_current_number_scheduled|\
-        kube_statefulset_status_replicas_ready|\
-        cluster:namespace:pod_cpu:active:kube_pod_container_resource_requests|\
-        kubelet_volume_stats_capacity_bytes|\
-        kube_horizontalpodautoscaler_status_current_replicas|\
-        node_quantile:kubelet_pleg_relist_duration_seconds:histogram_quantile|\
-        kube_node_spec_taint|\
-        kubelet_pleg_relist_duration_seconds_bucket|\
-        kube_pod_status_phase|\
-        container_cpu_cfs_periods_total|\
-        kube_deployment_metadata_generation|\
-        node_namespace_pod_container:container_memory_cache|\
-        kube_statefulset_status_current_revision|\
-        kubelet_pleg_relist_duration_seconds_count|\
-        container_fs_reads_total|\
-        kube_statefulset_status_update_revision|\
-        container_network_receive_packets_dropped_total|\
-        kube_pod_info|\
-        kubelet_running_pods|\
-        process_resident_memory_bytes|\
-        kubelet_pod_worker_duration_seconds_count|\
-        kubelet_pod_start_duration_seconds_count|\
-        kubelet_cgroup_manager_duration_seconds_count|\
-        kube_node_status_capacity|\
-        container_network_transmit_bytes_total|\
-        rest_client_requests_total|\
-        kubernetes_build_info|\
-        machine_memory_bytes|\
-        kube_statefulset_status_replicas|\
-        container_memory_swap|\
-        kube_job_status_active|\
-        kubelet_pod_start_duration_seconds_bucket|\
-        node_namespace_pod_container:container_memory_working_set_bytes|\
-        node_namespace_pod_container:container_memory_swap|\
-        kube_namespace_status_phase|\
-        container_cpu_usage_seconds_total|\
-        kube_pod_status_phase|\
-        kube_pod_start_time|\
-        kube_pod_container_status_restarts_total|\
-        kube_pod_container_info|\
-        kube_pod_container_status_waiting_reason|\
-        kube_daemonset.*|\
-        kube_replicaset.*|\
-        kube_statefulset.*|\
-        kube_job.*|\
-        kube_node.*|\
-        node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate|\
-        cluster:namespace:pod_cpu:active:kube_pod_container_resource_requests|\
-        namespace_cpu:kube_pod_container_resource_requests:sum|\
-        node_cpu.*|\
-        node_memory.*|\
-        node_filesystem.*|\
-        node_network_transmit_bytes_total"
-    port: https-metrics
-    relabelings:
-    - sourceLabels:
-      - __metrics_path__
-      targetLabel: metrics_path
-    - action: replace
-      targetLabel: job
-      replacement: integrations/kubernetes/kubelet
-    scheme: https
-    tlsConfig:
-      insecureSkipVerify: true
-  namespaceSelector:
-    matchNames:
-    - default
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: kubelet
----
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: cadvisor-monitor
-  namespace: monitoring
-spec:
-  endpoints:
-  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
-    honorLabels: true
-    honorTimestamps: false
-    interval: 1m
-    metricRelabelings:
-    # - action: keep
-    #   sourceLabels:
-    #   - __name__
-    #   regex: *grafana 
-    - action: keep
-      regex: "container_cpu_cfs_periods_total|\
-        container_cpu_cfs_throttled_periods_total|\
-        container_cpu_usage_seconds_total|\
-        container_fs_inodes_free|\
-        container_fs_inodes_total|\
-        container_fs_limit_bytes|\
-        container_fs_usage_bytes|\
-        container_fs_reads_bytes_total|\
-        container_fs_writes_bytes_total|\
-        container_memory_working_set_bytes|\
-        container_network_receive_bytes_total|\
-        container_network_receive_packets_dropped_total|\
-        container_network_receive_packets_total|\
-        container_network_transmit_bytes_total|\
-        container_network_transmit_packets_dropped_total|\
-        container_network_transmit_packets_total|\
-        machine_memory_bytes|\
-        process_resident_memory_bytes|\
-        container_memory_usage_bytes|\
-        machine_cpu_cores|\
-        container_network_receive_errors_total|\
-        container_network_transmit_errors_total"
-      sourceLabels:
-      - __name__
-    path: /metrics/cadvisor
-    port: https-metrics
-    relabelings:
-    - sourceLabels:
-      - __metrics_path__
-      targetLabel: metrics_path
-    - action: replace
-      targetLabel: job
-      replacement: integrations/kubernetes/cadvisor
-    scheme: https
-    tlsConfig:
-      insecureSkipVerify: true
-  namespaceSelector:
-    matchNames:
-    - default
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: kubelet
----
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: ksm-monitor
-  namespace: monitoring
-spec:
-  endpoints:
-  - honorLabels: true
-    interval: 60s
-    metricRelabelings:
-    # - action: keep
-    #   sourceLabels:
-    #   - __name__
-    #   regex: *grafana 
-    - action: drop
-      sourceLabels:
-      - namespace
-      regex: flux-system
-    - action: replace
-      targetLabel: job
-      replacement: integrations/kubernetes/kube-state-metrics
-    - action: keep
-      regex: "kube_daemonset_status_desired_number_scheduled|\
-        kube_daemonset_status_number_ready|\
-        kube_daemonset_labels|\
-        kube_deployment_status_replicas_available|\
-        kube_job.*|\
-        kube_node.*|\
-        kube_pod_container_info|\
-        kube_pod_container_resource_limits|\
-        kube_pod_container_resource_requests|\
-        kube_pod_container_status_restarts_total|\
-        kube_pod_container_status_waiting_reason|\
-        kube_pod_info|\
-        kube_pod_owner|\
-        kube_statefulset_replicas|\
-        kube_statefulset_status_replicas|\
-        kube_statefulset_labels|\
-        process_resident_memory_bytes|\
-        kube_persistentvolumeclaim_info|\
-        kube_persistentvolumeclaim_resource_requests_storage_bytes|\
-        kube_pod_container_resource_requests|\
-        kube_namespace_created|\
-        kube_pod_status_phase|\
-        kube_deployment_status_replicas_unavailable|\
-        up"
-      sourceLabels:
-      - __name__
-    relabelings:
-    - sourceLabels:
-      - __metrics_path__
-      targetLabel: metrics_path
-    path: /metrics
-    port: http-metrics
-  namespaceSelector:
-    matchNames:
-    - monitoring
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: kube-state-metrics
----
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: node-exporter
-  namespace: monitoring
-spec:
-  endpoints:
-  - honorLabels: true
-    interval: 60s
-    metricRelabelings:
-    # - action: keep
-    #   sourceLabels:
-    #   - __name__
-    #   regex: *grafana
-    - action: replace
-      targetLabel: job
-      replacement: integrations/node_exporter
-    - action: labeldrop
-      regex: pod|mountpoint
-    - action: keep
-      regex: "node_filesystem_device_error|\
-        node_filesystem_files|\
-        node_filesystem_avail_bytes|\
-        node_filesystem_files_free|\
-        node_filesystem_size_bytes|\
-        node_network_receive_packets_total|\
-        node_network_receive_errs_total|\
-        node_network_receive_bytes_total|\
-        node_network_receive_drop_total|\
-        node_network_transmit_drop_total|\
-        node_network_transmit_bytes_total|\
-        node_network_transmit_packets_total|\
-        node_network_transmit_errs_total|\
-        node_cpu_seconds_total|\
-        node_disk_read_bytes_total|\
-        node_disk_written_bytes_total|\
-        node_disk_io_now|node_disk_writes_completed_total|\
-        node_disk_reads_completed_total|\
-        node_memory_Cached_bytes|\
-        node_filefd_allocated|\
-        node_load5|\
-        node_memory_MemTotal_bytes|\
-        node_memory_MemFree_bytes|\
-        node_netstat_Tcp_CurrEstab|\
-        node_memory_MemAvailable_bytes|\
-        node_time_seconds|\
-        node_memory_SwapFree_bytes|\
-        node_memory_Buffers_bytes|\
-        node_netstat_Tcp_OutSegs|\
-        node_nf_conntrack_entries_limit|\
-        node_boot_time_seconds|\
-        node_memory_SwapTotal_bytes|\
-        node_load15|\
-        node_netstat_TcpExt_TCPSynRetrans|\
-        node_nf_conntrack_entries|\
-        node_load1|\
-        node_filefd_maximum|\
-        node_intr_total|\
-        node_netstat_Tcp_RetransSegs|\
-        node_timex_maxerror_seconds|\
-        node_context_switches_total|\
-        node_uname_info|\
-        node_timex_estimated_error_seconds"
-      sourceLabels:
-      - __name__
-    port: metrics
-    scheme: http
-    scrapeTimeout: 10s
-  jobLabel: app.kubernetes.io/name
-  selector:
-    matchLabels:
-      app.kubernetes.io/instance: node-exporter
-      app.kubernetes.io/name: node-exporter
+# apiVersion: monitoring.coreos.com/v1
+# kind: ServiceMonitor
+# metadata:
+#   name: kubelet-monitor
+#   namespace: monitoring
+# spec:
+#   endpoints:
+#   - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+#     honorLabels: true
+#     interval: 1m
+#     metricRelabelings:
+#     - action: keep
+#       regex: "kubelet_volume_stats_capacity_bytes|\
+#         kubelet_volume_stats_inodes|\
+#         kubelet_volume_stats_inodes_used|\
+#         process_cpu_seconds_total|\
+#         rest_client_requests_total|\
+#         process_resident_memory_bytes|\
+#         kubelet_volume_stats_used_bytes|\
+#         kubelet_volume_stats_used_bytes"
+#       sourceLabels:
+#       - __name__
+#     - action: keep
+#       sourceLabels:
+#       - __name__
+#       # Grafana agent defaults as of 02.7.23
+#       regex: &grafana "kubelet_running_containers|\
+#         go_goroutines|\
+#         kubelet_runtime_operations_errors_total|\
+#         cluster:namespace:pod_cpu:active:kube_pod_container_resource_limits|\
+#         namespace_memory:kube_pod_container_resource_limits:sum|\
+#         kubelet_volume_stats_inodes_used|\
+#         kubelet_certificate_manager_server_ttl_seconds|\
+#         namespace_workload_pod:kube_pod_owner:relabel|\
+#         kubelet_node_config_error|\
+#         kube_daemonset_status_number_misscheduled|\
+#         kube_pod_container_resource_requests|\
+#         namespace_cpu:kube_pod_container_resource_limits:sum|\
+#         container_memory_working_set_bytes|\
+#         container_fs_reads_bytes_total|\
+#         kube_node_status_condition|\
+#         namespace_cpu:kube_pod_container_resource_requests:sum|\
+#         kubelet_server_expiration_renew_errors|\
+#         container_fs_writes_total|\
+#         kube_horizontalpodautoscaler_status_desired_replicas|\
+#         node_filesystem_avail_bytes|\
+#         kube_pod_status_reason|\
+#         node_filesystem_size_bytes|\
+#         kube_deployment_spec_replicas|\
+#         kube_statefulset_metadata_generation|\
+#         namespace_workload_pod|\
+#         storage_operation_duration_seconds_count|\
+#         kubelet_certificate_manager_client_expiration_renew_errors|\
+#         kube_pod_container_resource_limits|\
+#         kube_statefulset_status_replicas_updated|\
+#         node_namespace_pod_container:container_memory_rss|\
+#         kube_statefulset_status_observed_generation|\
+#         node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate|\
+#         kubelet_pleg_relist_interval_seconds_bucket|\
+#         kube_job_status_start_time|\
+#         kube_deployment_status_observed_generation|\
+#         kubelet_pod_worker_duration_seconds_bucket|\
+#         container_memory_cache|\
+#         kube_resourcequota|\
+#         kube_horizontalpodautoscaler_spec_min_replicas|\
+#         namespace_memory:kube_pod_container_resource_requests:sum|\
+#         kube_persistentvolumeclaim_resource_requests_storage_bytes|\
+#         kube_daemonset_status_number_available|\
+#         kube_job_failed|\
+#         storage_operation_errors_total|\
+#         cluster:namespace:pod_memory:active:kube_pod_container_resource_limits|\
+#         container_fs_writes_bytes_total|\
+#         kube_statefulset_replicas|\
+#         kube_replicaset_owner|\
+#         container_network_receive_bytes_total|\
+#         volume_manager_total_volumes|\
+#         kube_horizontalpodautoscaler_spec_max_replicas|\
+#         kube_daemonset_status_desired_number_scheduled|\
+#         kube_pod_container_status_waiting_reason|\
+#         process_cpu_seconds_total|\
+#         kube_node_status_allocatable|\
+#         kube_deployment_status_replicas_available|\
+#         kube_daemonset_status_updated_number_scheduled|\
+#         container_network_receive_packets_total|\
+#         container_memory_rss|\
+#         container_cpu_usage_seconds_total|\
+#         kube_namespace_status_phase|\
+#         cluster:namespace:pod_memory:active:kube_pod_container_resource_requests|\
+#         kubelet_volume_stats_available_bytes|\
+#         kube_deployment_status_replicas_updated|\
+#         kubelet_running_container_count|\
+#         kube_node_info|\
+#         container_network_transmit_packets_dropped_total|\
+#         kubelet_certificate_manager_client_ttl_seconds|\
+#         kube_pod_owner|\
+#         kubelet_volume_stats_inodes|\
+#         kubelet_runtime_operations_total|\
+#         container_cpu_cfs_throttled_periods_total|\
+#         kubelet_cgroup_manager_duration_seconds_bucket|\
+#         kubelet_running_pod_count|\
+#         container_network_transmit_packets_total|\
+#         kubelet_node_name|\
+#         kube_daemonset_status_current_number_scheduled|\
+#         kube_statefulset_status_replicas_ready|\
+#         cluster:namespace:pod_cpu:active:kube_pod_container_resource_requests|\
+#         kubelet_volume_stats_capacity_bytes|\
+#         kube_horizontalpodautoscaler_status_current_replicas|\
+#         node_quantile:kubelet_pleg_relist_duration_seconds:histogram_quantile|\
+#         kube_node_spec_taint|\
+#         kubelet_pleg_relist_duration_seconds_bucket|\
+#         kube_pod_status_phase|\
+#         container_cpu_cfs_periods_total|\
+#         kube_deployment_metadata_generation|\
+#         node_namespace_pod_container:container_memory_cache|\
+#         kube_statefulset_status_current_revision|\
+#         kubelet_pleg_relist_duration_seconds_count|\
+#         container_fs_reads_total|\
+#         kube_statefulset_status_update_revision|\
+#         container_network_receive_packets_dropped_total|\
+#         kube_pod_info|\
+#         kubelet_running_pods|\
+#         process_resident_memory_bytes|\
+#         kubelet_pod_worker_duration_seconds_count|\
+#         kubelet_pod_start_duration_seconds_count|\
+#         kubelet_cgroup_manager_duration_seconds_count|\
+#         kube_node_status_capacity|\
+#         container_network_transmit_bytes_total|\
+#         rest_client_requests_total|\
+#         kubernetes_build_info|\
+#         machine_memory_bytes|\
+#         kube_statefulset_status_replicas|\
+#         container_memory_swap|\
+#         kube_job_status_active|\
+#         kubelet_pod_start_duration_seconds_bucket|\
+#         node_namespace_pod_container:container_memory_working_set_bytes|\
+#         node_namespace_pod_container:container_memory_swap|\
+#         kube_namespace_status_phase|\
+#         container_cpu_usage_seconds_total|\
+#         kube_pod_status_phase|\
+#         kube_pod_start_time|\
+#         kube_pod_container_status_restarts_total|\
+#         kube_pod_container_info|\
+#         kube_pod_container_status_waiting_reason|\
+#         kube_daemonset.*|\
+#         kube_replicaset.*|\
+#         kube_statefulset.*|\
+#         kube_job.*|\
+#         kube_node.*|\
+#         node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate|\
+#         cluster:namespace:pod_cpu:active:kube_pod_container_resource_requests|\
+#         namespace_cpu:kube_pod_container_resource_requests:sum|\
+#         node_cpu.*|\
+#         node_memory.*|\
+#         node_filesystem.*|\
+#         node_network_transmit_bytes_total"
+#     port: https-metrics
+#     relabelings:
+#     - sourceLabels:
+#       - __metrics_path__
+#       targetLabel: metrics_path
+#     - action: replace
+#       targetLabel: job
+#       replacement: integrations/kubernetes/kubelet
+#     scheme: https
+#     tlsConfig:
+#       insecureSkipVerify: true
+#   namespaceSelector:
+#     matchNames:
+#     - default
+#   selector:
+#     matchLabels:
+#       app.kubernetes.io/name: kubelet
+# ---
+# apiVersion: monitoring.coreos.com/v1
+# kind: ServiceMonitor
+# metadata:
+#   name: cadvisor-monitor
+#   namespace: monitoring
+# spec:
+#   endpoints:
+#   - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+#     honorLabels: true
+#     honorTimestamps: false
+#     interval: 1m
+#     metricRelabelings:
+#     # - action: keep
+#     #   sourceLabels:
+#     #   - __name__
+#     #   regex: *grafana 
+#     - action: keep
+#       regex: "container_cpu_cfs_periods_total|\
+#         container_cpu_cfs_throttled_periods_total|\
+#         container_cpu_usage_seconds_total|\
+#         container_fs_inodes_free|\
+#         container_fs_inodes_total|\
+#         container_fs_limit_bytes|\
+#         container_fs_usage_bytes|\
+#         container_fs_reads_bytes_total|\
+#         container_fs_writes_bytes_total|\
+#         container_memory_working_set_bytes|\
+#         container_network_receive_bytes_total|\
+#         container_network_receive_packets_dropped_total|\
+#         container_network_receive_packets_total|\
+#         container_network_transmit_bytes_total|\
+#         container_network_transmit_packets_dropped_total|\
+#         container_network_transmit_packets_total|\
+#         machine_memory_bytes|\
+#         process_resident_memory_bytes|\
+#         container_memory_usage_bytes|\
+#         machine_cpu_cores|\
+#         container_network_receive_errors_total|\
+#         container_network_transmit_errors_total"
+#       sourceLabels:
+#       - __name__
+#     path: /metrics/cadvisor
+#     port: https-metrics
+#     relabelings:
+#     - sourceLabels:
+#       - __metrics_path__
+#       targetLabel: metrics_path
+#     - action: replace
+#       targetLabel: job
+#       replacement: integrations/kubernetes/cadvisor
+#     scheme: https
+#     tlsConfig:
+#       insecureSkipVerify: true
+#   namespaceSelector:
+#     matchNames:
+#     - default
+#   selector:
+#     matchLabels:
+#       app.kubernetes.io/name: kubelet
+# ---
+# apiVersion: monitoring.coreos.com/v1
+# kind: ServiceMonitor
+# metadata:
+#   name: ksm-monitor
+#   namespace: monitoring
+# spec:
+#   endpoints:
+#   - honorLabels: true
+#     interval: 60s
+#     metricRelabelings:
+#     # - action: keep
+#     #   sourceLabels:
+#     #   - __name__
+#     #   regex: *grafana 
+#     - action: drop
+#       sourceLabels:
+#       - namespace
+#       regex: flux-system
+#     - action: replace
+#       targetLabel: job
+#       replacement: integrations/kubernetes/kube-state-metrics
+#     - action: keep
+#       regex: "kube_daemonset_status_desired_number_scheduled|\
+#         kube_daemonset_status_number_ready|\
+#         kube_daemonset_labels|\
+#         kube_deployment_status_replicas_available|\
+#         kube_job.*|\
+#         kube_node.*|\
+#         kube_pod_container_info|\
+#         kube_pod_container_resource_limits|\
+#         kube_pod_container_resource_requests|\
+#         kube_pod_container_status_restarts_total|\
+#         kube_pod_container_status_waiting_reason|\
+#         kube_pod_info|\
+#         kube_pod_owner|\
+#         kube_statefulset_replicas|\
+#         kube_statefulset_status_replicas|\
+#         kube_statefulset_labels|\
+#         process_resident_memory_bytes|\
+#         kube_persistentvolumeclaim_info|\
+#         kube_persistentvolumeclaim_resource_requests_storage_bytes|\
+#         kube_pod_container_resource_requests|\
+#         kube_namespace_created|\
+#         kube_pod_status_phase|\
+#         kube_deployment_status_replicas_unavailable|\
+#         up"
+#       sourceLabels:
+#       - __name__
+#     relabelings:
+#     - sourceLabels:
+#       - __metrics_path__
+#       targetLabel: metrics_path
+#     path: /metrics
+#     port: http-metrics
+#   namespaceSelector:
+#     matchNames:
+#     - monitoring
+#   selector:
+#     matchLabels:
+#       app.kubernetes.io/name: kube-state-metrics
+# ---
+# apiVersion: monitoring.coreos.com/v1
+# kind: ServiceMonitor
+# metadata:
+#   name: node-exporter
+#   namespace: monitoring
+# spec:
+#   endpoints:
+#   - honorLabels: true
+#     interval: 60s
+#     metricRelabelings:
+#     # - action: keep
+#     #   sourceLabels:
+#     #   - __name__
+#     #   regex: *grafana
+#     - action: replace
+#       targetLabel: job
+#       replacement: integrations/node_exporter
+#     - action: labeldrop
+#       regex: pod|mountpoint
+#     - action: keep
+#       regex: "node_filesystem_device_error|\
+#         node_filesystem_files|\
+#         node_filesystem_avail_bytes|\
+#         node_filesystem_files_free|\
+#         node_filesystem_size_bytes|\
+#         node_network_receive_packets_total|\
+#         node_network_receive_errs_total|\
+#         node_network_receive_bytes_total|\
+#         node_network_receive_drop_total|\
+#         node_network_transmit_drop_total|\
+#         node_network_transmit_bytes_total|\
+#         node_network_transmit_packets_total|\
+#         node_network_transmit_errs_total|\
+#         node_cpu_seconds_total|\
+#         node_disk_read_bytes_total|\
+#         node_disk_written_bytes_total|\
+#         node_disk_io_now|node_disk_writes_completed_total|\
+#         node_disk_reads_completed_total|\
+#         node_memory_Cached_bytes|\
+#         node_filefd_allocated|\
+#         node_load5|\
+#         node_memory_MemTotal_bytes|\
+#         node_memory_MemFree_bytes|\
+#         node_netstat_Tcp_CurrEstab|\
+#         node_memory_MemAvailable_bytes|\
+#         node_time_seconds|\
+#         node_memory_SwapFree_bytes|\
+#         node_memory_Buffers_bytes|\
+#         node_netstat_Tcp_OutSegs|\
+#         node_nf_conntrack_entries_limit|\
+#         node_boot_time_seconds|\
+#         node_memory_SwapTotal_bytes|\
+#         node_load15|\
+#         node_netstat_TcpExt_TCPSynRetrans|\
+#         node_nf_conntrack_entries|\
+#         node_load1|\
+#         node_filefd_maximum|\
+#         node_intr_total|\
+#         node_netstat_Tcp_RetransSegs|\
+#         node_timex_maxerror_seconds|\
+#         node_context_switches_total|\
+#         node_uname_info|\
+#         node_timex_estimated_error_seconds"
+#       sourceLabels:
+#       - __name__
+#     port: metrics
+#     scheme: http
+#     scrapeTimeout: 10s
+#   jobLabel: app.kubernetes.io/name
+#   selector:
+#     matchLabels:
+#       app.kubernetes.io/instance: node-exporter
+#       app.kubernetes.io/name: node-exporter
