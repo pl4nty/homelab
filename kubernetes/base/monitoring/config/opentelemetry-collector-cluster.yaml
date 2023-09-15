@@ -32,29 +32,29 @@ spec:
       extensions:
         basicauth/traces:
           client_auth:
-            username: $${env:TRACES_USERNAME}
-            password: $${env:METRICS_PASSWORD}
+            username: ${env:TRACES_USERNAME}
+            password: ${env:METRICS_PASSWORD}
         basicauth/metrics:
           client_auth:
-            username: $${env:METRICS_USERNAME}
-            password: $${env:METRICS_PASSWORD}
+            username: ${env:METRICS_USERNAME}
+            password: ${env:METRICS_PASSWORD}
         basicauth/logs:
           client_auth:
-            username: $${env:LOGS_USERNAME}
-            password: $${env:METRICS_PASSWORD}
+            username: ${env:LOGS_USERNAME}
+            password: ${env:METRICS_PASSWORD}
       exporters:
         prometheusremotewrite:
-          endpoint: $${env:METRICS_ENDPOINT}
+          endpoint: ${env:METRICS_ENDPOINT}
           auth:
             authenticator: basicauth/metrics
           external_labels:
-            cluster: $${env:CLUSTER_NAME}
+            cluster: ${env:CLUSTER_NAME}
         loki:
-          endpoint: $${env:LOGS_ENDPOINT}
+          endpoint: ${env:LOGS_ENDPOINT}
           auth:
             authenticator: basicauth/logs
         otlp:
-          endpoint: $${env:TRACES_ENDPOINT}
+          endpoint: ${env:TRACES_ENDPOINT}
           tls:
             insecure: false
           auth:
