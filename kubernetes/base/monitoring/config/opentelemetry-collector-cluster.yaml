@@ -57,6 +57,10 @@ spec:
         probabilistic_sampler:
           hash_seed: 22
           sampling_percentage: 20
+        filter/ottl:
+          metrics:
+            metric:
+            - IsMatch(name, "otelcol_.*")
         attributes:
           actions:
           - action: insert
