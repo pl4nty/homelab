@@ -97,7 +97,10 @@ spec:
         enabled: true
       kubernetesEvents:
         enabled: true
+    # avoid hostNetwork conflict with Operator
     livenessProbe:
-      initialDelaySeconds: 120
+      httpGet:
+        port: 13134
     readinessProbe:
-      initialDelaySeconds: 120
+      httpGet:
+        port: 13134
