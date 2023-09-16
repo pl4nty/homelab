@@ -2,30 +2,14 @@ apiVersion: opentelemetry.io/v1alpha1
 kind: OpenTelemetryCollector
 metadata:
   name: opentelemetry
-  namespace: monitoring
+  namespace: monitoring-system
 spec:
   envFrom:
   - secretRef:
       name: opentelemetry-collector
-  # https://github.com/open-telemetry/opentelemetry-operator/tree/main/cmd/otel-allocator
-  # TODO install CRDs with https://github.com/prometheus-operator/prometheus-operator/releases
   mode: statefulset
-  targetAllocator:
-    enabled: true
-    image: ghcr.io/open-telemetry/opentelemetry-operator/target-allocator:v0.84.0
-    prometheusCR:
-      enabled: true
-  # target_allocator can be removed once this is merged: open-telemetry/opentelemetry-operator#1557
   config: |
     receivers:
-      prometheus:
-        config:
-          scrape_configs:
-          - job_name: otel-collector
-        target_allocator:
-          endpoint: http://opentelemetry-targetallocator
-          interval: 1m
-          collector_id: $${env:POD_NAME}
       otlp:
         protocols:
           grpc:
@@ -72,7 +56,7 @@ apiVersion: opentelemetry.io/v1alpha1
 kind: OpenTelemetryCollector
 metadata:
   name: opentelemetry-sidecar
-  namespace: monitoring
+  namespace: monitoring-system
 spec:
   mode: sidecar
   envFrom:
@@ -111,70 +95,70 @@ spec:
           exporters: [ otlp, logging ]
 ---
 # TODO move to operator
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: opentelemetry-targetallocator
-rules:
-# Prometheus discovery
-- apiGroups:
-  - monitoring.coreos.com
-  resources:
-  - servicemonitors
-  - podmonitors
-  verbs:
-  - '*'
-- apiGroups: [""]
-  resources:
-  - nodes
-  - nodes/metrics
-  - services
-  - endpoints
-  - pods
-  - namespaces
-  verbs: ["get", "list", "watch"]
-- apiGroups: [""]
-  resources:
-  - configmaps
-  verbs: ["get"]
-- apiGroups:
-  - discovery.k8s.io
-  resources:
-  - endpointslices
-  verbs: ["get", "list", "watch"]
-- apiGroups:
-  - networking.k8s.io
-  resources:
-  - ingresses
-  verbs: ["get", "list", "watch"]
-- nonResourceURLs: ["/metrics"]
-  verbs: ["get"]
-# k8s events
-- apiGroups: [""]
-  resources: ["events"]
-  verbs: ["list", "watch"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: opentelemetry-targetallocator
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: opentelemetry-targetallocator
-subjects:
-- kind: ServiceAccount
-  name: opentelemetry-collector
-  namespace: monitoring
----
+# apiVersion: rbac.authorization.k8s.io/v1
+# kind: ClusterRole
+# metadata:
+#   name: opentelemetry-targetallocator
+# rules:
+# # Prometheus discovery
+# - apiGroups:
+#   - monitoring.coreos.com
+#   resources:
+#   - servicemonitors
+#   - podmonitors
+#   verbs:
+#   - '*'
+# - apiGroups: [""]
+#   resources:
+#   - nodes
+#   - nodes/metrics
+#   - services
+#   - endpoints
+#   - pods
+#   - namespaces
+#   verbs: ["get", "list", "watch"]
+# - apiGroups: [""]
+#   resources:
+#   - configmaps
+#   verbs: ["get"]
+# - apiGroups:
+#   - discovery.k8s.io
+#   resources:
+#   - endpointslices
+#   verbs: ["get", "list", "watch"]
+# - apiGroups:
+#   - networking.k8s.io
+#   resources:
+#   - ingresses
+#   verbs: ["get", "list", "watch"]
+# - nonResourceURLs: ["/metrics"]
+#   verbs: ["get"]
+# # k8s events
+# - apiGroups: [""]
+#   resources: ["events"]
+#   verbs: ["list", "watch"]
+# ---
+# apiVersion: rbac.authorization.k8s.io/v1
+# kind: ClusterRoleBinding
+# metadata:
+#   name: opentelemetry-targetallocator
+# roleRef:
+#   apiGroup: rbac.authorization.k8s.io
+#   kind: ClusterRole
+#   name: opentelemetry-targetallocator
+# subjects:
+# - kind: ServiceAccount
+#   name: opentelemetry-collector
+#   namespace: monitoring-system
+# ---
 apiVersion: opentelemetry.io/v1alpha1
 kind: Instrumentation
 metadata:
-  name: opentelemetry-instrumentation
-  namespace: monitoring
+  name: opentelemetry
+  namespace: default
 spec:
   exporter:
-    endpoint: http://opentelemetry-collector.monitoring:4317
+    endpoint: http://opentelemetry-collector.monitoring-system:4317
   propagators:
     - tracecontext
     - baggage
@@ -197,7 +181,7 @@ spec:
       # Python autoinstrumentation uses http/proto by default
       # so data must be sent to 4318 instead of 4317.
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
-        value: http://opentelemetry-collector.monitoring.svc.cluster.local:4318
+        value: http://opentelemetry-collector.monitoring-system:4318
       - name: OTEL_METRICS_EXPORTER
         value: none
   dotnet:
@@ -206,7 +190,7 @@ spec:
       # Dotnet autoinstrumentation uses http/proto by default
       # See https://github.com/open-telemetry/opentelemetry-dotnet-instrumentation/blob/888e2cd216c77d12e56b54ee91dafbc4e7452a52/docs/config.md#otlp
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
-        value: http://opentelemetry-collector.monitoring:4318
+        value: http://opentelemetry-collector.monitoring-system:4318
   apacheHttpd:
     image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:bb29da039d37aadbcef59bed55740b10c6beee443a69d730b7210ea15130f7a2
   #   configPath: /etc/php/7.4/apache2/conf.d # HRConvert2
@@ -214,38 +198,8 @@ spec:
 apiVersion: opentelemetry.io/v1alpha1
 kind: Instrumentation
 metadata:
-  name: opentelemetry-instrumentation-sidecar
-  namespace: monitoring
-spec:
-  exporter:
-    endpoint: http://localhost:4317
-  propagators:
-    - tracecontext
-    - baggage
-    - b3
-  sampler:
-    type: parentbased_traceidratio
-    argument: "0.25"
-  resource:
-    resourceAttributes:
-      k8s.cluster.name: ${CLUSTER_NAME}
-    addK8sUIDAttributes: true
-  env:
-    # disable due to ingest limits
-    # https://opentelemetry.io/docs/reference/specification/sdk-environment-variables/#exporter-selection
-    - name: OTEL_METRICS_EXPORTER
-      value: none
-  go:
-    image: ghcr.io/open-telemetry/opentelemetry-go-instrumentation/autoinstrumentation-go:v0.3.0-alpha
-    resourceRequirements:
-      limits:
-        memory: 320Mi
----
-apiVersion: opentelemetry.io/v1alpha1
-kind: Instrumentation
-metadata:
-  name: opentelemetry-instrumentation-sidecar-gitlab
-  namespace: monitoring
+  name: opentelemetry-sidecar
+  namespace: default
 spec:
   exporter:
     endpoint: http://localhost:4317
