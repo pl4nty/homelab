@@ -28,7 +28,7 @@ spec:
     image:
       # new versions are sometimes completely broken (missing files etc)
       repository: ghcr.io/hedgedoc/hedgedoc/backend:develop@sha256
-      tag: 7b6d83bffb321ea54fd5866e19010cba634a03db8393531f4360e62c4ad906d0
+      tag: 999ef47ca7384d7b6d507bd1ebb524735a00f7078895c355e8facf020502a443
     podAnnotations:
       instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
     env:
