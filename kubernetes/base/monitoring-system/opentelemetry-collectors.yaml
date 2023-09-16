@@ -10,47 +10,51 @@ spec:
   mode: statefulset
   config: |
     receivers:
+      prometheus:
+        config:
+          scrape_configs:
+          - job_name: otel-collector
       otlp:
         protocols:
           grpc:
           http:
     extensions:
-      basicauth/traces:
-        client_auth:
-          username: $${env:TRACES_USERNAME}
-          password: $${env:METRICS_PASSWORD}
       basicauth/metrics:
         client_auth:
           username: $${env:METRICS_USERNAME}
           password: $${env:METRICS_PASSWORD}
+      basicauth/traces:
+        client_auth:
+          username: $${env:TRACES_USERNAME}
+          password: $${env:METRICS_PASSWORD}
     exporters:
-      otlp:
-        endpoint: $${env:TRACES_ENDPOINT}
-        tls:
-          insecure: false
-        auth:
-          authenticator: basicauth/traces
       prometheusremotewrite:
         endpoint: $${env:METRICS_ENDPOINT}
         auth:
           authenticator: basicauth/metrics
         external_labels:
           cluster: $${env:CLUSTER_NAME}
+      otlp:
+        endpoint: $${env:TRACES_ENDPOINT}
+        tls:
+          insecure: false
+        auth:
+          authenticator: basicauth/traces
     processors:
       batch:
         send_batch_size: 1000
         send_batch_max_size: 3000
     service:
-      extensions: [ basicauth/traces, basicauth/metrics ]
+      extensions: [ basicauth/metrics, basicauth/traces ]
       pipelines:
-        traces:
-          receivers: [ otlp ]
-          processors: [ batch ]
-          exporters: [ otlp ]
         metrics:
           receivers: [ prometheus ]
           processors: [ batch ]
           exporters: [ prometheusremotewrite ]
+        traces:
+          receivers: [ otlp ]
+          processors: [ batch ]
+          exporters: [ otlp ]
 ---
 apiVersion: opentelemetry.io/v1alpha1
 kind: OpenTelemetryCollector
