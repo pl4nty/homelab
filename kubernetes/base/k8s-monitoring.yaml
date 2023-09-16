@@ -2,9 +2,8 @@ apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
   name: k8s-monitoring
-  namespace: flux-system
+  namespace: monitoring-system
 spec:
-  targetNamespace: monitoring-system
   interval: 15m
   chart:
     spec:
