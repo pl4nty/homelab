@@ -61,7 +61,7 @@ spec:
   mode: sidecar
   envFrom:
   - secretRef:
-      name: opentelemetry-collector
+      name: opentelemetry-collectors
   config: |
     extensions:
       basicauth/traces:
