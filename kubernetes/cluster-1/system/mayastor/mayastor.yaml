@@ -41,4 +41,6 @@ spec:
       # envcontext: iova-mode=pa
       resources:
         requests:
-          cpu: 1 # default is 2
+          cpu: 1
+        limits:
+          cpu: 1
