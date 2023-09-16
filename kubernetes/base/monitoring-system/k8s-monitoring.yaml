@@ -44,7 +44,7 @@ spec:
     opencost:
       enabled: false
     metrics:
-      extraRelabelingRules: |
+      extraRelabelingRules: |-
         rule {
           source_labels = ["__name__","image"]
           separator = "@"
