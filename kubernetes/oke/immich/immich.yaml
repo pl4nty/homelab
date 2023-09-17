@@ -47,6 +47,10 @@ spec:
           type: emptyDir
 
     machine-learning:
+      controller:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: 0
       resources:
         requests:
           cpu: 10m
@@ -75,14 +79,26 @@ spec:
       #     accessMode: ReadWriteOnce
 
     microservices:
+      controller:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: 0
       podAnnotations:
         instrumentation.opentelemetry.io/inject-nodejs: "true"
 
     server:
+      controller:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: 0
       podAnnotations:
         instrumentation.opentelemetry.io/inject-nodejs: "true"
 
     web:
+      controller:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: 0
       podAnnotations:
         instrumentation.opentelemetry.io/inject-nodejs: "true"
         

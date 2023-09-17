@@ -25,6 +25,10 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    controller:
+      strategy: RollingUpdate
+      rollingUpdate:
+        unavailable: 0
     image:
       repository: ghcr.io/pl4nty/jsonwebtoken
       tag: latest@sha256:46565fbaa0d756fe9d6cbb399917a6c83b7dbd49176ae7c9e81e996fb2b50489

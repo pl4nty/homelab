@@ -26,6 +26,10 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    controller:
+      strategy: RollingUpdate
+      rollingUpdate:
+        unavailable: 0
     image:
       repository: caddy
       tag: latest

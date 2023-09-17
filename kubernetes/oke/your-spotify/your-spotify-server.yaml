@@ -25,6 +25,10 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    controller:
+      strategy: RollingUpdate
+      rollingUpdate:
+        unavailable: 0
     image:
       repository: yooooomi/your_spotify_server
       tag: 1.7.0

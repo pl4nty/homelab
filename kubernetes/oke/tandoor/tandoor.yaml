@@ -25,6 +25,10 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    controller:
+      strategy: RollingUpdate
+      rollingUpdate:
+        unavailable: 0
     image:
       repository: vabene1111/recipes
       tag: 1.5.6

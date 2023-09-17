@@ -25,6 +25,10 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    controller:
+      type: statefulset
+      rollingUpdate:
+        unavailable: 0
     image:
       repository: ghcr.io/home-assistant/home-assistant
       tag: 2023.9.2
@@ -32,8 +36,6 @@ spec:
     # eg open-telemetry/opentelemetry-operator#1774
     # podAnnotations:
     #   instrumentation.opentelemetry.io/inject-python: "true"
-    controller:
-      type: statefulset
     persistence:
       config:
         enabled: true

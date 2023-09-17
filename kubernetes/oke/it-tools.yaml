@@ -25,6 +25,10 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    controller:
+      strategy: RollingUpdate
+      rollingUpdate:
+        unavailable: 0
     image:
       repository: ghcr.io/corentinth/it-tools
       tag: 2023.4.23-92bd835

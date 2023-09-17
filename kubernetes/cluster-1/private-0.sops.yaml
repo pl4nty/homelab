@@ -25,6 +25,10 @@ spec:
     uninstall:
         keepHistory: false
     values:
+        controller:
+            strategy: RollingUpdate
+            rollingUpdate:
+                unavailable: 0
         image:
             repository: ENC[AES256_GCM,data:LjrPnYvnjKT+5iIjBY4=,iv:B+M7PKZUOYzinmzuQumm3ix/egLzDWnVVeJr5KwsuZk=,tag:7kvrYD+t8Im7EjgdupJwkg==,type:str]
             tag: ENC[AES256_GCM,data:QJgQITvm/w==,iv:+ux4tudjCkVNVYfzqsc+wH3Hnn61Ge1CTnCcd2N4uMc=,tag:IsPqVPIIEyFAne6yYV59Sw==,type:str]
@@ -99,8 +103,8 @@ sops:
             ZUgyNzgrSmkvaE9YUnN2OUJrZWxnY2sKb4Zp67/JX57k38PFV79enq4VpRXMr8Ls
             0XmonUvQIP4ba+bFuAqyolz9ZlSNW8oe3uuuaEnPL/SUJGbvTQe9Sw==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-09-10T05:00:34Z"
-    mac: ENC[AES256_GCM,data:aBvHhTGiuU8zwmuEGAQtYAs0Gug7NH+m8I1EwDdzpPch6QES2ts6AADDb40NdaGZQqm29RAMqlDTpoT7BiJYAOdMvV6NeOyXHMR1OpLc3kaxGt4/1HOgoNVOosd5FRuZouQuaNm+qDrg1/UaSmBsbD9TkifDLZJ8pB6AndcJ1Sw=,iv:2e/Xeymyt1IqRA+2ZywrmjSX/f+d0NPetBfKIivKqdc=,tag:eGMX1J16OronxNol4x+NQg==,type:str]
+    lastmodified: "2023-09-17T02:59:29Z"
+    mac: ENC[AES256_GCM,data:4SXFK2aQLmoW6AhMFz/1rOrenK32g0scmx3HvZncED+SX2tlYpecsMeXv+HrPyh81hhie6SNI6cpg2trZgFW0f01SCcDzJF5nCmjjQfbY8Wp7KRfjScbVVqYJJR+f8Br/G53J+r2y8iKtAaBx3+dbaKlxs2WlpvIHPzFyATa7QE=,iv:8vK1lzIVmSc+X/bQPVkK9mGfQ3+tH+E1lATeMwLW2dE=,tag:tKKkwo/wwWmX7OwDztNtmA==,type:str]
     pgp: []
     encrypted_regex: ^(repository|env|mountPath|image)$
     version: 3.7.3
