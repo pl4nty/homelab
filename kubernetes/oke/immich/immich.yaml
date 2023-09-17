@@ -53,9 +53,12 @@ spec:
         limits:
           cpu: 3
           ephemeral-storage: 10Gi
-      liveness:
-        spec:
-          initialDelaySeconds: 120
+      # issue doesn't seem to be resolved
+      # immich-app/immich-charts#27
+      probes:
+        liveness:
+          spec:
+            initialDelaySeconds: 60
       podAnnotations:
         instrumentation.opentelemetry.io/inject-python: "true"
       # OTel overrides PYTHONPATH: open-telemetry/opentelemetry-operator#1884
