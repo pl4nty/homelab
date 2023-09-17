@@ -67,11 +67,12 @@ spec:
         instrumentation.opentelemetry.io/inject-python: "true"
       # OTel overrides PYTHONPATH: open-telemetry/opentelemetry-operator#1884
       # so we add the expected path manually
+      # https://github.com/immich-app/immich/blob/main/machine-learning/Dockerfile
       command:
       - /bin/sh
       args:
       - -c
-      - "PYTHONPATH=$PYTHONPATH:/usr/src python -m app.main"
+      - "PYTHONPATH=$PYTHONPATH:/usr/src tini -- ./start.sh"
       # persistence:
       #   cache:
       #     # 10Gi, avoid downloading ML models every startup
