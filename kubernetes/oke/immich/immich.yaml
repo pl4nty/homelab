@@ -57,7 +57,7 @@ spec:
         spec:
           initialDelaySeconds: 120
       podAnnotations:
-        instrumentation.opentelemetry.io/inject-python: "monitoring/opentelemetry-instrumentation"
+        instrumentation.opentelemetry.io/inject-python: "true"
       # OTel overrides PYTHONPATH: open-telemetry/opentelemetry-operator#1884
       # so we add the expected path manually
       command:
@@ -73,15 +73,15 @@ spec:
 
     microservices:
       podAnnotations:
-        instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
+        instrumentation.opentelemetry.io/inject-nodejs: "true"
 
     server:
       podAnnotations:
-        instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
+        instrumentation.opentelemetry.io/inject-nodejs: "true"
 
     web:
       podAnnotations:
-        instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
+        instrumentation.opentelemetry.io/inject-nodejs: "true"
         
     image:
       # quotes are required for regex
