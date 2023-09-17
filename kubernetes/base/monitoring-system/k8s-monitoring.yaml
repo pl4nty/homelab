@@ -273,3 +273,8 @@ spec:
           regex = "container_network_.*"
           action = "drop"
         }
+        rule {
+          source_labels = ["__name__"]
+          regex = "kube_pod_start_time"
+          action = "drop"
+        }
