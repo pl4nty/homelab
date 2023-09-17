@@ -261,3 +261,15 @@ spec:
           regex = "node_filesystem.*@"
           action = "drop"
         }
+
+        rule {
+          source_labels = ["__name__"]
+          target_label = "exported_uid"
+          replacement = "NA"
+        }
+
+        rule {
+          source_labels = ["__name__"]
+          regex = "container_network_.*"
+          action = "drop"
+        }
