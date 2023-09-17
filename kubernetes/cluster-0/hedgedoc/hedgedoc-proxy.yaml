@@ -29,7 +29,7 @@ spec:
     controller:
       strategy: RollingUpdate
       rollingUpdate:
-        unavailable: 0
+        unavailable: "0"
     image:
       repository: caddy
       tag: latest

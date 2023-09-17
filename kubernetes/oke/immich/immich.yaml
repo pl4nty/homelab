@@ -50,7 +50,7 @@ spec:
       controller:
         strategy: RollingUpdate
         rollingUpdate:
-          unavailable: 0
+          unavailable: "0"
       resources:
         requests:
           cpu: 10m
@@ -82,7 +82,7 @@ spec:
       controller:
         strategy: RollingUpdate
         rollingUpdate:
-          unavailable: 0
+          unavailable: "0"
       podAnnotations:
         instrumentation.opentelemetry.io/inject-nodejs: "true"
 
@@ -90,7 +90,7 @@ spec:
       controller:
         strategy: RollingUpdate
         rollingUpdate:
-          unavailable: 0
+          unavailable: "0"
       podAnnotations:
         instrumentation.opentelemetry.io/inject-nodejs: "true"
 
@@ -98,7 +98,7 @@ spec:
       controller:
         strategy: RollingUpdate
         rollingUpdate:
-          unavailable: 0
+          unavailable: "0"
       podAnnotations:
         instrumentation.opentelemetry.io/inject-nodejs: "true"
         

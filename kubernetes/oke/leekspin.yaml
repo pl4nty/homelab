@@ -28,7 +28,7 @@ spec:
     controller:
       strategy: RollingUpdate
       rollingUpdate:
-        unavailable: 0
+        unavailable: "0"
     image:
       repository: ghcr.io/pl4nty/leekspin-no-js
       tag: latest@sha256:75aae31fff1cd8187edc40f3d25bab796cfbe0c33d4f5cfd9e8553f9ea80e971

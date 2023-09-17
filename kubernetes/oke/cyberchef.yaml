@@ -28,7 +28,7 @@ spec:
     controller:
       strategy: RollingUpdate
       rollingUpdate:
-        unavailable: 0
+        unavailable: "0"
     image:
       repository: mpepping/cyberchef
       tag: v10.5.2

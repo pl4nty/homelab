@@ -28,7 +28,7 @@ spec:
     controller:
       strategy: RollingUpdate
       rollingUpdate:
-        unavailable: 0
+        unavailable: "0"
     image:
       repository: ghcr.io/pl4nty/temple-trap
       tag: latest@sha256:8e32962dd5f07e0a4d7d1c2c46dcb0814927a2fb9aa208aa3746a47471898706

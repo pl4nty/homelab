@@ -28,7 +28,7 @@ spec:
         controller:
             strategy: RollingUpdate
             rollingUpdate:
-                unavailable: 0
+                unavailable: "0"
         image:
             repository: ENC[AES256_GCM,data:LjrPnYvnjKT+5iIjBY4=,iv:B+M7PKZUOYzinmzuQumm3ix/egLzDWnVVeJr5KwsuZk=,tag:7kvrYD+t8Im7EjgdupJwkg==,type:str]
             tag: ENC[AES256_GCM,data:QJgQITvm/w==,iv:+ux4tudjCkVNVYfzqsc+wH3Hnn61Ge1CTnCcd2N4uMc=,tag:IsPqVPIIEyFAne6yYV59Sw==,type:str]

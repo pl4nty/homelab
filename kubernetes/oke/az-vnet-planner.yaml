@@ -28,7 +28,7 @@ spec:
     controller:
       strategy: RollingUpdate
       rollingUpdate:
-        unavailable: 0
+        unavailable: "0"
     image:
       repository: ghcr.io/pl4nty/vnet-capacity-planner
       tag: latest@sha256:acb4b5eaf0b5c919bf1976b1d38590666126978dda2bbab4d9976be513fabfda

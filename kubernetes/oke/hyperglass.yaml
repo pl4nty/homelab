@@ -29,7 +29,7 @@ spec:
     controller:
       strategy: RollingUpdate
       rollingUpdate:
-        unavailable: 0
+        unavailable: "0"
     image:
       repository: quay.io/timrabl/hyperglass # use GHCR once docker-hyperglass#43 is fixed
       tag: 1.0.4-1.0.233
