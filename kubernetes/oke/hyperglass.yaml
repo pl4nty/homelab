@@ -30,7 +30,7 @@ spec:
       repository: quay.io/timrabl/hyperglass # use GHCR once docker-hyperglass#43 is fixed
       tag: 1.0.4-1.0.233
     podAnnotations:
-      instrumentation.opentelemetry.io/inject-python: "monitoring/opentelemetry-instrumentation"
+      instrumentation.opentelemetry.io/inject-python: "true"
     configMaps:
       config:
         enabled: true

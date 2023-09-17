@@ -32,7 +32,7 @@ spec:
       kubernetes.io/arch: amd64
     # doesn't produce traces, maybe an unsupported version?
     # podAnnotations:
-    #   instrumentation.opentelemetry.io/inject-apache-httpd: "monitoring/opentelemetry-instrumentation"
+    #   instrumentation.opentelemetry.io/inject-apache-httpd: "true"
     securityContext:
       capabilities:
         add:

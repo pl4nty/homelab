@@ -32,7 +32,7 @@ spec:
     nodeSelector:
       kubernetes.io/arch: amd64
     podAnnotations:
-      instrumentation.opentelemetry.io/inject-dotnet: "monitoring/opentelemetry-instrumentation"
+      instrumentation.opentelemetry.io/inject-dotnet: "true"
     command:
     - dotnet
     - StoreWeb.dll

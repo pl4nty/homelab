@@ -29,7 +29,7 @@ spec:
       repository: ghcr.io/hedgedoc/hedgedoc/frontend
       tag: develop
     podAnnotations:
-      instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
+      instrumentation.opentelemetry.io/inject-nodejs: "true"
     env:
       HD_BASE_URL: https://hedgedoc.${PUBLIC_DOMAIN}
     service:

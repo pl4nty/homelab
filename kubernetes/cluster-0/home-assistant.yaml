@@ -31,7 +31,7 @@ spec:
     # incompatible boto3 version as of 2023.6.3. can only specify image at collector level
     # eg open-telemetry/opentelemetry-operator#1774
     # podAnnotations:
-    #   instrumentation.opentelemetry.io/inject-python: "monitoring/opentelemetry-instrumentation"
+    #   instrumentation.opentelemetry.io/inject-python: "true"
     controller:
       type: statefulset
     persistence:

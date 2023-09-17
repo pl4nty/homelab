@@ -29,7 +29,7 @@ spec:
       repository: ghcr.io/pl4nty/jwtplayground
       tag: latest@sha256:a8e3969dd250c02b0e52825ba49f62c9e3d6ae31665b4ca899b25948c6a36f22
     podAnnotations:
-      instrumentation.opentelemetry.io/inject-nodejs: "monitoring/opentelemetry-instrumentation"
+      instrumentation.opentelemetry.io/inject-nodejs: "true"
     env:
       PORT: 8080
     service:

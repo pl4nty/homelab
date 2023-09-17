@@ -30,7 +30,7 @@ spec:
       repository: caddy
       tag: latest
     podAnnotations:
-      instrumentation.opentelemetry.io/inject-sdk: "monitoring/opentelemetry-instrumentation"
+      instrumentation.opentelemetry.io/inject-sdk: "true"
     env:
       HD_BASE_URL: http://hedgedoc.${PUBLIC_DOMAIN}
     configMaps:
