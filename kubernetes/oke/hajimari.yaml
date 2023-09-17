@@ -25,8 +25,8 @@ spec:
     keepHistory: false
   values:
     podAnnotations:
-      sidecar.opentelemetry.io/inject: "monitoring/opentelemetry-sidecar" # go currently requires sidecar, but it's not enabled automatically
-      instrumentation.opentelemetry.io/inject-go: "monitoring/opentelemetry-instrumentation-sidecar"
+      sidecar.opentelemetry.io/inject: "monitoring-system/opentelemetry-sidecar" # go currently requires sidecar, but it's not enabled automatically
+      instrumentation.opentelemetry.io/inject-go: "monitoring-system/opentelemetry-sidecar"
       instrumentation.opentelemetry.io/otel-go-auto-target-exe: "/usr/local/bin/hajimari"
     persistence:
       data:

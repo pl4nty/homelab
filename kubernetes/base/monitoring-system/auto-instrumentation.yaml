@@ -47,7 +47,7 @@ apiVersion: opentelemetry.io/v1alpha1
 kind: Instrumentation
 metadata:
   name: opentelemetry-sidecar
-  namespace: default
+  namespace: monitoring-system
 spec:
   exporter:
     endpoint: http://localhost:4317
