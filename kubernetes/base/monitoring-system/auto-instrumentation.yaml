@@ -1,74 +1,74 @@
 
-apiVersion: opentelemetry.io/v1alpha1
-kind: Instrumentation
-metadata:
-  name: opentelemetry
-  namespace: default
-spec:
-  exporter:
-    endpoint: http://opentelemetry-collector.monitoring-system:4317
-  propagators:
-    - tracecontext
-    - baggage
-    - b3
-  sampler:
-    type: parentbased_traceidratio
-    argument: "0.25"
-  resource:
-    # resourceAttributes:
-    #   k8s.cluster.name: ${CLUSTER_NAME}
-    addK8sUIDAttributes: true
-  env:
-    # disable due to ingest limits
-    # https://opentelemetry.io/docs/reference/specification/sdk-environment-variables/#exporter-selection
-    - name: OTEL_METRICS_EXPORTER
-      value: none
-  python:
-    env:
-      # Required if endpoint is set to 4317.
-      # Python autoinstrumentation uses http/proto by default
-      # so data must be sent to 4318 instead of 4317.
-      - name: OTEL_EXPORTER_OTLP_ENDPOINT
-        value: http://opentelemetry-collector.monitoring-system:4318
-      - name: OTEL_METRICS_EXPORTER
-        value: none
-  dotnet:
-    env:
-      # Required if endpoint is set to 4317.
-      # Dotnet autoinstrumentation uses http/proto by default
-      # See https://github.com/open-telemetry/opentelemetry-dotnet-instrumentation/blob/888e2cd216c77d12e56b54ee91dafbc4e7452a52/docs/config.md#otlp
-      - name: OTEL_EXPORTER_OTLP_ENDPOINT
-        value: http://opentelemetry-collector.monitoring-system:4318
-  apacheHttpd:
-    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:bb29da039d37aadbcef59bed55740b10c6beee443a69d730b7210ea15130f7a2
-  #   configPath: /etc/php/7.4/apache2/conf.d # HRConvert2
----
-apiVersion: opentelemetry.io/v1alpha1
-kind: Instrumentation
-metadata:
-  name: opentelemetry-sidecar
-  namespace: monitoring-system
-spec:
-  exporter:
-    endpoint: http://localhost:4317
-  propagators:
-    - tracecontext
-    - baggage
-    - b3
-  sampler:
-    type: parentbased_traceidratio
-    argument: "0.25"
-  resource:
-    # resourceAttributes:
-    #   k8s.cluster.name: ${CLUSTER_NAME}
-    addK8sUIDAttributes: true
-  env:
-    # disable due to ingest limits
-    # https://opentelemetry.io/docs/reference/specification/sdk-environment-variables/#exporter-selection
-    - name: OTEL_METRICS_EXPORTER
-      value: none
-  go:
-    image: ghcr.io/open-telemetry/opentelemetry-go-instrumentation/autoinstrumentation-go:v0.3.0-alpha
-    resourceRequirements:
-      limits:
-        memory: 320Mi
+# apiVersion: opentelemetry.io/v1alpha1
+# kind: Instrumentation
+# metadata:
+#   name: opentelemetry
+#   namespace: default
+# spec:
+#   exporter:
+#     endpoint: http://opentelemetry-collector.monitoring-system:4317
+#   propagators:
+#     - tracecontext
+#     - baggage
+#     - b3
+#   sampler:
+#     type: parentbased_traceidratio
+#     argument: "0.25"
+#   resource:
+#     # resourceAttributes:
+#     #   k8s.cluster.name: ${CLUSTER_NAME}
+#     addK8sUIDAttributes: true
+#   env:
+#     # disable due to ingest limits
+#     # https://opentelemetry.io/docs/reference/specification/sdk-environment-variables/#exporter-selection
+#     - name: OTEL_METRICS_EXPORTER
+#       value: none
+#   python:
+#     env:
+#       # Required if endpoint is set to 4317.
+#       # Python autoinstrumentation uses http/proto by default
+#       # so data must be sent to 4318 instead of 4317.
+#       - name: OTEL_EXPORTER_OTLP_ENDPOINT
+#         value: http://opentelemetry-collector.monitoring-system:4318
+#       - name: OTEL_METRICS_EXPORTER
+#         value: none
+#   dotnet:
+#     env:
+#       # Required if endpoint is set to 4317.
+#       # Dotnet autoinstrumentation uses http/proto by default
+#       # See https://github.com/open-telemetry/opentelemetry-dotnet-instrumentation/blob/888e2cd216c77d12e56b54ee91dafbc4e7452a52/docs/config.md#otlp
+#       - name: OTEL_EXPORTER_OTLP_ENDPOINT
+#         value: http://opentelemetry-collector.monitoring-system:4318
+#   apacheHttpd:
+#     image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:bb29da039d37aadbcef59bed55740b10c6beee443a69d730b7210ea15130f7a2
+#   #   configPath: /etc/php/7.4/apache2/conf.d # HRConvert2
+# ---
+# apiVersion: opentelemetry.io/v1alpha1
+# kind: Instrumentation
+# metadata:
+#   name: opentelemetry-sidecar
+#   namespace: monitoring-system
+# spec:
+#   exporter:
+#     endpoint: http://localhost:4317
+#   propagators:
+#     - tracecontext
+#     - baggage
+#     - b3
+#   sampler:
+#     type: parentbased_traceidratio
+#     argument: "0.25"
+#   resource:
+#     # resourceAttributes:
+#     #   k8s.cluster.name: ${CLUSTER_NAME}
+#     addK8sUIDAttributes: true
+#   env:
+#     # disable due to ingest limits
+#     # https://opentelemetry.io/docs/reference/specification/sdk-environment-variables/#exporter-selection
+#     - name: OTEL_METRICS_EXPORTER
+#       value: none
+#   go:
+#     image: ghcr.io/open-telemetry/opentelemetry-go-instrumentation/autoinstrumentation-go:v0.3.0-alpha
+#     resourceRequirements:
+#       limits:
+#         memory: 320Mi
