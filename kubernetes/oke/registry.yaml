@@ -28,15 +28,6 @@ spec:
     image:
       repository: registry
       tag: 2.8.2
-    configMaps:
-      auth:
-        enabled: true
-        data:
-          htpasswd: Freely7877:Send-Surgical-Dramatize5
-    env:
-      REGISTRY_AUTH: htpasswd
-      REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
-      REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
     service:
       main:
         ports:
@@ -46,9 +37,3 @@ spec:
       config:
         enabled: true
         mountPath: /var/lib/registry
-      auth:
-        enabled: true
-        type: configMap
-        mountPath: /auth/htpasswd
-        name: '{{ .Release.Name }}-auth'
-
