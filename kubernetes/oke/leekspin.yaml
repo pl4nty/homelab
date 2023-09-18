@@ -31,7 +31,7 @@ spec:
         unavailable: "0"
     image:
       repository: ghcr.io/pl4nty/leekspin-no-js
-      tag: latest@sha256:75aae31fff1cd8187edc40f3d25bab796cfbe0c33d4f5cfd9e8553f9ea80e971
+      tag: latest@sha256:b96c7df9ed69a3503c1bf4530ed4241310f2293494a54776e699e72e384c6ccf
     env:
       SERVER_PORT: 8080
     service:
