@@ -31,7 +31,7 @@ spec:
         unavailable: "0"
     image:
       repository: ghcr.io/pl4nty/vnet-capacity-planner
-      tag: latest@sha256:acb4b5eaf0b5c919bf1976b1d38590666126978dda2bbab4d9976be513fabfda
+      tag: latest@sha256:7514f72b72c64e39e0cfe4a263e4b21c9dbaec3b513a8e311f7d8008dc932dce
     service:
       main:
         ports:
