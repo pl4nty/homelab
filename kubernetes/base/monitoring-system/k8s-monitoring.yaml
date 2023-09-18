@@ -44,6 +44,8 @@ spec:
     opencost:
       enabled: false
     metrics:
+      kube-state-metrics:
+        scrapeInterval: 2m
       extraMetricRelabelingRules: |-
         rule {
           source_labels = ["__name__","image"]
