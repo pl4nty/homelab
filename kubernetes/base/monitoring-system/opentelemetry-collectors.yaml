@@ -63,15 +63,12 @@ metadata:
   namespace: monitoring-system
 spec:
   mode: sidecar
-  envFrom:
-  - secretRef:
-      name: opentelemetry-collectors
   config: |
     extensions:
       basicauth/traces:
         client_auth:
-          username: $${env:TRACES_USERNAME}
-          password: $${env:TRACES_PASSWORD}
+          username: ${TRACES_USERNAME}
+          password: ${TRACES_PASSWORD}
     receivers:
       otlp:
         protocols:
@@ -85,7 +82,7 @@ spec:
       logging:
         loglevel: debug
       otlp:
-        endpoint: $${env:TRACES_ENDPOINT}
+        endpoint: ${TRACES_ENDPOINT}
         tls:
           insecure: false
         auth:
@@ -97,61 +94,3 @@ spec:
           receivers: [ otlp ]
           processors: [ batch ]
           exporters: [ otlp, logging ]
----
-# TODO move to operator
-# apiVersion: rbac.authorization.k8s.io/v1
-# kind: ClusterRole
-# metadata:
-#   name: opentelemetry-targetallocator
-# rules:
-# # Prometheus discovery
-# - apiGroups:
-#   - monitoring.coreos.com
-#   resources:
-#   - servicemonitors
-#   - podmonitors
-#   verbs:
-#   - '*'
-# - apiGroups: [""]
-#   resources:
-#   - nodes
-#   - nodes/metrics
-#   - services
-#   - endpoints
-#   - pods
-#   - namespaces
-#   verbs: ["get", "list", "watch"]
-# - apiGroups: [""]
-#   resources:
-#   - configmaps
-#   verbs: ["get"]
-# - apiGroups:
-#   - discovery.k8s.io
-#   resources:
-#   - endpointslices
-#   verbs: ["get", "list", "watch"]
-# - apiGroups:
-#   - networking.k8s.io
-#   resources:
-#   - ingresses
-#   verbs: ["get", "list", "watch"]
-# - nonResourceURLs: ["/metrics"]
-#   verbs: ["get"]
-# # k8s events
-# - apiGroups: [""]
-#   resources: ["events"]
-#   verbs: ["list", "watch"]
-# ---
-# apiVersion: rbac.authorization.k8s.io/v1
-# kind: ClusterRoleBinding
-# metadata:
-#   name: opentelemetry-targetallocator
-# roleRef:
-#   apiGroup: rbac.authorization.k8s.io
-#   kind: ClusterRole
-#   name: opentelemetry-targetallocator
-# subjects:
-# - kind: ServiceAccount
-#   name: opentelemetry-collector
-#   namespace: monitoring-system
-# ---
