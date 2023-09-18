@@ -53,6 +53,7 @@ subjects:
   - name: miniflux
     spec:
       fqdn: rss.${PUBLIC_DOMAIN}
+  - name: registry
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel
