@@ -31,7 +31,7 @@ spec:
         unavailable: "0"
     image:
       repository: ghcr.io/pl4nty/jsonwebtoken
-      tag: latest@sha256:e3d2b84d4ac1492d3a39a553fecc025902f5dc1ab12ec7548e7cb030ca5714e5
+      tag: latest@sha256:93226fe82ed6e2455bec26235e71c874ccddc98fba194923ea2e9f8af667cf8a
     env:
       SERVER_LOG_LEVEL: info
       SERVER_PORT: 8080
