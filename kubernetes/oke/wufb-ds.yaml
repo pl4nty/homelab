@@ -31,7 +31,7 @@ spec:
         unavailable: "0"
     image:
       repository: ghcr.io/pl4nty/wufb-ds
-      tag: latest@sha256:29fd51208855feace150ee31d4d36b29a09fed6f67e533367678e51c24f657ed
+      tag: latest@sha256:5bf204648eb9b1287280e011dbbc423f1b01267929ba173252adc6d0a8172b59
     service:
       main:
         ports:
