@@ -13,15 +13,3 @@ spec:
   selector:
     matchLabels:
       control-plane: controller-manager
----
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: tunnels
-  namespace: cloudflare-operator-system
-spec:
-  endpoints:
-    - port: metrics
-  selector:
-    matchLabels:
-      cfargotunnel.com/app: cloudflared

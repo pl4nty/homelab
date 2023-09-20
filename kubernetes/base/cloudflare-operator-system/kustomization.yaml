@@ -4,3 +4,4 @@ resources:
 - https://github.com/adyanth/cloudflare-operator//config/default?ref=v0.10.0
 - cloudflare-api.sops.yaml
 - servicemonitor.yaml
+- podmonitor.yaml
