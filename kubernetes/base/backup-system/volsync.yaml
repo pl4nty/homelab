@@ -25,11 +25,12 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    # nodeSelector:
-    #   kubernetes.io/arch: amd64
     manageCRDs: true
     metrics:
       disableAuth: true
+    # default image doesn't support arm64 backube/volsync#574
+    # nodeSelector:
+    #   kubernetes.io/arch: amd64
     image: &image
       repository: ghcr.io/pl4nty/volsync
       tag: latest@sha256:badb717674f94ca32a04c94edec580ad2581922493b277c42eac2d5560c84ea7
