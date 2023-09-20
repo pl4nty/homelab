@@ -44,8 +44,6 @@ spec:
     opencost:
       enabled: false
     metrics:
-      kube-state-metrics:
-        scrapeInterval: 2m
       extraMetricRelabelingRules: |-
         rule {
           source_labels = ["__name__","image"]
@@ -278,5 +276,10 @@ spec:
         rule {
           source_labels = ["__name__"]
           regex = "kube_pod_start_time"
+          action = "drop"
+        }
+        rule {
+          source_labels = ["namespace"]
+          regex = "flux-system"
           action = "drop"
         }
