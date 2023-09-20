@@ -267,7 +267,7 @@ spec:
           separator = "@"
           regex = "flux-system@(.+)-.+-.+"
           target_label = "pod"
-          replacement = "1"
+          replacement = "$1"
         }
 
 
