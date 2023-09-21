@@ -33,7 +33,7 @@ spec:
     #   kubernetes.io/arch: amd64
     image: &image
       repository: ghcr.io/pl4nty/volsync
-      tag: latest@sha256:badb717674f94ca32a04c94edec580ad2581922493b277c42eac2d5560c84ea7
+      tag: latest@sha256:9e0f15c3671e493a379a1e1d4cd525bba72ef0584a4f758a4ed474893a70a09d
     rclone: *image
     restic: *image
     rsync: *image
