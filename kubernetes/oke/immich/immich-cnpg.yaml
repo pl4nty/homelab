@@ -5,10 +5,9 @@ metadata:
   namespace: default
 spec:
   instances: 1
-  imageName: ghcr.io/cloudnative-pg/postgresql:14.7
-
   storage:
     size: 4Gi
+  imageName: ghcr.io/cloudnative-pg/postgresql:14.7
 
   backup:
     retentionPolicy: 30d
@@ -16,7 +15,7 @@ spec:
       wal:
         encryption: AES256
       endpointURL: s3.us-west-004.backblazeb2.com
-      destinationPath: tplant-homelab-postgres
+      destinationPath: tplant-homelab-postgres/immich
       s3Credentials:
         accessKeyId:
           name: cloudnative-pg

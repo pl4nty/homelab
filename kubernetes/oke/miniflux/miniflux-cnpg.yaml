@@ -5,12 +5,38 @@ metadata:
   namespace: default
 spec:
   instances: 1
-
   storage:
     size: 4Gi
+
+  backup:
+    retentionPolicy: 30d
+    barmanObjectStore:
+      wal:
+        encryption: AES256
+      endpointURL: s3.us-west-004.backblazeb2.com
+      destinationPath: tplant-homelab-postgres/miniflux
+      s3Credentials:
+        accessKeyId:
+          name: cloudnative-pg
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: cloudnative-pg
+          key: ACCESS_SECRET_KEY
 
   # miniflux requires a formatted connection string, so we can't use the default secret
   bootstrap:
     initdb:
       secret:
         name: miniflux-db
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: miniflux
+  namespace: default
+spec:
+  immediate: true
+  schedule: 0 0 0 * * *
+  backupOwnerReference: self
+  cluster:
+    name: miniflux-cnpg
