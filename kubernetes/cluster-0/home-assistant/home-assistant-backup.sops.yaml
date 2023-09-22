@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Secret
 metadata:
-    name: backup-home-assistant
+    name: home-assistant-backup
     namespace: default
 type: Opaque
 stringData:
@@ -24,8 +24,8 @@ sops:
             VGo2SGJ4bVF1ajBkMFFyUSt3ZXJLTGcKAuXOZ19SGV0kpOrAheLOWARCW+uZlOkB
             m2riycT35AWSza+St+ctVL+fPb1K10bZHhag7m3LXInFc6lT+Um7og==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-09-22T08:41:35Z"
-    mac: ENC[AES256_GCM,data:02CUP4bj6U1ddpS96+ctrKZFErEvT6MA+23eosGv7F2sNj5kpQ42WUC4wUexT7MuGg/sSayY5q2zsGlk4/45tPH7dvbPfebUZAojXF8p2WUtDNn1/rcnpKoBT0dj/0IWejqOcbg7mGJeticjlfxgQl0NPx3nxZ0hhhVltOCkQPs=,iv:tK1YseI9drBhvfJjbZ+0r7x/O2HAAe9j1WcWKa1tKVg=,tag:Pffao0lQjNAX+kQo9YDLEA==,type:str]
+    lastmodified: "2023-09-22T09:10:10Z"
+    mac: ENC[AES256_GCM,data:PUn5bhrjAK0nKdcwL9LaVoUxoViIe4jixx7NBjGIvSzOPavvRtYuT9MBaZCQdJdqKnOe2JHUxRa/Vo+obHHAiPKG3iMf7bXS5gWdHtcsDvAFdNaN9mOBTluE3e+keaxXuxzWZ9Qt6QeC7neq/vIzqV+A+2HxuvTrQFeT2P42k1E=,iv:X4ZX7C8bAoDbDTfUpkU8pSyxjufoHRFna2OBp3iceOc=,tag:QtFNrynZUt2x5BvSWqIETw==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.7.3

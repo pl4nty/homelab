@@ -8,7 +8,7 @@ spec:
   trigger:
     schedule: 0 0 * * *
   restic:
-    repository: backup-home-assistant
+    repository: home-assistant-backup
     copyMethod: Snapshot
     pruneIntervalDays: 14
     retain:

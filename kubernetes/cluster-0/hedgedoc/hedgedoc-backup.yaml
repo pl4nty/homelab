@@ -4,11 +4,11 @@ metadata:
    name: hedgedoc
    namespace: default
 spec:
-  sourcePVC: hedgedoc-config
+  sourcePVC: hedgedoc-backend-config
   trigger:
     schedule: 0 0 * * *
   restic:
-    repository: backup-hedgedoc
+    repository: hedgedoc-backup
     copyMethod: Snapshot
     pruneIntervalDays: 14
     retain:
