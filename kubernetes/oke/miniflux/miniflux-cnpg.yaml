@@ -13,7 +13,7 @@ spec:
     barmanObjectStore:
       wal:
         encryption: AES256
-      endpointURL: s3.us-west-004.backblazeb2.com
+      endpointURL: https://s3.us-west-004.backblazeb2.com
       destinationPath: s3://tplant-homelab-postgres/miniflux
       s3Credentials:
         accessKeyId:
