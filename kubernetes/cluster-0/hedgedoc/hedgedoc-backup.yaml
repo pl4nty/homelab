@@ -10,7 +10,6 @@ spec:
   restic:
     repository: hedgedoc-backup
     copyMethod: Clone
-    cacheCapacity: 0Gi
     pruneIntervalDays: 14
     retain:
       daily: 30

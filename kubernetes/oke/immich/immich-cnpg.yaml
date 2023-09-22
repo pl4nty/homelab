@@ -10,6 +10,21 @@ spec:
   storage:
     size: 4Gi
 
+  backup:
+    retentionPolicy: 30d
+    barmanObjectStore:
+      wal:
+        encryption: AES256
+      endpointURL: s3.us-west-004.backblazeb2.com
+      destinationPath: tplant-homelab-postgres
+      s3Credentials:
+        accessKeyId:
+          name: cloudnative-pg
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: cloudnative-pg
+          key: ACCESS_SECRET_KEY
+
   bootstrap:
     pg_basebackup:
       source: immich-postgresql
@@ -22,4 +37,14 @@ spec:
     password:
       name: immich-postgresql
       key: postgres-password
-            
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: immich
+spec:
+  immediate: true
+  schedule: 0 0 0 * * *
+  backupOwnerReference: self
+  cluster:
+    name: immich-cnpg
