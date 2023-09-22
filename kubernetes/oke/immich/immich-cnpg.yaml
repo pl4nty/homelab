@@ -42,6 +42,7 @@ apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup
 metadata:
   name: immich
+  namespace: default
 spec:
   immediate: true
   schedule: 0 0 0 * * *
