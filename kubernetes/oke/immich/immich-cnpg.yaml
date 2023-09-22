@@ -15,7 +15,7 @@ spec:
       wal:
         encryption: AES256
       endpointURL: s3.us-west-004.backblazeb2.com
-      destinationPath: tplant-homelab-postgres/immich
+      destinationPath: s3://tplant-homelab-postgres/immich
       s3Credentials:
         accessKeyId:
           name: cloudnative-pg

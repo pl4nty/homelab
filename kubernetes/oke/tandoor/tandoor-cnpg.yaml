@@ -14,7 +14,7 @@ spec:
       wal:
         encryption: AES256
       endpointURL: s3.us-west-004.backblazeb2.com
-      destinationPath: tplant-homelab-postgres/tandoor
+      destinationPath: s3://tplant-homelab-postgres/tandoor
       s3Credentials:
         accessKeyId:
           name: cloudnative-pg
