@@ -1,15 +1,16 @@
 apiVersion: volsync.backube/v1alpha1
 kind: ReplicationSource
 metadata:
-   name: home-assistant
+   name: immich
    namespace: default
 spec:
-  sourcePVC: home-assistant-config
+  sourcePVC: immich-library
   trigger:
     schedule: 0 0 * * *
   restic:
-    repository: home-assistant-backup
+    repository: immich-backup
     copyMethod: Clone
+    cacheCapacity: 0Gi
     pruneIntervalDays: 14
     retain:
       daily: 30
