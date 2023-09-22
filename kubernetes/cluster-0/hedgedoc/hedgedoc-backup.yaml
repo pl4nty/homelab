@@ -1,0 +1,16 @@
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+   name: hedgedoc
+   namespace: default
+spec:
+  sourcePVC: hedgedoc-config
+  trigger:
+    schedule: 0 0 * * *
+  restic:
+    repository: backup-hedgedoc
+    copyMethod: Snapshot
+    pruneIntervalDays: 14
+    retain:
+      daily: 30
+      monthly: 12

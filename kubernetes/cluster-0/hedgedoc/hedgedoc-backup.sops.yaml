@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: backup-hedgedoc
+    namespace: default
+type: Opaque
+stringData:
+    RESTIC_REPOSITORY: ENC[AES256_GCM,data:JCxcshZvVy5p2HK7dfdcwlR7nDmZzcYBpRJX5ptmZxD4FMkhAvd+TWv+QdjqIt0w0CwStNFgIaQ+2RvpKbVxCPJsOSrkdkmk7A==,iv:LR1JlU9quOv0feXq5bne8MUGjYOGyiS0/LoBPUGFLAw=,tag:wx5JNQN8TsiDMcmp+MuOPg==,type:str]
+    RESTIC_PASSWORD: ENC[AES256_GCM,data:Sfa16jh1HQw1Sdnm8PfqyMe0y/w=,iv:Zs8W2hzgLX3DATEsDctAXqZ/A6C4/MQyCAvIBJFJqMQ=,tag:I9lt7wWlwpWwFnHtk6YCZA==,type:str]
+    AWS_ACCESS_KEY_ID: ENC[AES256_GCM,data:C5wdZ4HbDXFFClIqWuHT9sCl17kMfLI1OQ==,iv:oD5zVWKVodw/B5KPDBBAZ2Jsn6BLktzSmS8srBNp8PY=,tag:6XLzMvP4BPVCxzgzdrZW9w==,type:str]
+    AWS_SECRET_ACCESS_KEY: ENC[AES256_GCM,data:scggQ+apmXQbycBzpyYhiMEme83mW6RuoYMLOYs++A==,iv:iKuTHoQ39bdC9Y+heXIMhEtn3B8AjWQrdB/ljYc+wEE=,tag:S5pIXrww9zo0yeRHS2Ihuw==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBIYUZVcFF4M1p3bC8xVlBN
+            SXJ1aHdSZVZOU2t2dGxwcXNMdEVTNGg2aDFZCkxuQTg5ajlUTnltcUVEd0Y1UVBO
+            dFVod2RyV2dqeEhWb3hIM2N5cDdOdmsKLS0tIG9TR25MMEdpenEzRDM2cXNrL1Bt
+            R0N4azhkdlBrYmNqMTlwSUVTL0FrRW8KjqfQpthUMMD83sZK42xukHXEagoPwWw8
+            kbjVCJqts1xa2rRqt23579B7/MJXGJgn0yeH24Pulv1G+H0PtRqp5w==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-09-22T09:08:08Z"
+    mac: ENC[AES256_GCM,data:9P2DBPI+B2MM7PTKmwU2m3E0k74ORHHkAaCwoUhkmSPuNqVnwkzYn7CpWgFmB7kFjxYp8ubydA+xh0d/4kQxc6qtRQK15WQYiihjsRDNN9d2JjU2b/+ugVCP+gFnRsMKksjIeeqvf9FdOrNqmnY6mElZ/XkOVj9+kaJp8edyg+8=,iv:m0IFCJsKHY22T3/iL2QgL9Lit7ohOcob4USqztfqIcI=,tag:gkg+WYwlRB1JOzBykWAWbg==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData)$
+    version: 3.7.3
