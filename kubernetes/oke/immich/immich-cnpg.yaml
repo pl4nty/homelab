@@ -12,8 +12,6 @@ spec:
   backup:
     retentionPolicy: 30d
     barmanObjectStore:
-      wal:
-        encryption: AES256
       endpointURL: https://s3.us-west-004.backblazeb2.com
       destinationPath: s3://tplant-homelab-postgres
       s3Credentials:
@@ -23,6 +21,10 @@ spec:
         secretAccessKey:
           name: cloudnative-pg
           key: ACCESS_SECRET_KEY
+      wal:
+        compression: gzip
+      data:
+        compression: gzip
 
   bootstrap:
     pg_basebackup:
