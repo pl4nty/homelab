@@ -32,6 +32,9 @@ spec:
       type: cronjob
       cronjob:
         schedule: "0 0 * * *"
+    envFrom:
+    - secretRef:
+        name: rclone-backup
     args:
     - copy
     - "onedrive:"
