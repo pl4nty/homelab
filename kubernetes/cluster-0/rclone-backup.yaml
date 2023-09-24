@@ -35,7 +35,7 @@ spec:
     args:
     - copy
     - "onedrive:"
-    - backblaze:backup-tplant
+    - backblaze:tplant-onedrive
     - -v
     - --s3-no-check-bucket
     - --fast-list
