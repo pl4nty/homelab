@@ -32,6 +32,8 @@ spec:
     image:
       repository: yooooomi/your_spotify_server
       tag: 1.7.0
+    podAnnotations:
+      instrumentation.opentelemetry.io/inject-nodejs: "true"
     env:
       TIMEZONE: ${TIMEZONE}
       API_ENDPOINT: https://spotify-api.${PUBLIC_DOMAIN}

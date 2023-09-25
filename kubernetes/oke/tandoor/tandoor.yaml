@@ -32,6 +32,8 @@ spec:
     image:
       repository: vabene1111/recipes
       tag: 1.5.6
+    podAnnotations:
+      instrumentation.opentelemetry.io/inject-python: "true"
     envFrom:
     - secretRef:
         name: tandoor
