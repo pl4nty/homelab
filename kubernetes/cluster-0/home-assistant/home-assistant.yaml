@@ -31,7 +31,7 @@ spec:
         unavailable: "0"
     image:
       repository: ghcr.io/home-assistant/home-assistant
-      tag: 2023.9.2
+      tag: 2023.9.3
     # incompatible boto3 version as of 2023.6.3. can only specify image at collector level
     # eg open-telemetry/opentelemetry-operator#1774
     # podAnnotations:
