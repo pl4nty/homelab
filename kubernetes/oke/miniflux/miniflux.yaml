@@ -32,10 +32,11 @@ spec:
     image:
       repository: ghcr.io/miniflux/miniflux
       tag: 2.0.48
-    podAnnotations:
-      sidecar.opentelemetry.io/inject: monitoring-system/opentelemetry-sidecar
-      instrumentation.opentelemetry.io/inject-go: monitoring-system/opentelemetry-sidecar
-      instrumentation.opentelemetry.io/otel-go-auto-target-exe: /usr/bin/miniflux
+    # process has no symbol section
+    # podAnnotations:
+    #   sidecar.opentelemetry.io/inject: monitoring-system/opentelemetry-sidecar
+    #   instrumentation.opentelemetry.io/inject-go: monitoring-system/opentelemetry-sidecar
+    #   instrumentation.opentelemetry.io/otel-go-auto-target-exe: /usr/bin/miniflux
     env:
       RUN_MIGRATIONS: "1"
       CREATE_ADMIN: "1"
