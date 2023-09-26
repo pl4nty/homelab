@@ -24,6 +24,7 @@ spec:
       retries: 3
   uninstall:
     keepHistory: false
+  targetNamespace: rook-ceph
   dependsOn:
   - name: rook-ceph
   values:
@@ -36,6 +37,12 @@ spec:
         count: 1
       dashboard:
         enabled: false
+      # volumeClaimTemplate:
+      #   spec:
+      #     storageClassName: oci-bv
+      #     resources:
+      #       requests:
+      #         storage: 10Gi
     # cephBlockPools:
     # - name: ceph-blockpool
     #   spec:
