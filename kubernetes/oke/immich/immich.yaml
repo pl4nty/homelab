@@ -44,7 +44,7 @@ spec:
       persistence:
         tsdata:
           enabled: true
-          type: emptyDir
+          # type: emptyDir
 
     machine-learning:
       controller:
