@@ -93,6 +93,8 @@ spec:
               volumeMode: Block
               accessModes:
               - ReadWriteOnce
+  cephFileSystems: []
+  cephObjectStores: []
     # cephBlockPools:
     # - name: ceph-blockpool
     #   spec:
