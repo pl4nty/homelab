@@ -90,7 +90,8 @@ spec:
                 requests:
                   storage: 10Gi
               storageClassName: oci-bv
-              volumeMode: Block
+              # driver doesn't support Block
+              volumeMode: Filesystem
               accessModes:
               - ReadWriteOnce
     cephFileSystems: []
