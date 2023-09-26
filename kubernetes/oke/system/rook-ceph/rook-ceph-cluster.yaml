@@ -44,9 +44,38 @@ spec:
       dashboard:
         enabled: false
       resources:
+        osd:
+          requests:
+            cpu: 300m
+            memory: 512Mi
+        mgr:
+          requests:
+            cpu: 125m
+            memory: 512Mi
         mon:
           requests:
-            cpu: 500m
+            cpu: 100m
+            memory: 512Mi
+        mgr-sidecar:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        cleanup:
+          requests:
+            cpu: 250m
+            memory: 100Mi
+        crashcollector:
+          requests:
+            cpu: 15m
+            memory: 64Mi
+        logcollector:
+          requests:
+            cpu: 50m
+            memory: 100Mi
+        prepareosd:
+          requests:
+            cpu: 100m
+            memory: 50Mi
       storage:
         storageClassDeviceSets:
         - name: set1
