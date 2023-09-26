@@ -25,6 +25,12 @@ spec:
   uninstall:
     keepHistory: false
   targetNamespace: rook-ceph
-  # values:
-  #   csi:
+  values:
+    csi:
+      enableCephfsDriver: false
+      enableCephfsSnapshotter: false
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
   #     serviceMonitor: enabled
