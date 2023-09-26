@@ -49,6 +49,9 @@ spec:
           count: 1
           portable: true
           tuneDeviceClass: true
+          resources:
+            requests:
+              cpu: 500m
           volumeClaimTemplates:
           - metadata:
               name: data
