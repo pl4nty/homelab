@@ -7,7 +7,7 @@ spec:
   interval: 15m
   chart:
     spec:
-      chart: rook-ceph
+      chart: rook-ceph-cluster
       version: v1.12.4
       sourceRef:
         kind: HelmRepository
