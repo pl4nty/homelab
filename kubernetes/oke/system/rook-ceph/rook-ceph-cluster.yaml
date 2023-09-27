@@ -94,10 +94,10 @@ spec:
       #         volumeMode: Filesystem
       #         accessModes:
       #         - ReadWriteOnce
+    cephBlockPools:
+    - name: ceph-blockpool
+      spec:
+        replicated:
+          size: 1
     cephFileSystems: []
     cephObjectStores: []
-    # cephBlockPools:
-    # - name: ceph-blockpool
-    #   spec:
-    #     replicated:
-    #       size: 1
