@@ -31,7 +31,7 @@ spec:
         unavailable: "0"
     image:
       repository: ghcr.io/pl4nty/mha
-      tag: latest@sha256:45027c86fbaa2c07d95e53f59dafdb08f24727ec9f7b3dbc122d635c6f879199
+      tag: latest@sha256:d5e2e25f2e94f672bb98826dba37e13f7143f7248ea618a3d42d49f5c801139a
     env:
       SERVER_PORT: 8080
     service:
