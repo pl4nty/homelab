@@ -31,7 +31,7 @@ spec:
         unavailable: "0"
     image:
       repository: ghcr.io/pl4nty/excel2latex
-      tag: latest@sha256:8ce4b0870cb6656a62f883d01b0204a65f8f469988731822463a38c91afefbf7
+      tag: latest@sha256:f294910ed1acc976fa7a20332c2949ac18011a0f08c899db6273051efedc074a
     env:
       SERVER_PORT: 8080
       SERVER_LOG_LEVEL: info
