@@ -53,7 +53,6 @@ subjects:
   - name: miniflux
     spec:
       fqdn: rss.${PUBLIC_DOMAIN}
-  - name: ghidra
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel

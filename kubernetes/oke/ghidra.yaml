@@ -46,8 +46,11 @@ spec:
       main:
         type: LoadBalancer
         ports:
+          http:
+            enabled: false
           port1:
             port: 13100
+            primary: true
           port2:
             port: 13101
           port3:
