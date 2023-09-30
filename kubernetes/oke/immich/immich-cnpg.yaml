@@ -6,7 +6,7 @@ metadata:
 spec:
   instances: 1
   storage:
-    size: 4Gi
+    size: 1Gi
   imageName: ghcr.io/cloudnative-pg/postgresql:14.7
 
   backup:

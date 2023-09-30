@@ -6,7 +6,7 @@ metadata:
 spec:
   instances: 1
   storage:
-    size: 4Gi
+    size: 1Gi
 
   backup:
     retentionPolicy: 30d
