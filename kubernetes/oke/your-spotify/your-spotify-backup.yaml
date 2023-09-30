@@ -1,0 +1,15 @@
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+   name: your-spotify
+   namespace: default
+spec:
+  sourcePVC: your-spotify-mongodb-config
+  trigger:
+    schedule: 0 0 * * *
+  restic:
+    repository: your-spotify-backup
+    copyMethod: Clone
+    pruneIntervalDays: 14
+    retain:
+      daily: 30

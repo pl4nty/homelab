@@ -1,0 +1,15 @@
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+   name: immich
+   namespace: default
+spec:
+  sourcePVC: immich-library
+  trigger:
+    schedule: 0 0 * * *
+  restic:
+    repository: immich-backup
+    copyMethod: Clone
+    pruneIntervalDays: 14
+    retain:
+      daily: 30
