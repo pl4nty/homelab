@@ -94,10 +94,28 @@ spec:
       #         volumeMode: Filesystem
       #         accessModes:
       #         - ReadWriteOnce
-    # cephBlockPools:
-    # - name: ceph-blockpool
-    #   spec:
-    #     replicated:
-    #       size: 1
+    cephBlockPools:
+    # defaults from https://github.com/rook/rook/blob/b6a8c5da7dfb9058105837236ddd61a51bd7eb71/deploy/charts/rook-ceph-cluster/values.yaml#L435C7-L435C7
+    - name: ceph-blockpool
+      spec:
+        failureDomain: host
+        replicated:
+          size: 1
+      storageClass:
+        enabled: true
+        name: ceph-block
+        isDefault: true
+        reclaimPolicy: Delete
+        allowVolumeExpansion: true
+        volumeBindingMode: "Immediate"
+        parameters:
+          imageFeatures: layering
+          csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
+          csi.storage.k8s.io/provisioner-secret-namespace: "{{ .Release.Namespace }}"
+          csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
+          csi.storage.k8s.io/controller-expand-secret-namespace: "{{ .Release.Namespace }}"
+          csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
+          csi.storage.k8s.io/node-stage-secret-namespace: "{{ .Release.Namespace }}"
+          csi.storage.k8s.io/fstype: xfs
     cephFileSystems: []
     cephObjectStores: []
