@@ -31,7 +31,7 @@ spec:
         unavailable: "0"
     image:
       repository: ghcr.io/frooodle/s-pdf
-      tag: 0.14.3
+      tag: 0.14.4
     podAnnotations:
       instrumentation.opentelemetry.io/inject-java: "true"
     service:
