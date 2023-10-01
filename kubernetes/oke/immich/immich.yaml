@@ -37,7 +37,6 @@ spec:
       # datasource=github-releases depName=immich-app/immich
       tag: "v1.79.1"
 
-    # chart can't create PVC for library
     immich:
       persistence:
         library:
@@ -57,12 +56,14 @@ spec:
 
     redis:
       enabled: true
-      # master:
-      #   persistence:
-      #     enabled: false
+      # only used for job queue
+      master:
+        persistence:
+          enabled: false
 
     typesense:
       enabled: true
+      # avoid slow reindexing
       persistence:
         tsdata:
           enabled: true
@@ -75,6 +76,7 @@ spec:
       podAnnotations:
         instrumentation.opentelemetry.io/inject-nodejs: "true"
 
+    # don't persist geodata, redownload is 50Mi
     microservices:
       controller:
         strategy: RollingUpdate
@@ -82,11 +84,8 @@ spec:
           unavailable: "0"
       podAnnotations:
         instrumentation.opentelemetry.io/inject-nodejs: "true"
-      persistence:
-        geodata-cache:
-          type: pvc
-          accessMode: ReadWriteOnce
 
+  #  don't persist ML models, redownload is on-demand
     machine-learning:
       controller:
         strategy: RollingUpdate
@@ -114,11 +113,6 @@ spec:
       args:
       - -c
       - "PYTHONPATH=$PYTHONPATH:/usr/src tini -- ./start.sh"
-      persistence:
-        cache:
-          # 10Gi, avoid downloading ML models every startup
-          type: pvc
-          accessMode: ReadWriteOnce
 
     web:
       controller:
