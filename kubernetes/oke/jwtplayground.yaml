@@ -31,7 +31,7 @@ spec:
         unavailable: "0"
     image:
       repository: ghcr.io/pl4nty/jwtplayground
-      tag: latest@sha256:83ed0fd0950eca77ffad5e62ad3178889926171768cebf32d67d6691dcbd3cca
+      tag: latest@sha256:3b0b257d9689ab04d65ae57b3681d56b3159bf98a244390c430ccf5c08a2354a
     podAnnotations:
       instrumentation.opentelemetry.io/inject-nodejs: "true"
     env:
