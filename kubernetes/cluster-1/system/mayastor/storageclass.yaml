@@ -5,8 +5,9 @@ metadata:
   # could also use built-in storageclass and manually label it as default
   annotations:
     storageclass.kubernetes.io/is-default-class: 'true'
-parameters:
-  ioTimeout: "30"
-  protocol: nvmf
-  repl: "1"
 provisioner: io.openebs.csi-mayastor
+parameters:
+  protocol: nvmf
+  ioTimeout: "30"
+  repl: "1"
+  thin: "true"

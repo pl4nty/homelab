@@ -35,8 +35,6 @@ spec:
         enabled: false
     etcd:
       replicaCount: 1
-      persistence:
-        enabled: false
     io_engine:
       # envcontext: iova-mode=pa
       resources:

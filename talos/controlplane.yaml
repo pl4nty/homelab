@@ -38,9 +38,11 @@ machine:
             rotate-server-certificates: true
         # The `extraMounts` field is used to add additional mounts to the kubelet container.
         extraMounts:
-            - destination: /var/local/localpv-hostpath
+            # - destination: /var/local/localpv-hostpath
+            - destination: /var/openebs/local
               type: bind
-              source: /var/local/localpv-hostpath
+              #   source: /var/local/localpv-hostpath
+              source: /var/openebs/local
               options:
                 - bind
                 - rshared
@@ -498,8 +500,8 @@ sops:
             V0I1bi9vTjVtTVNWa0JBYVM3UEVoU0UKlIziv/nIPnsfATFf5HirkiJHwFgTtaKf
             7E0q7iB3tN/eFb3aegc2/3gvV/qb4I8a9gq8xvxsDs04V4QNke4+8Q==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-09-10T12:35:44Z"
-    mac: ENC[AES256_GCM,data:2RxubTiUhD963f7VhaWRtylPLW5Jn2yqhQQZzoR/GvFeZGIGPIlrCW/O9XHKMXeiRw1pCWf4d+ASi767lbLFqkz+qKaUGQBH/cQJqVs5RuF6ghprwi5E9eg1VQJRUE4xeeboVIs3ckgCkrGpQtECQJaDRvJQfvwe/rXafNCi9QQ=,iv:8jzpM6JvYMWgqVHd5Cwm7D2Zba9YFAixZt6+ftagjlw=,tag:KA5DrpgoYBQREvCMM02OWg==,type:str]
+    lastmodified: "2023-10-02T12:42:17Z"
+    mac: ENC[AES256_GCM,data:Kvx9q7KLrA21bJy5/NwB/8b6TBnbaQEg1vbAQ/c1P4qd93SiJYNtB26sSBb6njdM/swHfClzm8/SGVy8f8i1gewAyLXKri9FwmY88MxGb6cciMHTeT95HsL9nBFVzwVbj9CsCl7RLfKNEHc8/USMKsfgMuUzj4kY4ko8G0x6r/E=,iv:+khmWJc4q66REd9zemY4H8WOPkoZV2taXNattmrfzF0=,tag:+qeRTV7u8vcKEzRWU/zU3A==,type:str]
     pgp: []
     encrypted_regex: ^(token|crt|key|id|secret|secretboxEncryptionSecret)$
     version: 3.7.3
