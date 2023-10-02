@@ -34,28 +34,23 @@ spec:
             tag: ENC[AES256_GCM,data:QJgQITvm/w==,iv:+ux4tudjCkVNVYfzqsc+wH3Hnn61Ge1CTnCcd2N4uMc=,tag:IsPqVPIIEyFAne6yYV59Sw==,type:str]
         env:
             - name: ENC[AES256_GCM,data:It0ujVsacvKrdCw=,iv:lpeOhJ7B08+uDl1sdLNhoXb4XaAx/vd8UBi31UtlHIE=,tag:44i7lO9q4VlvMOriGMZ8tA==,type:str]
-              value: ENC[AES256_GCM,data:pINpWf4/4Q==,iv:E/Rc4RTG1sFbyBtoQ+D7GreAFwcBC228lXWF1s8p6dU=,tag:9d2tlEaBPfC8BMbJcsPHrA==,type:str]
+              value: ENC[AES256_GCM,data:RujX66B2bA==,iv:WsXb0Z6zVSkjXovyIjd1QgEb3XjLApHeT0poKc28i+w=,tag:++CG/i6q0uuEahO3Y0TDig==,type:str]
             - name: ENC[AES256_GCM,data:mgvpVszgK17wp2g7HCDU,iv:Ruhyg7sB6UnoYo1Isj/yhlyQa9fWxl5yt+TIY+kXKDs=,tag:Z6uK3t3+Jts1LkYJhwEMyg==,type:str]
-              value: ENC[AES256_GCM,data:tVdbIftYr0nT4wNN,iv:OewTxsDCiXMnzttRKOJWd35KvjVmguZgqFF3zgZn3Uk=,tag:B6yFXYdd6p5NJ96bJgXg4g==,type:str]
+              value: ENC[AES256_GCM,data:Ai2w9/EPZiCrPHxd,iv:pSvC/y+nkI55QfXsunjeF2zwZmyI+teMHVqoLiWQhIc=,tag:5ritqDagiUVttkTicHDp0w==,type:str]
             - name: ENC[AES256_GCM,data:OpIlV2rUwgHDUDW0q9g=,iv:ME5P4ymN9EELvuuq0V0PbgSVLD3MULpq6gJr+OXCVJY=,tag:QgPJo3JogLBTXQ/PqCYkQw==,type:str]
-              value: ENC[AES256_GCM,data:jOinNrUbse1l+gY=,iv:k0G3kQ41ngRm++LiHzUdkilIjiovoSKjcHn9HQopIuo=,tag:fKGbjuK20mRWy1SgyseShg==,type:str]
+              value: ENC[AES256_GCM,data:QRbebW/PlLWxfTI=,iv:rEVBD77JAJBDdqgk4Vc1hPxgLCIfATy/dywB5XBfkOY=,tag:1RYHg4Ia5CbVbPdMOQ3I7Q==,type:str]
             - name: ENC[AES256_GCM,data:SOlBaRRpfhebF5Q=,iv:DGCUrrK7c+6Lf70OcmxyRPLkfBeQtcVMW9IrX2O+87s=,tag:9Ro//DtS9jvCxKy/oEGSOg==,type:str]
               value: ENC[AES256_GCM,data:l4IGrIDpSw==,iv:CmRIViyeq00iYjfIuEfqrFxPTMoCB/lH3R667/Mkf1Y=,tag:Ygm7EAVuYelJtgf55EfS6A==,type:str]
         persistence:
             config:
                 enabled: true
                 mountPath: ENC[AES256_GCM,data:sj21Pw/mJil9291U,iv:3FU/ZCCHg9B63hDD4c5ItacBnj97VpwSJKxkwCEIDSw=,tag:+lx+JgFyjPwkAMSQerFZTQ==,type:str]
-                subPath: config
             data:
                 enabled: true
-                existingClaim: private-0-config
                 mountPath: ENC[AES256_GCM,data:VE4WfdoJ,iv:ao0baOXPe/HyLi9fo4d4Ll8n7Ayhk4uAqsb93sj5Em8=,tag:A4AkDr+f4ZKaxvlX+qFKdA==,type:str]
-                subPath: media
             meta:
                 enabled: true
-                existingClaim: private-0-config
                 mountPath: ENC[AES256_GCM,data:BsXO1Gc=,iv:DY8neJ3VxPsfsDurbXNpBil60Yt/7RJYM2XcfehyNCo=,tag:YCY9COCmr8tm9BpCxzCDHg==,type:str]
-                subPath: meta
             cache:
                 enabled: true
                 type: emptyDir
@@ -102,8 +97,8 @@ sops:
             ZUgyNzgrSmkvaE9YUnN2OUJrZWxnY2sKb4Zp67/JX57k38PFV79enq4VpRXMr8Ls
             0XmonUvQIP4ba+bFuAqyolz9ZlSNW8oe3uuuaEnPL/SUJGbvTQe9Sw==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-10-02T14:06:10Z"
-    mac: ENC[AES256_GCM,data:hhpjXu/2rwUK0lokXD7nRk4ro7Od66T6Ub1Sq3Q1XH6KhAMoEIovthzlkrkCOkSUX+rLXjQRwDPMbpHL1ZTF8iWlqYElHsicN1u86sbdsnkWU7qtdQrvlAt9fqVdDadW+yAFOy0wANobi3Bh2SbAMirQR0jyPE8/++HH/dW/4wc=,iv:J3YdFZu4AcbDLMbq3DO+uGwpkky39Bm9fim3JWtHgQk=,tag:PLkKV6FWyU2quZr5RCgPgw==,type:str]
+    lastmodified: "2023-10-02T14:35:30Z"
+    mac: ENC[AES256_GCM,data:xEhGhsd+ouL2iTBH83egG7nW0p5Y5OnlOD3mDgwawK+wHDSiWMhBlV5FfsRA3yWAApzJZYA9uOS1yXk8Te1ysW6X6D4z5qr7URadmSwN0ukPBj3BdvsXF3BIyZ5BlC4BZcgNNhAJWkUPbdG0xDkbKgTeNWW155E0KgCuRrYy9q4=,iv:OhI48woOTMW3KU0O3rpK+TxGGGFmubC5nvatJXP9KbI=,tag:UokvzgHFZPy3Xy2CZ9ZnaQ==,type:str]
     pgp: []
     encrypted_regex: ^(repository|env|mountPath|image)$
     version: 3.7.3
