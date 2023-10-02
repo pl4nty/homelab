@@ -45,22 +45,21 @@ spec:
             config:
                 enabled: true
                 mountPath: ENC[AES256_GCM,data:sj21Pw/mJil9291U,iv:3FU/ZCCHg9B63hDD4c5ItacBnj97VpwSJKxkwCEIDSw=,tag:+lx+JgFyjPwkAMSQerFZTQ==,type:str]
-                size: 1Gi
+                subPath: config
             data:
                 enabled: true
+                existingClaim: private-0-config
                 mountPath: ENC[AES256_GCM,data:VE4WfdoJ,iv:ao0baOXPe/HyLi9fo4d4Ll8n7Ayhk4uAqsb93sj5Em8=,tag:A4AkDr+f4ZKaxvlX+qFKdA==,type:str]
-                size: 8Gi
-                accessMode: ReadWriteOnce
+                subPath: media
             meta:
                 enabled: true
+                existingClaim: private-0-config
                 mountPath: ENC[AES256_GCM,data:BsXO1Gc=,iv:DY8neJ3VxPsfsDurbXNpBil60Yt/7RJYM2XcfehyNCo=,tag:YCY9COCmr8tm9BpCxzCDHg==,type:str]
-                size: 2Gi
-                accessMode: ReadWriteOnce
+                subPath: meta
             cache:
                 enabled: true
                 type: emptyDir
                 mountPath: ENC[AES256_GCM,data:RezyZksT,iv:WE4ejWz8LKt0sifQGE0PV13fHbYEpiqzNfnZ8YLXq2I=,tag:+NjJ36/uRu+MWvP7MjExRg==,type:str]
-                accessMode: ReadWriteOnce
         service:
             main:
                 type: NodePort
@@ -103,8 +102,8 @@ sops:
             ZUgyNzgrSmkvaE9YUnN2OUJrZWxnY2sKb4Zp67/JX57k38PFV79enq4VpRXMr8Ls
             0XmonUvQIP4ba+bFuAqyolz9ZlSNW8oe3uuuaEnPL/SUJGbvTQe9Sw==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-09-17T02:59:29Z"
-    mac: ENC[AES256_GCM,data:4SXFK2aQLmoW6AhMFz/1rOrenK32g0scmx3HvZncED+SX2tlYpecsMeXv+HrPyh81hhie6SNI6cpg2trZgFW0f01SCcDzJF5nCmjjQfbY8Wp7KRfjScbVVqYJJR+f8Br/G53J+r2y8iKtAaBx3+dbaKlxs2WlpvIHPzFyATa7QE=,iv:8vK1lzIVmSc+X/bQPVkK9mGfQ3+tH+E1lATeMwLW2dE=,tag:tKKkwo/wwWmX7OwDztNtmA==,type:str]
+    lastmodified: "2023-10-02T14:06:10Z"
+    mac: ENC[AES256_GCM,data:hhpjXu/2rwUK0lokXD7nRk4ro7Od66T6Ub1Sq3Q1XH6KhAMoEIovthzlkrkCOkSUX+rLXjQRwDPMbpHL1ZTF8iWlqYElHsicN1u86sbdsnkWU7qtdQrvlAt9fqVdDadW+yAFOy0wANobi3Bh2SbAMirQR0jyPE8/++HH/dW/4wc=,iv:J3YdFZu4AcbDLMbq3DO+uGwpkky39Bm9fim3JWtHgQk=,tag:PLkKV6FWyU2quZr5RCgPgw==,type:str]
     pgp: []
     encrypted_regex: ^(repository|env|mountPath|image)$
     version: 3.7.3
