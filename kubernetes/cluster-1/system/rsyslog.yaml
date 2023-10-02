@@ -35,6 +35,13 @@ spec:
       tag: latest
     nodeSelector:
       kubernetes.io/arch: amd64
+    probes:
+      liveness:
+        enabled: false
+      readiness:
+        enabled: false
+      startup:
+        enabled: false
     service:
       main:
         type: NodePort
