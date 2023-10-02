@@ -1,0 +1,45 @@
+# Grafana Agent on 30514 only supports RFC5424, but NetComm NF20MESH is noncompliant
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: rsyslog
+  namespace: monitoring-system
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.1
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    controller:
+      strategy: RollingUpdate
+      rollingUpdate:
+        unavailable: "0"
+    image:
+      repository: manics/rsyslog-stdout
+      tag: latest
+    nodeSelector:
+      kubernetes.io/arch: amd64
+    service:
+      main:
+        type: NodePort
+        ports:
+          http:
+            port: 514
+            protocol: UDP
+            nodePort: 30515
