@@ -62,6 +62,7 @@ spec:
         - name: syslog-udp
           port: 514
           targetPort: 514
+          nodePort: 30514
           protocol: UDP
     metrics:
       extraMetricRelabelingRules: |-
