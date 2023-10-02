@@ -55,14 +55,11 @@ spec:
           forward_to = [loki.write.grafana_cloud_loki.receiver]
         }
     grafana-agent-logs:
-      service:
-        type: NodePort
       agent:
         extraPorts:
         - name: syslog-udp
           port: 514
           targetPort: 514
-          nodePort: 30514
           protocol: UDP
     metrics:
       extraMetricRelabelingRules: |-
