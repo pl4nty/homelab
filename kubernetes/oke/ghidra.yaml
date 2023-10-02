@@ -31,7 +31,7 @@ spec:
         unavailable: "0"
     image:
       repository: ghcr.io/blacktop/ghidra
-      tag: 10.3.3
+      tag: 10.4.0
     args:
     - server
     - -ip ghidra.${PUBLIC_DOMAIN}
