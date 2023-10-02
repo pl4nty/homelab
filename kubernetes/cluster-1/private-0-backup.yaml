@@ -1,0 +1,47 @@
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+   name: private-0-config
+   namespace: default
+spec:
+  sourcePVC: private-0-config
+  trigger:
+    schedule: 0 0 * * *
+  restic:
+    repository: private-0-backup
+    copyMethod: Clone
+    pruneIntervalDays: 14
+    retain:
+      daily: 30
+---
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+   name: private-0-data
+   namespace: default
+spec:
+  sourcePVC: private-0-data
+  trigger:
+    schedule: 0 0 * * *
+  restic:
+    repository: private-0-backup
+    copyMethod: Clone
+    pruneIntervalDays: 14
+    retain:
+      daily: 30
+---
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+   name: private-0-meta
+   namespace: default
+spec:
+  sourcePVC: private-0-meta
+  trigger:
+    schedule: 0 0 * * *
+  restic:
+    repository: private-0-backup
+    copyMethod: Clone
+    pruneIntervalDays: 14
+    retain:
+      daily: 30
