@@ -31,6 +31,6 @@ spec:
       enableCephfsSnapshotter: false
     resources:
       requests:
-        cpu: 100m
+        cpu: 150m
         memory: 128Mi
   #     serviceMonitor: enabled
