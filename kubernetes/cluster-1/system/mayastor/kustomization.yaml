@@ -5,3 +5,4 @@ resources:
 - mayastor.yaml
 - diskpool.yaml
 - storageclass.yaml
+- volumesnapshotclass.yaml
