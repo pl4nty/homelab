@@ -78,30 +78,30 @@ spec:
               tag: 2.7.4
             env:
               HD_BASE_URL: https://hedgedoc.${PUBLIC_DOMAIN}
-  configMaps:
-    config:
-      data:
-        Caddyfile: |
-          {$HD_BASE_URL}
+    configMaps:
+      config:
+        data:
+          Caddyfile: |
+            {$HD_BASE_URL}
 
-          log {
-            output stdout
-            level WARN
-            format console
-          }
+            log {
+              output stdout
+              level WARN
+              format console
+            }
 
-          tracing {
-            span proxy
-          }
+            tracing {
+              span proxy
+            }
 
-          reverse_proxy /realtime http://hedgedoc-backend:3000
-          reverse_proxy /api/* http://hedgedoc-backend:3000
-          reverse_proxy /public/* http://hedgedoc-backend:3000
-          reverse_proxy /uploads/* http://hedgedoc-backend:3000
-          reverse_proxy /apidoc/* http://hedgedoc-backend:3000
-          reverse_proxy /* http://hedgedoc-frontend:3001 {
-            header_up X-Forwarded-Proto "https"
-          }
+            reverse_proxy /realtime http://hedgedoc-backend:3000
+            reverse_proxy /api/* http://hedgedoc-backend:3000
+            reverse_proxy /public/* http://hedgedoc-backend:3000
+            reverse_proxy /uploads/* http://hedgedoc-backend:3000
+            reverse_proxy /apidoc/* http://hedgedoc-backend:3000
+            reverse_proxy /* http://hedgedoc-frontend:3001 {
+              header_up X-Forwarded-Proto "https"
+            }
 
     persistence:
       config:
