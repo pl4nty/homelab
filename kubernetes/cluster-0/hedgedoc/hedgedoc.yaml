@@ -1,0 +1,135 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: hedgedoc
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: 2.0.1
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    controllers:
+      backend:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: "0"
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-nodejs: "true"
+        containers:
+          main:
+            image:
+              # new versions are sometimes completely broken (missing files etc)
+              repository: ghcr.io/hedgedoc/hedgedoc/backend:develop@sha256
+              tag: 999ef47ca7384d7b6d507bd1ebb524735a00f7078895c355e8facf020502a443
+            env:
+              HD_BASE_URL: https://hedgedoc.${PUBLIC_DOMAIN}
+              HD_DATABASE_TYPE: sqlite
+              HD_DATABASE_NAME: hedgedoc.sqlite
+              HD_MEDIA_BACKEND: filesystem
+              HD_MEDIA_BACKEND_FILESYSTEM_UPLOAD_PATH: uploads/
+              HD_AUTH_LOCAL_ENABLE_LOGIN: 'true'
+              HD_AUTH_LOCAL_ENABLE_REGISTER: 'true'
+            envFrom:
+            - secretRef:
+                name: hedgedoc
+      frontend:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: "0"
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-nodejs: "true"
+        containers:
+          main:
+            image:
+              repository: ghcr.io/hedgedoc/hedgedoc/frontend
+              tag: develop
+            env:
+              HD_BASE_URL: https://hedgedoc.${PUBLIC_DOMAIN}
+      proxy:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: "0"
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-sdk: "true"
+        containers:
+          main:
+            image:
+              repository: caddy
+              tag: 2.7.4
+            env:
+              HD_BASE_URL: https://hedgedoc.${PUBLIC_DOMAIN}
+  configMaps:
+    config:
+      data:
+        Caddyfile: |
+          {$HD_BASE_URL}
+
+          log {
+            output stdout
+            level WARN
+            format console
+          }
+
+          tracing {
+            span proxy
+          }
+
+          reverse_proxy /realtime http://hedgedoc-backend:3000
+          reverse_proxy /api/* http://hedgedoc-backend:3000
+          reverse_proxy /public/* http://hedgedoc-backend:3000
+          reverse_proxy /uploads/* http://hedgedoc-backend:3000
+          reverse_proxy /apidoc/* http://hedgedoc-backend:3000
+          reverse_proxy /* http://hedgedoc-frontend:3001 {
+            header_up X-Forwarded-Proto "https"
+          }
+
+    persistence:
+      config:
+        advancedMounts:
+          backend:
+            main: 
+            - path: /usr/src/app/backend/uploads
+      caddyfile:
+        type: configMap
+        name: hedgedoc-config
+        advancedMounts:
+          proxy:
+            main: 
+            - path: /etc/caddy/Caddyfile
+              subPath: Caddyfile
+    service:
+      backend:
+        controller: backend
+        ports:
+          http:
+            port: 3000
+      frontend:
+        controller: frontend
+        ports:
+          http:
+            port: 3001
+      proxy:
+        controller: proxy
+        ports:
+          http:
+            port: 80
