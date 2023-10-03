@@ -26,8 +26,6 @@ spec:
     keepHistory: false
   values:
     controllers:
-      main:
-        enabled: false
       backend:
         type: deployment
         strategy: RollingUpdate
@@ -68,8 +66,7 @@ spec:
               tag: develop
             env:
               HD_BASE_URL: https://hedgedoc.${PUBLIC_DOMAIN}
-      proxy:
-        type: deployment
+      main:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "0"
@@ -118,7 +115,7 @@ spec:
         type: configMap
         name: hedgedoc-config
         advancedMounts:
-          proxy:
+          main:
             main: 
             - path: /etc/caddy/Caddyfile
               subPath: Caddyfile
@@ -133,8 +130,7 @@ spec:
         ports:
           http:
             port: 3001
-      proxy:
-        controller: proxy
+      main:
         ports:
           http:
             port: 80
