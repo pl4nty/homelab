@@ -81,7 +81,7 @@ spec:
             env:
               HD_BASE_URL: https://hedgedoc.${PUBLIC_DOMAIN}
     configMaps:
-      config:
+      caddyfile:
         data:
           Caddyfile: |
             {$HD_BASE_URL}

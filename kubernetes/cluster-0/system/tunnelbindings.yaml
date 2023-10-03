@@ -8,9 +8,7 @@ subjects:
   - name: debian-xfce-vnc
     spec:
       protocol: tcp
-  - name: hedgedoc-proxy
-    spec:
-      fqdn: hedgedoc.tplant.com.au
+  - name: hedgedoc
   - name: hrconvert2
     spec:
       fqdn: convert.tplant.com.au
