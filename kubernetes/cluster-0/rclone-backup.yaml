@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 1.5.1
+      version: 2.0.1
       sourceRef:
         kind: HelmRepository
         name: bjw-s
@@ -25,55 +25,61 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    image:
-      repository: rclone/rclone
-      tag: 1.64.0
-    controller:
-      type: cronjob
-      cronjob:
-        schedule: "0 0 * * *"
-    envFrom:
-    - secretRef:
-        name: rclone-backup
-    args:
-    - copy
-    - "onedrive:"
-    - backblaze:tplant-onedrive
-    - -v
-    - --s3-no-check-bucket
-    - --fast-list
-    - --rc
-    - --rc-enable-metrics
-    - --rc-no-auth
-    - --rc-addr=:5572
-    # remotes have no hashes in common so can't use checksum, see rclone/rclone#6585
-    # - --checksum
-    - --size-only
-    persistence:
-      config:
-        enabled: true
-        mountPath: /config/rclone
-        retain: true
-    # if state is lost, refresh token must be manually regenerated
-    # this wouldn't be required if client secret auth was implemented in rclone (rather than delegated)
-    # addons:
-    #   codeserver:
-    #     enabled: true
-    #     workingDir: /config/rclone
-    #     args:
-    #       - --auth
-    #       - 'none'
-    #     volumeMounts:
-    #     - name: config
-    #       mountPath: /config/rclone
-    service:
+    defaultPodOptions:
+      automountServiceAccountToken: true
+      enableServiceLinks: true
+      nodeSelector:
+        kubernetes.io/arch: amd64
+    controllers:
       main:
-        ports:
-          http:
-            port: 5572
+        type: deployment
+        cronjob:
+          schedule: "0 0 * * *"
+        containers:
+          main:
+            image:
+              repository: rclone/rclone
+              tag: 1.64.0
+            args:
+              - copy
+              - "onedrive:"
+              - backblaze:tplant-onedrive
+              - -v
+              - --s3-no-check-bucket
+              - --fast-list
+              - --rc
+              - --rc-enable-metrics
+              - --rc-no-auth
+              - --rc-addr=:5572
+              # remotes have no hashes in common so can't use checksum, see rclone/rclone#6585
+              # - --checksum
+              - --size-only
+            envFrom:
+              - secretRef:
+                  name: rclone-backup
+          # if state is lost, refresh token must be manually regenerated
+          # this wouldn't be required if client secret auth was implemented in rclone (rather than delegated)
+          # codeserver:
+          #   image:
+          #     repository: ghcr.io/coder/code-server
+          #     tag: 4.13.0
+          #   args:
+          #     - --auth
+          #     - none
+          #     - /config/rclone # workingDir
     serviceMonitor:
       main:
         enabled: true
         endpoints:
         - port: http
           interval: 10s
+    service:
+      main:
+        ports:
+          http:
+            port: 5572
+    persistence:
+      conf:
+        retain: true
+        globalMounts:
+          - path: /config/rclone

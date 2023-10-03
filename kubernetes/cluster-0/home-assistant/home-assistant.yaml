@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 1.5.1
+      version: 2.0.1
       sourceRef:
         kind: HelmRepository
         name: bjw-s
@@ -25,88 +25,98 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    controller:
-      type: statefulset
-      rollingUpdate:
-        unavailable: "0"
-    image:
-      repository: ghcr.io/home-assistant/home-assistant
-      tag: 2023.9.3
-    # incompatible boto3 version as of 2023.6.3. can only specify image at collector level
-    # eg open-telemetry/opentelemetry-operator#1774
-    # podAnnotations:
-    #   instrumentation.opentelemetry.io/inject-python: "true"
-    persistence:
-      config:
-        enabled: true
-        mountPath: /config
-        size: 1Gi
-        retain: true
-      cloudflare-warp:
-        enabled: true
-        type: secret
-        name: cloudflare-warp
-        mountPath: '-'
-      dev-net-tun:
-        enabled: true
-        type: hostPath
-        hostPath: /dev/net/tun
-        mountPath: '-'
+    defaultPodOptions:
+      # incompatible boto3 version as of 2023.6.3. can only specify image at collector level
+      # eg open-telemetry/opentelemetry-operator#1774
+      # annotations:
+      #   instrumentation.opentelemetry.io/inject-python: "true"
+      automountServiceAccountToken: true
+      enableServiceLinks: true
+      nodeSelector:
+        kubernetes.io/arch: amd64
+    controllers:
+      main:
+        type: statefulset
+        rollingUpdate:
+          unavailable: "0"
+        containers:
+          main:
+            image:
+              repository: ghcr.io/home-assistant/home-assistant
+              tag: 2023.9.3
+          codeserver:
+            image:
+              repository: ghcr.io/coder/code-server
+              tag: 4.13.0
+            args:
+              - --auth
+              - none
+              - --user-data-dir
+              - '/config/.vscode'
+              - --auth
+              - 'none'
+              - --extensions-dir
+              - '/config/.vscode'
+              - '/config' # workingDir
+          cloudflare-warp:
+            image:
+              # no ARM binaries yet, and auth for Wireguard is tricky
+              repository: ghcr.io/pl4nty/cloudflare-warp
+              tag: sha-1ce6ba8
+            securityContext:
+              capabilities:
+                add:
+                # warp-svc, archwiki, and boringtun
+                # bare minimum to connect
+                - NET_ADMIN
+                # from /lib/systemd/system/warp-svc.service
+                # - NET_BIND_SERVICE
+                # - SYS_PTRACE
+                # https://community.cloudflare.com/t/warp-failed-to-increase-the-number-of-allowed-open-fds/447693/3
+                # - CAP_SYS_RESOURCE
+            lifecycle:
+              preStop:
+                exec:
+                  command: [ "warp-cli", "--accept-tos", "delete" ]
+    # serviceMonitor:
+    #   main:
+    #     enabled: true
+    #     endpoints:
+    #       - port: http
+    #         path: /api/prometheus
+    #         bearerTokenSecret:
+    #           name:
+    #           key:
     service:
       main:
         ports:
           http:
             port: 8123
-    # serviceMonitor:
-    #   main:
-    #     enabled: true
-    #     endpoints:
-    #     - port: http
-    #       path: /api/prometheus
-    #       bearerTokenSecret:
-    #         name: 
-    #         key: 
-    addons:
-      codeserver:
-        enabled: true
-        workingDir: '/config'
-        args:
-          - --user-data-dir
-          - '/config/.vscode'
-          - --auth
-          - 'none'
-          - --extensions-dir
-          - '/config/.vscode'
-        volumeMounts:
-        - name: config
-          mountPath: /config
-
-    sidecars:
-      warp:
+          codeserver:
+            port: 12321
+            protocol: TCP
+            targetPort: 12321
+    persistence:
+      conf:
+        size: 1Gi
+        retain: true
+        advancedMounts:
+          main:
+            main: &confMnt
+              - path: /config
+            codeserver: *confMnt
+      cloudflare-warp:
+        type: secret
         name: cloudflare-warp
-        image: ghcr.io/pl4nty/cloudflare-warp:sha-1ce6ba8
-        # no ARM binaries yet, and auth for Wireguard is tricky
-        # only works for pods, not sidecar
-        # nodeSelector:
-        #   kubernetes.io/arch: amd64
-        volumeMounts:
-        - name: cloudflare-warp
-          mountPath: /var/lib/cloudflare-warp/mdm.xml
-          subPath: mdm.xml
-        - name: dev-net-tun
-          mountPath: /dev/net/tun
-        securityContext:
-          capabilities:
-            add:
-            # warp-svc, archwiki, and boringtun
-            # bare minimum to connect
-            - NET_ADMIN
-            # from /lib/systemd/system/warp-svc.service
-            # - NET_BIND_SERVICE
-            # - SYS_PTRACE
-            # https://community.cloudflare.com/t/warp-failed-to-increase-the-number-of-allowed-open-fds/447693/3
-            # - CAP_SYS_RESOURCE
-        lifecycle:
-          preStop:
-            exec:
-              command: [ "warp-cli", "--accept-tos", "delete" ]
+        advancedMounts:
+          main:
+            cloudflare-warp:
+              - path: /var/lib/cloudflare-warp/mdm.xml
+                subPath: mdm.xml
+      dev-net-tun:
+        type: hostPath
+        hostPath: /dev/net/tun
+        advancedMounts:
+          main:
+            cloudflare-warp:
+              - path: /dev/net/tun

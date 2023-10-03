@@ -8,48 +8,52 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 1.5.1
+      version: 2.0.1
       sourceRef:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
   values:
-    image:
-      repository: msconnectedcacheprod.azurecr.io/mcc/linux/iot/mcc-ubuntu-iot-amd64
-      tag: 1.2.1.1563
-    imagePullSecrets:
-    - name: mcc-registry
-    env:
-      IS_SUMMARY_PUBLIC: 'true'
-      IS_SUMMARY_ACCESS_UNRESTRICTED: 'true'
-      X_CID: '10000'
-      STORAGE_1_SIZE_GB: '10'
-    envFrom:
-    - secretRef:
-        name: mcc-env
-    resources:
-      requests:
-        cpu: 50m
-        memory: 600Mi
-      limits:
-        cpu: 100m
-        memory: 1Gi
-    persistence:
-      shared:
-        enabled: true
-        mountPath: /nginx/cache1
-        sizeLimit: 10Gi
-    securityContext:
-      fsGroup: 2000
-      # net.* isn't allowlisted by default, but can be added
-      # https://learn.microsoft.com/en-us/azure/aks/custom-node-configuration#kubelet-custom-configuration
-      # sysctls:
-      # - name: net.ipv4.tcp_max_tw_buckets
-      #   value: '1440000'
-      # - name: net.ipv4.ip_local_port_range
-      #   value: '8193 65000'
-      # - name: net.core.somaxconn
-      #   value: '1024'
+    defaultPodOptions:
+      automountServiceAccountToken: true
+      enableServiceLinks: true
+      imagePullSecrets:
+        - name: mcc-registry
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      securityContext:
+        fsGroup: 2000
+        # net.* isn't allowlisted by default, but can be added
+        # https://learn.microsoft.com/en-us/azure/aks/custom-node-configuration#kubelet-custom-configuration
+        # sysctls:
+        # - name: net.ipv4.tcp_max_tw_buckets
+        #   value: '1440000'
+        # - name: net.ipv4.ip_local_port_range
+        #   value: '8193 65000'
+        # - name: net.core.somaxconn
+        #   value: '1024'
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              repository: msconnectedcacheprod.azurecr.io/mcc/linux/iot/mcc-ubuntu-iot-amd64
+              tag: 1.2.1.1563
+            env:
+              IS_SUMMARY_PUBLIC: 'true'
+              IS_SUMMARY_ACCESS_UNRESTRICTED: 'true'
+              X_CID: '10000'
+              STORAGE_1_SIZE_GB: '10'
+            envFrom:
+              - secretRef:
+                  name: mcc-env
+            resources:
+              requests:
+                cpu: 50m
+                memory: 600Mi
+              limits:
+                cpu: 100m
+                memory: 1Gi
     service:
       main:
         type: LoadBalancer
@@ -63,6 +67,13 @@ spec:
             port: 80
             targetPort: 8081
       metrics:
+        # controller: main
         ports:
           metrics:
             port: 5000
+    persistence:
+      shared:
+        type: emptyDir
+        sizeLimit: 10Gi
+        globalMounts:
+          - path: /nginx/cache1
