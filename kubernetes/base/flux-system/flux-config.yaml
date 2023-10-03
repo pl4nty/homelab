@@ -74,7 +74,8 @@ spec:
               - name: manager
                 resources:
                   requests:
-                    memory: 256Mi      
+                    memory: 256Mi
+                    cpu: 100m    
     target:
       kind: Deployment
       name: "(kustomize-controller|source-controller)"
