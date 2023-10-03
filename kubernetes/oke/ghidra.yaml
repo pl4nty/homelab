@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 1.5.1
+      version: 2.0.1
       sourceRef:
         kind: HelmRepository
         name: bjw-s
@@ -25,23 +25,27 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    controller:
-      strategy: RollingUpdate
-      rollingUpdate:
-        unavailable: "0"
-    image:
-      repository: ghcr.io/blacktop/ghidra
-      tag: 10.4.0
-    args:
-    - server
-    - -ip ghidra.${PUBLIC_DOMAIN}
-    env:
-      GHIDRA_USERS: blacktop
-      SERVER_LOG_LEVEL: info
-    persistence:
-      config:
-        enabled: true
-        mountPath: /repos
+    defaultPodOptions:
+      automountServiceAccountToken: true
+      enableServiceLinks: true
+      # nodeSelector:
+      #   kubernetes.io/arch: arm64
+    controllers:
+      main:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: 0
+        containers:
+          main:
+            image:
+              repository: ghcr.io/blacktop/ghidra
+              tag: 10.4.0
+            args:
+              - server
+              - -ip ghidra.${PUBLIC_DOMAIN}
+            env:
+              GHIDRA_USERS: blacktop
+              SERVER_LOG_LEVEL: info
     service:
       main:
         type: LoadBalancer
@@ -60,3 +64,7 @@ spec:
             port: 13101
           port3:
             port: 13102
+    persistence:
+      conf:
+        globalMounts:
+          - path: /repos

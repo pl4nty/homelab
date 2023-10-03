@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 1.5.1
+      version: 2.0.1
       sourceRef:
         kind: HelmRepository
         name: bjw-s
@@ -25,17 +25,25 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    controller:
-      strategy: RollingUpdate
-      rollingUpdate:
-        unavailable: "0"
-    image:
-      repository: ghcr.io/pl4nty/jwtplayground
-      tag: latest@sha256:3b0b257d9689ab04d65ae57b3681d56b3159bf98a244390c430ccf5c08a2354a
-    podAnnotations:
-      instrumentation.opentelemetry.io/inject-nodejs: "true"
-    env:
-      PORT: 8080
+    defaultPodOptions:
+      annotations:
+        instrumentation.opentelemetry.io/inject-nodejs: "true"
+      automountServiceAccountToken: true
+      enableServiceLinks: true
+      # nodeSelector:
+      #   kubernetes.io/arch: arm64
+    controllers:
+      main:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: 0
+        containers:
+          main:
+            image:
+              repository: ghcr.io/pl4nty/jwtplayground
+              tag: latest@sha256:3b0b257d9689ab04d65ae57b3681d56b3159bf98a244390c430ccf5c08a2354a
+            env:
+              PORT: 8080
     service:
       main:
         ports:

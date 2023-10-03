@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 1.5.1
+      version: 2.0.1
       sourceRef:
         kind: HelmRepository
         name: bjw-s
@@ -26,18 +26,53 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    controller:
-      strategy: RollingUpdate
-      rollingUpdate:
-        unavailable: "0"
-    image:
-      repository: quay.io/timrabl/hyperglass # use GHCR once docker-hyperglass#43 is fixed
-      tag: 1.0.4-1.0.233
-    podAnnotations:
-      instrumentation.opentelemetry.io/inject-python: "true"
+    defaultPodOptions:
+      annotations:
+        instrumentation.opentelemetry.io/inject-python: "true"
+      automountServiceAccountToken: true
+      enableServiceLinks: true
+      # nodeSelector:
+      #   kubernetes.io/arch: arm64
+      securityContext:
+        fsGroup: 2000
+        fsGroupChangePolicy: OnRootMismatch
+    controllers:
+      main:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: 0
+        containers:
+          main:
+            image:
+              repository: quay.io/timrabl/hyperglass # use GHCR once docker-hyperglass#43 is fixed
+              tag: 1.0.4-1.0.233
+            probes:
+              startup:
+                spec:
+                  initialDelaySeconds: 300
+            resources:
+              requests:
+                cpu: 10m
+                ephemeral-storage: 1Gi
+              limits:
+                cpu: 1
+                ephemeral-storage: 2Gi
+          redis:
+            image:
+              repository: redis
+              tag: 7.2.1
+          ssh:
+            image:
+              repository: ghcr.io/pl4nty/ubuntu-ssh
+              tag: latest@sha256:7078a8ae08ef03746f0641d796314bdd9ffb6bac709976a3d4bc9dcb7b689b5a
+            # allow ICMP access. net.ipv4.ping_group_range="0 [the uid ie 1000]" may still be required on the node
+            # note that Azure loadbalancers (node egress) don't support ICMP
+            securityContext:
+              capabilities:
+                add:
+                - NET_RAW
     configMaps:
-      config:
-        enabled: true
+      conf:
         data:
           hyperglass.yaml: |
             cache:
@@ -88,58 +123,39 @@ spec:
                   source_address: 192.0.2.1
                 ipv6:
                   source_address: 2001:db8::1
-    persistence:
-      # static:
-      #   enabled: true
-      #   type: emptyDir
-      #   mountPath: /opt/hyperglass/hyperglass/static
-      config-hyperglass:
-        enabled: true
-        type: configMap
-        name: hyperglass-config
-        mountPath: /opt/hyperglass/hyperglass/hyperglass.yaml
-        subPath: hyperglass.yaml
-      config-commands:
-        enabled: true
-        type: configMap
-        name: hyperglass-config
-        mountPath: /opt/hyperglass/hyperglass/commands.yaml
-        subPath: commands.yaml
-      config-devices:
-        enabled: true
-        type: configMap
-        name: hyperglass-config
-        mountPath: /opt/hyperglass/hyperglass/devices.yaml
-        subPath: devices.yaml
-    podSecurityContext:
-      fsGroup: 2000
-      fsGroupChangePolicy: OnRootMismatch
     service:
       main:
         ports:
           http:
             port: 8001
-    probes:
-      startup:
-        spec:
-          initialDelaySeconds: 300
-    resources:
-      requests:
-        cpu: 10m
-        ephemeral-storage: 1Gi
-      limits:
-        cpu: 1
-        ephemeral-storage: 2Gi
-    sidecars:
-      redis:
-        name: redis
-        image: redis:7.2.1
-      ssh:
-        name: ssh
-        image: ghcr.io/pl4nty/ubuntu-ssh:latest@sha256:7078a8ae08ef03746f0641d796314bdd9ffb6bac709976a3d4bc9dcb7b689b5a
-        # allow ICMP access. net.ipv4.ping_group_range="0 [the uid ie 1000]" may still be required on the node
-        # note that Azure loadbalancers (node egress) don't support ICMP
-        securityContext:
-          capabilities:
-            add:
-            - NET_RAW
+    persistence:
+      # static:
+      #   type: emptyDir
+      #   advancedMounts:
+      #     main:
+      #       main:
+      #         - path: /opt/hyperglass/hyperglass/static
+      config-hyperglass:
+        type: configMap
+        name: '{{ .Release.Name }}-conf'
+        advancedMounts:
+          main:
+            main:
+              - path: /opt/hyperglass/hyperglass/hyperglass.yaml
+                subPath: hyperglass.yaml
+      config-commands:
+        type: configMap
+        name: '{{ .Release.Name }}-conf'
+        advancedMounts:
+          main:
+            main:
+              - path: /opt/hyperglass/hyperglass/commands.yaml
+                subPath: commands.yaml
+      config-devices:
+        type: configMap
+        name: '{{ .Release.Name }}-conf'
+        advancedMounts:
+          main:
+            main:
+              - path: /opt/hyperglass/hyperglass/devices.yaml
+                subPath: devices.yaml

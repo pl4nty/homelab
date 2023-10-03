@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 1.5.1
+      version: 2.0.1
       sourceRef:
         kind: HelmRepository
         name: bjw-s
@@ -25,26 +25,34 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    controller:
-      strategy: RollingUpdate
-      rollingUpdate:
-        unavailable: "0"
-    image:
-      repository: ghcr.io/miniflux/miniflux
-      tag: 2.0.48
-    # process has no symbol section
-    # podAnnotations:
-    #   sidecar.opentelemetry.io/inject: monitoring-system/opentelemetry-sidecar
-    #   instrumentation.opentelemetry.io/inject-go: monitoring-system/opentelemetry-sidecar
-    #   instrumentation.opentelemetry.io/otel-go-auto-target-exe: /usr/bin/miniflux
-    env:
-      RUN_MIGRATIONS: "1"
-      CREATE_ADMIN: "1"
-      DEBUG: "1"
-      BASE_URL: https://rss.${PUBLIC_DOMAIN}
-    envFrom:
-    - secretRef:
-        name: miniflux
+    defaultPodOptions:
+      # process has no symbol section
+      # annotations:
+      #   sidecar.opentelemetry.io/inject: monitoring-system/opentelemetry-sidecar
+      #   instrumentation.opentelemetry.io/inject-go: monitoring-system/opentelemetry-sidecar
+      #   instrumentation.opentelemetry.io/otel-go-auto-target-exe: /usr/bin/miniflux
+      automountServiceAccountToken: true
+      enableServiceLinks: true
+      # nodeSelector:
+      #   kubernetes.io/arch: arm64
+    controllers:
+      main:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: 0
+        containers:
+          main:
+            image:
+              repository: ghcr.io/miniflux/miniflux
+              tag: 2.0.48
+            env:
+              RUN_MIGRATIONS: "1"
+              CREATE_ADMIN: "1"
+              DEBUG: "1"
+              BASE_URL: https://rss.${PUBLIC_DOMAIN}
+            envFrom:
+              - secretRef:
+                  name: miniflux
     service:
       main:
         ports:
