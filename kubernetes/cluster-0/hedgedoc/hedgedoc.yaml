@@ -26,6 +26,8 @@ spec:
     keepHistory: false
   values:
     controllers:
+      main:
+        enabled: false
       backend:
         type: deployment
         strategy: RollingUpdate
