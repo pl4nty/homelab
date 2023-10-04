@@ -1,7 +1,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: your-spotify-client
+  name: your-spotify
   namespace: default
 spec:
   interval: 15m
@@ -41,7 +41,7 @@ spec:
             instrumentation.opentelemetry.io/inject-nodejs: "true"
         containers:
           main:
-            image: &image
+            image:
               repository: yooooomi/your_spotify_server
               tag: 1.7.0
             env:
@@ -59,7 +59,9 @@ spec:
         pod: *pod
         containers:
           main:
-            image: *image
+            image:
+              repository: yooooomi/your_spotify_client
+              tag: 1.7.0
             env:
               TIMEZONE: ${TIMEZONE}
               API_ENDPOINT: https://spotify-api.${PUBLIC_DOMAIN}
