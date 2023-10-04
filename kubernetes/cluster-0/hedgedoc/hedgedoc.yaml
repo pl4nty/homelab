@@ -107,6 +107,7 @@ spec:
 
     persistence:
       config:
+        enabled: true
         advancedMounts:
           backend:
             main: 
