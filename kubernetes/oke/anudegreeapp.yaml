@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 1.5.1
+      version: 2.0.1
       sourceRef:
         kind: HelmRepository
         name: bjw-s
@@ -25,48 +25,44 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    controller:
-      strategy: RollingUpdate
-      rollingUpdate:
-        unavailable: "0"
-    image:
-      repository: ghcr.io/pl4nty/anudegreeapp
-      tag: latest@sha256:f857fce336c2d7a3ce736c0f894927f39b3d8298ade63d3fca927326e61c43ae
-    # podAnnotations:
-    #   instrumentation.opentelemetry.io/inject-apache-httpd: "true"
+    defaultPodOptions:
+      automountServiceAccountToken: true
+      enableServiceLinks: true
+      # nodeSelector:
+      #   kubernetes.io/arch: arm64
+    controllers:
+      main:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: 0
+        # pod:
+        #   annotations:
+        #     instrumentation.opentelemetry.io/inject-apache-httpd: "true"
+        containers:
+          main:
+            image:
+              repository: ghcr.io/pl4nty/anudegreeapp
+              tag: latest@sha256:f857fce336c2d7a3ce736c0f894927f39b3d8298ade63d3fca927326e61c43ae
+      getdata:
+        type: cronjob
+        cronjob:
+          schedule: "0 */12 * * *"
+        containers:
+          main:
+            image:
+              repository: quay.io/curl/curl
+              tag: 8.3.0
+          command:
+            - curl
+            - anudegreeapp/scraper/plan_scraper.php
+            - "&&"
+            - curl
+            - anudegreeapp/scraper/subplan_scraper.php
+            - "&&"
+            - curl
+            - anudegreeapp/scraper/course_scraper.php
     service:
       main:
         ports:
           http:
             port: 80
-    # probes don't seem to run???
-    probes:
-      readiness:
-        custom: true
-        spec:
-          timeoutSeconds: 300
-          failureThreshold: 1
-          exec:
-            command:
-            - curl
-            - localhost/scraper/course_scraper.php
-            - "&&"
-            - curl
-            - localhost/scraper/plan_scraper.php
-            - "&&"
-            - curl
-            - localhost/scraper/subplan_scraper.php
-    #   liveness:
-    #     type: HTTP
-    #     path: /scraper/subplan_scraper.php
-    #     spec:
-    #       initialDelaySeconds: 30
-    #       periodSeconds: 43200 # 12 hours
-    #       timeoutSeconds: 120
-    #   startup:
-    #     type: HTTP
-    #     path: /scraper/plan_scraper.php
-    #     spec:
-    #       initialDelaySeconds: 30
-    #       periodSeconds: 43200 # 12 hours
-    #       timeoutSeconds: 120
