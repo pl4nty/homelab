@@ -67,7 +67,7 @@ spec:
             port: 80
             targetPort: 8081
       metrics:
-        # controller: main
+        controller: main
         ports:
           metrics:
             port: 5000
