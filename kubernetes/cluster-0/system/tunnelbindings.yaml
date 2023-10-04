@@ -27,7 +27,7 @@ metadata:
   namespace: default
 subjects:
   - name: home-assistant
-  - name: home-assistant-addon-codeserver
+  - name: home-assistant-codeserver
     spec:
       fqdn: hass-vscode.tplant.au
 tunnelRef:
