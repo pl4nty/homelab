@@ -97,8 +97,8 @@ spec:
             protocol: TCP
             targetPort: 12321
     persistence:
-      conf:
-        size: 1Gi
+      config:
+        enabled: true
         retain: true
         advancedMounts:
           main:
