@@ -92,10 +92,10 @@ spec:
         ports:
           http:
             port: 8123
-          codeserver:
+      codeserver:
+        ports:
+          http:
             port: 12321
-            protocol: TCP
-            targetPort: 12321
     persistence:
       config:
         enabled: true
