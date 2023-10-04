@@ -65,8 +65,7 @@ spec:
           port3:
             port: 13102
     persistence:
-      conf:
+      config:
         enabled: true
-        accessMode: ReadWriteOnce
         globalMounts:
           - path: /repos
