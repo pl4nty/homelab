@@ -43,7 +43,7 @@ subjects:
   - name: your-spotify-client
     spec:
       fqdn: spotify.${PUBLIC_DOMAIN}
-  - name: your-spotify-server
+  - name: your-spotify
     spec:
       fqdn: spotify-api.${PUBLIC_DOMAIN}
   - name: leekspin
