@@ -67,5 +67,6 @@ spec:
     persistence:
       conf:
         enabled: true
+        accessMode: ReadWriteOnce
         globalMounts:
           - path: /repos
