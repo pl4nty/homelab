@@ -123,7 +123,8 @@ spec:
           #   port: 8080
     # NOTE: depending on your intentions, a lot of these could probably be reduced into persistence.globalMounts entries
     persistence:
-      conf:
+      config:
+        enabled: true
         advancedMounts:
           main:
             main:

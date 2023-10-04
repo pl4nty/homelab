@@ -89,7 +89,8 @@ spec:
           http:
             port: 27017
     persistence:
-      conf:
+      config:
+        enabled: true
         advancedMounts:
           mongodb:
             main:
