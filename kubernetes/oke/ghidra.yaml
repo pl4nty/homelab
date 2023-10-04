@@ -66,5 +66,6 @@ spec:
             port: 13102
     persistence:
       conf:
+        enabled: true
         globalMounts:
           - path: /repos
