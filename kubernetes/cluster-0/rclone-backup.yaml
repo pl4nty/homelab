@@ -32,7 +32,7 @@ spec:
         kubernetes.io/arch: amd64
     controllers:
       main:
-        type: deployment
+        type: cronjob
         cronjob:
           schedule: "0 0 * * *"
         containers:
