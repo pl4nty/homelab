@@ -70,8 +70,9 @@ spec:
         type: statefulset
         # default, but there's a bug where statefulset is null by default
         # so statefulset.podManagementPolicy reference fails
+        rollingUpdate: *ru
         statefulset:
-          podManagementPolicy: OrderedReady 
+          podManagementPolicy: OrderedReady
         containers:
           main:
             image:
