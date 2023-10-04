@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 1.5.1
+      version: 2.0.1
       sourceRef:
         kind: HelmRepository
         name: bjw-s
@@ -54,6 +54,7 @@ spec:
             - secretRef:
                 name: your-spotify
       client:
+        type: deployment
         strategy: *strat
         rollingUpdate: *ru
         pod: *pod
