@@ -33,12 +33,6 @@ spec:
     cephClusterSpec:
       mon:
         count: 1
-        # volumeClaimTemplate:
-        #   spec:
-        #     storageClassName: oci-bv
-        #     resources:
-        #       requests:
-        #         storage: 10Gi
       mgr:
         count: 1
       dashboard:
@@ -76,6 +70,7 @@ spec:
           requests:
             cpu: 100m
             memory: 50Mi
+      # OCI doesn't support Block VolumeMode yet
       # storage:
       #   storageClassDeviceSets:
       #   - name: set1
@@ -90,7 +85,6 @@ spec:
       #           requests:
       #             storage: 10Gi
       #         storageClassName: oci-bv
-      #         # driver doesn't support Block
       #         volumeMode: Filesystem
       #         accessModes:
       #         - ReadWriteOnce
