@@ -110,6 +110,6 @@ spec:
           csi.storage.k8s.io/controller-expand-secret-namespace: "{{ .Release.Namespace }}"
           csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
           csi.storage.k8s.io/node-stage-secret-namespace: "{{ .Release.Namespace }}"
-          csi.storage.k8s.io/fstype: xfs # ext3 or ext4 (default) fails on Oracle, unknown why
+          csi.storage.k8s.io/fstype: ext3 # ext3 or ext4 (default) fails on Oracle, unknown why
     cephFileSystems: []
     cephObjectStores: []
