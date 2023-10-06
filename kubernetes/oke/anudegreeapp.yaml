@@ -52,7 +52,7 @@ spec:
             image:
               repository: quay.io/curl/curl
               tag: 8.3.0
-          command:
+            command:
             - curl
             - anudegreeapp/scraper/plan_scraper.php
             - "&&"
