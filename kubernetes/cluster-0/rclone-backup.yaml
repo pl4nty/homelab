@@ -79,7 +79,8 @@ spec:
           http:
             port: 5572
     persistence:
-      conf:
+      config:
+        enabled: true
         retain: true
         globalMounts:
           - path: /config/rclone
