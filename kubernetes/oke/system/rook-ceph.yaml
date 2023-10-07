@@ -29,8 +29,3 @@ spec:
     csi:
       enableCephfsDriver: false
       enableCephfsSnapshotter: false
-    resources:
-      requests:
-        cpu: 200m
-        memory: 128Mi
-  #     serviceMonitor: enabled
