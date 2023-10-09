@@ -1,8 +1,7 @@
-# Lab Infrastructure
-Configuration files for my lab infrastructure. In future, some files may be added for bootstrapping or point-in-time snapshots.
+# Homelab
+My homelab infrastructure-as-code. Built with [Kubernetes](https://kubernetes.io/) clusters on [Azure](https://learn.microsoft.com/en-us/azure/aks/), [Oracle Cloud](https://docs.oracle.com/en-us/iaas/Content/ContEng/Concepts/contengoverview.htm), and [on-premises](https://www.talos.dev/).
 
-## Kubernetes 
-Kubernetes manifests deployed to clusters with Flux in a pull-only model. Base manifests apply to all clusters, and other folders are cluster-specific.
+The clusters use [Flux](https://fluxcd.io/) to pull their configuration from YAML files in the `kubernetes` folder. The `base` subfolder applies to all clusters, and other subfolders apply to individual clusters. I also use the following external services:
 
 Networking:
 * [Cloudflare authoritative DNS](https://www.cloudflare.com/dns/)
@@ -17,8 +16,8 @@ Observability:
 * [Grafana Cloud](https://grafana.com/products/cloud/) storage, analysis, and alerts
 
 GitOps:
-* [Flux](https://fluxcd.io/) manifest reconciliation
 * [Mend Renovate](https://www.mend.io/free-developer-tools/renovate/) dependency updates
-* [GitHub](https://github.com/) source control and development (Codespaces)
+* [GitHub](https://github.com/) source control
+* [Dev Container](https://containers.dev/) development environment
 * [Mozilla SOPS](https://github.com/mozilla/sops) secret management
 * [age](https://github.com/FiloSottile/age) secret encryption
