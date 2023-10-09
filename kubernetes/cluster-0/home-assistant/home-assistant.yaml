@@ -36,6 +36,7 @@ spec:
         kubernetes.io/arch: amd64
     controllers:
       main:
+        replicas: 0
         type: statefulset
         rollingUpdate:
           unavailable: "0"
