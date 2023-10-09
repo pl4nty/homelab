@@ -13,7 +13,16 @@
 		},
 		"ghcr.io/devcontainers-contrib/features/age:1": {},
 		"ghcr.io/devcontainers-contrib/features/age-keygen:1": {},
-		"ghcr.io/jsburckhardt/devcontainer-features/flux:1": {}
+		"ghcr.io/jsburckhardt/devcontainer-features/flux:1": {},
+		"ghcr.io/devcontainers-contrib/features/sops:1": {}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-kubernetes-tools.vscode-kubernetes-tools",
+				"signageos.signageos-vscode-sops"
+			]
+		}
 	}
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
