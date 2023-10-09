@@ -20,7 +20,8 @@
 		"vscode": {
 			"extensions": [
 				"ms-kubernetes-tools.vscode-kubernetes-tools",
-				"signageos.signageos-vscode-sops"
+				"signageos.signageos-vscode-sops",
+				"sandipchitale.kubernetes-file-system-explorer"
 			]
 		}
 	}
