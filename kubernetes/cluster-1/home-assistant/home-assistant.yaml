@@ -32,11 +32,8 @@ spec:
       #   instrumentation.opentelemetry.io/inject-python: "true"
       automountServiceAccountToken: true
       enableServiceLinks: true
-      nodeSelector:
-        kubernetes.io/arch: amd64
     controllers:
       main:
-        replicas: 0
         type: statefulset
         rollingUpdate:
           unavailable: "0"
@@ -59,26 +56,26 @@ spec:
               - --extensions-dir
               - '/config/.vscode'
               - '/config' # workingDir
-          cloudflare-warp:
-            image:
-              # no ARM binaries yet, and auth for Wireguard is tricky
-              repository: ghcr.io/pl4nty/cloudflare-warp
-              tag: sha-1ce6ba8
-            securityContext:
-              capabilities:
-                add:
-                # warp-svc, archwiki, and boringtun
-                # bare minimum to connect
-                - NET_ADMIN
-                # from /lib/systemd/system/warp-svc.service
-                # - NET_BIND_SERVICE
-                # - SYS_PTRACE
-                # https://community.cloudflare.com/t/warp-failed-to-increase-the-number-of-allowed-open-fds/447693/3
-                # - CAP_SYS_RESOURCE
-            lifecycle:
-              preStop:
-                exec:
-                  command: [ "warp-cli", "--accept-tos", "delete" ]
+          # cloudflare-warp:
+          #   image:
+          #     # no ARM binaries yet, and auth for Wireguard is tricky
+          #     repository: ghcr.io/pl4nty/cloudflare-warp
+          #     tag: sha-1ce6ba8
+          #   securityContext:
+          #     capabilities:
+          #       add:
+          #       # warp-svc, archwiki, and boringtun
+          #       # bare minimum to connect
+          #       - NET_ADMIN
+          #       # from /lib/systemd/system/warp-svc.service
+          #       # - NET_BIND_SERVICE
+          #       # - SYS_PTRACE
+          #       # https://community.cloudflare.com/t/warp-failed-to-increase-the-number-of-allowed-open-fds/447693/3
+          #       # - CAP_SYS_RESOURCE
+          #   lifecycle:
+          #     preStop:
+          #       exec:
+          #         command: [ "warp-cli", "--accept-tos", "delete" ]
     # serviceMonitor:
     #   main:
     #     enabled: true
@@ -107,18 +104,18 @@ spec:
             main: &confMnt
               - path: /config
             codeserver: *confMnt
-      cloudflare-warp:
-        type: secret
-        name: cloudflare-warp
-        advancedMounts:
-          main:
-            cloudflare-warp:
-              - path: /var/lib/cloudflare-warp/mdm.xml
-                subPath: mdm.xml
-      dev-net-tun:
-        type: hostPath
-        hostPath: /dev/net/tun
-        advancedMounts:
-          main:
-            cloudflare-warp:
-              - path: /dev/net/tun
+      # cloudflare-warp:
+      #   type: secret
+      #   name: cloudflare-warp
+      #   advancedMounts:
+      #     main:
+      #       cloudflare-warp:
+      #         - path: /var/lib/cloudflare-warp/mdm.xml
+      #           subPath: mdm.xml
+      # dev-net-tun:
+      #   type: hostPath
+      #   hostPath: /dev/net/tun
+      #   advancedMounts:
+      #     main:
+      #       cloudflare-warp:
+      #         - path: /dev/net/tun
