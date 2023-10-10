@@ -113,7 +113,7 @@ spec:
   interval: 30m
   ref:
     branch: main
-  url: https://github.com/pl4nty/lab-infra
+  url: https://github.com/pl4nty/homelab
   ignore: |
     /*
     !/kubernetes

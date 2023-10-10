@@ -26,6 +26,8 @@
 		}
 	}
 
+	// TODO oci CLI, SOPS secrets (envvars?), git config
+
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
 
