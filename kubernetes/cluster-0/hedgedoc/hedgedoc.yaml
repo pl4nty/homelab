@@ -32,6 +32,8 @@ spec:
         rollingUpdate:
           unavailable: "0"
         pod:
+          nodeSelector:
+            kubernetes.io/arch: amd64
           annotations:
             instrumentation.opentelemetry.io/inject-nodejs: "true"
         containers:
@@ -57,6 +59,8 @@ spec:
         rollingUpdate:
           unavailable: "0"
         pod:
+          nodeSelector:
+            kubernetes.io/arch: amd64
           annotations:
             instrumentation.opentelemetry.io/inject-nodejs: "true"
         containers:
