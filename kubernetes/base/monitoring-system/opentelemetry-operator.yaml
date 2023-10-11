@@ -35,6 +35,9 @@ spec:
       featureGates: operator.autoinstrumentation.go,operator.collector.rewritetargetallocator
       image:
         tag: v0.81.0 # v0.81 generates a 0 port in collector which can't deploy
+      resources:
+        limits:
+          cpu: 200m
     admissionWebhooks:
       certManager:
         enabled: false
