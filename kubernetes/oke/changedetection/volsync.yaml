@@ -1,0 +1,15 @@
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+   name: changedetection
+   namespace: default
+spec:
+  sourcePVC: changedetection-config
+  trigger:
+    schedule: 0 0 * * *
+  restic:
+    repository: changedetection-backup
+    copyMethod: Clone
+    pruneIntervalDays: 14
+    retain:
+      daily: 30
