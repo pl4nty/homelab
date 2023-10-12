@@ -50,10 +50,20 @@ subjects:
   - name: tandoor
     spec:
       fqdn: recipes.${PUBLIC_DOMAIN}
-  - name: miniflux
-    spec:
-      fqdn: rss.${PUBLIC_DOMAIN}
-  - name: changedetection
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel
+---
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: cloudflare-tunnel-private
+  namespace: default
+tunnelRef:
+  kind: ClusterTunnel
+  name: cloudflare-tunnel-private
+subjects:
+  - name: changedetection
+  - name: miniflux
+    spec:
+      fqdn: rss.tplant.au

@@ -49,7 +49,7 @@ spec:
               RUN_MIGRATIONS: "1"
               CREATE_ADMIN: "1"
               DEBUG: "1"
-              BASE_URL: https://rss.${PUBLIC_DOMAIN}
+              BASE_URL: https://rss.tplant.au
             envFrom:
               - secretRef:
                   name: miniflux
