@@ -81,7 +81,7 @@ spec:
           main:
             image:
               repository: caddy
-              tag: 2.7.4
+              tag: 2.7.5
             env:
               HD_BASE_URL: https://hedgedoc.${PUBLIC_DOMAIN}
     configMaps:
