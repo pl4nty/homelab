@@ -48,7 +48,7 @@ spec:
             env:
               RUN_MIGRATIONS: "1"
               CREATE_ADMIN: "1"
-              DEBUG: "1"
+              LOG_LEVEL: info
               BASE_URL: https://rss.tplant.au
             envFrom:
               - secretRef:
