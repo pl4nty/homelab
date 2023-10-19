@@ -94,7 +94,17 @@ spec:
                     memory: 128Mi      
     target:
       kind: Deployment
-      name: "(helm-controller|image-reflector-controller)"
+      name: "helm-controller"
+  - patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: all
+      spec:
+        replicas: 0     
+    target:
+      kind: Deployment
+      name: "(image-automation-controller|image-reflector-controller)"
   - patch: |
       - op: add
         path: /spec/template/spec/containers/0/args/-
