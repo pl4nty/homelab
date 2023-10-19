@@ -44,5 +44,6 @@ spec:
           cpu: 1
     agents:
       core:
-        requests:
-          cpu: 10m
+        resources:
+          requests:
+            cpu: 10m
