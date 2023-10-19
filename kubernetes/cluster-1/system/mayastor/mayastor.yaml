@@ -42,3 +42,7 @@ spec:
           cpu: 1
         limits:
           cpu: 1
+    agents:
+      core:
+        requests:
+          cpu: 10m
