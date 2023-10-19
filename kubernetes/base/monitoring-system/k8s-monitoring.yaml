@@ -283,7 +283,7 @@ spec:
         rule {
           source_labels = ["namespace", "pod"]
           separator = "@"
-          regex = "flux-system@(.+-).+-.+"
+          regex = "flux-system@(.+)-.+-.+"
           target_label = "pod"
           replacement = "$1"
         }
