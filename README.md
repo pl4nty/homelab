@@ -1,5 +1,5 @@
 # Homelab
-My homelab infrastructure-as-code. Built with [✨Kubernetes✨](https://kubernetes.io/) clusters on [Azure](https://learn.microsoft.com/en-us/azure/aks/), [Oracle Cloud](https://docs.oracle.com/en-us/iaas/Content/ContEng/Concepts/contengoverview.htm), and [on-premises](https://www.talos.dev/).
+My homelab infrastructure-as-code. Built with [✨Kubernetes✨](https://kubernetes.io/) clusters on [Azure](https://learn.microsoft.com/en-us/azure/aks/), [Oracle Cloud](https://docs.oracle.com/en-us/iaas/Content/ContEng/Concepts/contengoverview.htm), and [bare metal](https://www.talos.dev/).
 
 The clusters use [Flux](https://fluxcd.io/) to pull their configuration from YAML files in the `kubernetes` folder. The `base` subfolder applies to all clusters, and other subfolders apply to individual clusters. I also use the following external services:
 
