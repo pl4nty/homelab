@@ -54,12 +54,14 @@ spec:
                 memory: 1Gi
     service:
       main:
+        primary: false # healthchecks fail without http path
         type: NodePort
         ports:
           http:
             port: 80
             nodePort: 30997
       metrics:
+        primary: true
         controller: main
         ports:
           metrics:
