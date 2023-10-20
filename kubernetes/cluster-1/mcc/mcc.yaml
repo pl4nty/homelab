@@ -47,7 +47,7 @@ spec:
                   name: mcc-env
             resources:
               requests:
-                cpu: 100m
+                cpu: 200m
                 memory: 600Mi
               limits:
                 cpu: 300m
