@@ -23,8 +23,6 @@ spec:
         kubernetes.io/arch: amd64
       securityContext:
         fsGroup: 2000
-        # net.* isn't allowlisted by default, but can be added
-        # https://learn.microsoft.com/en-us/azure/aks/custom-node-configuration#kubelet-custom-configuration
         # sysctls:
         # - name: net.ipv4.tcp_max_tw_buckets
         #   value: '1440000'
@@ -56,16 +54,11 @@ spec:
                 memory: 1Gi
     service:
       main:
-        type: LoadBalancer
-        # annotations:
-        #   # https://cloud-provider-azure.sigs.k8s.io/topics/loadbalancer/#loadbalancer-annotations
-        #   # consider ipFamilyPolicy/ipFamilies? and/or IPv6 prefix, or dynamic IPv6 with external-dns
-        #   # service.beta.kubernetes.io/azure-pip-name: 4715ee78-52e1-4d6e-870a-9cd3849b0b4d
-        #   service.beta.kubernetes.io/azure-load-balancer-ipv4: 20.248.228.10
+        type: NodePort
         ports:
           http:
             port: 80
-            targetPort: 8081
+            nodePort: 30997
       metrics:
         controller: main
         ports:
