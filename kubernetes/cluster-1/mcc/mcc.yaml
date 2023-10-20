@@ -59,7 +59,7 @@ spec:
         type: NodePort
         ports:
           http:
-            port: 80
+            port: 8081
             nodePort: 30997
       metrics:
         primary: true
