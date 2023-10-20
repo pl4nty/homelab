@@ -47,10 +47,11 @@ spec:
                   name: mcc-env
             resources:
               requests:
-                cpu: 200m
-                memory: 600Mi
+                # can take 8 hours to stabilise after startup
+                cpu: 100m # starts at 250
+                memory: 600Mi # starts at 150
               limits:
-                cpu: 300m
+                cpu: 400m
                 memory: 1Gi
     service:
       main:
