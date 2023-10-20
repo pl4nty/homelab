@@ -32,6 +32,8 @@ spec:
         #   value: '1024'
     controllers:
       main:
+        pod:
+          hostNetwork: true
         containers:
           main:
             image:
@@ -53,20 +55,20 @@ spec:
               limits:
                 # cpu: 400m
                 memory: 1Gi
-    service:
-      main:
-        primary: false # healthchecks fail without http path
-        type: NodePort
-        ports:
-          http:
-            port: 8081
-            nodePort: 30997
-      metrics:
-        primary: true
-        controller: main
-        ports:
-          metrics:
-            port: 5000
+    # service:
+    #   main:
+    #     primary: false # healthchecks fail without http path
+    #     type: NodePort
+    #     ports:
+    #       http:
+    #         port: 8081
+    #         nodePort: 30997
+    #   metrics:
+    #     primary: true
+    #     controller: main
+    #     ports:
+    #       metrics:
+    #         port: 5000
     persistence:
       shared:
         type: emptyDir
