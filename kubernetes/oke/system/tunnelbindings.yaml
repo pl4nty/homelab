@@ -51,6 +51,8 @@ subjects:
     spec:
       fqdn: recipes.${PUBLIC_DOMAIN}
   - name: ctfd
+    spec:
+      fqdn: ctf.${PUBLIC_DOMAIN}
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel
