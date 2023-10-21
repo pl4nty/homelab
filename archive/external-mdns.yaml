@@ -1,0 +1,58 @@
+# https://github.com/blake/external-mdns#manifest-with-rbac
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: external-mdns
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+ name: external-mdns
+rules:
+# - apiGroups: [""]
+#   resources: ["services"]
+#   verbs: ["list", "watch"]
+- apiGroups: ["extensions","networking.k8s.io"]
+  resources: ["ingresses"]
+  verbs: ["list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: external-mdns-viewer
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: external-mdns
+subjects:
+- kind: ServiceAccount
+  name: external-mdns
+  namespace: default
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: external-mdns
+  namespace: default # TODO merge with cloudflare-operator to networking-system
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: external-mdns
+  template:
+    metadata:
+      labels:
+        app: external-mdns
+    spec:
+      hostNetwork: true
+      serviceAccountName: external-mdns
+      containers:
+      - name: external-mdns
+        image: blakec/external-mdns:0.5.0
+        args:
+        - -source=ingress
+        # - -source=service
+        - -namespace=default
