@@ -9,7 +9,7 @@ resources:
 patches:
 - target:
     kind: Deployment
-    name: deploy
+    name: cloudflare-operator-controller-manager
   patch: |-
     apiVersion: apps/v1
     kind: Deployment
