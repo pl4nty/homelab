@@ -25,9 +25,9 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    defaultPodOptions:
-      securityContext:
-        fsGroup: 1001
+    # defaultPodOptions:
+    #   securityContext:
+    #     fsGroup: 1001
     controllers:
       main:
         strategy: RollingUpdate
@@ -38,6 +38,8 @@ spec:
             image:
               repository: ghcr.io/ctfd/ctfd
               tag: 3.6.0
+            env:
+              DATABASE_URL: sqlite://db/ctfd.db
     service:
       main:
         ports:
@@ -48,5 +50,9 @@ spec:
         enabled: true
         globalMounts:
         - path: /opt/CTFd/CTFd/uploads
-        - path: /opt/CTFd/CTFd/ctfd.db2
-          subPath: ctfd.db2
+      db:
+        enabled: true
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        globalMounts:
+        - path: /opt/CTFd/CTFd/db
