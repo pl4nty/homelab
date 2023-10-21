@@ -5,3 +5,16 @@ resources:
 - cloudflare-api.sops.yaml
 - servicemonitor.yaml
 - podmonitor.yaml
+patchesStrategicMerge:
+- |-
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: controller-manager
+  spec:
+    template:
+      spec:
+        containers:
+        - name: manager
+          args:
+          - --overwrite-unmanaged-dns

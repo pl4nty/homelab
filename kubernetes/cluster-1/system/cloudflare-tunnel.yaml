@@ -14,7 +14,7 @@ spec:
   image: cloudflare/cloudflared:2023.8.2
   newTunnel:
     name: lab-infra-cluster-1
-  size: 1
+  size: 2
 ---
 apiVersion: networking.cfargotunnel.com/v1alpha1
 kind: ClusterTunnel
@@ -31,4 +31,4 @@ spec:
   image: cloudflare/cloudflared:2023.8.2
   newTunnel:
     name: lab-infra-cluster-1-private
-  size: 1
+  size: 2
