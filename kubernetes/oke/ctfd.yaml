@@ -48,5 +48,5 @@ spec:
         enabled: true
         globalMounts:
         - path: /opt/CTFd/CTFd/uploads
-        - path: /opt/CTFd/CTFd/ctfd.db
-          subPath: ctfd.db
+        - path: /opt/CTFd/CTFd/ctfd.db2
+          subPath: ctfd.db2
