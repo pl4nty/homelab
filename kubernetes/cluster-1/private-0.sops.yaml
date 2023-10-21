@@ -53,10 +53,10 @@ spec:
                             repository: ENC[AES256_GCM,data:ZqVh6+sfEwc8je80Ur+mJ8ZoTumyE3kGrA==,iv:+aok+n0j87mixQiiuplBKqlrB6tJGG0XVVys4FK0UV4=,tag:GNwyg7E4jzL+rCgmj2xAww==,type:str]
                             tag: ENC[AES256_GCM,data:kvjgVmmf,iv:SJop7CDwQvRCqkUJss9/9agKPwXeL/IkIGDxiXXFdpQ=,tag:78aqu+Vk8RDDl4xEWV1bKA==,type:str]
                         args:
-                            - ENC[AES256_GCM,data:4IlzXxak,iv:X79iMPYQRLn708F+7hYN69fd9CeAOd+FXgfgJiwN5zs=,tag:QdqjjZ0jcafCt8tbwV/MjA==,type:str]
-                            - ENC[AES256_GCM,data:wtzqEg==,iv:bAupXDX28sLkcMrG29VCC7U2kEsX+ehXo1hytepXgK8=,tag:eu7EfnjM3pHiTBhP5Tcjfg==,type:str]
+                            - ENC[AES256_GCM,data:xgumbWIK,iv:xyQKfwAAmhTWBuLDLOwfS7h0dMP/lPDpj5oZQdsMK14=,tag:jh/HL+EvwLYhPy/fOLE9rw==,type:str]
+                            - ENC[AES256_GCM,data:wuLdZQ==,iv:CsaQJikSG4DR+G83sOe60TEyz5QGdtNacc+nDWo8kKs=,tag:XyymSlwHfgE09xcNA4ahmA==,type:str]
                             - ENC[AES256_GCM,data:HUE2zxlw5ty2fkZ8Rsj2,iv:1hxuTvdhjDKGPvsbZkP6VOA7Mqr34SryVaWtGkHfyng=,tag:TO6N+P0qhdCis/xTCZ54mw==,type:str]
-                            - ENC[AES256_GCM,data:7CiCd8gbtTbirTTGwnAF,iv:e+tL4pEOX09UE2uFzcoGR1fXlnZz5RDMmHAMEH3gnc4=,tag:Pj4deI+DlQFGYoXUb6v4JA==,type:str]
+                            - ENC[AES256_GCM,data:gYANT4RsPlKbO4apBkdF,iv:dB+XkdefSAyYb4gZ1NDU3A4pDN60/WqR5HhipLz5zNc=,tag:eN35TFz5/ekqMVE/RsSKVw==,type:str]
                             - ENC[AES256_GCM,data:xgumbWIK,iv:xyQKfwAAmhTWBuLDLOwfS7h0dMP/lPDpj5oZQdsMK14=,tag:jh/HL+EvwLYhPy/fOLE9rw==,type:str]
                             - ENC[AES256_GCM,data:wuLdZQ==,iv:CsaQJikSG4DR+G83sOe60TEyz5QGdtNacc+nDWo8kKs=,tag:XyymSlwHfgE09xcNA4ahmA==,type:str]
                             - ENC[AES256_GCM,data:dDnS8714+vnEc+1EPVnhPA==,iv:vhpOKAsx9XQOu+6hvhgyrKl+q3pC1b0VWcfJWseatVc=,tag:+D6/YH0qwIfm/eblfMAI5A==,type:str]
@@ -74,7 +74,7 @@ spec:
             data:
                 enabled: true
                 accessMode: ReadWriteOnce
-                size: 1Gi
+                size: 4Gi
                 advancedMounts:
                     main:
                         main:
@@ -121,8 +121,8 @@ sops:
             MTRGNEdVem1xcmZuTm1PL2oyNWhJQ0kKtCodFUWHUZQRYBk9jDAWCcl7TjKUKhGb
             k0zV+9uZTfKhhpg1Zgjt4uu17MlYDAFBi1YK5lG++vhlT2QtRk3xag==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-10-04T11:55:13Z"
-    mac: ENC[AES256_GCM,data:5m0WtifN81t7ynASLbGLl+t598Bax7iSrowaJWzMDNogA771tWb2H233P9p4zeHR4vT7FXtRpvOD4P8LvoVSV70xzp+rtHRtz6NzPLtmg5k50MQBGgzrGPHVTfwBVt2PeQyHvujX3vcttwifarK08Xu1H4hSKRkKOGUCXAzAHgo=,iv:9HTQAjxOY68bcRA3LrkRhYZXrIn9/bVomwFmadoVf0U=,tag:W2sVlTzf5cPwoHS9J1n7AA==,type:str]
+    lastmodified: "2023-10-21T05:46:24Z"
+    mac: ENC[AES256_GCM,data:7w4LRqlMeqvcjkNSidgfhwv1H6ZLko/Jo/3G5+AXf7yLD+xGZ23TKiNOilGiL6yYa0b4/eNcYwh3V5GjNcCA+aFJFLww9lVZ355nkS5DSQfzYvEnW37iBkEuRPg0Hu2utTr+GzpjA726fJa7EHC98CNtpqiaFJgS92MxZ3z20Uo=,iv:wVHBetq8bcnCIcFETIXMrza5HmdDuf66ZEl+3eW34E4=,tag:iuXJidyfGjt0HTEcQjQu0A==,type:str]
     pgp: []
     encrypted_regex: ^(image|env|args|advancedMounts)$
-    version: 3.7.3
+    version: 3.8.0-rc.1
