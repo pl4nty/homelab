@@ -39,7 +39,7 @@ spec:
               repository: ghcr.io/ctfd/ctfd
               tag: 3.6.0
             env:
-              DATABASE_URL: sqlite://db/ctfd.db
+              DATABASE_URL: sqlite:///db/ctfd.db
     service:
       main:
         ports:
