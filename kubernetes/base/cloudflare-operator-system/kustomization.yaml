@@ -1,23 +1,24 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-- https://github.com/adyanth/cloudflare-operator//config/default?ref=v0.10.0
+- https://github.com/adyanth/cloudflare-operator//config/default?ref=v0.10.2
 - cloudflare-api.sops.yaml
 - servicemonitor.yaml
 - podmonitor.yaml
 # default, plus --overwrite and minus --leader-elect
-patchesStrategicMerge:
-- |-
-  apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    name: cloudflare-operator-controller-manager
-  spec:
-    template:
-      spec:
-        containers:
-        - name: manager
-          args:
-          - --health-probe-bind-address=:8081
-          - --metrics-bind-address=127.0.0.1:8080
-          - --overwrite-unmanaged-dns
+patches:
+- patch: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: cloudflare-operator-controller-manager
+    spec:
+      template:
+        spec:
+          containers:
+          - name: manager
+            args:
+            - --health-probe-bind-address=:8081
+            - --metrics-bind-address=127.0.0.1:8080
+            - --overwrite-unmanaged-dns
+              $patch: replace
