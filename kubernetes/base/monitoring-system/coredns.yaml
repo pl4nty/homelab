@@ -14,4 +14,3 @@ spec:
   selector:
     matchLabels:
       k8s-app: kube-dns
-  
