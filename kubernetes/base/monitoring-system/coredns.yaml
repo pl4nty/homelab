@@ -7,10 +7,11 @@ spec:
   endpoints:
   - port: metrics
     bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    metricRelabelings:
+    - action: replace
+      targetLabel: job
+      replacement: integrations/coredns
   selector:
     matchLabels:
       k8s-app: kube-dns
-  metricRelabelings:
-  - action: replace
-    targetLabel: job
-    replacement: integrations/coredns
+  
