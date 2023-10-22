@@ -48,7 +48,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/hacking-with-style
-              tag: latest@sha256:781ed006594ce627531f2d04982b5c86ab53a3ba2e258a167f2185f7c037629d
+              tag: latest@sha256:8e6c8f176426cdbe3458617df7482936ce5e299c7d7245ea1547f987d9ac24c8
     persistence:
       config:
         enabled: true
