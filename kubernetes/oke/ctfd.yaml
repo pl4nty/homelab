@@ -40,6 +40,15 @@ spec:
               tag: latest@sha256:8401c5ce41c6f5505e75c24369df04e83b253ad620ce28f97f4da0cc1bee37c8
             env:
               DATABASE_URL: sqlite:////opt/CTFd/CTFd/db/ctfd.db
+      hacking-with-style:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: 0
+        containers:
+          main:
+            image:
+              repository: ghcr.io/pl4nty/hacking-with-style
+              tag: latest@sha256:781ed006594ce627531f2d04982b5c86ab53a3ba2e258a167f2185f7c037629d
     persistence:
       config:
         enabled: true
@@ -56,3 +65,8 @@ spec:
         ports:
           http:
             port: 8000
+      hacking-with-style:
+        controller: hacking-with-style
+        ports:
+          http:
+            port: 8080
