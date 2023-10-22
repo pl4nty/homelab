@@ -37,7 +37,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/ctfd
-              tag: latest@sha256:e05913dece26aa16a4e0b455ce8f7c7c8d60c366b840c75b09ad0876892ac82b
+              tag: latest@sha256:8401c5ce41c6f5505e75c24369df04e83b253ad620ce28f97f4da0cc1bee37c8
             env:
               DATABASE_URL: sqlite:////opt/CTFd/CTFd/db/ctfd.db
     persistence:
