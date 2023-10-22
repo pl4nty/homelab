@@ -13,7 +13,7 @@ spec:
   image: cloudflare/cloudflared:2023.8.2
   newTunnel:
     name: lab-infra-oke
-  size: 1
+  size: 2
 # set net.ipv4.ping_group_range to allow ICMPv4 proxying (default '0 1' == block). v6 gives "socket: permission denied"
 # securityContext:
 #   runAsGroup: 
@@ -34,4 +34,4 @@ spec:
   image: cloudflare/cloudflared:2023.8.2
   newTunnel:
     name: lab-infra-oke-private
-  size: 1
+  size: 2
