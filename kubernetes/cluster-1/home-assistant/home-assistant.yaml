@@ -41,7 +41,7 @@ spec:
           main:
             image:
               repository: ghcr.io/home-assistant/home-assistant
-              tag: 2023.10.4
+              tag: 2023.10.5
           codeserver:
             image:
               repository: ghcr.io/coder/code-server
