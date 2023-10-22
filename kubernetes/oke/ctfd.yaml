@@ -36,23 +36,10 @@ spec:
         containers:
           main:
             image:
-              repository: ghcr.io/ctfd/ctfd
-              tag: 3.6.0
+              repository: ghcr.io/pl4nty/ctfd
+              tag: latest@sha256:e05913dece26aa16a4e0b455ce8f7c7c8d60c366b840c75b09ad0876892ac82b
             env:
               DATABASE_URL: sqlite:////opt/CTFd/CTFd/db/ctfd.db
-            resources:
-              requests:
-                cpu: 100m
-                memory: 250Mi
-              limits:
-                cpu: 1 # during AI moves
-                memory: 4Gi # reached 850Mi in UAT, possibly 500Mi per user
-                ephemeral-storage: 10Gi
-    service:
-      main:
-        ports:
-          http:
-            port: 8000
     persistence:
       config:
         enabled: true
@@ -64,3 +51,8 @@ spec:
         size: 1Gi
         globalMounts:
         - path: /opt/CTFd/CTFd/db
+    service:
+      main:
+        ports:
+          http:
+            port: 8000
