@@ -14,7 +14,7 @@ patchesStrategicMerge:
       service.beta.kubernetes.io/oci-load-balancer-shape: flexible
       service.beta.kubernetes.io/oci-load-balancer-shape-flex-min: "10"
       service.beta.kubernetes.io/oci-load-balancer-shape-flex-max: "10"
-      external-dns.alpha.kubernetes.io/hostname: buildkit.${PUBLIC_DOMAIN}
+      external-dns.alpha.kubernetes.io/hostname: buildkitd.${PUBLIC_DOMAIN}
   spec:
     type: LoadBalancer
 patches:
