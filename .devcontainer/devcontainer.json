@@ -25,10 +25,7 @@
 			]
 		}
 	},
-	"remoteEnv": {
-    "SOPS_AGE_KEY": "${localEnv:SOPS_AGE_KEY}",
-    "SOPS_AGE_RECIPIENTS": "${localEnv:SOPS_AGE_RECIPIENTS}"
-	},
+	"runArgs": ["--env-file",".devcontainer/devcontainer.env"],
 	"secrets": {
 		"SOPS_AGE_KEY": {},
 		"SOPS_AGE_RECIPIENTS": {}
