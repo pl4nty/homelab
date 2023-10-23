@@ -17,3 +17,13 @@ patchesStrategicMerge:
       external-dns.alpha.kubernetes.io/hostname: buildkit.${PUBLIC_DOMAIN}
   spec:
     type: LoadBalancer
+patches:
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+  patch: |-
+    - op: add
+      path: /spec/template/spec/containers/0/args/-
+      value: --debug
+  
