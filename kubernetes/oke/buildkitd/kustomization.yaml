@@ -26,4 +26,7 @@ patches:
     - op: add
       path: /spec/template/spec/containers/0/args/-
       value: --debug
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/limits/ephemeral-storage
+      value: 10Gi
   
