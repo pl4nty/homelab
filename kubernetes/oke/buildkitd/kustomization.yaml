@@ -17,6 +17,19 @@ patchesStrategicMerge:
       external-dns.alpha.kubernetes.io/hostname: buildkitd.${PUBLIC_DOMAIN}
   spec:
     type: LoadBalancer
+- |-
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: buildkitd
+  spec:
+    template:
+      spec:
+        containers:
+        - name: buildkitd
+          resources:
+            limits:
+              ephemeral-storage: 10Gi
 patches:
 - target:
     group: apps
@@ -25,8 +38,4 @@ patches:
   patch: |-
     - op: add
       path: /spec/template/spec/containers/0/args/-
-      value: --debug
-    - op: add
-      path: /spec/template/spec/containers/0/resources/limits/ephemeral-storage
-      value: 10Gi
-  
+      value: --debug  
