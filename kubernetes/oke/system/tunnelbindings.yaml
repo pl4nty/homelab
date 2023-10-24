@@ -56,6 +56,9 @@ subjects:
   - name: ctfd-hacking-with-style
     spec:
       fqdn: hacking-with-style.${PUBLIC_DOMAIN}
+  - name: tls-rpt-monitor
+    spec:
+      fqdn: tls-rpt.${PUBLIC_DOMAIN}
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel

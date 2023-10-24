@@ -1,0 +1,31 @@
+kind: Secret
+apiVersion: v1
+metadata:
+    name: tls-rpt-monitor
+    namespace: default
+type: Opaque
+stringData:
+    smtp_host: ENC[AES256_GCM,data:1QQg0nuQyovbjL2yantrYw==,iv:h25JTPRWoxwIZwegumxP4fDu4ts6ZuVb1Wpry8xJEL0=,tag:mNiArEvpWNLIjjZY2s5kzA==,type:str]
+    smtp_username: ENC[AES256_GCM,data:Xl1mP5oahFkBkhpfh4fLwFtxbRz/PfTLso8ysm26x2DHEMPoOFxa6cfkNX9B0xhoXK/XEGv7XAoXCqCwZEw=,iv:c50+LTCbBIqPNXzHzkaU3RbIOcNNCVbGT7Trai6kjXE=,tag:u8XtoGGhvJer8Jt+iPWFOQ==,type:str]
+    smtp_password: ENC[AES256_GCM,data:4HB4BAmXZH47opZJbKrVrMVE4lhSWp0sgtfyX1A/zko0ncZIlGDXLI9ZAwdblJeKVpc=,iv:7/M7wBHyvmWOkFHY+AmUBwqsaAYIC320X71Ve7dQEXk=,tag:KQqQxi+ACBvemDWT7ucyMw==,type:str]
+    from_address: ENC[AES256_GCM,data:HpfWwS+f8ZnRRom5/L76F+MZz4mK5MyZjs2sLHPwidgaDtFNbxgdSN1PHcd2PmTrxFzP2urRcqAiOAwd,iv:9iuz79bgFYe4DAFkivM0N9+lezxCmIFsglUxphaLQ/s=,tag:6WNISdt0hQlP3QPfOBNkmQ==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBTTS9udHZrS1hDbnhEajhR
+            Zlo4RjJhMDZ0ditsK3ZiY0dLMDR6WEpqVUY4CmgxM04yWVJIeTZ5UkJ2cmltUUV3
+            SkRSU2tXZExMYWpIRkZtV1FmdzIyb1kKLS0tIGQ5ZzZtdUpLUW1QMmQ4YnorTS9o
+            OStOM1hhTzhSRkhrK1RZUENiWDJyOGsK9CxrMSLLhtr+FNzMUguilPdp9ZmRcaWf
+            +t3Su1K7C1h/USZWKfKdkgg5mTee563ERbfcKAfMSRIDT7kaUX5Fug==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-10-24T10:04:14Z"
+    mac: ENC[AES256_GCM,data:Y4pNjq1UzymjobL5VnlJn8blFbwmKjGULNn8ibW6zEMlDri6L1YUKu0Bt17ePUVi7gOM9raufiySMLI94vdYMu/4kTNfOoegNt+lHDh5z5Kaiy+5Niz9vJFCKVHYPZYo181aQ7XBPWnQ9t5MQF+gZXOUUckVLj+oMcNU9AcqprQ=,iv:WnX/YEUQxJP+wbS+pHfTuvayImAJlowBDtgtnmi8MuI=,tag:00FlSqOBWQa7PAx/8kuMZA==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData)$
+    version: 3.8.1
