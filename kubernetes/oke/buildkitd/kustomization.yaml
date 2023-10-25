@@ -22,10 +22,11 @@ patchesStrategicMerge:
   kind: Deployment
   metadata:
     name: buildkitd
-    annotations:
-      instrumentation.opentelemetry.io/inject-sdk: "true"
   spec:
     template:
+      metadata:
+        annotations:
+          instrumentation.opentelemetry.io/inject-sdk: "true"
       spec:
         containers:
         - name: buildkitd
