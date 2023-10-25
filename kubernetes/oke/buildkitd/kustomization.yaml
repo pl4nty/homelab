@@ -31,6 +31,9 @@ patchesStrategicMerge:
         containers:
         - name: buildkitd
           resources:
+            requests:
+              cpu: 100m
+              ephemeral-storage: 1Gi
             limits:
               cpu: 2
               ephemeral-storage: 10Gi
