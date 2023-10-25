@@ -33,6 +33,8 @@ patchesStrategicMerge:
           resources:
             limits:
               ephemeral-storage: 10Gi
+          livenessProbe:
+            timeoutSeconds: 5
 # patches:
 # - target:
 #     group: apps
