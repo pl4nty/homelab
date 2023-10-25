@@ -22,6 +22,8 @@ patchesStrategicMerge:
   kind: Deployment
   metadata:
     name: buildkitd
+    annotations:
+      instrumentation.opentelemetry.io/inject-sdk: "true"
   spec:
     template:
       spec:
@@ -30,12 +32,12 @@ patchesStrategicMerge:
           resources:
             limits:
               ephemeral-storage: 10Gi
-patches:
-- target:
-    group: apps
-    version: v1
-    kind: Deployment
-  patch: |-
-    - op: add
-      path: /spec/template/spec/containers/0/args/-
-      value: --debug  
+# patches:
+# - target:
+#     group: apps
+#     version: v1
+#     kind: Deployment
+#   patch: |-
+#     - op: add
+#       path: /spec/template/spec/containers/0/args/-
+#       value: --debug  
