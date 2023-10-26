@@ -76,6 +76,7 @@ spec:
         name: obsidian-livesync-conf
         globalMounts:
         - path: /opt/couchdb/etc/local.ini
+          subPath: local.ini
     service:
       main:
         ports:
