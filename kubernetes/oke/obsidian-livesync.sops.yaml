@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: obsidian-livesync
+    namespace: default
+stringData:
+    COUCHDB_USER: ENC[AES256_GCM,data:uU2AH9lpdSw=,iv:sqEQkOgZKjmeZPrEqwICp+6Lanid6rSD8fJyHDCIo1Y=,tag:GXcg0ImXpUKo36WQG7mJ1A==,type:str]
+    COUCHDB_PASSWORD: ENC[AES256_GCM,data:eZivojoq/TJMncYP7/Pxr+ckw1NFCNCi,iv:SBXzAn9T48E/pYjh1YQDzVFXsZmVRYUmRD17p7YnIQ4=,tag:mSWwxAcAFyzorol1e04VEA==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSAzc3Z2a0ZhOU9wTFdUNTg5
+            WE83Tmp5YlAzbHBIblVTQ0ZSbFhocHd4Tmp3ClBUTnRqR1Z2bDd1UkRyK0xsZ3BG
+            OUJQak5WYXg1RTZ2OXltYjc2c3FKYkEKLS0tIGlOcFpJSHpVS0QybjhPY3I0MHcy
+            ellXRUQxNHRyMWhxZWZsc1pERG10Qm8KFxtiYUsnDDJF7zS206rvPqq7oaMNlSst
+            S+/QNtH9L2WUPaNjNQEyASOGcUiHCrO6y8Seneb9q1NpIn3dO1TuXg==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-10-26T09:27:17Z"
+    mac: ENC[AES256_GCM,data:qltYW2kFd0pAize8msU123QfvQb/gNBmW/SpafnJDGu58CIGV2igXC2rt18WOCaMRIJXsPKYYrsZNbT6BhGZpmk1s2IgGtqKoo0hevFF6r6ixNuEhpEUx8b8Gl11H+RUu7w46wcPKMLcAwW6g/G+Fe3O46BQjHxW25Ip5pMIGD4=,iv:Ql6Xv56IchoUocJuFCZgx+AfKDMSlFoAvamR499F1po=,tag:3xtb/o5ASvneoB4pZl55fQ==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData)$
+    version: 3.8.1

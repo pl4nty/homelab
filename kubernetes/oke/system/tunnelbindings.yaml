@@ -59,6 +59,9 @@ subjects:
   - name: tls-rpt-monitor
     spec:
       fqdn: tls-rpt.${PUBLIC_DOMAIN}
+  - name: obsidian-livesync
+    spec:
+      fqdn: obsidian.${PUBLIC_DOMAIN}
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel
