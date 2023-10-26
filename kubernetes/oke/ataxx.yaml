@@ -28,8 +28,6 @@ spec:
     defaultPodOptions:
       automountServiceAccountToken: true
       enableServiceLinks: true
-      nodeSelector:
-        kubernetes.io/arch: amd64
     controllers:
       main:
         strategy: RollingUpdate
