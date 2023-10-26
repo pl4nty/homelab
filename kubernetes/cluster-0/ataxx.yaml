@@ -39,7 +39,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/ataxx
-              tag: latest@sha256:b579772dd8510b7b969880cf44f4c98968378ee45b91796d44c5891c7e0d783b
+              tag: latest@sha256:605e46d168434da6222431f9d833cd42c21972613b49ca85d3efe1b04e213774
             args:
               - --p1
               - human
