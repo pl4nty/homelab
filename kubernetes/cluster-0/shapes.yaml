@@ -39,7 +39,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/shapes
-              tag: latest@sha256:0882018b81fb166a3809ddc8a963c5c87494b4c4519f9e9bf4c58302ab040729
+              tag: latest@sha256:6bc8c00358394e312a32c518dc848718bc5aaef85cdba70964e7f5a2679d3c92
     service:
       main:
         ports:
