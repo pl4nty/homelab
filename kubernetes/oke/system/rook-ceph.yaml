@@ -26,11 +26,69 @@ spec:
     keepHistory: false
   targetNamespace: rook-ceph
   values:
-    csi:
-      enableCephfsDriver: false
-      enableCephfsSnapshotter: false
     resources:
       requests:
         cpu: 200m
       limits:
         cpu: 1
+    csi:
+      enableCephfsDriver: false
+      enableCephfsSnapshotter: false
+      # modified from https://github.com/rook/rook/blob/b2116d945dda580d094799717c36da4880176318/deploy/charts/rook-ceph/values.yaml#L211
+      csiRBDProvisionerResource: |
+        - name : csi-provisioner
+          resource:
+            requests:
+              memory: 128Mi
+              cpu: 10m
+            limits:
+              memory: 256Mi
+              cpu: 200m
+        - name : csi-resizer
+          resource:
+            requests:
+              memory: 128Mi
+              cpu: 10m
+            limits:
+              memory: 256Mi
+              cpu: 200m
+        - name : csi-attacher
+          resource:
+            requests:
+              memory: 128Mi
+              cpu: 10m
+            limits:
+              memory: 256Mi
+              cpu: 200m
+        - name : csi-snapshotter
+          resource:
+            requests:
+              memory: 128Mi
+              cpu: 10m
+            limits:
+              memory: 256Mi
+              cpu: 200m
+        - name : csi-rbdplugin
+          resource:
+            requests:
+              memory: 512Mi
+              cpu: 10m
+            limits:
+              memory: 1Gi
+              cpu: 500m
+        - name : csi-omap-generator
+          resource:
+            requests:
+              memory: 512Mi
+              cpu: 250m
+            limits:
+              memory: 1Gi
+              cpu: 500m
+        - name : liveness-prometheus
+          resource:
+            requests:
+              memory: 128Mi
+              cpu: 50m
+            limits:
+              memory: 256Mi
+              cpu: 100m
