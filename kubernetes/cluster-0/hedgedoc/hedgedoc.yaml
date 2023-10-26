@@ -41,7 +41,7 @@ spec:
             image:
               # new versions are sometimes completely broken (missing files etc)
               repository: ghcr.io/hedgedoc/hedgedoc/backend
-              tag: develop@sha256:560701e1f5661d1263c2536224ce5dbaddc0704e40a27d2e4f28b607b18cb1d3
+              tag: develop@sha256:ad2209baea101c3ca4e20297c4a1a2c053a00d78794415bce16e030173b2608e
             env:
               HD_BASE_URL: https://hedgedoc.${PUBLIC_DOMAIN}
               HD_DATABASE_TYPE: sqlite
