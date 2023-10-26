@@ -39,7 +39,7 @@ spec:
             - secretRef:
                 name: obsidian-livesync
     configMaps:
-      config:
+      conf:
         data:
           local.ini: |
             [couchdb]
@@ -73,7 +73,7 @@ spec:
       ini:
         enabled: true
         type: configMap
-        name: obsidian-livesync-config
+        name: obsidian-livesync-conf
         globalMounts:
         - path: /opt/couchdb/etc/local.ini
     service:
