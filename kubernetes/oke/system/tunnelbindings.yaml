@@ -62,6 +62,8 @@ subjects:
   - name: obsidian-livesync
     spec:
       fqdn: obsidian.${PUBLIC_DOMAIN}
+  - name: ataxx
+  - name: shapes
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel
