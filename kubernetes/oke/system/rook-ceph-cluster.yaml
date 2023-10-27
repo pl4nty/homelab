@@ -28,7 +28,6 @@ spec:
   dependsOn:
   - name: rook-ceph
   values:
-    logLevel: WARNING
     # monitoring:
     #   enabled: true
     cephClusterSpec:

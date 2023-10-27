@@ -26,6 +26,7 @@ spec:
     keepHistory: false
   targetNamespace: rook-ceph
   values:
+    logLevel: WARNING
     resources:
       requests:
         cpu: 200m
