@@ -28,6 +28,7 @@ spec:
   dependsOn:
   - name: rook-ceph
   values:
+    logLevel: WARNING
     # monitoring:
     #   enabled: true
     cephClusterSpec:
@@ -113,16 +114,3 @@ spec:
           csi.storage.k8s.io/fstype: ext3 # ext4 (default) fails on Oracle, unknown why
     cephFileSystems: []
     cephObjectStores: []
-  postRenderers:
-  - kustomize:
-      patchesJson6902:
-      - target:
-          version: v1
-          kind: Deployment
-          name: rook-ceph-operator
-        patch:
-        - op: add
-          path: /spec/template/spec/containers/0/env
-          value:
-          - name: ROOK_LOG_LEVEL
-            value: WARNING
