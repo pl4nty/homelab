@@ -61,8 +61,7 @@ spec:
             - --bare
             - --lfs
             - --wikis
-            - --gists
-            - --starred-gists
+            # - --gists
             - --private
             - --fork
             - --releases
