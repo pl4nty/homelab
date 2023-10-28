@@ -47,20 +47,22 @@ spec:
             - --watched
             - --followers
             - --following
-            # - --issues
-            # - --issue-comments
-            # - --issue-events
-            # - --pulls
-            # - --pull-comments
-            # - --pull-commits
-            # - --pull-details
+            - --issues
+            - --issue-comments
+            - --issue-events
+            - --pulls
+            - --pull-comments
+            - --pull-commits
+            - --pull-details
             - --labels
             - --hooks
             - --milestones
             - --repositories
+            - --bare
             - --lfs
             - --wikis
-            - --gists
+            # gists are uninitialized and cause crash? maybe fine-grained tokens aren't supported
+            # - --gists
             - --private
             - --fork
             - --releases
