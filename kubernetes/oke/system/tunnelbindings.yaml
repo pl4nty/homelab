@@ -37,33 +37,33 @@ subjects:
   - name: hajimari
     spec:
       fqdn: lab.${PUBLIC_DOMAIN}
-  - name: hyperglass
-    spec:
-      fqdn: lg.${PUBLIC_DOMAIN}
-  - name: it-tools
-    spec:
-      fqdn: tools.${PUBLIC_DOMAIN}
-  - name: jsonwebtoken
-    spec:
-      fqdn: jwt.${PUBLIC_DOMAIN}
-  - name: jwtplayground
-    spec:
-      fqdn: jwtms.${PUBLIC_DOMAIN}
-  - name: leekspin
-  - name: mha
-  - name: openssl-webterm
-    spec:
-      fqdn: openssl.${PUBLIC_DOMAIN}
-  - name: shapes
-  - name: stirling-pdf
-    spec:
-      fqdn: pdf.${PUBLIC_DOMAIN}
-  - name: temple-trap
-  - name: tls-rpt-monitor
-    spec:
-      fqdn: tls-rpt.${PUBLIC_DOMAIN}
-  - name: tsuro
-  - name: wufb-ds
+  # - name: hyperglass
+  #   spec:
+  #     fqdn: lg.${PUBLIC_DOMAIN}
+  # - name: it-tools
+  #   spec:
+  #     fqdn: tools.${PUBLIC_DOMAIN}
+  # - name: jsonwebtoken
+  #   spec:
+  #     fqdn: jwt.${PUBLIC_DOMAIN}
+  # - name: jwtplayground
+  #   spec:
+  #     fqdn: jwtms.${PUBLIC_DOMAIN}
+  # - name: leekspin
+  # - name: mha
+  # - name: openssl-webterm
+  #   spec:
+  #     fqdn: openssl.${PUBLIC_DOMAIN}
+  # - name: shapes
+  # - name: stirling-pdf
+  #   spec:
+  #     fqdn: pdf.${PUBLIC_DOMAIN}
+  # - name: temple-trap
+  # - name: tls-rpt-monitor
+  #   spec:
+  #     fqdn: tls-rpt.${PUBLIC_DOMAIN}
+  # - name: tsuro
+  # - name: wufb-ds
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel
