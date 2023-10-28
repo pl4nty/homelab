@@ -1,0 +1,70 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: backup-github
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: 2.0.3
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    controllers:
+      main:
+        type: cronjob
+        cronjob:
+          schedule: "0 0 * * *"
+        containers:
+          main:
+            image:
+              repository: ghcr.io/pl4nty/github-backup
+              tag: latest@sha256:2a44eb33452c506d590911794a6d20489951862a247c6806ce584bcd11d25b46
+            args:
+              - --token-fine
+              - file:///usr/token
+              - --incremental
+              - --all
+              - --all-starred
+              - --starred-gists
+              - --lfs
+              - --private
+              - --fork
+              - --output
+              - /usr/backup
+    service:
+      main:
+        ports:
+          http:
+            port: 5572
+    persistence:
+      config:
+        enabled: true
+        advancedMounts:
+          main:
+            main:
+            - path: /usr/backup
+      token:
+        enabled: true
+        type: secret
+        name: backup-github
+        advancedMounts:
+          main:
+            main:
+            - path: /usr/token
+              subPath: token

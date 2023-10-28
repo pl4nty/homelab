@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: backup-github-backup
+    namespace: default
+type: Opaque
+stringData:
+    RESTIC_REPOSITORY: ENC[AES256_GCM,data:em/x6UQV+JKbjCKSk38uqiS+VxIoMfRX4d9SEKPz1ObCFNB1/TzN9exSsqIIxRyWc+QTRuDYRaeaHT49Y+7lbtRVs3AiLqfu1X7PIIjA,iv:8OaOG/1PFOdCUsisId0wHyDHj4A2wZvKMobNLv+n+mY=,tag:a2RGXqshuqL4Sta9keSPoQ==,type:str]
+    RESTIC_PASSWORD: ENC[AES256_GCM,data:6J+k2r5UPJ3FnhUWhOiBdgDCUGI=,iv:+dMkqrY528419zB8q3GiOURKPO1M7bxhFxo+atDvfto=,tag:Hc8lKDDKyMiZX4nTr3Jm7Q==,type:str]
+    AWS_ACCESS_KEY_ID: ENC[AES256_GCM,data:gBGVMyw/8OKwW7pTLlQR0CYNqfRzXVN6RQ==,iv:3XbpmIF6FJMZOEzv7jkUf+8ncYh/meIJkGmhPpH+aYU=,tag:/5DLNkZtOkXYgL1+CUHqwA==,type:str]
+    AWS_SECRET_ACCESS_KEY: ENC[AES256_GCM,data:Vm8fGUKy6TOZ4j2Sv6agEGlMU9aw3+YfwB5rHWIkww==,iv:bz3SYdJmd6rtH5D929Fvqa220MmVzTP15gmRwgoJICI=,tag:1nKdmHDHwnOyJmCdzpzcdw==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBTTDZXNVlkMWU2NWdBTXM4
+            ZXNGSkRZa29VR2lsU1h0blZ5VWJQeElhaVc0CnJmdnJ4SjdFZkdIWTJPOGZIeVlR
+            Y2V0RS81cnJTRVJYNXFoSis1bWJyWkUKLS0tIFdYVVZ0aTE0L0hEdW9rK0NUTVJX
+            MGNHaitJZWtLZ0ltc0NyWVM2R0NUY1UKG/GXf6mZJMpfJWehgmoNHRWVUhYvcvVZ
+            DFR8yTFstFwZ2zEA9QGD92RYCfd5NyNmIeJZ0XPkdgnv95dpTt0uxA==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-10-28T06:27:01Z"
+    mac: ENC[AES256_GCM,data:oaHFTktSelGc2JmOM1/RINm3YaGMls9My4CSmP2pht3V/QYgQnwjcpYaS9Yln+izEXxac8db7Ww/mDszrNtu10z9xgp6g463Nkw9KW9J0/+20b4O5rDg3cgU25xxxH5kKvYaVVxIP+WaEVE6JW208OJNSGnTBJIAuT78c6WcyVk=,iv:Ivdt1gvdjRT8HkPkZTi+k6bWvD0ZcInIkXg1GIQJm34=,tag:jLoA4v94l24DvPoXYNsiVg==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData)$
+    version: 3.8.1
