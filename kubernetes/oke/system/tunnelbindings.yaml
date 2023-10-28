@@ -49,16 +49,16 @@ subjects:
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel
-# ---
-# apiVersion: networking.cfargotunnel.com/v1alpha1
-# kind: TunnelBinding
-# metadata:
-#   name: cloudflare-tunnel-1
-#   namespace: default
-# subjects:
-#   - name: jwtplayground
-#     spec:
-#       fqdn: jwtms.${PUBLIC_DOMAIN}
+---
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: cloudflare-tunnel-1
+  namespace: default
+subjects:
+  - name: jwtplayground
+    spec:
+      fqdn: jwtms.${PUBLIC_DOMAIN}
 #   - name: leekspin
 #   - name: mha
   # - name: openssl-webterm
