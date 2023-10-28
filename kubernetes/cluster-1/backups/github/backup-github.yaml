@@ -36,17 +36,18 @@ spec:
               repository: ghcr.io/pl4nty/github-backup
               tag: latest@sha256:2a44eb33452c506d590911794a6d20489951862a247c6806ce584bcd11d25b46
             args:
-              - --token-fine
-              - file:///usr/token
-              - --incremental
-              - --all
-              - --all-starred
-              - --starred-gists
-              - --lfs
-              - --private
-              - --fork
-              - --output
-              - /usr/backup
+            - pl4nty
+            - --token-fine
+            - file:///usr/token
+            - --incremental
+            - --all
+            - --all-starred
+            - --starred-gists
+            - --lfs
+            - --private
+            - --fork
+            - --output
+            - /usr/backup
     service:
       main:
         ports:
