@@ -49,34 +49,34 @@ subjects:
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel
-# ---
-# apiVersion: networking.cfargotunnel.com/v1alpha1
-# kind: TunnelBinding
-# metadata:
-#   name: cloudflare-tunnel-1
-#   namespace: default
-# subjects:
-#   - name: jwtplayground
-#     spec:
-#       fqdn: jwtms.${PUBLIC_DOMAIN}
-#   - name: leekspin
-#   - name: mha
-#   - name: openssl-webterm
-#     spec:
-#       fqdn: openssl.${PUBLIC_DOMAIN}
-#   - name: shapes
-#   - name: stirling-pdf
-#     spec:
-#       fqdn: pdf.${PUBLIC_DOMAIN}
-#   - name: temple-trap
-#   - name: tls-rpt-monitor
-#     spec:
-#       fqdn: tls-rpt.${PUBLIC_DOMAIN}
-#   - name: tsuro
-#   - name: wufb-ds
-# tunnelRef:
-#   kind: ClusterTunnel
-#   name: cloudflare-tunnel
+---
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: cloudflare-tunnel-1
+  namespace: default
+subjects:
+  - name: jwtplayground
+    spec:
+      fqdn: jwtms.${PUBLIC_DOMAIN}
+  - name: leekspin
+  - name: mha
+  - name: openssl-webterm
+    spec:
+      fqdn: openssl.${PUBLIC_DOMAIN}
+  - name: shapes
+  - name: stirling-pdf
+    spec:
+      fqdn: pdf.${PUBLIC_DOMAIN}
+  - name: temple-trap
+  - name: tls-rpt-monitor
+    spec:
+      fqdn: tls-rpt.${PUBLIC_DOMAIN}
+  - name: tsuro
+  - name: wufb-ds
+tunnelRef:
+  kind: ClusterTunnel
+  name: cloudflare-tunnel
 ---
 apiVersion: networking.cfargotunnel.com/v1alpha1
 kind: TunnelBinding
