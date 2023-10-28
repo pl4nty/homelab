@@ -6,6 +6,12 @@ metadata:
 spec:
   podMetricsEndpoints:
     - port: metrics
+      metricRelabelings:
+      - action: drop
+        regex: (go|quic)_.*
+        sourceLabels:
+        - __name__
+
   selector:
     matchLabels:
       cfargotunnel.com/app: cloudflared
