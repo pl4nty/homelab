@@ -47,13 +47,13 @@ spec:
             - --watched
             - --followers
             - --following
-            - --issues
-            - --issue-comments
-            - --issue-events
-            - --pulls
-            - --pull-comments
-            - --pull-commits
-            - --pull-details
+            # - --issues
+            # - --issue-comments
+            # - --issue-events
+            # - --pulls
+            # - --pull-comments
+            # - --pull-commits
+            # - --pull-details
             - --labels
             - --hooks
             - --milestones
