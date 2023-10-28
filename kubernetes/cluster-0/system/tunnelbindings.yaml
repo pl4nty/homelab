@@ -4,9 +4,6 @@ metadata:
   name: cloudflare-tunnel
   namespace: default
 subjects:
-  - name: debian-xfce-vnc
-    spec:
-      protocol: tcp
   - name: hedgedoc
   - name: hrconvert2
     spec:

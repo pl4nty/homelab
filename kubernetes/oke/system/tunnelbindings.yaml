@@ -4,66 +4,66 @@ metadata:
   name: cloudflare-tunnel
   namespace: default
 subjects:
-  - name: az-vnet-planner
-    spec:
-      fqdn: vnetplanner.${PUBLIC_DOMAIN}
-  - name: cyberchef
-  - name: excel2latex
-  - name: hajimari
-    spec:
-      fqdn: lab.${PUBLIC_DOMAIN}
   - name: immich-proxy
     spec:
       fqdn: family-archive.${PUBLIC_DOMAIN}
-  - name: hyperglass
+  - name: obsidian-livesync
     spec:
-      fqdn: lg.${PUBLIC_DOMAIN}
-  - name: jsonwebtoken
+      fqdn: obsidian.${PUBLIC_DOMAIN}
+  - name: tandoor
     spec:
-      fqdn: jwt.${PUBLIC_DOMAIN}
-  - name: jwtplayground
-    spec:
-      fqdn: jwtms.${PUBLIC_DOMAIN}
-  - name: mha
-  - name: stirling-pdf
-    spec:
-      fqdn: pdf.${PUBLIC_DOMAIN}
-  - name: temple-trap
-  - name: tsuro
-  - name: it-tools
-    spec:
-      fqdn: tools.${PUBLIC_DOMAIN}
-  - name: wufb-ds
-  - name: anudegreeapp
-    spec:
-      fqdn: degree-planner.${PUBLIC_DOMAIN}
-  - name: openssl-webterm
-    spec:
-      fqdn: openssl.${PUBLIC_DOMAIN}
+      fqdn: recipes.${PUBLIC_DOMAIN}
   - name: your-spotify-client
     spec:
       fqdn: spotify.${PUBLIC_DOMAIN}
   - name: your-spotify
     spec:
       fqdn: spotify-api.${PUBLIC_DOMAIN}
-  - name: leekspin
-  - name: tandoor
+  - name: anudegreeapp
     spec:
-      fqdn: recipes.${PUBLIC_DOMAIN}
+      fqdn: degree-planner.${PUBLIC_DOMAIN}
+  - name: ataxx
+  - name: az-vnet-planner
+    spec:
+      fqdn: vnetplanner.${PUBLIC_DOMAIN}
   - name: ctfd
     spec:
       fqdn: ctf.${PUBLIC_DOMAIN}
   - name: ctfd-hacking-with-style
     spec:
       fqdn: hacking-with-style.${PUBLIC_DOMAIN}
+  - name: cyberchef
+  - name: excel2latex
+  - name: hajimari
+    spec:
+      fqdn: lab.${PUBLIC_DOMAIN}
+  - name: hyperglass
+    spec:
+      fqdn: lg.${PUBLIC_DOMAIN}
+  - name: it-tools
+    spec:
+      fqdn: tools.${PUBLIC_DOMAIN}
+  - name: jsonwebtoken
+    spec:
+      fqdn: jwt.${PUBLIC_DOMAIN}
+  - name: jwtplayground
+    spec:
+      fqdn: jwtms.${PUBLIC_DOMAIN}
+  - name: leekspin
+  - name: mha
+  - name: openssl-webterm
+    spec:
+      fqdn: openssl.${PUBLIC_DOMAIN}
+  - name: shapes
+  - name: stirling-pdf
+    spec:
+      fqdn: pdf.${PUBLIC_DOMAIN}
+  - name: temple-trap
   - name: tls-rpt-monitor
     spec:
       fqdn: tls-rpt.${PUBLIC_DOMAIN}
-  - name: obsidian-livesync
-    spec:
-      fqdn: obsidian.${PUBLIC_DOMAIN}
-  - name: ataxx
-  - name: shapes
+  - name: tsuro
+  - name: wufb-ds
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel
