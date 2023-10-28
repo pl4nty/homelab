@@ -58,10 +58,9 @@ spec:
             - --hooks
             - --milestones
             - --repositories
-            - --bare
             - --lfs
             - --wikis
-            # - --gists
+            - --gists
             - --private
             - --fork
             - --releases
