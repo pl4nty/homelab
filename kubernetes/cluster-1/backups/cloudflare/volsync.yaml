@@ -1,0 +1,15 @@
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+   name: backup-cloudflare
+   namespace: default
+spec:
+  sourcePVC: backup-cloudflare-config
+  trigger:
+    schedule: 0 0 * * *
+  restic:
+    repository: backup-cloudflare-backup
+    copyMethod: Clone
+    pruneIntervalDays: 14
+    retain:
+      daily: 30
