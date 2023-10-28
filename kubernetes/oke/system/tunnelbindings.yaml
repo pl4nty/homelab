@@ -49,7 +49,7 @@ subjects:
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel
----
+# ---
 # apiVersion: networking.cfargotunnel.com/v1alpha1
 # kind: TunnelBinding
 # metadata:
