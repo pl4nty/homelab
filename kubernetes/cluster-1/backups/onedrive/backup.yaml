@@ -1,7 +1,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: rclone-backup
+  name: backup-onedrive
   namespace: default
 spec:
   interval: 15m
@@ -56,17 +56,17 @@ spec:
               - --size-only
             envFrom:
               - secretRef:
-                  name: rclone-backup
+                  name: backup-onedrive
           # if state is lost, refresh token must be manually regenerated
           # this wouldn't be required if client secret auth was implemented in rclone (rather than delegated)
-          # codeserver:
-          #   image:
-          #     repository: ghcr.io/coder/code-server
-          #     tag: 4.13.0
-          #   args:
-          #     - --auth
-          #     - none
-          #     - /config/rclone # workingDir
+          codeserver:
+            image:
+              repository: ghcr.io/coder/code-server
+              tag: 4.13.0
+            args:
+              - --auth
+              - none
+              - /config/rclone
     serviceMonitor:
       main:
         enabled: true

@@ -1,7 +1,7 @@
 kind: Secret
 apiVersion: v1
 metadata:
-    name: rclone-backup
+    name: backup-onedrive
     namespace: default
 type: Opaque
 stringData:
@@ -33,8 +33,8 @@ sops:
             ZURqdGQ2aFNxSHNXOXZETmM1VWRHTjQKUXe/B2WjKTrEtlbBoWB0V2kZUF4zj9Ml
             6TctB68k6zdit/FBjrzo/45ewTU8cvL5yFYds+ypskTrnCNEZtoqIg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-09-24T11:53:24Z"
-    mac: ENC[AES256_GCM,data:JZuIO6oFvEnscQyVp+LM2WSn/Uq88NZn+kt17Y9/1uevzkzFh5BDDYrKoUBA4iaVru6adAcABptmXt+D7g0z7iGW5BeuaMVpTc/9UQFkqoO5B0OPhvDxN5w/EKvlwD3iZNK7C10Wp6GQAggehNOaGTfjySpiBgOaCf94efufHmU=,iv:0gKAzxDfyZmoBeXw7xBMpve2G4dvmCUHk8DhRylNu0k=,tag:JJCVMrcICuvxGhTTFFu3rA==,type:str]
+    lastmodified: "2023-10-28T07:59:05Z"
+    mac: ENC[AES256_GCM,data:Yk+uT1G3OAPwiFVpjmIudXyY0qRS5IEXDxBSOQwRmOYWPgXF8HBszWeJfMthqEQ6tRRZqZSYQl1HbYjZZChZpnNkDqOg4J/zx++OSaz/Me49ow/YkspUYMl5RYfjvLqHPNH6hRTgDnue194KMulMrNe/VkjVSPHcAHCu2ESyYII=,iv:MCA4KHhOF7OMC2IvqpvANduDF+6r59IomRHTlEzDCAw=,tag:p0bgeFFLeoRUuL5TCsi/xQ==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
-    version: 3.7.3
+    version: 3.8.1
