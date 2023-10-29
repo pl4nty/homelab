@@ -60,7 +60,7 @@ subjects:
     spec:
       fqdn: jwtms.${PUBLIC_DOMAIN}
   # - name: leekspin
-  # - name: mha
+  - name: mha
   - name: openssl-webterm
     spec:
       fqdn: openssl.${PUBLIC_DOMAIN}
