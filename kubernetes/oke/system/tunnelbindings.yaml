@@ -65,15 +65,15 @@ subjects:
   #   spec:
   #     fqdn: openssl.${PUBLIC_DOMAIN}
   # - name: shapes
-  # - name: stirling-pdf
-  #   spec:
-  #     fqdn: pdf.${PUBLIC_DOMAIN}
+  - name: stirling-pdf
+    spec:
+      fqdn: pdf.${PUBLIC_DOMAIN}
   # - name: temple-trap
   - name: tls-rpt-monitor
     spec:
       fqdn: tls-rpt.${PUBLIC_DOMAIN}
-  - name: tsuro
-  - name: wufb-ds
+  # - name: tsuro
+  # - name: wufb-ds
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel
