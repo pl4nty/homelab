@@ -68,7 +68,7 @@ subjects:
   - name: stirling-pdf
     spec:
       fqdn: pdf.${PUBLIC_DOMAIN}
-  # - name: temple-trap
+  - name: temple-trap
   - name: tls-rpt-monitor
     spec:
       fqdn: tls-rpt.${PUBLIC_DOMAIN}
