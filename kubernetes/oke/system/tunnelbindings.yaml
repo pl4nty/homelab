@@ -64,7 +64,7 @@ subjects:
   - name: openssl-webterm
     spec:
       fqdn: openssl.${PUBLIC_DOMAIN}
-  # - name: shapes
+  - name: shapes
   - name: stirling-pdf
     spec:
       fqdn: pdf.${PUBLIC_DOMAIN}
