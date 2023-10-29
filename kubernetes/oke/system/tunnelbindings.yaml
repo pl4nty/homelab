@@ -56,14 +56,14 @@ metadata:
   name: cloudflare-tunnel-1
   namespace: default
 subjects:
-#   - name: jwtplayground
-#     spec:
-#       fqdn: jwtms.${PUBLIC_DOMAIN}
+  - name: jwtplayground
+    spec:
+      fqdn: jwtms.${PUBLIC_DOMAIN}
   # - name: leekspin
   # - name: mha
-  # - name: openssl-webterm
-  #   spec:
-  #     fqdn: openssl.${PUBLIC_DOMAIN}
+  - name: openssl-webterm
+    spec:
+      fqdn: openssl.${PUBLIC_DOMAIN}
   # - name: shapes
   - name: stirling-pdf
     spec:
