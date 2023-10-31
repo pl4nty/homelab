@@ -11,7 +11,7 @@ spec:
     accountName: tom@tplant.com.au
     domain: tplant.com.au
     secret: cloudflare-api
-  image: cloudflare/cloudflared:2023.8.2
+  image: cloudflare/cloudflared:2023.10.0
   newTunnel:
     name: lab-infra-cluster-1
   size: 1
@@ -28,7 +28,7 @@ spec:
     accountName: tom@tplant.com.au
     domain: tplant.au
     secret: cloudflare-api
-  image: cloudflare/cloudflared:2023.8.2
+  image: cloudflare/cloudflared:2023.10.0
   newTunnel:
     name: lab-infra-cluster-1-private
   size: 1
