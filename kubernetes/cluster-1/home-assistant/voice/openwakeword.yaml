@@ -41,10 +41,17 @@ spec:
             args:
             - --preload-model
             - 'ok_nabu'
-            # - --custom-model-dir
-            # - /custom
+            - --custom-model-dir
+            - /custom
     service:
       main:
         ports:
           http:
             port: 10400
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: openwakeword
+        globalMounts:
+        - path: /custom
