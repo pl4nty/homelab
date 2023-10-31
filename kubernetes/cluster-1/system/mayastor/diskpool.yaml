@@ -5,5 +5,5 @@ metadata:
   namespace: mayastor
 spec:
   node: talos-ivx-yqq
-  disks: ["/dev/disk/by-uuid/3fb11bb0-a596-4cc5-b577-363c069ddf85"] # talosctl list /dev/disk/by-uuid/
+  disks: ["/dev/sda1"] # /dev/disk/by-uuid/uuid UUID changes...
   
