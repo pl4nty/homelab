@@ -28,8 +28,6 @@ spec:
     defaultPodOptions:
       automountServiceAccountToken: true
       enableServiceLinks: true
-      nodeSelector:
-        kubernetes.io/arch: amd64
     controllers:
       main:
         type: cronjob
@@ -57,16 +55,6 @@ spec:
             envFrom:
               - secretRef:
                   name: backup-onedrive
-          # if state is lost, refresh token must be manually regenerated
-          # this wouldn't be required if client secret auth was implemented in rclone (rather than delegated)
-          # codeserver:
-          #   image:
-          #     repository: ghcr.io/coder/code-server
-          #     tag: 4.13.0
-          #   args:
-          #     - --auth
-          #     - none
-          #     - /config/rclone
     serviceMonitor:
       main:
         enabled: true
@@ -78,9 +66,3 @@ spec:
         ports:
           http:
             port: 5572
-    persistence:
-      config:
-        enabled: true
-        retain: true
-        globalMounts:
-          - path: /config/rclone
