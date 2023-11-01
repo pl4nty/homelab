@@ -94,7 +94,7 @@ spec:
         controller: main
         ports:
           http:
-            port: 12321
+            port: 8080
     persistence:
       config:
         enabled: true
