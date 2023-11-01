@@ -43,6 +43,10 @@ spec:
             - small
             - --language
             - en
+            probes:
+              startup:
+                spec:
+                  failureThreshold: 90
     service:
       main:
         ports:
