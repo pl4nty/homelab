@@ -55,5 +55,6 @@ spec:
     persistence:
       config:
         enabled: true
+        size: 4Gi
         globalMounts:
         - path: /data
