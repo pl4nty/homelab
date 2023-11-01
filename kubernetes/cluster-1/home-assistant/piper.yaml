@@ -49,6 +49,5 @@ spec:
     persistence:
       config:
         enabled: true
-        type: emptyDir
         globalMounts:
         - path: /data
