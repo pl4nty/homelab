@@ -241,14 +241,14 @@ machine:
         # The name of the disk to use.
         - device: /dev/sda
           # A list of partitions to create on the disk.
-          partitions:
-            # Where to mount the partition.
-            - mountpoint: /var/mnt/extra
-              # # The size of partition: either bytes or human readable representation. If `size:` is omitted, the partition is sized to occupy the full disk.
-              # # Human readable representation.
-              # size: 100 MB
-              # # Precise value in bytes.
-              # size: 1073741824
+          #   partitions:
+          # Where to mount the partition.
+          # - mountpoint: /var/mnt/extra
+          # # The size of partition: either bytes or human readable representation. If `size:` is omitted, the partition is sized to occupy the full disk.
+          # # Human readable representation.
+          # size: 100 MB
+          # # Precise value in bytes.
+          # size: 1073741824
     # # Allows the addition of user specified files.
     # # MachineFiles usage example.
     # files:
@@ -498,8 +498,8 @@ sops:
             V0I1bi9vTjVtTVNWa0JBYVM3UEVoU0UKlIziv/nIPnsfATFf5HirkiJHwFgTtaKf
             7E0q7iB3tN/eFb3aegc2/3gvV/qb4I8a9gq8xvxsDs04V4QNke4+8Q==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-10-02T13:33:46Z"
-    mac: ENC[AES256_GCM,data:NPJ/Hhe4OTw5U1KmfA9PqBPzfX9eJtbf9aAccfmkqcnG3pE2W7j75Kqmrt0J73GZBmTyByatgoBZkXwgofSTqZKrwLNccWXiQXdERO7nenYMcWpik0l4SP15vRg8mo/h3Kl4EumEuFBpMiy+5jw2JByl215UI+J5Kxygq/htngU=,iv:1I/hroD3bBE6XWHkcuznNHYomJSUKyf3igP8PqABL/g=,tag:UV0EAC/KR3LBoWlp0tMGew==,type:str]
+    lastmodified: "2023-10-31T23:04:28Z"
+    mac: ENC[AES256_GCM,data:OvbxWoqjmg4ifb9JWhweqR4TPWGGKzxVXLTWaH517O3tcEemqtn+Inek+9f6wMvpwcP5cOS4RciC3AAO8QTxHWk/O59b4xEcObQSkExbv28Chk7sGUvj4iJy9P1PItDgd+ypKk6ikaX4eLFQaZXfHaANra4gRbXBOJUZ/zIXK4A=,iv:5lNsVkFJS/CnsQoTDX+EQA2r0iOn80uNHh2UsN8e0j4=,tag:25uncBEsf2CXQE3jIBYHDQ==,type:str]
     pgp: []
     encrypted_regex: ^(token|crt|key|id|secret|secretboxEncryptionSecret)$
-    version: 3.7.3
+    version: 3.8.1
