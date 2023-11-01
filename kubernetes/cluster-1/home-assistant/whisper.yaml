@@ -30,6 +30,7 @@ spec:
       enableServiceLinks: true
     controllers:
       main:
+        replicas: 0
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
