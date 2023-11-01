@@ -44,6 +44,12 @@ spec:
     opencost:
       enabled: false
     logs:
+      pod_logs:
+        namespaces:
+        - backup-system
+        - cnpg-system
+        - default
+        - monitoring-system
       extraConfig: |-
         loki.source.syslog "syslog_udp" {
           listener {
