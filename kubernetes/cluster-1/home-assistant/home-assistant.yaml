@@ -42,30 +42,11 @@ spec:
             image:
               repository: ghcr.io/home-assistant/home-assistant
               tag: 2023.11.0
-          codeserver:
-            image:
-              repository: ghcr.io/coder/code-server
-              tag: 4.16.1
-            args:
-              - --auth
-              - none
-              - --user-data-dir
-              - '/config/.vscode'
-              - --auth
-              - 'none'
-              - --extensions-dir
-              - '/config/.vscode'
-              - '/config'
     service:
       main:
         ports:
           http:
             port: 8123
-      codeserver:
-        controller: main
-        ports:
-          http:
-            port: 12321
     persistence:
       config:
         enabled: true
