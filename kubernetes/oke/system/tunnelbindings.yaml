@@ -43,9 +43,9 @@ subjects:
   - name: it-tools
     spec:
       fqdn: tools.${PUBLIC_DOMAIN}
-  # - name: jsonwebtoken
-  #   spec:
-  #     fqdn: jwt.${PUBLIC_DOMAIN}
+  - name: jsonwebtoken
+    spec:
+      fqdn: jwt.${PUBLIC_DOMAIN}
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel
