@@ -41,7 +41,7 @@ spec:
           main:
             image:
               repository: ghcr.io/home-assistant/home-assistant
-              tag: 2023.11.0
+              tag: 2023.11.1
     service:
       main:
         ports:
