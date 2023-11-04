@@ -59,7 +59,7 @@ subjects:
   - name: jwtplayground
     spec:
       fqdn: jwtms.${PUBLIC_DOMAIN}
-  # - name: leekspin
+  - name: leekspin
   - name: mha
   - name: openssl-webterm
     spec:
