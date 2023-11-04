@@ -72,7 +72,7 @@ subjects:
   - name: tls-rpt-monitor
     spec:
       fqdn: tls-rpt.${PUBLIC_DOMAIN}
-  # - name: tsuro
+  - name: tsuro
   # - name: wufb-ds
 tunnelRef:
   kind: ClusterTunnel
