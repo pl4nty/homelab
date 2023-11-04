@@ -73,7 +73,7 @@ subjects:
     spec:
       fqdn: tls-rpt.${PUBLIC_DOMAIN}
   - name: tsuro
-  # - name: wufb-ds
+  - name: wufb-ds
 tunnelRef:
   kind: ClusterTunnel
   name: cloudflare-tunnel
