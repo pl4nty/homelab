@@ -33,7 +33,7 @@ subjects:
     spec:
       fqdn: hacking-with-style.${PUBLIC_DOMAIN}
   - name: cyberchef
-  # - name: excel2latex
+  - name: excel2latex
   - name: hajimari
     spec:
       fqdn: lab.${PUBLIC_DOMAIN}
