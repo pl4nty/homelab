@@ -37,9 +37,9 @@ subjects:
   - name: hajimari
     spec:
       fqdn: lab.${PUBLIC_DOMAIN}
-  # - name: hyperglass
-  #   spec:
-  #     fqdn: lg.${PUBLIC_DOMAIN}
+  - name: hyperglass
+    spec:
+      fqdn: lg.${PUBLIC_DOMAIN}
   # - name: it-tools
   #   spec:
   #     fqdn: tools.${PUBLIC_DOMAIN}
