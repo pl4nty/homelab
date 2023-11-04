@@ -40,9 +40,9 @@ subjects:
   - name: hyperglass
     spec:
       fqdn: lg.${PUBLIC_DOMAIN}
-  # - name: it-tools
-  #   spec:
-  #     fqdn: tools.${PUBLIC_DOMAIN}
+  - name: it-tools
+    spec:
+      fqdn: tools.${PUBLIC_DOMAIN}
   # - name: jsonwebtoken
   #   spec:
   #     fqdn: jwt.${PUBLIC_DOMAIN}
