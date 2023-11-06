@@ -1,7 +1,7 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
-  name: cloudflare
+  name: homelab-oke
   namespace: default
 spec:
   gatewayClassName: cloudflare
