@@ -64,6 +64,6 @@ spec:
         enabled: true
         parentRefs:
         - namespace: default
-          name: cloudflare
+          name: ${CLUSTER_NAME}
         hostnames:
         - ataxx.tplant.com.au

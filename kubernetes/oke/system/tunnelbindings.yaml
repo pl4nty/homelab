@@ -22,7 +22,6 @@ subjects:
   - name: anudegreeapp
     spec:
       fqdn: degree-planner.${PUBLIC_DOMAIN}
-  - name: ataxx
   - name: az-vnet-planner
     spec:
       fqdn: vnetplanner.${PUBLIC_DOMAIN}
