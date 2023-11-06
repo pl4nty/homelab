@@ -45,3 +45,11 @@ spec:
         ports:
           http:
             port: 8000
+    route:
+      main:
+        enabled: true
+        parentRefs:
+        - namespace: default
+          name: ${CLUSTER_NAME}
+        hostnames:
+        - cyberchef.${PUBLIC_DOMAIN}

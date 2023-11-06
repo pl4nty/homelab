@@ -6,3 +6,4 @@ metadata:
 data:
   TIMEZONE: Australia/Canberra
   PUBLIC_DOMAIN: tplant.com.au
+  PRIVATE_DOMAIN: tplant.au

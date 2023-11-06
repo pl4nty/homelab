@@ -101,3 +101,21 @@ spec:
           mongodb:
             main:
               - path: /data/db
+    route:
+      main:
+        enabled: true
+        parentRefs:
+        - namespace: default
+          name: ${CLUSTER_NAME}
+        hostnames:
+        - spotify-api.${PUBLIC_DOMAIN}
+      client:
+        enabled: true
+        parentRefs:
+        - namespace: default
+          name: ${CLUSTER_NAME}
+        hostnames:
+        - spotify.${PUBLIC_DOMAIN}
+        rules:
+        - backendRefs:
+          - name: your-spotify-client

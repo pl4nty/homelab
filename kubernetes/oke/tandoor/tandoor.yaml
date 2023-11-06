@@ -171,3 +171,11 @@ spec:
       #     main:
       #       nginx:
       #         - path: /media
+    route:
+      main:
+        enabled: true
+        parentRefs:
+        - namespace: default
+          name: ${CLUSTER_NAME}
+        hostnames:
+        - recipes.${PUBLIC_DOMAIN}

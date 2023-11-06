@@ -48,3 +48,11 @@ spec:
         ports:
           http:
             port: 3000
+    route:
+      main:
+        enabled: true
+        parentRefs:
+        - namespace: default
+          name: ${CLUSTER_NAME}
+        hostnames:
+        - tls-rpt.${PUBLIC_DOMAIN}

@@ -156,3 +156,12 @@ spec:
 #     - path:
 #         type: PathPrefix
 #         value: /.well-known/
+    route:
+      main:
+        enabled: true
+        parentRefs:
+        - namespace: default
+          name: ${CLUSTER_NAME}
+        hostnames:
+        - lab.${PUBLIC_DOMAIN}
+

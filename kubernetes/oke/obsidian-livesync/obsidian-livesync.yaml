@@ -96,3 +96,12 @@ spec:
         ports:
           http:
             port: 5984
+    route:
+      main:
+        enabled: true
+        parentRefs:
+        - namespace: default
+          name: ${CLUSTER_NAME}
+        hostnames:
+        - obsidian.${PUBLIC_DOMAIN}
+

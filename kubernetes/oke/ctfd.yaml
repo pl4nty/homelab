@@ -70,3 +70,21 @@ spec:
         ports:
           http:
             port: 8080
+    route:
+      main:
+        enabled: true
+        parentRefs:
+        - namespace: default
+          name: ${CLUSTER_NAME}
+        hostnames:
+        - ctf.${PUBLIC_DOMAIN}
+      hacking-with-style:
+        enabled: true
+        parentRefs:
+        - namespace: default
+          name: ${CLUSTER_NAME}
+        hostnames:
+        - hacking-with-style.${PUBLIC_DOMAIN}
+        rules:
+        - backendRefs:
+          - name: ctfd-hacking-with-style

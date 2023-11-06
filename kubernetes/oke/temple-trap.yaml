@@ -47,3 +47,11 @@ spec:
         ports:
           http:
             port: 8080
+    route:
+      main:
+        enabled: true
+        parentRefs:
+        - namespace: default
+          name: ${CLUSTER_NAME}
+        hostnames:
+        - temple-trap.${PUBLIC_DOMAIN}

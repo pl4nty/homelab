@@ -32,13 +32,21 @@ spec:
             image:
               repository: ghcr.io/dgtlmoon/changedetection.io
               tag: 0.45.5
-    service:
-      main:
-        ports:
-          http:
-            port: 5000
     persistence:
       config:
         enabled: true
         globalMounts:
           - path: /datastore
+    service:
+      main:
+        ports:
+          http:
+            port: 5000
+    route:
+      main:
+        enabled: true
+        parentRefs:
+        - namespace: default
+          name: ${CLUSTER_NAME}
+        hostnames:
+        - changedetection.${PRIVATE_DOMAIN}

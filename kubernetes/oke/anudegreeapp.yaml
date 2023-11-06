@@ -66,3 +66,11 @@ spec:
         ports:
           http:
             port: 80
+    route:
+      main:
+        enabled: true
+        parentRefs:
+        - namespace: default
+          name: ${CLUSTER_NAME}
+        hostnames:
+        - degree-planner.${PUBLIC_DOMAIN}
