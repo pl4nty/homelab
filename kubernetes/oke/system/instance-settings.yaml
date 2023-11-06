@@ -4,4 +4,4 @@ metadata:
   name: instance-settings
   namespace: flux-system
 data:
-  CLUSTER_NAME: oke
+  CLUSTER_NAME: cluster-oke
