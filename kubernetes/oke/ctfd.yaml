@@ -88,3 +88,4 @@ spec:
         rules:
         - backendRefs:
           - name: ctfd-hacking-with-style
+            port: 8080
