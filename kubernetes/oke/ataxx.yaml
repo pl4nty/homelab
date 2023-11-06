@@ -66,4 +66,4 @@ spec:
         - namespace: default
           name: ${CLUSTER_NAME}
         hostnames:
-        - ataxx.tplant.com.au
+        - ataxx.${PUBLIC_DOMAIN}

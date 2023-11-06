@@ -159,3 +159,11 @@ spec:
             main:
               - path: /opt/hyperglass/hyperglass/devices.yaml
                 subPath: devices.yaml
+    route:
+      main:
+        enabled: true
+        parentRefs:
+        - namespace: default
+          name: ${CLUSTER_NAME}
+        hostnames:
+        - lg.${PUBLIC_DOMAIN}
