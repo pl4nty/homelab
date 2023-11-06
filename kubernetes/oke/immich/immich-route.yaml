@@ -6,6 +6,7 @@ metadata:
 spec:
   parentRefs:
   - name: ${CLUSTER_NAME}
+    namespace: default # TODO patch operator line 93 to detect default ns
   hostnames:
   - family-archive.${PUBLIC_DOMAIN}
   rules:
