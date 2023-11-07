@@ -1,3 +1,7 @@
+# set net.ipv4.ping_group_range to allow ICMPv4 proxying (default '0 1' == block). v6 gives "socket: permission denied"
+# securityContext:
+#   runAsGroup: 
+# set --post-quantum to enable post-quantum crypto
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
