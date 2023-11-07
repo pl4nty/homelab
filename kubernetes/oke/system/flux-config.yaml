@@ -23,21 +23,6 @@ spec:
       name: cluster-secrets
     - kind: ConfigMap
       name: instance-settings
-# ---
-# apiVersion: gateway.networking.k8s.io/v1alpha2
-# kind: Gateway
-# metadata:
-#   name: flux-gateway
-#   namespace: flux-system
-# spec:
-#   gatewayClassName: traefik
-#   listeners:
-#   - name: web
-#     port: 8000
-#     protocol: HTTP
-#     allowedRoutes:
-#       namespaces:
-#         from: Same
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -54,16 +39,3 @@ spec:
   - backendRefs:
     - name: webhook-receiver
       port: 80
----
-apiVersion: networking.cfargotunnel.com/v1alpha1
-kind: TunnelBinding
-metadata:
-  name: webhook-receiver
-  namespace: flux-system
-subjects:
-  - name: webhook-receiver
-    spec:
-      fqdn: flux-webhook.tplant.com.au
-tunnelRef:
-  kind: ClusterTunnel
-  name: cloudflare-tunnel
