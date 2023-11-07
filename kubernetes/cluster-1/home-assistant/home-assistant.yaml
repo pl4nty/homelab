@@ -42,14 +42,22 @@ spec:
             image:
               repository: ghcr.io/home-assistant/home-assistant
               tag: 2023.11.1
-    service:
-      main:
-        ports:
-          http:
-            port: 8123
     persistence:
       config:
         enabled: true
         retain: true
         globalMounts:
         - path: /config
+    service:
+      main:
+        ports:
+          http:
+            port: 8123
+    route:
+      main:
+        enabled: true
+        parentRefs:
+        - namespace: default
+          name: ${CLUSTER_NAME}
+        hostnames:
+        - home-assistant.${PRIVATE_DOMAIN}

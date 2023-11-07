@@ -26,6 +26,20 @@ spec:
     keepHistory: false
   values:
     controllers:
+      main:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: "0"
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-sdk: "true"
+        containers:
+          main:
+            image:
+              repository: caddy
+              tag: 2.7.5
+            env:
+              HD_BASE_URL: https://hedgedoc.${PUBLIC_DOMAIN}
       backend:
         type: deployment
         strategy: RollingUpdate
@@ -70,20 +84,6 @@ spec:
               tag: develop
             env:
               HD_BASE_URL: https://hedgedoc.${PUBLIC_DOMAIN}
-      main:
-        strategy: RollingUpdate
-        rollingUpdate:
-          unavailable: "0"
-        pod:
-          annotations:
-            instrumentation.opentelemetry.io/inject-sdk: "true"
-        containers:
-          main:
-            image:
-              repository: caddy
-              tag: 2.7.5
-            env:
-              HD_BASE_URL: https://hedgedoc.${PUBLIC_DOMAIN}
     configMaps:
       caddyfile:
         data:
@@ -125,6 +125,10 @@ spec:
             - path: /etc/caddy/Caddyfile
               subPath: Caddyfile
     service:
+      main:
+        ports:
+          http:
+            port: 80
       backend:
         controller: backend
         ports:
@@ -135,7 +139,11 @@ spec:
         ports:
           http:
             port: 3001
+    route:
       main:
-        ports:
-          http:
-            port: 80
+        enabled: true
+        parentRefs:
+        - namespace: default
+          name: ${CLUSTER_NAME}
+        hostnames:
+        - hedgedoc.${PUBLIC_DOMAIN}

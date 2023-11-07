@@ -60,3 +60,11 @@ spec:
         globalMounts:
           - path: /app/appsettings.json
             subPath: appsettings.json
+    route:
+      main:
+        enabled: true
+        parentRefs:
+        - namespace: default
+          name: ${CLUSTER_NAME}
+        hostnames:
+        - msft-store.${PUBLIC_DOMAIN}
