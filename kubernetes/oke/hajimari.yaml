@@ -42,53 +42,53 @@ spec:
       - group: msft
         apps:
         - name: Azure vnet planner
-          url: https://vnetplanner.tplant.com.au
+          url: https://vnetplanner.${PUBLIC_DOMAIN}
         - name: Message Header Analyser
-          url: https://mha.tplant.com.au
+          url: https://mha.${PUBLIC_DOMAIN}
         - name: Msft Store package tools
-          url: https://msft-store.tplant.com.au
+          url: https://msft-store.${PUBLIC_DOMAIN}
         - name: Msft JWT decoder
-          url: https://jwtms.tplant.com.au
+          url: https://jwtms.${PUBLIC_DOMAIN}
         - name: WUfB deployment service
-          url: https://wufb-ds.tplant.com.au
+          url: https://wufb-ds.${PUBLIC_DOMAIN}
       - group: tools
         apps:
         - name: Certificate transparency search
-          url: https://crt.tplant.com.au
+          url: https://crt.${PUBLIC_DOMAIN}
         - name: Network looking glass
-          url: https://lg.tplant.com.au
+          url: https://lg.${PUBLIC_DOMAIN}
         - name: CyberChef
-          url: https://cyberchef.tplant.com.au
+          url: https://cyberchef.${PUBLIC_DOMAIN}
         - name: JWT decoder
-          url: https://jwt.tplant.com.au
+          url: https://jwt.${PUBLIC_DOMAIN}
         - name: Misc IT tools
-          url: https://tools.tplant.com.au
+          url: https://tools.${PUBLIC_DOMAIN}
         - name: File converter
-          url: https://convert.tplant.com.au
+          url: https://convert.${PUBLIC_DOMAIN}
         - name: OpenSSL web terminal
-          url: https://openssl.tplant.com.au
+          url: https://openssl.${PUBLIC_DOMAIN}
         - name: PDF editor
-          url: https://pdf.tplant.com.au
+          url: https://pdf.${PUBLIC_DOMAIN}
         - name: ANU degree planner
-          url: https://degree-planner.tplant.com.au
+          url: https://degree-planner.${PUBLIC_DOMAIN}
         - name: Shape drawing canvas
-          url: https://shapes.tplant.com.au
+          url: https://shapes.${PUBLIC_DOMAIN}
         - name: Spotify analytics
-          url: https://spotify.tplant.com.au
+          url: https://spotify.${PUBLIC_DOMAIN}
       - group: games
         apps:
         - name: CS:GO
-          url: steam://connect/play.tplant.com.au:27015
+          url: steam://connect/play.${PUBLIC_DOMAIN}:27015
         - name: Factorio
-          url: play.tplant.com.au:31497
+          url: play.${PUBLIC_DOMAIN}:31497
         - name: Ataxx boardgame
-          url: https://ataxx.tplant.com.au
+          url: https://ataxx.${PUBLIC_DOMAIN}
         - name: Temple Trap boardgame
-          url: https://temple-trap.tplant.com.au
+          url: https://temple-trap.${PUBLIC_DOMAIN}
         - name: Tsuro boardgame
-          url: https://tsuro.tplant.com.au
+          url: https://tsuro.${PUBLIC_DOMAIN}
         - name: LEEKSPIN
-          url: https://leekspin.tplant.com.au
+          url: https://leekspin.${PUBLIC_DOMAIN}
       globalBookmarks:
       - group: dependencies
         bookmarks:
