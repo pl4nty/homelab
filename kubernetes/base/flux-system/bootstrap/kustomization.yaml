@@ -6,7 +6,6 @@
 # kubectl apply -f kubernetes/base/flux-system/cluster-settings.yaml
 # kubectl apply -f kubernetes/base/flux-system/flux-config.yaml
 
-# create new system folder with cloudflare-tunnel.yaml
 # kubectl apply -f kubernetes/[instance]/system/instance-settings.yaml
 # kubectl apply -f kubernetes/[instance]/system/flux-config.yaml
 # wait for cloudflared to provision, then:
