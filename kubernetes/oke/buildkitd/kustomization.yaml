@@ -36,9 +36,15 @@ patchesStrategicMerge:
               ephemeral-storage: 1Gi
             limits:
               cpu: 1
-              ephemeral-storage: 20Gi
+              ephemeral-storage: 16Gi
           livenessProbe:
-            timeoutSeconds: 5
+            exec:
+              command:
+              - bash
+              - -c
+              - "exit 1"
+            failureThreshold: 1
+            periodSeconds: 86400
 # patches:
 # - target:
 #     group: apps
