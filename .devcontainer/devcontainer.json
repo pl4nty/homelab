@@ -1,5 +1,5 @@
 {
-	"name": "homelab-dev",
+	"name": "homelab",
 	"build": {
 		"dockerfile": "Dockerfile"
 	},
