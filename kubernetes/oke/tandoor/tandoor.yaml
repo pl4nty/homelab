@@ -26,8 +26,9 @@ spec:
     keepHistory: false
   values:
     defaultPodOptions:
-      annotations:
-        instrumentation.opentelemetry.io/inject-python: "true"
+      # started crashing from 1.5.6
+      # annotations:
+      #   instrumentation.opentelemetry.io/inject-python: "true"
       automountServiceAccountToken: true
       enableServiceLinks: true
       # nodeSelector:
