@@ -39,7 +39,7 @@ spec:
               repository: caddy
               tag: 2.7.5
             env:
-              HD_BASE_URL: https://hedgedoc.${PUBLIC_DOMAIN}
+              HD_BASE_URL: http://hedgedoc.${PUBLIC_DOMAIN}
       backend:
         type: deployment
         strategy: RollingUpdate
