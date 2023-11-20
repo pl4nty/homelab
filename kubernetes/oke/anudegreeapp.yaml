@@ -35,6 +35,8 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
+        cronjob:
+          successfulJobsHistory: 1
         # pod:
         #   annotations:
         #     instrumentation.opentelemetry.io/inject-apache-httpd: "true"
