@@ -42,12 +42,20 @@ spec:
       kind: Deployment
       metadata:
         name: image-reflector-controller
+    target:
+      group: apps
+      version: v1
+      kind: Deployment
   - patch: |
       $patch: delete
       apiVersion: apps/v1
       kind: Deployment
       metadata:
         name: image-automation-controller
+    target:
+      group: apps
+      version: v1
+      kind: Deployment
   - patch: |
       - op: add
         path: /spec/template/spec/containers/0/args/-
