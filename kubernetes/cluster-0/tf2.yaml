@@ -1,0 +1,101 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: tf2
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: 2.2.0
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    defaultPodOptions:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+    controllers:
+      main:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: 0
+        containers:
+          main:
+            image:
+              repository: cm2network/tf2
+              tag: latest
+            resources:
+              requests:
+                cpu: 30m
+                memory: 900Mi
+              limits:
+                cpu: 200m
+                memory: 1500Mi
+            env:
+              SRCDS_HOSTNAME: "[AU] pl4nty's jungle"
+              SRCDS_REGION: 5
+              SRCDS_MAXPLAYERS: 24
+              SRCDS_PW: ""
+              SRCDS_STARTMAP: plr_hightower
+              SRCDS_RCONPW:
+                valueFrom:
+                  secretKeyRef:
+                    name: srcds
+                    key: TF2_RCON_PASSWORD
+              SRCDS_TOKEN: 
+                valueFrom:
+                  secretKeyRef:
+                    name: srcds
+                    key: SRCDS_TOKEN
+    configMaps:
+      conf:
+        data:
+          mapcycle.txt: |
+            plr_hightower
+    persistence:
+      config:
+        enabled: true
+        size: 8Gi
+        globalMounts:
+        - path: /home/steam/tf-dedicated
+      config-hyperglass:
+        type: configMap
+        name: '{{ .Release.Name }}-conf'
+        globalMounts:
+        - path: /home/steam/tf-dedicated/tf/cfg/mapcycle.txt
+          subPath: mapcycle.txt
+    service:
+      main:
+        type: LoadBalancer
+        annotations:
+          service.beta.kubernetes.io/oci-load-balancer-shape: flexible
+          service.beta.kubernetes.io/oci-load-balancer-shape-flex-min: "10"
+          service.beta.kubernetes.io/oci-load-balancer-shape-flex-max: "10"
+          external-dns.alpha.kubernetes.io/hostname: tf2.${PUBLIC_DOMAIN}
+        ports:
+          http:
+            enabled: false
+          port1:
+            port: 27015
+            protocol: TCP
+            primary: true
+          port2:
+            port: 27015
+            protocol: UDP
+          port3:
+            port: 27020
+            protocol: UDP

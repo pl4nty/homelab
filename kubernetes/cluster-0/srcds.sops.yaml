@@ -6,9 +6,7 @@ metadata:
 type: ENC[AES256_GCM,data:M/RYMP2r,iv:e3KX0ViO7/Aa0jQipzl3KwHlkhUM3dPW3cdYV16iaOw=,tag:wbVbux/B1a8zp3kcwGqMpQ==,type:str]
 stringData:
     SRCDS_TOKEN: ENC[AES256_GCM,data:6nodd6Ul18AqOgnbL4ekKlw13QD+gDIxV6tvrbjpx7w=,iv:bytqAK5zGTs740qojfWdqgAPOHr9n1BTc3OEq2lIy/0=,tag:RVMu+IJKEumKoqB8plr+Ig==,type:str]
-    CSSOURCE_RCON_PASSWORD: ENC[AES256_GCM,data:z88Y/w4sIoGfvWF0HsM=,iv:dGqAALfuk+J+CApFxcr14wCcnKM/TZTTpfi5E4Rmk+w=,tag:fU7pHMGt6xMu69ae8bSjhg==,type:str]
-    CS16_RCON_PASSWORD: ENC[AES256_GCM,data:2gXkjYNXv2wupYFegLY=,iv:tppz0KWFb/5SIosxzhuuXM/Wgs/9QWqJlKKkG5q1Av8=,tag:p69GE/hv1DuQdTe9doObrA==,type:str]
-    CSGO_RCON_PASSWORD: ENC[AES256_GCM,data:ZYjQhaCPh0d+he8E3wc=,iv:6rdbCsbS2cACn0cQGtFZznO1Zu25hTqQ4/UohxNkfo0=,tag:o/CoUImKawdaJYhC0ZnSgg==,type:str]
+    TF2_RCON_PASSWORD: ENC[AES256_GCM,data:JakwOlv/Uly9TBWQL1ZkxSkrUGSj83WhjureKqiZ,iv:0hPJ3STKfhjxx79P3Axf2FB3ayTN38eBpGt/iPV1GN8=,tag:x+NbHmPW3IjCM4qw2gK4sw==,type:str]
 sops:
     kms: []
     gcp_kms: []
@@ -24,8 +22,8 @@ sops:
             TEREODhEVkdBK0lqVmhKL3RtRWdiYkkKMxXNSd/eifeQNjZa3/inQLT3jc/yj4p3
             Q9I7m5CJIlw+jibqjb5/kSu3/j6iSD6IsK7fHX1k0JHEmRo+cYzo7Q==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-04-09T03:29:16Z"
-    mac: ENC[AES256_GCM,data:h2CMz+aD75Ad5L8Akj0g30nCXojD1RQebOaki005JxMw7jYfdL1wpnb8MPLPE1J94+FhL5Kr+BAHabSwAzcx3/UamLKkd5xntXOpKxSqAtAkTuRmJ6ZgcjecqGqLnvBAPi1eO4x7dWodMvK2ENFiSZQ4GZ+JKmqEqanNS7bYvio=,iv:YTguogms7bBzrzfVP78S1R1WRPhCot6Wm+PZ0tMYm4k=,tag:smxXR2WSbMfhAELK3Tkc2g==,type:str]
+    lastmodified: "2023-11-20T11:51:06Z"
+    mac: ENC[AES256_GCM,data:A/QJBcmcFaT8IiN7s/LVJXVUDx+IJz/sSFcCDRx8gaF+5vevJ9Xn7WaTocKa1GK4bvfVOEcTaPOVieyqWX2wanDPnjd/rFeL6tpmpMyFfI2HOkwjl+6NRzI3MNxgX1w7lte4uLzDzCrTeHgiKpHa5zwPceJBuuRL6yn9eI3HRq4=,iv:kjFNI9ir8tygjbkldpvFRRhC9WFaa8/IiDv7Qap2vSU=,tag:UvqGy3ouhEvHVn/BWw/Q1w==,type:str]
     pgp: []
     unencrypted_suffix: _unencrypted
-    version: 3.7.3
+    version: 3.8.1
