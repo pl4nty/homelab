@@ -46,7 +46,7 @@ spec:
             command:
             - sh
             - -c
-            - chmod 777 /home/steam/tf-dedicated
+            - chmod -R 777 /home/steam/tf-dedicated
             # volumeMounts:
             # - name: ini
             #   mountPath: /tmp/config
