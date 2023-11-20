@@ -42,8 +42,7 @@ spec:
             command:
             - sh
             - -c
-            - mkdir -p /home/steam/tf-dedicated/tf/cfg
-            - "&& chmod -R 777 /home/steam/tf-dedicated"
+            - chown -R 1000:1000 /home/steam/tf-dedicated
             # volumeMounts:
             # - name: ini
             #   mountPath: /tmp/config
