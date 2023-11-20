@@ -34,6 +34,7 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
+        # otherwise configMap will mount tf as root and unwritable
         initContainers:
           init:
             image:
@@ -43,11 +44,6 @@ spec:
             - sh
             - -c
             - mkdir -p /home/steam/tf-dedicated/tf/cfg && chown -R 1000:1000 /home/steam/tf-dedicated
-            # volumeMounts:
-            # - name: ini
-            #   mountPath: /tmp/config
-            # - name: default
-            #   mountPath: /default.d
         containers:
           main:
             image:
@@ -59,6 +55,7 @@ spec:
               SRCDS_MAXPLAYERS: 24
               SRCDS_PW: ""
               SRCDS_STARTMAP: plr_hightower
+              SRCDS_MAPCYCLE: mapcycle.txt
               SRCDS_RCONPW:
                 valueFrom:
                   secretKeyRef:
