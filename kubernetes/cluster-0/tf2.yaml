@@ -98,9 +98,11 @@ spec:
       mapcycle:
         type: configMap
         name: '{{ .Release.Name }}-conf'
-        globalMounts:
-        - path: /home/steam/tf-dedicated/tf/cfg/mapcycle.txt
-          subPath: mapcycle.txt
+        advancedMounts:
+          main:
+            main: 
+            - path: /home/steam/tf-dedicated/tf/cfg/mapcycle.txt
+              subPath: mapcycle.txt
     service:
       main:
         type: LoadBalancer
