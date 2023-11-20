@@ -29,6 +29,8 @@ spec:
     defaultPodOptions:
       nodeSelector:
         kubernetes.io/arch: amd64
+      securityContext:
+        fsGroup: 2000
     controllers:
       main:
         strategy: RollingUpdate
