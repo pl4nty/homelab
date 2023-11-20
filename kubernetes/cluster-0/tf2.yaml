@@ -29,10 +29,6 @@ spec:
     defaultPodOptions:
       nodeSelector:
         kubernetes.io/arch: amd64
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
     controllers:
       main:
         strategy: RollingUpdate
@@ -84,6 +80,10 @@ spec:
               limits:
                 cpu: 1.5
                 memory: 1500Mi
+            securityContext:
+              runAsUser: 1000
+              runAsGroup: 1000
+              fsGroup: 1000
     configMaps:
       conf:
         data:
