@@ -40,7 +40,9 @@ spec:
           unavailable: 0
         initContainers:
           init:
-            image: public.ecr.aws/docker/library/busybox:latest@sha256:3fbc632167424a6d997e74f52b878d7cc478225cffac6bc977eedfe51c7f4e79
+            image:
+              repository: busybox
+              tag: 1.36
             command:
             - "sh"
             - "-c"
