@@ -30,9 +30,9 @@ spec:
       nodeSelector:
         kubernetes.io/arch: amd64
       securityContext:
-        runAsUser: 1001
-        runAsGroup: 1001
-        fsGroup: 1001
+        runAsUser: 500
+        runAsGroup: 500
+        fsGroup: 500
     controllers:
       main:
         strategy: RollingUpdate
