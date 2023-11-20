@@ -30,9 +30,9 @@ spec:
       nodeSelector:
         kubernetes.io/arch: amd64
       securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
     controllers:
       main:
         strategy: RollingUpdate
@@ -81,7 +81,7 @@ spec:
         size: 16Gi
         globalMounts:
         - path: /home/steam/tf-dedicated
-      config-hyperglass:
+      mapcycle:
         type: configMap
         name: '{{ .Release.Name }}-conf'
         globalMounts:
