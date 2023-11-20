@@ -38,13 +38,6 @@ spec:
             image:
               repository: cm2network/tf2
               tag: latest
-            resources:
-              requests:
-                cpu: 30m
-                memory: 900Mi
-              limits:
-                cpu: 200m
-                memory: 1500Mi
             env:
               SRCDS_HOSTNAME: "[AU] pl4nty's jungle"
               SRCDS_REGION: 5
@@ -61,6 +54,17 @@ spec:
                   secretKeyRef:
                     name: srcds
                     key: SRCDS_TOKEN
+            probes:
+              startup:
+                spec:
+                  initialDelaySeconds: 300
+            resources:
+              requests:
+                cpu: 30m
+                memory: 900Mi
+              limits:
+                cpu: 200m
+                memory: 1500Mi
     configMaps:
       conf:
         data:
