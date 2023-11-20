@@ -104,9 +104,6 @@ spec:
       main:
         type: LoadBalancer
         annotations:
-          service.beta.kubernetes.io/oci-load-balancer-shape: flexible
-          service.beta.kubernetes.io/oci-load-balancer-shape-flex-min: "10"
-          service.beta.kubernetes.io/oci-load-balancer-shape-flex-max: "10"
           external-dns.alpha.kubernetes.io/hostname: tf2.${PUBLIC_DOMAIN}
         ports:
           http:
