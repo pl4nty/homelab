@@ -24,6 +24,7 @@ spec:
       retries: 3
   uninstall:
     keepHistory: false
+  timeout: 20m
   values:
     defaultPodOptions:
       nodeSelector:
