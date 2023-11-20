@@ -29,15 +29,27 @@ spec:
     defaultPodOptions:
       nodeSelector:
         kubernetes.io/arch: amd64
-      securityContext:
-        runAsUser: 500
-        runAsGroup: 500
-        fsGroup: 500
+      # securityContext:
+      #   runAsUser: 1000
+      #   runAsGroup: 1000
+      #   fsGroup: 1000
     controllers:
       main:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
+        initContainers:
+          init:
+            image: public.ecr.aws/docker/library/busybox:latest@sha256:3fbc632167424a6d997e74f52b878d7cc478225cffac6bc977eedfe51c7f4e79
+            command:
+            - "sh"
+            - "-c"
+            - "chmod -R 777 /home/steam/tf-dedicated/"
+            # volumeMounts:
+            # - name: ini
+            #   mountPath: /tmp/config
+            # - name: default
+            #   mountPath: /default.d
         containers:
           main:
             image:
