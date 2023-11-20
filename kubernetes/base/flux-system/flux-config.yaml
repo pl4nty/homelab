@@ -36,16 +36,18 @@ spec:
       group: networking.k8s.io
       version: v1
       kind: NetworkPolicy
-  - $patch: delete
-    apiVersion: apps/v1
-    kind: Deployment
-    metadata:
-      name: image-reflector-controller
-  - $patch: delete
-    apiVersion: apps/v1
-    kind: Deployment
-    metadata:
-      name: image-automation-controller
+  - patch: |
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: image-reflector-controller
+  - patch: |
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: image-automation-controller
   - patch: |
       - op: add
         path: /spec/template/spec/containers/0/args/-
