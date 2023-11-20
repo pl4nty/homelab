@@ -92,11 +92,12 @@ spec:
         rollingUpdate:
           unavailable: "0"
       resources:
-        requests:
-          cpu: 10m
         limits:
           cpu: 3
-          ephemeral-storage: 10Gi
+      persistence:
+        cache:
+          type: pvc
+          size: 4Gi
       # issue doesn't seem to be resolved
       # immich-app/immich-charts#27
       probes:
