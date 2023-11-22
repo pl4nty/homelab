@@ -34,7 +34,7 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
-        # otherwise configMap will mount tf as root and unwritable
+        # otherwise configMap will mount tf as root and unwritable, can't use securityContext
         initContainers:
           init:
             image:
@@ -77,10 +77,6 @@ spec:
               limits:
                 cpu: 1.5
                 memory: 1500Mi
-            securityContext:
-              runAsUser: 1000
-              runAsGroup: 1000
-              fsGroup: 1000
     configMaps:
       conf:
         data:
