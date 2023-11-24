@@ -1,3 +1,6 @@
+stores:
+  yaml:
+    indent: 2
 creation_rules:
 - path_regex: .+private-[0-9]+.sops.yaml$
   encrypted_regex: ^(image|env|args|advancedMounts)$
