@@ -36,7 +36,7 @@ patchesStrategicMerge:
               ephemeral-storage: 1Gi
             limits:
               cpu: 1
-              ephemeral-storage: 4Gi
+              ephemeral-storage: 6Gi
           livenessProbe:
             exec:
               command:
