@@ -56,16 +56,9 @@ spec:
               SRCDS_PW: ""
               SRCDS_STARTMAP: plr_hightower
               SRCDS_MAPCYCLE: mapcycle.txt
-              SRCDS_RCONPW:
-                valueFrom:
-                  secretKeyRef:
-                    name: srcds
-                    key: TF2_RCON_PASSWORD
-              SRCDS_TOKEN: 
-                valueFrom:
-                  secretKeyRef:
-                    name: srcds
-                    key: SRCDS_TOKEN
+            envFrom:
+            - secretRef:
+                name: tf2
             probes:
               startup:
                 spec:
