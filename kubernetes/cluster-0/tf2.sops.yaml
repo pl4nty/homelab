@@ -1,7 +1,7 @@
 kind: Secret
 apiVersion: v1
 metadata:
-    name: srcds
+    name: tf2
     namespace: default
 type: Opaque
 stringData:
@@ -22,8 +22,8 @@ sops:
             enUwdm13aTd1eURyUHdkOE1CTFlqWGcK8Ui9T7Z1ClQvtGAY0QrvHuX+0BuZ7HMf
             gZ9L3TfgWvh1D+SbqL859N2JHE5sK2FDAYu4Iy7sdbu8qvazcuFlZw==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-11-24T09:56:13Z"
-    mac: ENC[AES256_GCM,data:2JKTAWNALwIPWUOQKbGZapwwZpnXdTfWWR3eTd0+abAxQBioPSQ2c8WtdXk4SduAYtXBHvNdbkGRcGDm3dTJyKwAoLRF4l1AZvhainlzgenZs/A8ZWllZfj+e4ZE9Sagox7n/jzv/yrHsJwl4hE+s4Yqg88h6rDRVpjz5IwGikk=,iv:YcToMQBiOlufA9n/rPb888h+4H1TfFF6bLz5bzj5iTQ=,tag:VYC3/MERdGd4MG52KPXnWw==,type:str]
+    lastmodified: "2023-11-24T09:58:45Z"
+    mac: ENC[AES256_GCM,data:NYW/hylEYFcJ9SO22RsHODOY9ZhpFMknF1lemi4DTPsVE70lVKzfpVryznQGMmmEMmhmqb2TAKBy1IAUMm1DQROWHBHpFPiMqmYM72+gMcv3Lg4Srb5Utll3+ikLIvw/kCXlMGJptZdf+R3rp5Fv+1wjEYvm0UgyznMElZYQBpA=,iv:ek29FVZvmq6yLzPteh/3VaXv9T8yjFgvT7aUWeERPvw=,tag:6Q245pEAGMXkYVIkhgyreQ==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.8.1
