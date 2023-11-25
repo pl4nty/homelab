@@ -1,0 +1,29 @@
+kind: Secret
+apiVersion: v1
+metadata:
+    name: talos
+    namespace: default
+type: Opaque
+stringData:
+    cache-signing-key.key: ENC[AES256_GCM,data:fbgCj1muD739LEW5065WyU6kMynYhCtF0y+TdgaO7wKGvkMvYfPfFc5gwZizEMgXKhVAoTamLxeT+NLF0HNa2P/61imHf4gmZjx+a1fogxUylyXpA9mONTCQo4L3s+/NLUHq4JBVRh+Fm714SKSoPq26Sz+IiyQPD4cjcKAbmCoOekxGe93PR2rmQdQ32X7hpHIqg+bRA8BwGeCnuxWunWvTpScyYUNT3ZFLCTUlu/D+83cX0xuN/2iYC/tpmrP0+rq3aWLGiAhotcmGWKmpMkG9CvJduPMpdVdJXI0X3ZxYrfc=,iv:e5IWN1Uzf2QA61QxSWxaoq2GkhAoui6k7hsfBIKCuzk=,tag:9erhC7oCMe02bwZGEFfeKg==,type:str]
+    GITHUB_TOKEN: ENC[AES256_GCM,data:ItFUpuSgNkmXvALcgohlDR7egyvdhsjTa78wT1UP22gWExZbfN9J9w==,iv:DA507Hbgm4jDtt6aO+0A8ZIOedfG31sLL9yi6psLJM8=,tag:romvpvQGtQk7yP0fXR2KPw==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBRQnRKRERFeDlnZi8weVl3
+            N25yS2x0VU5wTDhXdC9yQU11Vnd0cnZaZVZnCkRTUTQ2TmZjR0U4SDFVVjc3aGpW
+            Q2RXZkZxU3ZIWEZiVGZ5QkRnRVhNRU0KLS0tIDFHU1A0ZHZkbWhRZmUzdFZnUnBL
+            YXdZZzQwTTQ1Y1FZaG9sRFZCWUR2dHcKSB1OVWhKSVEot3hIhnBml16wdFuPqoMR
+            103cScT0i2ftNno8Spag8QBvf4uTidX0qkzp8gNqw/tky38wJtpLaw==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2023-11-25T09:59:30Z"
+    mac: ENC[AES256_GCM,data:WXygMm/+HzNDVeYKVXq7weMxswkv+CNuDl+dtd84MzAZQeZqDVFHMp/Ug8nDnB+SPvo0Fie0QHHBL/c4WNHQ4A37y7fG1UpJkJG0g5rf5p1VEsTYr2Kf+NVBTVYpZDlnfd+FXHr9pfEbu+xqB2EI7Wd7SIc07GD2MSDkVLZElRI=,iv:kSyZ2vkoN1iXVhmpE+FRpm8k29hU5DdHtiD/o/45l/o=,tag:fccWLxE/DgRbVSgIDMY0Qg==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData)$
+    version: 3.8.1

@@ -1,0 +1,85 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: talos
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: 2.3.0
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    defaultPodOptions:
+      automountServiceAccountToken: true
+      enableServiceLinks: true
+    controllers:
+      main:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: 0
+        containers:
+          main:
+            image:
+              repository: ghcr.io/pl4nty/image-factory
+              tag: v0.1.2-1-gf36ab82-dirty
+            args:
+            - -cache-signing-key-path ./cache-signing-key.key
+            - -external-url https://talos.${PUBLIC_DOMAIN}/
+            - -schematic-service-repository ghcr.io/pl4nty/image-factory/schematics
+            - -cache-repository ghcr.io/pl4nty/image-factory/cache
+            - -container-signature-issuer https://github.com/login/oauth
+            - -container-signature-subject-regexp tom@${PUBLIC_DOMAIN}
+            env:
+              GITHUB_TOKEN:
+                valueFrom:
+                  secretKeyRef:
+                    name: talos
+                    key: GITHUB_TOKEN
+    persistence:
+      config:
+        enabled: true
+        type: secret
+        name: talos
+        globalMounts:
+        - path: /cache-signing-key.key
+          subPath: cache-signing-key.key
+      dev:
+        enabled: true
+        type: hostPath
+        hostPath: /dev
+    service:
+      main:
+        ports:
+          http:
+            port: 8080
+          metrics:
+            port: 2122
+    serviceMonitor:
+      main:
+        enabled: true
+        endpoints:
+        - port: metrics
+    route:
+      main:
+        enabled: true
+        parentRefs:
+        - namespace: default
+          name: ${CLUSTER_NAME}
+        hostnames:
+        - talos.${PUBLIC_DOMAIN}
