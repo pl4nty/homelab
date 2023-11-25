@@ -39,12 +39,18 @@ spec:
               repository: ghcr.io/pl4nty/image-factory
               tag: v0.1.2-1-gf36ab82-dirty
             args:
-            - -cache-signing-key-path ./cache-signing-key.key
-            - -external-url https://talos.${PUBLIC_DOMAIN}/
-            - -schematic-service-repository ghcr.io/pl4nty/image-factory/schematics
-            - -cache-repository ghcr.io/pl4nty/image-factory/cache
-            - -container-signature-issuer https://github.com/login/oauth
-            - -container-signature-subject-regexp tom@${PUBLIC_DOMAIN}
+            - -cache-signing-key-path
+            - cache-signing-key.key
+            - -external-url
+            - https://talos.${PUBLIC_DOMAIN}/
+            - -schematic-service-repository
+            - ghcr.io/pl4nty/image-factory/schematics
+            - -cache-repository
+            - ghcr.io/pl4nty/image-factory/cache
+            - -container-signature-issuer
+            - https://github.com/login/oauth
+            - -container-signature-subject-regexp
+            - tom@${PUBLIC_DOMAIN}
             env:
               GITHUB_TOKEN:
                 valueFrom:
