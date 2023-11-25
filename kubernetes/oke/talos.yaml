@@ -57,6 +57,8 @@ spec:
                   secretKeyRef:
                     name: talos
                     key: GITHUB_TOKEN
+            securityContext:
+              privileged: true
             resources:
               limits:
                 ephemeral-storage: 2Gi
