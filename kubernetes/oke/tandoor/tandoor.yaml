@@ -47,7 +47,7 @@ spec:
           main:
             image: &image
               repository: vabene1111/recipes
-              tag: 1.5.6
+              tag: 1.5.8
             # command:
             #   - /opt/recipes/venv/bin/gunicorn
             #   - -b
