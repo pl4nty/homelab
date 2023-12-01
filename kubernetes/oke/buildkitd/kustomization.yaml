@@ -3,7 +3,7 @@ kind: Kustomization
 namespace: default
 resources:
 - buildkit-daemon-certs.sops.yaml
-- https://raw.githubusercontent.com/moby/buildkit/v0.12.3/examples/kubernetes/deployment%2Bservice.rootless.yaml
+- https://raw.githubusercontent.com/moby/buildkit/v0.12.4/examples/kubernetes/deployment%2Bservice.rootless.yaml
 patchesStrategicMerge:
 - |-
   apiVersion: v1
