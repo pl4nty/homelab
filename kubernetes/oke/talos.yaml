@@ -48,7 +48,7 @@ spec:
             - -cache-repository
             - ghcr.io/pl4nty/image-factory/cache
             - -container-signature-subject-regexp
-            - "@(siderolabs\.com|tplant\.com\.au)$"
+            - "@(siderolabs\\.com|tplant\\.com\\.au)$"
             env:
               GITHUB_TOKEN:
                 valueFrom:
