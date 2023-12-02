@@ -47,10 +47,8 @@ spec:
             - ghcr.io/pl4nty/image-factory/schematics
             - -cache-repository
             - ghcr.io/pl4nty/image-factory/cache
-            - -container-signature-issuer
-            - https://github.com/login/oauth
             - -container-signature-subject-regexp
-            - tom@${PUBLIC_DOMAIN}
+            - "@(siderolabs\.com|tplant\.com\.au)$"
             env:
               GITHUB_TOKEN:
                 valueFrom:
@@ -61,7 +59,7 @@ spec:
               privileged: true
             resources:
               limits:
-                ephemeral-storage: 2Gi
+                ephemeral-storage: 4Gi
     persistence:
       config:
         enabled: true
