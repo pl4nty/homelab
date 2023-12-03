@@ -50,7 +50,7 @@ spec:
               repository: cm2network/tf2
               tag: latest
             env:
-              SRCDS_HOSTNAME: "[AU] pl4nty's jungle"
+              SRCDS_HOSTNAME: "[AU] pl4nty's jungle GameTrackerClaimServer"
               SRCDS_REGION: 5
               SRCDS_MAXPLAYERS: 24
               SRCDS_PW: ""
