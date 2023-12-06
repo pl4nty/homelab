@@ -48,7 +48,7 @@ spec:
               SERVER_LOG_LEVEL: info
     service:
       main:
-        type: LoadBalancer
+        # type: LoadBalancer
         annotations:
           service.beta.kubernetes.io/oci-load-balancer-shape: flexible
           service.beta.kubernetes.io/oci-load-balancer-shape-flex-min: "10"
