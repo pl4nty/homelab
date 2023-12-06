@@ -35,7 +35,7 @@ spec:
           main:
             image:
               repository: couchdb
-              tag: 3.3.2
+              tag: 3.3.3
             envFrom:
             - secretRef:
                 name: obsidian-livesync
