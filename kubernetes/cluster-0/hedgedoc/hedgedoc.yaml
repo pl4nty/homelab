@@ -37,7 +37,7 @@ spec:
           main:
             image:
               repository: caddy
-              tag: 2.7.5
+              tag: 2.7.6
             env:
               HD_BASE_URL: http://hedgedoc.${PUBLIC_DOMAIN}
       backend:
