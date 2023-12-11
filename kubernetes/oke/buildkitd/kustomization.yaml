@@ -31,9 +31,6 @@ patchesStrategicMerge:
       spec:
         containers:
         - name: buildkitd
-          volumeMounts:
-          - name: cache
-            mountPath: /home/user/.local/share/buildkit
           resources:
             requests:
               cpu: 100m
@@ -50,7 +47,7 @@ patchesStrategicMerge:
             failureThreshold: 1
             periodSeconds: 3600
       volumes:
-      - name: cache
+      - name: buildkitd
         persistentVolumeClaim:
           claimName: buildkitd-cache
 # patches:
