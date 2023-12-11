@@ -46,10 +46,10 @@ patchesStrategicMerge:
               - "exit 1"
             failureThreshold: 1
             periodSeconds: 3600
-      volumes:
-      - name: buildkitd
-        persistentVolumeClaim:
-          claimName: buildkitd-cache
+        volumes:
+        - name: buildkitd
+          persistentVolumeClaim:
+            claimName: buildkitd-cache
 # patches:
 # - target:
 #     group: apps
