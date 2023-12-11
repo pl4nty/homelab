@@ -4,6 +4,7 @@ namespace: default
 resources:
 - buildkit-daemon-certs.sops.yaml
 - https://raw.githubusercontent.com/moby/buildkit/v0.12.4/examples/kubernetes/deployment%2Bservice.rootless.yaml
+- buildkitd-pvc.yaml
 patchesStrategicMerge:
 - |-
   apiVersion: v1
@@ -30,6 +31,9 @@ patchesStrategicMerge:
       spec:
         containers:
         - name: buildkitd
+          volumeMounts:
+          - name: cache
+            mountPath: /home/user/.local/share/buildkit
           resources:
             requests:
               cpu: 100m
@@ -45,6 +49,10 @@ patchesStrategicMerge:
               - "exit 1"
             failureThreshold: 1
             periodSeconds: 3600
+      volumes:
+      - name: cache
+        persistentVolumeClaim:
+          claimName: buildkitd-cache
 # patches:
 # - target:
 #     group: apps
