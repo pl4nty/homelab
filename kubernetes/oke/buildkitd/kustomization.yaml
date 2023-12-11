@@ -36,18 +36,8 @@ patchesStrategicMerge:
           resources:
             requests:
               cpu: 100m
-              ephemeral-storage: 1Gi
             limits:
               cpu: 1
-              ephemeral-storage: 6Gi
-          livenessProbe:
-            exec:
-              command:
-              - sh
-              - -c
-              - "exit 1"
-            failureThreshold: 1
-            periodSeconds: 3600
         volumes:
         - name: buildkitd
           emptyDir: null
