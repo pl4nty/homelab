@@ -38,6 +38,8 @@ patchesStrategicMerge:
               cpu: 100m
             limits:
               cpu: 1
+          livenessProbe:
+            timeoutSeconds: 5
         volumes:
         - name: buildkitd
           emptyDir: null
