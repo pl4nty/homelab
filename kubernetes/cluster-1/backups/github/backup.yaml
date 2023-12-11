@@ -34,7 +34,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/github-backup
-              tag: latest@sha256:8a5bf9a1a5eb5fe94a4044c46b0ad44060902ac1bdfc9e5ed0af3f21da7c84ee
+              tag: latest@sha256:86a833615b34444ae18393125ad12f51d3f2a33e2cb0ae980ac09f5bae2b5237
             args: 
             - pl4nty
             - --token-fine
