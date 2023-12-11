@@ -48,8 +48,7 @@ patchesStrategicMerge:
             periodSeconds: 3600
         volumes:
         - name: buildkitd
-          $patch: delete
-        - name: buildkitd
+          emptyDir: null
           persistentVolumeClaim:
             claimName: buildkitd-cache
 # patches:
