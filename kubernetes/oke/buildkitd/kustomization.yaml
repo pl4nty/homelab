@@ -29,6 +29,8 @@ patchesStrategicMerge:
         annotations:
           instrumentation.opentelemetry.io/inject-sdk: "true"
       spec:
+        securityContext:
+          fsGroup: 1000
         containers:
         - name: buildkitd
           resources:
