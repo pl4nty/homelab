@@ -34,7 +34,7 @@ patchesStrategicMerge:
           $patch: delete
     volumeClaimTemplates:
     - metadata:
-      name: buildkitd
+        name: buildkitd
       spec:
         accessModes:
         - ReadWriteOnce
