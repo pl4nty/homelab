@@ -22,6 +22,15 @@ patchesStrategicMerge:
           fsGroup: 1000
         containers:
         - name: buildkitd
+          args:
+          - --addr
+          - tcp://0.0.0.0:1234
+          - --tlscacert
+          - /certs/ca.pem
+          - --tlscert
+          - /certs/cert.pem
+          - --tlskey
+          - /certs/key.pem
           resources:
             requests:
               cpu: 100m
@@ -29,7 +38,14 @@ patchesStrategicMerge:
               cpu: 1
           livenessProbe:
             timeoutSeconds: 5
+          volumeMounts:
+          - name: certs
+            readOnly: true
+            mountPath: /certs
         volumes:
+        - name: certs
+          secret:
+            secretName: buildkit-daemon-certs
         - name: buildkitd
           $patch: delete
     volumeClaimTemplates:
