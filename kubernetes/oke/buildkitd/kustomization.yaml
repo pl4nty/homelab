@@ -3,27 +3,16 @@ kind: Kustomization
 namespace: default
 resources:
 - buildkit-daemon-certs.sops.yaml
-- https://raw.githubusercontent.com/moby/buildkit/v0.12.4/examples/kubernetes/deployment%2Bservice.rootless.yaml
-- buildkitd-pvc.yaml
+- https://raw.githubusercontent.com/moby/buildkit/v0.12.4/examples/kubernetes/statefulset.rootless.yaml
+- buildkitd-svc.yaml
 patchesStrategicMerge:
 - |-
-  apiVersion: v1
-  kind: Service
-  metadata:
-    name: buildkitd
-    annotations:
-      service.beta.kubernetes.io/oci-load-balancer-shape: flexible
-      service.beta.kubernetes.io/oci-load-balancer-shape-flex-min: "10"
-      service.beta.kubernetes.io/oci-load-balancer-shape-flex-max: "10"
-      external-dns.alpha.kubernetes.io/hostname: buildkitd.${PUBLIC_DOMAIN}
-  spec:
-    type: LoadBalancer
-- |-
   apiVersion: apps/v1
-  kind: Deployment
+  kind: StatefulSet
   metadata:
     name: buildkitd
   spec:
+    serviceName: null
     template:
       metadata:
         annotations:
@@ -42,15 +31,13 @@ patchesStrategicMerge:
             timeoutSeconds: 5
         volumes:
         - name: buildkitd
-          emptyDir: null
-          persistentVolumeClaim:
-            claimName: buildkitd-cache
-# patches:
-# - target:
-#     group: apps
-#     version: v1
-#     kind: Deployment
-#   patch: |-
-#     - op: add
-#       path: /spec/template/spec/containers/0/args/-
-#       value: --debug  
+          $patch: delete
+    volumeClaimTemplates:
+    - metadata:
+      name: buildkitd
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 16Gi
