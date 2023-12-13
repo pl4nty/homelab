@@ -109,6 +109,10 @@ spec:
           name: ${CLUSTER_NAME}
         hostnames:
         - spotify-api.${PUBLIC_DOMAIN}
+        rules:
+        - backendRefs:
+          - name: your-spotify
+            port: 8080
       client:
         enabled: true
         parentRefs:

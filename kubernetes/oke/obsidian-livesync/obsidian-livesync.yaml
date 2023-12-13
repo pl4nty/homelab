@@ -104,4 +104,8 @@ spec:
           name: ${CLUSTER_NAME}
         hostnames:
         - obsidian.${PUBLIC_DOMAIN}
+        rules:
+        - backendRefs:
+          - name: obsidian-livesync
+            port: 5984
 

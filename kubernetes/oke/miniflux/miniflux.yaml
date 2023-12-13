@@ -66,3 +66,7 @@ spec:
           name: ${CLUSTER_NAME}
         hostnames:
         - rss.${PRIVATE_DOMAIN}
+        rules:
+        - backendRefs:
+          - name: miniflux
+            port: 8080
