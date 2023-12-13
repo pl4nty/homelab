@@ -56,3 +56,7 @@ spec:
           name: ${CLUSTER_NAME}
         hostnames:
         - jwt.${PUBLIC_DOMAIN}
+        rules:
+        - backendRefs:
+          - name: jsonwebtoken
+            port: 8080

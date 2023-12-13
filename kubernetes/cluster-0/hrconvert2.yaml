@@ -60,3 +60,7 @@ spec:
           name: ${CLUSTER_NAME}
         hostnames:
         - convert.${PUBLIC_DOMAIN}
+        rules:
+        - backendRefs:
+          - name: hrconvert2
+            port: 80

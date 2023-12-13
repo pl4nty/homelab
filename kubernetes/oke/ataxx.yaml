@@ -67,3 +67,7 @@ spec:
           name: ${CLUSTER_NAME}
         hostnames:
         - ataxx.${PUBLIC_DOMAIN}
+        rules:
+        - backendRefs:
+          - name: ataxx
+            port: 3000

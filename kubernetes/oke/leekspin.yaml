@@ -55,3 +55,7 @@ spec:
           name: ${CLUSTER_NAME}
         hostnames:
         - leekspin.${PUBLIC_DOMAIN}
+        rules:
+        - backendRefs:
+          - name: leekspin
+            port: 8080

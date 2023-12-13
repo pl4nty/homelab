@@ -53,3 +53,7 @@ spec:
           name: ${CLUSTER_NAME}
         hostnames:
         - wufb-ds.${PUBLIC_DOMAIN}
+        rules:
+        - backendRefs:
+          - name: wufb-ds
+            port: 8080

@@ -53,3 +53,7 @@ spec:
           name: ${CLUSTER_NAME}
         hostnames:
         - cyberchef.${PUBLIC_DOMAIN}
+        rules:
+        - backendRefs:
+          - name: cyberchef
+            port: 8000

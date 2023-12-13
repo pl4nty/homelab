@@ -76,3 +76,7 @@ spec:
           name: ${CLUSTER_NAME}
         hostnames:
         - degree-planner.${PUBLIC_DOMAIN}
+        rules:
+        - backendRefs:
+          - name: anudegreeapp
+            port: 80

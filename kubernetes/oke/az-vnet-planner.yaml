@@ -53,3 +53,7 @@ spec:
           name: ${CLUSTER_NAME}
         hostnames:
         - vnetplanner.${PUBLIC_DOMAIN}
+        rules:
+        - backendRefs:
+          - name: az-vnet-planner
+            port: 8080

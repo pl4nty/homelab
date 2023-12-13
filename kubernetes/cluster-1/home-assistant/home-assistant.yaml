@@ -61,3 +61,7 @@ spec:
           name: ${CLUSTER_NAME}
         hostnames:
         - home-assistant.${PRIVATE_DOMAIN}
+        rules:
+        - backendRefs:
+          - name: home-assistant
+            port: 8123

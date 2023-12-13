@@ -63,3 +63,7 @@ spec:
           name: ${CLUSTER_NAME}
         hostnames:
         - tsuro.${PUBLIC_DOMAIN}
+        rules:
+        - backendRefs:
+          - name: tsuro
+            port: 8080

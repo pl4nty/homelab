@@ -68,3 +68,7 @@ spec:
           name: ${CLUSTER_NAME}
         hostnames:
         - msft-store.${PUBLIC_DOMAIN}
+        rules:
+        - backendRefs:
+          - name: storeweb
+            port: 8080

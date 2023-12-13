@@ -53,3 +53,7 @@ spec:
           name: ${CLUSTER_NAME}
         hostnames:
         - openssl.${PUBLIC_DOMAIN}
+        rules:
+        - backendRefs:
+          - name: openssl-webterm
+            port: 80

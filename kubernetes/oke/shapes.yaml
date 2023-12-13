@@ -51,3 +51,7 @@ spec:
           name: ${CLUSTER_NAME}
         hostnames:
         - shapes.${PUBLIC_DOMAIN}
+        rules:
+        - backendRefs:
+          - name: shapes
+            port: 3000

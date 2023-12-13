@@ -78,6 +78,10 @@ spec:
           name: ${CLUSTER_NAME}
         hostnames:
         - ctf.${PUBLIC_DOMAIN}
+        rules:
+        - backendRefs:
+          - name: ctfd
+            port: 8080
       hacking-with-style:
         enabled: true
         parentRefs:
