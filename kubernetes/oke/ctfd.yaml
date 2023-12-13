@@ -37,7 +37,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/ctfd
-              tag: latest@sha256:bf5b11d09ca3bcc8bb580502ab5de4afb1f064cbd699cca6add2f7595ecd2375
+              tag: latest@sha256:4549385a88c17bf55ecf236405c4ce5e641bfa1e13416df5a3c85697450822c2
             env:
               DATABASE_URL: sqlite:////opt/CTFd/CTFd/db/ctfd.db
       hacking-with-style:
