@@ -180,3 +180,7 @@ spec:
           name: ${CLUSTER_NAME}
         hostnames:
         - recipes.${PUBLIC_DOMAIN}
+        rules:
+        - backendRefs:
+          - name: tandoor
+            port: 8080

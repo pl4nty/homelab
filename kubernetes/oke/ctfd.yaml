@@ -81,7 +81,7 @@ spec:
         rules:
         - backendRefs:
           - name: ctfd
-            port: 8080
+            port: 8000
       hacking-with-style:
         enabled: true
         parentRefs:
