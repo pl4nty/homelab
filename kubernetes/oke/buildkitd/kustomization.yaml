@@ -33,6 +33,7 @@ patchesStrategicMerge:
           - /certs/cert.pem
           - --tlskey
           - /certs/key.pem
+          - --oci-worker-no-process-sandbox
           resources:
             requests:
               cpu: 100m
