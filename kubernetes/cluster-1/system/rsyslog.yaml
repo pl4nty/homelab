@@ -1,5 +1,5 @@
 # Grafana Agent on 30514 only supports RFC5424, but NetComm NF20MESH is noncompliant
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
   name: rsyslog
