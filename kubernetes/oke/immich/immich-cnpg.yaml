@@ -34,6 +34,11 @@ spec:
   bootstrap:
     pg_basebackup:
       source: immich-postgresql
+    # if rebuilding
+    # initdb:
+    #   postInitTemplateSQL:
+    #     - CREATE EXTENSION cube;
+    #     - CREATE EXTENSION earthdistance;
 
   externalClusters:
   - name: immich-postgresql

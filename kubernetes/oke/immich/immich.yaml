@@ -84,9 +84,6 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: "0"
-      resources:
-        limits:
-          cpu: 3
       persistence:
         cache:
           type: pvc
