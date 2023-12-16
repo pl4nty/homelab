@@ -29,6 +29,20 @@ spec:
   postgresql:
     shared_preload_libraries:
     - "vectors.so"
+  
+  # leftover from cross-cluster restore, can't be removed
+  bootstrap:
+    pg_basebackup:
+      source: immich-postgresql
+
+  externalClusters:
+  - name: immich-postgresql
+    connectionParameters:
+      host: immich-postgresql
+      user: streaming_replica
+    password:
+      name: immich-postgresql
+      key: postgres-password
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup
