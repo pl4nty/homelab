@@ -7,7 +7,7 @@ spec:
   instances: 1
   storage:
     size: 4Gi
-  imageName: ghcr.io/cloudnative-pg/postgresql:14.7
+  imageName: ghcr.io/bo0tzz/cnpgvecto.rs:16.1
 
   backup:
     retentionPolicy: 30d
@@ -26,18 +26,9 @@ spec:
       data:
         compression: gzip
 
-  bootstrap:
-    pg_basebackup:
-      source: immich-postgresql
-
-  externalClusters:
-  - name: immich-postgresql
-    connectionParameters:
-      host: immich-postgresql
-      user: streaming_replica
-    password:
-      name: immich-postgresql
-      key: postgres-password
+  postgresql:
+    shared_preload_libraries:
+    - "vectors.so"
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup
