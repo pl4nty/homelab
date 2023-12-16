@@ -90,7 +90,7 @@ spec:
       persistence:
         cache:
           type: pvc
-          size: 4Gi
+          accessMode: ReadWriteOnce
       # issue doesn't seem to be resolved
       # immich-app/immich-charts#27
       probes:
