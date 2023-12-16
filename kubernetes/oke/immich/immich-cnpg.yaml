@@ -39,6 +39,7 @@ spec:
     #   postInitTemplateSQL:
     #     - CREATE EXTENSION cube;
     #     - CREATE EXTENSION earthdistance;
+    #     - CREATE EXTENSION vectors;
 
   externalClusters:
   - name: immich-postgresql
