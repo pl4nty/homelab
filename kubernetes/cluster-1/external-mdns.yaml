@@ -56,3 +56,4 @@ spec:
         # - -source=ingress
         - -source=service
         - -namespace=default
+        - -publish-internal-services=true
