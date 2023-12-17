@@ -59,7 +59,7 @@ spec:
     service:
       main:
         primary: false # healthchecks fail without http path
-        # type: NodePort
+        type: LoadBalancer
         ports:
           http:
             port: 8081
