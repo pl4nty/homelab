@@ -59,6 +59,11 @@
       ],
       "datasourceTemplate": "github-releases",
       "versioningTemplate": "semver"
+    },
+    {
+      "matchUpdateTypes": ["patch"],
+      "matchPackageNames": ["immich-app/immich"],
+      "automerge": true
     }
   ],
   "hostRules": [
