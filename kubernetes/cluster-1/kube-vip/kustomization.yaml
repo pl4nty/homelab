@@ -1,4 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-- https://github.com/kube-vip/kube-vip-cloud-provider//manifest/kube-vip-cloud-controller.yaml
+- https://kube-vip.io/manifests/rbac.yaml
+- kube-vip.yaml
+- kube-vip-config.yaml
+- https://raw.githubusercontent.com/kube-vip/kube-vip-cloud-provider/main/manifest/kube-vip-cloud-controller.yaml
