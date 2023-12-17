@@ -32,7 +32,6 @@ spec:
         #   value: '1024'
     controllers:
       main:
-        replicas: 0
         pod:
           hostNetwork: true
         containers:
