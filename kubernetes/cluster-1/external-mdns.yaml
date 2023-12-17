@@ -10,12 +10,12 @@ kind: ClusterRole
 metadata:
  name: external-mdns
 rules:
-# - apiGroups: [""]
-#   resources: ["services"]
-#   verbs: ["list", "watch"]
-- apiGroups: ["extensions","networking.k8s.io"]
-  resources: ["ingresses"]
+- apiGroups: [""]
+  resources: ["services"]
   verbs: ["list", "watch"]
+# - apiGroups: ["extensions","networking.k8s.io"]
+#   resources: ["ingresses"]
+#   verbs: ["list", "watch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -35,7 +35,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: external-mdns
-  namespace: default # TODO merge with cloudflare-operator to networking-system
+  namespace: default
 spec:
   strategy:
     type: Recreate
@@ -51,8 +51,8 @@ spec:
       serviceAccountName: external-mdns
       containers:
       - name: external-mdns
-        image: blakec/external-mdns:0.5.0
+        image: pl4nty/external-mdns:latest
         args:
-        - -source=ingress
-        # - -source=service
+        # - -source=ingress
+        - -source=service
         - -namespace=default

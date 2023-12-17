@@ -59,11 +59,13 @@ spec:
     service:
       main:
         primary: false # healthchecks fail without http path
-        type: NodePort
+        # type: NodePort
         ports:
           http:
             port: 8081
-            nodePort: 30997
+            # nodePort: 30997
+        annotations:
+          external-mdns.blakecovarrubias.com/hostname: _microsoft_mcc._tcp.local
       metrics:
         primary: true
         controller: main
