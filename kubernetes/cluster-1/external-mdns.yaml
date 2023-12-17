@@ -48,10 +48,10 @@ spec:
         app: external-mdns
     spec:
       hostNetwork: true
-      securityContext:
-        sysctls:
-        - name: net.core.rmem_max
-          value: "2500000"
+      # securityContext:
+      #   sysctls:
+      #   - name: net.core.rmem_max
+      #     value: "2500000"
       serviceAccountName: external-mdns
       containers:
       - name: external-mdns
