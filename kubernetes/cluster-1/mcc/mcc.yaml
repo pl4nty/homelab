@@ -61,8 +61,8 @@ spec:
         type: LoadBalancer
         ports:
           http:
-            port: 8081
-            # nodePort: 30997
+            port: 80
+            targetPort: 8081
         annotations:
           external-mdns.blakecovarrubias.com/hostname: _microsoft_mcc._tcp
       metrics:
