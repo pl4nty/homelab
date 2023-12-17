@@ -64,7 +64,7 @@ spec:
             port: 8081
             # nodePort: 30997
         annotations:
-          external-mdns.blakecovarrubias.com/hostname: _microsoft_mcc
+          external-mdns.blakecovarrubias.com/hostname: _microsoft_mcc._tcp
       metrics:
         primary: true
         controller: main
