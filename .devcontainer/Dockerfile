@@ -1,4 +1,5 @@
 FROM mcr.microsoft.com/devcontainers/base:bookworm
+ARG TARGETOS TARGETARCH
 
 USER vscode
 
