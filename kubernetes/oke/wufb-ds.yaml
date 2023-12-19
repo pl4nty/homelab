@@ -35,6 +35,9 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-sdk: "true"
         containers:
           main:
             image:
