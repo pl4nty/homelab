@@ -4,7 +4,7 @@ metadata:
   name: immich-cnpg
   namespace: default
 spec:
-  instances: 1
+  instances: 2
   storage:
     size: 4Gi
   imageName: ghcr.io/bo0tzz/cnpgvecto.rs:14.10
