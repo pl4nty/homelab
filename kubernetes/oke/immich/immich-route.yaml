@@ -11,5 +11,5 @@ spec:
   - family-archive.${PUBLIC_DOMAIN}
   rules:
   - backendRefs:
-    - name: immich-proxy
-      port: 8080
+    - name: immich-server
+      port: 3001
