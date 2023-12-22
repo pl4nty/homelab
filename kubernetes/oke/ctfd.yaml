@@ -52,14 +52,18 @@ spec:
     persistence:
       config:
         enabled: true
-        globalMounts:
-        - path: /opt/CTFd/CTFd/uploads
+        advancedMounts:
+          main:
+            main:
+            - path: /opt/CTFd/CTFd/uploads
       db:
         enabled: true
         accessMode: ReadWriteOnce
         size: 1Gi
-        globalMounts:
-        - path: /opt/CTFd/CTFd/db
+        advancedMounts:
+          main:
+            main:
+            - path: /opt/CTFd/CTFd/db
     service:
       main:
         ports:
