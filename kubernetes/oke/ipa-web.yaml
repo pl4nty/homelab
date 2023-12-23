@@ -33,6 +33,16 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
+        # cookies must exist and be writeable
+        initContainers:
+          init:
+            image:
+              repository: busybox
+              tag: 1.36
+            command:
+              - sh
+              - -c
+              - cp /root/src/* /root/.ipatool
         containers:
           main:
             image:
@@ -43,11 +53,15 @@ spec:
         enabled: true
         type: secret
         name: ipa-web
+        advancedMounts:
+          main:
+            init:
+              - path: /root/src
+      empty:
+        enabled: true
+        type: emptyDir
         globalMounts:
-          - path: /root/.ipatool/account
-            subPath: account
-        # - path: /root/.ipatool/cookies
-        #   subPath: cookies
+          - path: /root/.ipatool
     service:
       main:
         ports:
