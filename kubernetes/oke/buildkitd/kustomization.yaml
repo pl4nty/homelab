@@ -49,14 +49,14 @@ patchesStrategicMerge:
         - name: certs
           secret:
             secretName: buildkit-daemon-certs
-        - name: buildkitd
-          $patch: delete
-    volumeClaimTemplates:
-    - metadata:
-        name: buildkitd
-      spec:
-        accessModes:
-        - ReadWriteOnce
-        resources:
-          requests:
-            storage: 16Gi
+# - name: buildkitd
+#   $patch: delete
+    # volumeClaimTemplates:
+    # - metadata:
+    #     name: buildkitd
+    #   spec:
+    #     accessModes:
+    #     - ReadWriteOnce
+    #     resources:
+    #       requests:
+    #         storage: 16Gi
