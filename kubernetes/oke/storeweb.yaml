@@ -26,8 +26,8 @@ spec:
     keepHistory: false
   values:
     defaultPodOptions:
-      annotations:
-        instrumentation.opentelemetry.io/inject-dotnet: "true"
+      # annotations:
+      #   instrumentation.opentelemetry.io/inject-dotnet: "true"
       automountServiceAccountToken: true
       enableServiceLinks: true
       nodeSelector:
