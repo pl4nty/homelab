@@ -38,6 +38,13 @@ spec:
             image:
               repository: ghcr.io/pl4nty/ipa-web
               tag: v0.1.0
+    persistence:
+      config:
+        enabled: true
+        type: secret
+        name: ipa-web
+        globalMounts:
+        - path: /root/.ipatool
     service:
       main:
         ports:
