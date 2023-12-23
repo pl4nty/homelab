@@ -1,0 +1,12 @@
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationDestination
+metadata:
+  name: immich
+spec:
+  trigger:
+    manual: restore-once
+  restic:
+    repository: immich-backup
+    # Use an existing PVC, don't provision a new one
+    destinationPVC: immich-library
+    copyMethod: Direct

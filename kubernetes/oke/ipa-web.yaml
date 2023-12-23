@@ -44,10 +44,10 @@ spec:
         type: secret
         name: ipa-web
         globalMounts:
-        - path: /root/.ipatool/account
-          subPath: account
-        - path: /root/.ipatool/cookies
-          subPath: cookies
+          - path: /root/.ipatool/account
+            subPath: account
+        # - path: /root/.ipatool/cookies
+        #   subPath: cookies
     service:
       main:
         ports:
@@ -57,11 +57,11 @@ spec:
       main:
         enabled: true
         parentRefs:
-        - namespace: default
-          name: ${CLUSTER_NAME}
+          - namespace: default
+            name: ${CLUSTER_NAME}
         hostnames:
-        - ios-app-data.${PUBLIC_DOMAIN}
+          - ios-app-data.${PUBLIC_DOMAIN}
         rules:
-        - backendRefs:
-          - name: ipa-web
-            port: 8080
+          - backendRefs:
+              - name: ipa-web
+                port: 8080
