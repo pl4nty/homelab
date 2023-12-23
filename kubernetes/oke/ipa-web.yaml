@@ -44,7 +44,10 @@ spec:
         type: secret
         name: ipa-web
         globalMounts:
-        - path: /root/.ipatool
+        - path: /root/.ipatool/account
+          subPath: account
+        - path: /root/.ipatool/cookies
+          subPath: cookies
     service:
       main:
         ports:
