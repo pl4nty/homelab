@@ -39,10 +39,10 @@ spec:
       # envcontext: iova-mode=pa
       resources:
         requests:
-          cpu: 1
+          cpu: 0.5
           hugepages2Mi: 1Gi
         limits:
-          cpu: 1
+          cpu: 0.5
           hugepages2Mi: 1Gi
     agents:
       core:
