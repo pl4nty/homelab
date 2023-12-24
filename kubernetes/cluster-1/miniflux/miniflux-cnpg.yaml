@@ -26,11 +26,6 @@ spec:
   #     data:
   #       compression: gzip
 
-  # miniflux requires a formatted connection string, so we can't use the default secret
-  # bootstrap:
-  #   initdb:
-  #     secret:
-  #       name: miniflux-db
   bootstrap:
     recovery:
       source: miniflux-cnpg
