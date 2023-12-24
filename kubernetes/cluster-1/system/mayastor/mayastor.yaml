@@ -49,3 +49,8 @@ spec:
         resources:
           requests:
             cpu: 10m
+    csi:
+      node:
+        resources:
+          requests:
+            cpu: 10m
