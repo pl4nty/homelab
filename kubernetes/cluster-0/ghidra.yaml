@@ -25,11 +25,6 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    defaultPodOptions:
-      automountServiceAccountToken: true
-      enableServiceLinks: true
-      # nodeSelector:
-      #   kubernetes.io/arch: arm64
     controllers:
       main:
         strategy: RollingUpdate
@@ -48,12 +43,7 @@ spec:
               SERVER_LOG_LEVEL: info
     service:
       main:
-        # type: LoadBalancer
-        annotations:
-          service.beta.kubernetes.io/oci-load-balancer-shape: flexible
-          service.beta.kubernetes.io/oci-load-balancer-shape-flex-min: "10"
-          service.beta.kubernetes.io/oci-load-balancer-shape-flex-max: "10"
-          external-dns.alpha.kubernetes.io/hostname: ghidra.${PUBLIC_DOMAIN}
+        type: LoadBalancer
         ports:
           http:
             enabled: false
