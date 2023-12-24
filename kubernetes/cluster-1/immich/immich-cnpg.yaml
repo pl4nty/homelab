@@ -44,8 +44,8 @@ spec:
   externalClusters:
   - name: immich-cnpg
     barmanObjectStore:
-      destinationPath: https://s3.us-west-004.backblazeb2.com
-      endpointURL: s3://tplant-homelab-postgres
+      endpointURL: https://s3.us-west-004.backblazeb2.com
+      destinationPath: s3://tplant-homelab-postgres
       s3Credentials:
         accessKeyId:
           name: cloudnative-pg

@@ -9,7 +9,7 @@ spec:
     schedule: 0 0 * * *
   restic:
     repository: changedetection-backup
-    copyMethod: Clone
+    copyMethod: Snapshot
     pruneIntervalDays: 14
     retain:
       daily: 30
