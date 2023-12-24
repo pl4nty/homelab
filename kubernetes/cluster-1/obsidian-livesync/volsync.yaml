@@ -1,15 +1,15 @@
 apiVersion: volsync.backube/v1alpha1
 kind: ReplicationSource
 metadata:
-   name: changedetection
+   name: obsidian-livesync
    namespace: default
 spec:
-  sourcePVC: changedetection-config
+  sourcePVC: obsidian-livesync-config
   trigger:
     schedule: 0 0 * * *
   restic:
-    repository: changedetection-backup
-    copyMethod: Clone
+    repository: obsidian-livesync-backup
+    copyMethod: Snapshot
     pruneIntervalDays: 14
     retain:
       daily: 30
