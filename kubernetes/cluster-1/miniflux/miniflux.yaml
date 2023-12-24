@@ -25,7 +25,7 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    defaultPodOptions:
+    # defaultPodOptions:
       # process has no symbol section
       # annotations:
       #   sidecar.opentelemetry.io/inject: monitoring-system/opentelemetry-sidecar
@@ -48,8 +48,8 @@ spec:
               BASE_URL: https://rss.${PRIVATE_DOMAIN}
               DATABASE_URL:
                 secretKeyRef:
-                  name: "miniflux-cnpg-app"
-                  key: "uri"
+                  name: miniflux-cnpg-app
+                  key: uri
               # DATABASE_URL: "$$(URI)?sslmode=disable"
     service:
       main:
