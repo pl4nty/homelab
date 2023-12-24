@@ -53,6 +53,15 @@ spec:
         secretAccessKey:
           name: cloudnative-pg
           key: ACCESS_SECRET_KEY
+
+  # otherwise postgres crashes with hugepages enabled
+  resources:
+    requests:
+      memory: 100Mi
+      hugepages-2Mi: 100Gi
+    limits:
+      memory: 1Gi
+      hugepages-2Mi: 1Gi
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup
