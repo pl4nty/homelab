@@ -47,10 +47,9 @@ spec:
               LOG_LEVEL: info
               BASE_URL: https://rss.${PRIVATE_DOMAIN}
               DATABASE_URL:
-                valueFrom:
-                  secretKeyRef:
-                    name: miniflux-cnpg-app
-                    key: uri
+                secretKeyRef:
+                  name: miniflux-cnpg-app
+                  key: uri
               # DATABASE_URL: "$$(URI)?sslmode=disable"
     service:
       main:
