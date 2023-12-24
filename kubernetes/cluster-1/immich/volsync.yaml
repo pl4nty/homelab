@@ -4,12 +4,12 @@ metadata:
    name: immich
    namespace: default
 spec:
-  sourcePVC: immich-library
+  sourcePVC: immich
   trigger:
     schedule: 0 0 * * *
   restic:
     repository: immich-backup
-    copyMethod: Clone
+    copyMethod: Snapshot
     pruneIntervalDays: 14
     retain:
       daily: 30
