@@ -1,12 +1,12 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: tandoor-cnpg-1
+  name: tandoor-cnpg-0
   namespace: default
 spec:
   instances: 1
   storage:
-    size: 4Gi
+    size: 1Gi
 
   backup:
     retentionPolicy: 30d
@@ -41,10 +41,15 @@ spec:
         secretAccessKey:
           name: cloudnative-pg
           key: ACCESS_SECRET_KEY
-      wal:
-        compression: gzip
-      data:
-        compression: gzip
+
+  # otherwise postgres crashes with hugepages enabled
+  resources:
+    requests:
+      memory: 100Mi
+      hugepages-2Mi: 100Gi
+    limits:
+      memory: 1Gi
+      hugepages-2Mi: 1Gi
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup
