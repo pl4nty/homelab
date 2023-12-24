@@ -58,7 +58,7 @@ spec:
   resources:
     requests:
       memory: 100Mi
-      hugepages-2Mi: 100Gi
+      hugepages-2Mi: 100Mi
     limits:
       memory: 1Gi
       hugepages-2Mi: 1Gi
