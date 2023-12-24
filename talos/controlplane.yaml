@@ -278,7 +278,7 @@ machine:
     # # Used to configure the machine's sysctls.
     # # MachineSysctls usage example.
     sysctls:
-        vm.nr_hugepages: "1024"
+        vm.nr_hugepages: "1536"
     # # Used to configure the machine's sysfs.
     # # MachineSysfs usage example.
     # sysfs:
@@ -498,8 +498,8 @@ sops:
             V0I1bi9vTjVtTVNWa0JBYVM3UEVoU0UKlIziv/nIPnsfATFf5HirkiJHwFgTtaKf
             7E0q7iB3tN/eFb3aegc2/3gvV/qb4I8a9gq8xvxsDs04V4QNke4+8Q==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-10-31T23:04:28Z"
-    mac: ENC[AES256_GCM,data:OvbxWoqjmg4ifb9JWhweqR4TPWGGKzxVXLTWaH517O3tcEemqtn+Inek+9f6wMvpwcP5cOS4RciC3AAO8QTxHWk/O59b4xEcObQSkExbv28Chk7sGUvj4iJy9P1PItDgd+ypKk6ikaX4eLFQaZXfHaANra4gRbXBOJUZ/zIXK4A=,iv:5lNsVkFJS/CnsQoTDX+EQA2r0iOn80uNHh2UsN8e0j4=,tag:25uncBEsf2CXQE3jIBYHDQ==,type:str]
+    lastmodified: "2023-12-24T05:13:34Z"
+    mac: ENC[AES256_GCM,data:ddY7KFOSIHi5VhimDrhep4GrB4CQR/XcKWB8cuugIWWjCAif2H3ZWrnwX51yG+/elNWr37GtY+sqr8ZoujaPJ/cyZyvaNrMrWX9jUX8Bb0ckL7xMigUHVeDnbdRIDWnbuBpLdH2UvlJp08qBvuwsu06e52WbK1XyizUZqebjGW0=,iv:dken4colGd93nScTmGALDqoyYlsz8HUW3DgEO/RX6MA=,tag:QqbX5qijoRyHbGckHBx5VQ==,type:str]
     pgp: []
     encrypted_regex: ^(token|crt|key|id|secret|secretboxEncryptionSecret)$
     version: 3.8.1
