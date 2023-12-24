@@ -7,6 +7,7 @@ spec:
   instances: 1
   storage:
     size: 1Gi
+  imageName: ghcr.io/cloudnative-pg/postgresql:15.5
 
   backup:
     retentionPolicy: 30d
