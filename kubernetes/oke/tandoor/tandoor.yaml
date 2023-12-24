@@ -63,15 +63,15 @@ spec:
               # DEBUG: "0"
               # ALLOWED_HOSTS: "*"
               DB_ENGINE: django.db.backends.postgresql
-              POSTGRES_HOST: tandoor-cnpg-0-rw
+              POSTGRES_HOST: tandoor-cnpg-rw
               POSTGRES_PORT: "5432"
               POSTGRES_USER:
                 secretKeyRef:
-                  name: tandoor-cnpg-0-app
+                  name: tandoor-cnpg-app
                   key: username
               POSTGRES_PASSWORD:
                 secretKeyRef:
-                  name: tandoor-cnpg-0-app
+                  name: tandoor-cnpg-app
                   key: password
               POSTGRES_DB: app
               # GUNICORN_MEDIA: "0"
