@@ -1,12 +1,12 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: tandoor-cnpg
+  name: tandoor-cnpg-1
   namespace: default
 spec:
   instances: 1
   storage:
-    size: 4Gi
+    size: 1Gi
 
   backup:
     retentionPolicy: 30d
@@ -24,6 +24,23 @@ spec:
         compression: gzip
       data:
         compression: gzip
+
+  bootstrap:
+    recovery:
+      source: tandoor-cnpg
+
+  externalClusters:
+  - name: tandoor-cnpg
+    barmanObjectStore:
+      endpointURL: https://s3.us-west-004.backblazeb2.com
+      destinationPath: s3://tplant-homelab-postgres
+      s3Credentials:
+        accessKeyId:
+          name: cloudnative-pg
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: cloudnative-pg
+          key: ACCESS_SECRET_KEY
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup
