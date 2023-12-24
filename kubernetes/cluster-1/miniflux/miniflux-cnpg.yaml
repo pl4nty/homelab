@@ -1,0 +1,69 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: miniflux-cnpg
+  namespace: default
+spec:
+  instances: 1
+  storage:
+    size: 1Gi
+
+  # backup:
+  #   retentionPolicy: 30d
+  #   barmanObjectStore:
+  #     endpointURL: https://s3.us-west-004.backblazeb2.com
+  #     destinationPath: s3://tplant-homelab-postgres
+  #     s3Credentials:
+  #       accessKeyId:
+  #         name: cloudnative-pg
+  #         key: ACCESS_KEY_ID
+  #       secretAccessKey:
+  #         name: cloudnative-pg
+  #         key: ACCESS_SECRET_KEY
+  #     wal:
+  #       compression: gzip
+  #     data:
+  #       compression: gzip
+
+  # miniflux requires a formatted connection string, so we can't use the default secret
+  # bootstrap:
+  #   initdb:
+  #     secret:
+  #       name: miniflux-db
+  bootstrap:
+    recovery:
+      source: miniflux-cnpg
+
+  externalClusters:
+  - name: miniflux-cnpg
+    barmanObjectStore:
+      endpointURL: https://s3.us-west-004.backblazeb2.com
+      destinationPath: s3://tplant-homelab-postgres
+      s3Credentials:
+        accessKeyId:
+          name: cloudnative-pg
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: cloudnative-pg
+          key: ACCESS_SECRET_KEY
+
+  # otherwise postgres crashes with hugepages enabled
+  resources:
+    requests:
+      memory: 100Mi
+      hugepages-2Mi: 100Mi
+    limits:
+      memory: 1Gi
+      hugepages-2Mi: 100Mi
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: miniflux
+  namespace: default
+spec:
+  immediate: true
+  schedule: 0 0 0 * * *
+  backupOwnerReference: self
+  cluster:
+    name: miniflux-cnpg
