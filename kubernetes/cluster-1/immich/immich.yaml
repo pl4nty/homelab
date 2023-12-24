@@ -26,7 +26,7 @@ spec:
     keepHistory: false
   values:
     env:
-      DB_HOSTNAME: immich-cnpg-rw
+      DB_HOSTNAME: immich-cnpg-0-rw
       DB_DATABASE_NAME: immich
     envFrom:
     - secretRef:
