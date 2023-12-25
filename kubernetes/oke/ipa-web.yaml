@@ -35,38 +35,16 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
-        # cookies must exist and be writeable
-        initContainers:
-          init:
-            image:
-              repository: busybox
-              tag: 1.36
-            command:
-              - sh
-              - -c
-              - cp /root/src/* /root/.ipatool
         containers:
           main:
             image:
               repository: ghcr.io/pl4nty/ipa-web
-              tag: v0.1.1
+              tag: v0.1.3
             env:
               GIN_MODE: release
-              
-    persistence:
-      config:
-        enabled: true
-        type: secret
-        name: ipa-web
-        advancedMounts:
-          main:
-            init:
-              - path: /root/src
-      empty:
-        enabled: true
-        type: emptyDir
-        globalMounts:
-          - path: /root/.ipatool
+            envFrom:
+            - secretRef:
+                name: ipa-web
     service:
       main:
         ports:
