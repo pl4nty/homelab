@@ -9,22 +9,22 @@ spec:
     size: 1Gi
   imageName: ghcr.io/cloudnative-pg/postgresql:15.5
 
-  backup:
-    retentionPolicy: 30d
-    barmanObjectStore:
-      endpointURL: https://s3.us-west-004.backblazeb2.com
-      destinationPath: s3://tplant-homelab-postgres
-      s3Credentials:
-        accessKeyId:
-          name: cloudnative-pg
-          key: ACCESS_KEY_ID
-        secretAccessKey:
-          name: cloudnative-pg
-          key: ACCESS_SECRET_KEY
-      wal:
-        compression: gzip
-      data:
-        compression: gzip
+  # backup:
+  #   retentionPolicy: 30d
+  #   barmanObjectStore:
+  #     endpointURL: https://s3.us-west-004.backblazeb2.com
+  #     destinationPath: s3://tplant-homelab-postgres
+  #     s3Credentials:
+  #       accessKeyId:
+  #         name: cloudnative-pg
+  #         key: ACCESS_KEY_ID
+  #       secretAccessKey:
+  #         name: cloudnative-pg
+  #         key: ACCESS_SECRET_KEY
+  #     wal:
+  #       compression: gzip
+  #     data:
+  #       compression: gzip
 
   bootstrap:
     recovery:
@@ -47,10 +47,10 @@ spec:
   resources:
     requests:
       memory: 100Mi
-      # hugepages-2Mi: 100Mi
+      hugepages-2Mi: 100Mi
     limits:
       memory: 1Gi
-      # hugepages-2Mi: 100Mi
+      hugepages-2Mi: 100Mi
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup

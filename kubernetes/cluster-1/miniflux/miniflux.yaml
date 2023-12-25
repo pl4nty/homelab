@@ -50,7 +50,6 @@ spec:
                 secretKeyRef:
                   name: miniflux-cnpg-app
                   key: uri
-              # DATABASE_URL: "$$(URI)?sslmode=disable"
             envFrom:
             - secretRef:
                 name: miniflux
