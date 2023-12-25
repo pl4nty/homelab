@@ -25,10 +25,11 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    podAnnotations:
-      sidecar.opentelemetry.io/inject: "monitoring-system/opentelemetry-sidecar"
-      instrumentation.opentelemetry.io/inject-go: "monitoring-system/opentelemetry-sidecar"
-      instrumentation.opentelemetry.io/otel-go-auto-target-exe: "/usr/bin/ipa-web"
+    defaultPodOptions:
+      annotations:
+        sidecar.opentelemetry.io/inject: "monitoring-system/opentelemetry-sidecar"
+        instrumentation.opentelemetry.io/inject-go: "monitoring-system/opentelemetry-sidecar"
+        instrumentation.opentelemetry.io/otel-go-auto-target-exe: "/usr/bin/ipa-web"
     controllers:
       main:
         strategy: RollingUpdate
