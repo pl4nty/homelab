@@ -53,6 +53,9 @@ spec:
       #   - name: net.core.rmem_max
       #     value: "2500000"
       serviceAccountName: external-mdns
+      # change once PR is merged
+      nodeSelector:
+        kubernetes.io/arch: amd64
       containers:
       - name: external-mdns
         image: ghcr.io/pl4nty/external-mdns:latest
