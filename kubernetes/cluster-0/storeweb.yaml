@@ -26,13 +26,11 @@ spec:
     keepHistory: false
   values:
     defaultPodOptions:
-      # annotations:
-      #   instrumentation.opentelemetry.io/inject-dotnet: "true"
-      automountServiceAccountToken: true
-      enableServiceLinks: true
-      # nodeSelector:
+      annotations:
+        instrumentation.opentelemetry.io/inject-dotnet: "true"
+      nodeSelector:
         # autoinstrumentation lacks arm64 support pending open-telemetry/opentelemetry-dotnet-instrumentation#2314
-        # kubernetes.io/arch: amd64
+        kubernetes.io/arch: amd64
     controllers:
       main:
         strategy: RollingUpdate
