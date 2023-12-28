@@ -43,16 +43,16 @@ spec:
           existingClaim: immich
 
     # affinity for ReadWriteOnce library volume
-    affinity:
-      podAffinity: 
-        requiredDuringSchedulingIgnoredDuringExecution: 
-        - labelSelector:
-            matchExpressions:
-            - key: app.kubernetes.io/instance
-              operator: In 
-              values:
-              - immich 
-          topologyKey: kubernetes.io/hostname
+    # affinity:
+    #   podAffinity: 
+    #     requiredDuringSchedulingIgnoredDuringExecution: 
+    #     - labelSelector:
+    #         matchExpressions:
+    #         - key: app.kubernetes.io/instance
+    #           operator: In 
+    #           values:
+    #           - immich 
+    #       topologyKey: kubernetes.io/hostname
 
     redis:
       enabled: true
@@ -78,7 +78,6 @@ spec:
       podAnnotations:
         instrumentation.opentelemetry.io/inject-nodejs: "true"
 
-    # don't persist ML models, redownload is on-demand
     machine-learning:
       controller:
         strategy: RollingUpdate
