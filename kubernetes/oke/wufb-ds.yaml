@@ -48,6 +48,11 @@ spec:
         ports:
           http:
             port: 8080
+    serviceMonitor:
+      main:
+        enabled: true
+        endpoints:
+        - port: metrics
     route:
       main:
         enabled: true
