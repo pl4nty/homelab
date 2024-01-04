@@ -43,6 +43,8 @@ spec:
             image:
               repository: ghcr.io/pl4nty/wufb-ds
               tag: latest@sha256:0ae012bde925eeaa82d9f9a60c7bb2b311a2c82efb8302ad104a9395f48d0885
+            env:
+              SERVER_EXPERIMENTAL_METRICS: true
     service:
       main:
         ports:
