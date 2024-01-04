@@ -51,8 +51,6 @@ spec:
     serviceMonitor:
       main:
         enabled: true
-        endpoints:
-        - port: metrics
     route:
       main:
         enabled: true
