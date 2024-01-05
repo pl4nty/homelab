@@ -28,8 +28,8 @@ spec:
     defaultPodOptions:
       automountServiceAccountToken: true
       enableServiceLinks: true
-      # nodeSelector:
-      #   kubernetes.io/arch: arm64
+      annotations:
+        instrumentation.opentelemetry.io/inject-nginx: "true"
     controllers:
       main:
         strategy: RollingUpdate
@@ -39,15 +39,12 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/jsonwebtoken
-              tag: latest@sha256:48b2b12fae626171a6b87db599a2de9446c6dabc661054d8a4aaff124eebc4f3
-            env:
-              SERVER_LOG_LEVEL: info
-              SERVER_PORT: 8080
+              tag: latest@sha256:sha256:c50b1435f3f0a3ba6a20f70d1d7183cc43feb33b9789dc304963554ba8ec66f5
     service:
       main:
         ports:
           http:
-            port: 8080
+            port: 80
     route:
       main:
         enabled: true
