@@ -56,4 +56,4 @@ spec:
         rules:
         - backendRefs:
           - name: jsonwebtoken
-            port: 8080
+            port: 80
