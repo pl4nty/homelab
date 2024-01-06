@@ -28,8 +28,8 @@ spec:
     defaultPodOptions:
       automountServiceAccountToken: true
       enableServiceLinks: true
-      # annotations:
-      #   instrumentation.opentelemetry.io/inject-nginx: "true"
+      annotations:
+        instrumentation.opentelemetry.io/inject-nginx: "true"
     controllers:
       main:
         strategy: RollingUpdate
