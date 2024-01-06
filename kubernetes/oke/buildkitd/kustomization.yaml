@@ -39,7 +39,7 @@ patchesStrategicMerge:
             requests:
               cpu: 100m
             limits:
-              cpu: 1
+              cpu: 3
           livenessProbe:
             timeoutSeconds: 5
           volumeMounts:
