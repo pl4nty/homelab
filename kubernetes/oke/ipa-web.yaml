@@ -39,7 +39,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/ipa-web
-              tag: v0.2.1
+              tag: v0.4.1
             env:
               GIN_MODE: release
             envFrom:
