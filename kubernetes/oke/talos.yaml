@@ -92,3 +92,7 @@ spec:
           name: ${CLUSTER_NAME}
         hostnames:
         - talos.${PUBLIC_DOMAIN}
+        rules:
+        - backendRefs:
+          - name: talos
+            port: 8080
