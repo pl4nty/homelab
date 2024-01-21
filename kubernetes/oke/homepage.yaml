@@ -32,12 +32,12 @@ spec:
     persistence:
       logs:
         enabled: false
+    podAnnotations:
+      instrumentation.opentelemetry.io/inject-nodejs: "true"
     config:
       settings:
         title: Tom's Homelab
-        background:
-          image: https://www.justrubyandme.com/cdn/shop/products/il_fullxfull.2938447122_idal.jpg
-          blur: sm
+        background: https://www.canberratimes.com.au/images/transform/v1/crop/frm/silverstone-ct-migration/04c1cd85-b455-4e0d-ba28-00302d96b26b/r0_0_1280_854_w1200_h678_fmax.jpg
         favicon: https://tplant.com.au/avatar.ico
         fiveColumns: true
         useEqualHeights: true
