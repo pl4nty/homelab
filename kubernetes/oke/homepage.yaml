@@ -1,0 +1,125 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: homepage
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: homepage
+      sourceRef:
+        kind: HelmRepository
+        name: homepage
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    image:
+      tag: v0.8.6
+    persistence:
+      logs:
+        enabled: false
+    config:
+      bookmarks:
+      - dependencies:
+        - github:
+            href: https://www.githubstatus.com
+            icon: si-github
+        - renovate:
+            href: https://status.mend.io
+            icon: si-renovatebot
+        - backblaze:
+            href: https://status.backblaze.com
+            icon: si-backblaze
+        - grafana:
+            href: https://status.grafana.com
+            icon: si-grafana
+        - bunny.net:
+            href: https://status.bunny.net
+            icon: logos:bunny-net-icon
+        - cloudflare:
+            href: https://www.cloudflarestatus.com
+            icon: si-cloudflare
+        - aussiebb:
+            href: https://www.aussiebroadband.com.au/help-centre/system-outages
+            icon: https://www.aussiebroadband.com.au/assets/favicons/android-icon-192x192.png
+        - azure:
+            href: https://azure.status.microsoft
+            icon: si-microsoftazure
+        - oracle cloud:
+            href: https://ocistatus.oraclecloud.com
+            icon: si-oracle
+        - ventraip:
+            href: https://status.ventraip.com.au
+            # icon: https://ventraip.com.au/wp-content/uploads/2020/08/logo-ventraip-australia.png
+      - utils:
+        - k8s-at-home search:
+            href: https://nanne.dev/k8s-at-home-search
+        - visualise CRDs:
+            href: https://doc.crds.dev
+      services:
+      - msft:
+        - Message Header Analyser:
+            href: https://mha.${PUBLIC_DOMAIN}
+        - Microsoft Store package tools:
+            href: https://msft-store.${PUBLIC_DOMAIN}
+            icon: si-microsoftstore
+        - Token decoder:
+            href: https://jwtms.${PUBLIC_DOMAIN}
+        - Virtual network planner:
+            href: https://vnetplanner.${PUBLIC_DOMAIN}
+            icon: si-microsoftazure
+        - Windows Update deployment service:
+            href: https://wufb-ds.${PUBLIC_DOMAIN}
+            icon: si-windows
+      - tools:
+        - CyberChef:
+            href: https://cyberchef.${PUBLIC_DOMAIN}
+        - Drawing canvas:
+            href: https://shapes.${PUBLIC_DOMAIN}
+        - File converter:
+            href: https://convert.${PUBLIC_DOMAIN}
+        - JWT decoder:
+            href: https://jwt.${PUBLIC_DOMAIN}
+        - Misc IT tools:
+            href: https://tools.${PUBLIC_DOMAIN}
+        - OpenSSL web:
+            href: https://openssl.${PUBLIC_DOMAIN}
+        - PDF editor:
+            href: https://pdf.${PUBLIC_DOMAIN}
+      - data:
+        - iOS app metadata:
+            href: https://ios-app-data.${PUBLIC_DOMAIN}
+            icon: si-apple
+        - Network looking glass:
+            href: https://lg.${PUBLIC_DOMAIN}
+        - Spotify analytics:
+            href: https://spotify.${PUBLIC_DOMAIN}
+            icon: si-spotify
+      - uni:
+        - Degree planner:
+            href: https://degree-planner.${PUBLIC_DOMAIN}
+        - Timetable:
+            href: https://timetable.cssa.club
+      - games:
+        - Ataxx boardgame:
+            href: https://ataxx.${PUBLIC_DOMAIN}
+        - Temple Trap boardgame:
+            href: https://temple-trap.${PUBLIC_DOMAIN}
+        - Tsuro boardgame:
+            href: https://tsuro.${PUBLIC_DOMAIN}
+        - LEEKSPIN:
+            href: https://leekspin.${PUBLIC_DOMAIN}
+        - Team Fortress 2:
+            href: steam://connect/tf2.${PUBLIC_DOMAIN}:27015
+            icon: si-steam
