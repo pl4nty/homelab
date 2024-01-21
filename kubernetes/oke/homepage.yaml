@@ -77,11 +77,6 @@ spec:
         - ventraip:
           - href: https://status.ventraip.com.au
             # icon: https://ventraip.com.au/wp-content/uploads/2020/08/logo-ventraip-australia.png
-      - dev:
-        - k8s-at-home search:
-          - href: https://nanne.dev/k8s-at-home-search
-        - visualise CRDs:
-          - href: https://doc.crds.dev
       services:
       - msft:
         - Message Header Analyser:
