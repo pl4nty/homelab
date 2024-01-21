@@ -25,6 +25,7 @@ spec:
     keepHistory: false
   values:
     image:
+      repository: ghcr.io/gethomepage/homepage
       tag: v0.8.6
     serviceAccount:
       name: default
