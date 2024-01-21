@@ -26,6 +26,8 @@ spec:
   values:
     image:
       tag: v0.8.6
+    serviceAccount:
+      name: default
     persistence:
       logs:
         enabled: false
