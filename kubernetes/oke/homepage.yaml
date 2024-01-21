@@ -36,17 +36,18 @@ spec:
       settings:
         title: Tom's Homelab
         background:
-          image: https://dxc.scene7.com/is/image/dxc/dxc-au-cs-ato-dynamic-image:banner_desktop
+          image: https://www.justrubyandme.com/cdn/shop/products/il_fullxfull.2938447122_idal.jpg
           blur: sm
-        favicon: https://tplant.com.au/favicon.ico
+        favicon: https://tplant.com.au/avatar.ico
         fiveColumns: true
         useEqualHeights: true
         hideVersion: true
-      # bookmarks:
-      # - dependencies:
-      #   - github:
-      #       href: https://www.githubstatus.com
-      #       icon: si-github
+      widgets: []
+      bookmarks:
+      - dependencies:
+        - github:
+            href: https://www.githubstatus.com
+            icon: si-github
       #   - renovate:
       #       href: https://status.mend.io
       #       icon: si-renovatebot
