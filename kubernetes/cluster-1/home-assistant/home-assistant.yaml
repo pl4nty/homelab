@@ -53,6 +53,13 @@ spec:
         ports:
           http:
             port: 8123
+      local:
+        enabled: true
+        controller: main
+        type: LoadBalancer
+        ports:
+          http:
+            port: 8123
     route:
       main:
         enabled: true
