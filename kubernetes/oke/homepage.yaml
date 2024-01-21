@@ -33,6 +33,15 @@ spec:
       logs:
         enabled: false
     config:
+      settings:
+        title: Tom's Homelab
+        background:
+          image: https://dxc.scene7.com/is/image/dxc/dxc-au-cs-ato-dynamic-image:banner_desktop
+          blur: sm
+        favicon: https://tplant.com.au/favicon.ico
+        fiveColumns: true
+        useEqualHeights: true
+        hideVersion: true
       bookmarks:
       - dependencies:
         - github:
@@ -49,7 +58,7 @@ spec:
             icon: si-grafana
         - bunny.net:
             href: https://status.bunny.net
-            icon: logos:bunny-net-icon
+            # icon: logos:bunny-net-icon
         - cloudflare:
             href: https://www.cloudflarestatus.com
             icon: si-cloudflare
@@ -90,8 +99,10 @@ spec:
             href: https://cyberchef.${PUBLIC_DOMAIN}
         - Drawing canvas:
             href: https://shapes.${PUBLIC_DOMAIN}
+            icon: si-haskell
         - File converter:
             href: https://convert.${PUBLIC_DOMAIN}
+            icon: si-files
         - JWT decoder:
             href: https://jwt.${PUBLIC_DOMAIN}
         - Misc IT tools:
@@ -100,6 +111,7 @@ spec:
             href: https://openssl.${PUBLIC_DOMAIN}
         - PDF editor:
             href: https://pdf.${PUBLIC_DOMAIN}
+            icon: si-adobeacrobatreader
       - data:
         - iOS app metadata:
             href: https://ios-app-data.${PUBLIC_DOMAIN}
@@ -117,6 +129,7 @@ spec:
       - games:
         - Ataxx boardgame:
             href: https://ataxx.${PUBLIC_DOMAIN}
+            icon: si-haskell
         - Temple Trap boardgame:
             href: https://temple-trap.${PUBLIC_DOMAIN}
         - Tsuro boardgame:
