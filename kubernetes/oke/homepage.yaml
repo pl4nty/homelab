@@ -38,12 +38,12 @@ spec:
       settings:
         title: Tom's Homelab
         # background: https://www.canberratimes.com.au/images/transform/v1/crop/frm/silverstone-ct-migration/04c1cd85-b455-4e0d-ba28-00302d96b26b/r0_0_1280_854_w1200_h678_fmax.jpg
-        background: 
-          image: https://live-production.wcms.abc-cdn.net.au/b06527bc72714bc050a7b9dcbdda8662
-          blur: sm
-        # cardBlur: sm
+        background: https://live-production.wcms.abc-cdn.net.au/b06527bc72714bc050a7b9dcbdda8662
+        cardBlur: sm
         favicon: https://tplant.com.au/avatar.ico
+        theme: dark
         color: rose
+        iconStyle: theme
         fiveColumns: true
         useEqualHeights: true
         hideVersion: true
@@ -81,20 +81,6 @@ spec:
       #     - href: https://status.ventraip.com.au
             # icon: https://ventraip.com.au/wp-content/uploads/2020/08/logo-ventraip-australia.png
       services:
-      - msft:
-        - Message Header Analyser:
-            href: https://mha.${PUBLIC_DOMAIN}
-        - Microsoft Store package tools:
-            href: https://msft-store.${PUBLIC_DOMAIN}
-            icon: si-microsoftstore
-        - Token decoder:
-            href: https://jwtms.${PUBLIC_DOMAIN}
-        - Virtual network planner:
-            href: https://vnetplanner.${PUBLIC_DOMAIN}
-            icon: si-microsoftazure
-        - Windows Update deployment service:
-            href: https://wufb-ds.${PUBLIC_DOMAIN}
-            icon: si-windows
       - tools:
         - CyberChef:
             href: https://cyberchef.${PUBLIC_DOMAIN}
@@ -113,6 +99,20 @@ spec:
         - PDF editor:
             href: https://pdf.${PUBLIC_DOMAIN}
             icon: si-adobeacrobatreader
+      - msft:
+        - Message Header Analyser:
+            href: https://mha.${PUBLIC_DOMAIN}
+        - Microsoft Store package tools:
+            href: https://msft-store.${PUBLIC_DOMAIN}
+            icon: si-microsoftstore
+        - Token decoder:
+            href: https://jwtms.${PUBLIC_DOMAIN}
+        - Virtual network planner:
+            href: https://vnetplanner.${PUBLIC_DOMAIN}
+            icon: si-microsoftazure
+        - Windows Update deployment service:
+            href: https://wufb-ds.${PUBLIC_DOMAIN}
+            icon: si-windows
       - data:
         - ANU degree planner:
             href: https://degree-planner.${PUBLIC_DOMAIN}
