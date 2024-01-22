@@ -45,37 +45,37 @@ spec:
         useEqualHeights: true
         hideVersion: true
       widgets: []
-      bookmarks:
-      - dependencies:
-        - github:
-          - href: https://www.githubstatus.com
-            icon: si-github
-        - renovate:
-          - href: https://status.mend.io
-            icon: si-renovatebot
-        - backblaze:
-          - href: https://status.backblaze.com
-            icon: si-backblaze
-        - grafana:
-          - href: https://status.grafana.com
-            icon: si-grafana
-        - bunny.net:
-          - href: https://status.bunny.net
-            # icon: logos:bunny-net-icon
-        - cloudflare:
-          - href: https://www.cloudflarestatus.com
-            icon: si-cloudflare
-        - aussiebb:
-          - href: https://www.aussiebroadband.com.au/help-centre/system-outages
-            icon: https://www.aussiebroadband.com.au/assets/favicons/android-icon-192x192.png
-        - azure:
-          - href: https://azure.status.microsoft
-            icon: si-microsoftazure
-        - oracle cloud:
-          - href: https://ocistatus.oraclecloud.com
-            icon: si-oracle
-        - ventraip:
-          - href: https://status.ventraip.com.au
+      # bookmarks:
+      # - dependencies:
+      #   - github:
+      #     - href: https://www.githubstatus.com
+      #       icon: si-github
+      #   - renovate:
+      #     - href: https://status.mend.io
+      #       icon: si-renovatebot
+      #   - backblaze:
+      #     - href: https://status.backblaze.com
+      #       icon: si-backblaze
+      #   - grafana:
+      #     - href: https://status.grafana.com
+      #       icon: si-grafana
+      #   - bunny.net:
+      #     - href: https://status.bunny.net
+      #       # icon: logos:bunny-net-icon
+      #   - cloudflare:
+      #     - href: https://www.cloudflarestatus.com
+      #       icon: si-cloudflare
+      #   - aussiebb:
+      #     - href: https://www.aussiebroadband.com.au/help-centre/system-outages
+      #       icon: https://www.aussiebroadband.com.au/assets/favicons/android-icon-192x192.png
+      #   - azure:
+      #     - href: https://azure.status.microsoft
+      #       icon: si-microsoftazure
+      #   - oracle cloud:
+      #     - href: https://ocistatus.oraclecloud.com
+      #       icon: si-oracle
+      #   - ventraip:
+      #     - href: https://status.ventraip.com.au
             # icon: https://ventraip.com.au/wp-content/uploads/2020/08/logo-ventraip-australia.png
       services:
       - msft:
