@@ -101,6 +101,19 @@ spec:
             icon: si-adobeacrobatreader
         - Talos Linux image factory:
             href: https://talos.${PUBLIC_DOMAIN}
+      - data:
+        - ANU degree planner:
+            href: https://degree-planner.${PUBLIC_DOMAIN}
+        - ANU timetable:
+            href: https://timetable.cssa.club
+        - iOS app metadata:
+            href: https://ios-app-data.${PUBLIC_DOMAIN}
+            icon: si-apple
+        - Network looking glass:
+            href: https://lg.${PUBLIC_DOMAIN}
+        - Spotify analytics:
+            href: https://spotify.${PUBLIC_DOMAIN}
+            icon: si-spotify
       - micro🅱️oft:
         - Email header analyser:
             href: https://mha.${PUBLIC_DOMAIN}
@@ -115,19 +128,6 @@ spec:
         - Windows Update deployment service:
             href: https://wufb-ds.${PUBLIC_DOMAIN}
             icon: si-windows
-      - data:
-        - ANU degree planner:
-            href: https://degree-planner.${PUBLIC_DOMAIN}
-        - ANU timetable:
-            href: https://timetable.cssa.club
-        - iOS app metadata:
-            href: https://ios-app-data.${PUBLIC_DOMAIN}
-            icon: si-apple
-        - Network looking glass:
-            href: https://lg.${PUBLIC_DOMAIN}
-        - Spotify analytics:
-            href: https://spotify.${PUBLIC_DOMAIN}
-            icon: si-spotify
       - games:
         - Ataxx boardgame:
             href: https://ataxx.${PUBLIC_DOMAIN}
