@@ -99,10 +99,12 @@ spec:
         - PDF editor:
             href: https://pdf.${PUBLIC_DOMAIN}
             icon: si-adobeacrobatreader
-      - msft:
-        - Message Header Analyser:
+        - Talos Linux image factory:
+            href: https://talos.${PUBLIC_DOMAIN}
+      - micro🅱️oft:
+        - Email header analyser:
             href: https://mha.${PUBLIC_DOMAIN}
-        - Microsoft Store package tools:
+        - Store package tools:
             href: https://msft-store.${PUBLIC_DOMAIN}
             icon: si-microsoftstore
         - Token decoder:
@@ -130,6 +132,9 @@ spec:
         - Ataxx boardgame:
             href: https://ataxx.${PUBLIC_DOMAIN}
             icon: si-haskell
+        - CTF archive:
+            href: https://ctf.${PUBLIC_DOMAIN}
+            icon: si-tryhackme
         - Temple Trap boardgame:
             href: https://temple-trap.${PUBLIC_DOMAIN}
         - Tsuro boardgame:
