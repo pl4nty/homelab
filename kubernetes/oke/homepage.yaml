@@ -101,6 +101,7 @@ spec:
             icon: si-adobeacrobatreader
         - Talos Linux image factory:
             href: https://talos.${PUBLIC_DOMAIN}
+            icon: si-linuxcontainers
       - data:
         - ANU degree planner:
             href: https://degree-planner.${PUBLIC_DOMAIN}
