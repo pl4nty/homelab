@@ -14,22 +14,16 @@ machine:
         disableManifestsDirectory: true
         extraArgs:
             rotate-server-certificates: true
-        extraMounts:
-            - destination: /var/local/localpv-hostpath
-              type: bind
-              source: /var/local/localpv-hostpath
-              options:
-                - bind
-                - rshared
-                - rw
     network: {}
     install:
         diskSelector:
             size: <= 100GB
-        image: ghcr.io/nberlee/installer:v1.6.2
+        image: ghcr.io/nberlee/installer:v1.6.3
         wipe: true
         extensions:
-            - image: ghcr.io/nberlee/rk3588:v1.6.2
+            - image: ghcr.io/nberlee/rk3588:v1.6.3
+            - image: ghcr.io/siderolabs/iscsi-tools:v0.1.4
+              # - image: ghcr.io/siderolabs/util-linux-tools:v1.6.2
     kernel:
         modules:
             - name: rockchip-cpufreq
@@ -76,8 +70,8 @@ sops:
             bHc2ZEhtek9kY25kejlWWkprdS9JZFUKTkXl4r0fRAwHB+KVUZWt8906yOM8hxSi
             Qgu8XoWJqrLPAUNzAPZzcryvAVGqZlH6HRaUQB47LQWnX2/pml9ThQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2024-01-25T11:03:36Z"
-    mac: ENC[AES256_GCM,data:AxzVHmjLdpNwcQtWsN6xIhWgjjkIxQzcY4/Qzd2e6N7EzJz64+8j2Q2yPDSfdV9VoAtz2ukC9dOLB2uDcXlrUKlHRi6zsoLhlMYHRTEqgp9edyb7Kw2zHhJGpjHiwpoUMVY+XBRIzdDgsXrztNBMBV5ym2MstJjeKsS/duHxl+s=,iv:fKMQXazT0Cu0TDutsfYRHV4meeA1wlJBDFSpCXHAzDw=,tag:sjFXs5U7ektPNmHuUMvHCQ==,type:str]
+    lastmodified: "2024-01-25T12:42:38Z"
+    mac: ENC[AES256_GCM,data:GH6/Jwxfp9csF0CC3C4VpH5wiHfP5ZhunCB9lGT3LhVlXQxt9Atopvw8VnZmymNkmrTzNPA95I9a2OKrZnglYUNVXiByt1RVd6tiXy9Cb/JCTTuQ3JldpGbwAUOtYY+cJo9v2p3YImGwc/F1Zo5sUk4omLXx5UW+79AK//CtQQI=,iv:6OW1b/lQvEiVqi3WWSoekvHuvMggvFp3IAgd7VR9Cio=,tag:6idr9izM0ifCc45cVCz53A==,type:str]
     pgp: []
     encrypted_regex: ^(token|crt|key|id|secret|secretboxEncryptionSecret|ca)$
     version: 3.8.1

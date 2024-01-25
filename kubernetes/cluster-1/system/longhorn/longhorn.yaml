@@ -29,7 +29,15 @@ spec:
     persistence:
       defaultClassReplicaCount: 2
       # defaultDataLocality: best-effort
+    csi:
+      attacherReplicaCount: 1
+      provisionerReplicaCount: 1
+      resizerReplicaCount: 1
+      snapshotterReplicaCount: 1
     defaultSettings:
       v2DataEngine: true
+    longhornManager:
+      nodeSelector:
+        longhorn.io/engine: v2
     longhornUI:
       replicas: 1
