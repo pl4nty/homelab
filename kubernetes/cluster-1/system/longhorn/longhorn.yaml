@@ -35,9 +35,10 @@ spec:
       resizerReplicaCount: 1
       snapshotterReplicaCount: 1
     defaultSettings:
+      systemManagedComponentsNodeSelector: storage:longhorn
       v2DataEngine: true
     longhornManager:
       nodeSelector:
-        longhorn.io/engine: v2
+        storage: longhorn
     longhornUI:
       replicas: 1
