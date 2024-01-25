@@ -14,6 +14,14 @@ machine:
         disableManifestsDirectory: true
         extraArgs:
             rotate-server-certificates: true
+        extraMounts:
+            - destination: /var/local/localpv-hostpath
+              type: bind
+              source: /var/local/localpv-hostpath
+              options:
+                - bind
+                - rshared
+                - rw
     network: {}
     install:
         diskSelector:
@@ -30,6 +38,8 @@ machine:
         stableHostname: true
         apidCheckExtKeyUsage: true
         diskQuotaSupport: true
+    sysctls:
+        vm.nr_hugepages: "1536"
 cluster:
     id: ENC[AES256_GCM,data:q/grRyOBLZoKGXxvirwfTwW4SqUdS9j4awMhjdpAHpnlAX4ZQ5/yixIa938=,iv:UCm1cX6oNHbdtZVIUbyBMkJ/PsJj25uHKe/82CJt4SA=,tag:/qBOPIRN6UNeE35MH2TTwQ==,type:str]
     secret: ENC[AES256_GCM,data:svsIgkn8WPGiImalpWIltyrX5OFpkInW55wSr+Sipsv+0feeFBzyBw2W1ro=,iv:++jcSKBh/DAqGbIAcYueCkEs9ZWys41riDa68CpNCWk=,tag:Z319XCQkgKkTaG+momgwxQ==,type:str]
@@ -66,8 +76,8 @@ sops:
             bHc2ZEhtek9kY25kejlWWkprdS9JZFUKTkXl4r0fRAwHB+KVUZWt8906yOM8hxSi
             Qgu8XoWJqrLPAUNzAPZzcryvAVGqZlH6HRaUQB47LQWnX2/pml9ThQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2024-01-25T10:29:04Z"
-    mac: ENC[AES256_GCM,data:A4PSjdSQCVEuLKYZzjK05ShLX1eBUwxyO6fVJKv+0Fy+lYmM8bsdY5vmrVGwr0JxmXjyToX1OaT0Rmra5ix2rWvIv8QUvCp9Dzo47szUX+iiqdSHNubrkmbzSiywyVIPNPuJtnrq+bEQg41SzSdMkkOCxUMQg4D1aGtRVJbjySk=,iv:Xm2Qgqcy4/b2jiRcAWlnBiMfg4pW6so/OKvo+yHyWfU=,tag:cGU2/jYzMA28HG/hBL3RcQ==,type:str]
+    lastmodified: "2024-01-25T11:03:36Z"
+    mac: ENC[AES256_GCM,data:AxzVHmjLdpNwcQtWsN6xIhWgjjkIxQzcY4/Qzd2e6N7EzJz64+8j2Q2yPDSfdV9VoAtz2ukC9dOLB2uDcXlrUKlHRi6zsoLhlMYHRTEqgp9edyb7Kw2zHhJGpjHiwpoUMVY+XBRIzdDgsXrztNBMBV5ym2MstJjeKsS/duHxl+s=,iv:fKMQXazT0Cu0TDutsfYRHV4meeA1wlJBDFSpCXHAzDw=,tag:sjFXs5U7ektPNmHuUMvHCQ==,type:str]
     pgp: []
     encrypted_regex: ^(token|crt|key|id|secret|secretboxEncryptionSecret|ca)$
     version: 3.8.1
