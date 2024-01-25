@@ -6,21 +6,3 @@ metadata:
 spec:
   node: talos-ivx-yqq
   disks: ["/dev/sda1"] # /dev/disk/by-uuid/uuid UUID changes...
----
-apiVersion: openebs.io/v1beta1
-kind: DiskPool
-metadata:
-  name: pool-1
-  namespace: mayastor
-spec:
-  node: talos-6ez-8me
-  disks: ["/dev/nvme0n1"]
----
-apiVersion: openebs.io/v1beta1
-kind: DiskPool
-metadata:
-  name: pool-2
-  namespace: mayastor
-spec:
-  node: talos-s1s-ept
-  disks: ["/dev/nvme0n1"]
