@@ -35,7 +35,9 @@ spec:
       resizerReplicaCount: 1
       snapshotterReplicaCount: 1
     defaultSettings:
+      defaultDataPath: /dev/nvme0n1/longhorn
       systemManagedComponentsNodeSelector: storage:longhorn
+      v1DataEngine: false
       v2DataEngine: true
     longhornManager:
       nodeSelector:
