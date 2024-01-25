@@ -9,5 +9,5 @@ provisioner: io.openebs.csi-mayastor
 parameters:
   protocol: nvmf
   ioTimeout: "30"
-  repl: "2"
+  repl: "1"
   thin: "true"
