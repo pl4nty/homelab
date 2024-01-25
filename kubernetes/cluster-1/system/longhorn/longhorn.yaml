@@ -35,12 +35,22 @@ spec:
       resizerReplicaCount: 1
       snapshotterReplicaCount: 1
     defaultSettings:
-      defaultDataPath: /dev/nvme0n1/longhorn
-      systemManagedComponentsNodeSelector: storage:longhorn
+      # defaultDataPath: /var/lib/longhorn (file-type, not block-type like /dev )
+      systemManagedComponentsNodeSelector: node.longhorn.io/create-default-disk:config
       v1DataEngine: false
       v2DataEngine: true
     longhornManager:
       nodeSelector:
-        storage: longhorn
+        node.longhorn.io/create-default-disk: config
     longhornUI:
       replicas: 1
+
+# k annotate node <node> node.longhorn.io/default-disks-config='[{
+#    "allowScheduling": true,
+#    "evictionRequested": false
+#    "path": "/dev/nvme0n1",
+#    "storageReserved": 0,
+#    "tags": [],
+#    "diskType": "block"
+# }]'
+# # k label node talos-6ez-8me node.longhorn.io/create-default-disk=config
