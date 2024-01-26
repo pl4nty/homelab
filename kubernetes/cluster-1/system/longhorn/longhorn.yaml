@@ -27,6 +27,7 @@ spec:
     keepHistory: false
   values:
     persistence:
+      defaultClass: false # no option to set param for v2 engine
       defaultClassReplicaCount: 2
       # defaultDataLocality: best-effort
     csi:
@@ -46,6 +47,8 @@ spec:
     longhornUI:
       replicas: 1
 
+# k annotate storageclass longhorn storageclass.kubernetes.io/is-default-class=true
+
 # k annotate node <node> node.longhorn.io/default-disks-config='[{
 #    "allowScheduling": true,
 #    "evictionRequested": false
@@ -54,4 +57,4 @@ spec:
 #    "tags": [],
 #    "diskType": "block"
 # }]'
-# # k label node talos-6ez-8me node.longhorn.io/create-default-disk=config
+# k label node <node> node.longhorn.io/create-default-disk=config
