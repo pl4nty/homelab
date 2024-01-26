@@ -42,6 +42,7 @@ spec:
     mysql:
       enabled: true
       auth:
+        database: fleet
         username: fleet
         existingSecret: fleet
       # auth:
