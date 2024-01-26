@@ -5,6 +5,8 @@ metadata:
     namespace: default
 type: Opaque
 stringData:
+    mysql-root-password: ENC[AES256_GCM,data:hBR7cJ+OK3T42QAYngZb0bLwTO99pe/iZWR6jg==,iv:NYtj+RE+e0yHQlUQtHlWLhclBDN1RS1bRvJDhsXC8GM=,tag:KtrawoVfPrvmSVp6ATtLpg==,type:str]
+    mysql-replication-password: ENC[AES256_GCM,data:94IiT7KfYsA7H/VtKQZL+v5kt/JKcdI42A==,iv:JUkofPfbJ2sANBycgzdyAYIxzXfXczIpJ6MOZJv/1SA=,tag:SXMW83jQjE3D8shf7AIxnA==,type:str]
     mysql-password: ENC[AES256_GCM,data:DQygjlzkSJeU/R3/BTSpRELbh5GGcX4ebw==,iv:s5H2Pjp2zoOPzKbbC8TbA/v/wLP1gQicjuhyOShZqN8=,tag:KWZ6leFVVO0Yqv8hrbV/vA==,type:str]
 sops:
     kms: []
@@ -21,8 +23,8 @@ sops:
             WUF1S1JiVTNkZXM2K0R3ajBwUFc0b28KZFUQCtHUw3JQ8qIxQqxiTPR7eNFWpIBB
             j+U78sZS+Oi3X1GfxZkt3GJAiOQjTc5JZY7FHGJhDxtWykHN7YChmg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2024-01-26T12:46:46Z"
-    mac: ENC[AES256_GCM,data:Z99ei+1Cxvw/dDnEb0BMGimZD8C9A5ARvXMkcBO5TKPG2UsjREcBuFwF56riV5/YN+kNPAP7pSiQ7MFjCPrHY88Q1lRJF81o7vzYxBcvqGHPzF9dRbum0pY961cCSmCaPl4KdrwcDFT44sYPLmGVKon5hhjzxlYMWpWZWcRx9SM=,iv:JUBN5dbmYtEeI8i06y7FbGb2d2ZGdLw5ncegI+Zozh0=,tag:lyiFNB0vfSLteF0LylQmxQ==,type:str]
+    lastmodified: "2024-01-26T14:05:48Z"
+    mac: ENC[AES256_GCM,data:KAABRSNHj9jtIEd+l6vczLPx6OwfVlt5NsuGUZKyCEsDxP0XzUD6XZHKhp0EA4ufupwVVRRaidRLGE/PfbjrSI6cjZnBvBzBSbLBniF6ygFUnCv+wUkF/QK9sFofqn+FKtwS1EnorCz3fVe5W1QppD2pAn6HoZzk1NffYC7yu5Y=,iv:a2sFeZ0qxGH7WzIvNO0FOtkoDSLRZAkGAgnDbRnFMKI=,tag:1fGN90+6Tt44MRmGw6u/4A==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.8.1
