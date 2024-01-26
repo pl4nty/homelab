@@ -26,5 +26,7 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    persistence:
+      enabled: false
     replica:
       replicaCount: 0
