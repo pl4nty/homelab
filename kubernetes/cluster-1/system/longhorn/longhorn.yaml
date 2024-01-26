@@ -36,6 +36,7 @@ spec:
       snapshotterReplicaCount: 1
     defaultSettings:
       # defaultDataPath: /var/lib/longhorn (file-type, not block-type like /dev )
+      createDefaultDiskLabeledNodes: true
       systemManagedComponentsNodeSelector: node.longhorn.io/create-default-disk:config
       v1DataEngine: false
       v2DataEngine: true
