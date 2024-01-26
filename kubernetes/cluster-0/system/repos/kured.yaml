@@ -1,8 +1,8 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
-  name: hajimari
+  name: kured
   namespace: flux-system
 spec:
   interval: 1h
-  url: https://kubereboot.github.io/charts/
+  url: https://kubereboot.github.io/charts
