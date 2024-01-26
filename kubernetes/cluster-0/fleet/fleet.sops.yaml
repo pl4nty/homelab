@@ -1,0 +1,28 @@
+kind: Secret
+apiVersion: v1
+metadata:
+    name: fleet
+    namespace: default
+type: Opaque
+stringData:
+    mysql-password: ENC[AES256_GCM,data:DQygjlzkSJeU/R3/BTSpRELbh5GGcX4ebw==,iv:s5H2Pjp2zoOPzKbbC8TbA/v/wLP1gQicjuhyOShZqN8=,tag:KWZ6leFVVO0Yqv8hrbV/vA==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBOK2U1a2I0NVZnSGplUEEx
+            ejFPU3RLZHdkejM3alpodWxUWDc4WEdzN1YwCitURVluc2Nqak9YbmdwSUpIY3pa
+            NTZTNjFYV2FFcnh6M0NmUGpWUk9SdHcKLS0tIHNPZ1YwVllSblF4WExCcjBaeUN2
+            WUF1S1JiVTNkZXM2K0R3ajBwUFc0b28KZFUQCtHUw3JQ8qIxQqxiTPR7eNFWpIBB
+            j+U78sZS+Oi3X1GfxZkt3GJAiOQjTc5JZY7FHGJhDxtWykHN7YChmg==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2024-01-26T12:46:46Z"
+    mac: ENC[AES256_GCM,data:Z99ei+1Cxvw/dDnEb0BMGimZD8C9A5ARvXMkcBO5TKPG2UsjREcBuFwF56riV5/YN+kNPAP7pSiQ7MFjCPrHY88Q1lRJF81o7vzYxBcvqGHPzF9dRbum0pY961cCSmCaPl4KdrwcDFT44sYPLmGVKon5hhjzxlYMWpWZWcRx9SM=,iv:JUBN5dbmYtEeI8i06y7FbGb2d2ZGdLw5ncegI+Zozh0=,tag:lyiFNB0vfSLteF0LylQmxQ==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData)$
+    version: 3.8.1
