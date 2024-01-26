@@ -37,7 +37,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/image-factory
-              tag: 0ee91e9
+              tag: 476ff94
             args:
             - -cache-signing-key-path
             - cache-signing-key.key
