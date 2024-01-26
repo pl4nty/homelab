@@ -2,7 +2,7 @@
 kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
-  name: longhorn
+  name: longhorn-v2-data-engine
   namespace: longhorn
 provisioner: driver.longhorn.io
 allowVolumeExpansion: true
