@@ -25,17 +25,30 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    hostName: fleet.tplant.com.au
     replicas: 1
     # no arm64 image available
     nodeSelector:
       kubernetes.io/arch: amd64
     fleet:
+      # autoApplySQLMigrations: false
+      logging:
+        json: true
       tls:
         enabled: false
     database:
+      address: fleet-mysql:3306
       secretName: fleet
     mysql:
       enabled: true
-    # can't pass additional parameters to disable redis secondary
+      auth:
+        existingSecret: fleet
+      # auth:
+      #   username: fleet
+    cache:
+      address: fleet-redis-master:6379
     redis:
-      enabled: false
+      enabled: true
+      auth:
+        enabled: false
+      architecture: standalone
