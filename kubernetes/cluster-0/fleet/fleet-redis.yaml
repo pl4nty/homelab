@@ -1,17 +1,17 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
-  name: fleet
+  name: fleet-redis
   namespace: default
 spec:
   interval: 15m
   chart:
     spec:
-      chart: fleet
-      version: 6.0.1
+      chart: redis
+      version: 18.1.6
       sourceRef:
         kind: HelmRepository
-        name: fleet
+        name: bitnami
         namespace: flux-system
   maxHistory: 3
   install:
@@ -25,15 +25,5 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    replicas: 1
-    # no arm64 image available
-    nodeSelector:
-      kubernetes.io/arch: amd64
-    fleet:
-      tls:
-        enabled: false
-    mysql:
-      enabled: true
-    # can't pass additional parameters to disable redis secondary
-    redis:
-      enabled: false
+    secondary:
+      replicaCount: 0
