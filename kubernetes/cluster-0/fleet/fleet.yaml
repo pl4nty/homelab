@@ -32,6 +32,8 @@ spec:
     fleet:
       tls:
         enabled: false
+    database:
+      secretName: fleet
     mysql:
       enabled: true
     # can't pass additional parameters to disable redis secondary
