@@ -45,8 +45,6 @@ spec:
         database: fleet
         username: fleet
         existingSecret: fleet
-      # auth:
-      #   username: fleet
     cache:
       address: fleet-redis-master:6379
     redis:
@@ -54,3 +52,6 @@ spec:
       auth:
         enabled: false
       architecture: standalone
+      # from fleet docs
+      persistence:
+        enabled: false
