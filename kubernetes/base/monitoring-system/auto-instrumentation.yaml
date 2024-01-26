@@ -39,9 +39,9 @@ spec:
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
         value: http://opentelemetry-collector.monitoring-system:4318
   apacheHttpd:
-    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:0469b2009b5326b53a61f66ab2ac2e0a09e17e5cd74fbad9f57effc5045ad0a5
+    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:9ffdb52bcbefe11a04b131380210d6033dfa93af404c118f5b4dd17719f5371f
   nginx:
-    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:0469b2009b5326b53a61f66ab2ac2e0a09e17e5cd74fbad9f57effc5045ad0a5
+    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:9ffdb52bcbefe11a04b131380210d6033dfa93af404c118f5b4dd17719f5371f
   #   configPath: /etc/php/7.4/apache2/conf.d # HRConvert2
 ---
 apiVersion: opentelemetry.io/v1alpha1
