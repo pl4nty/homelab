@@ -37,8 +37,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/image-factory
-              tag: 476ff94
-              pullPolicy: Always
+              tag: f5ca736
             args:
             - -cache-signing-key-path
             - cache-signing-key.key
@@ -48,8 +47,10 @@ spec:
             - ghcr.io/pl4nty/image-factory/schematics
             - -cache-repository
             - ghcr.io/pl4nty/image-factory/cache
+            - -container-signature-issuer
+            - https://token.actions.githubusercontent.com
             - -container-signature-subject-regexp
-            - "@(siderolabs\\.com|tplant\\.com\\.au)$"
+            - "^https://github.com/pl4nty/talos"
             env:
               GITHUB_TOKEN:
                 valueFrom:
