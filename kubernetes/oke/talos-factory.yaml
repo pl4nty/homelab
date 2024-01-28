@@ -1,7 +1,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
-  name: talos
+  name: talos-factory
   namespace: default
 spec:
   interval: 15m
@@ -41,21 +41,32 @@ spec:
             args:
             - -cache-signing-key-path
             - cache-signing-key.key
-            - -external-url
-            - https://talos.${PUBLIC_DOMAIN}/
-            - -schematic-service-repository
-            - ghcr.io/pl4nty/image-factory/schematics
             - -cache-repository
             - ghcr.io/pl4nty/image-factory/cache
             - -container-signature-issuer
             - https://token.actions.githubusercontent.com
             - -container-signature-subject-regexp
             - "^https://github.com/pl4nty/talos"
+            - -external-url
+            - https://talos-factory.${PUBLIC_DOMAIN}/
+            - -installer-external-repository
+            - ghcr.io/pl4nty
+            - -installer-internal-repository
+            - ghcr.io/pl4nty
+            - -schematic-service-repository
+            - ghcr.io/pl4nty/image-factory/schematics
+            - -secureboot
+            - -secureboot-pcr-key-path
+            - pcr-signing-key.pem
+            - -secureboot-signing-cert-path
+            - uki-signing-cert.pem
+            - -secureboot-signing-key-path
+            - uki-signing-key.pem
             env:
               GITHUB_TOKEN:
                 valueFrom:
                   secretKeyRef:
-                    name: talos
+                    name: talos-factory
                     key: GITHUB_TOKEN
             securityContext:
               privileged: true
@@ -66,10 +77,16 @@ spec:
       config:
         enabled: true
         type: secret
-        name: talos
+        name: talos-factory
         globalMounts:
         - path: /cache-signing-key.key
           subPath: cache-signing-key.key
+        - path: /pcr-signing-key.pem
+          subPath: pcr-signing-key.pem
+        - path: /uki-signing-cert.pem
+          subPath: uki-signing-cert.pem
+        - path: /uki-signing-key.pem
+          subPath: uki-signing-key.pem
       dev:
         enabled: true
         type: hostPath
@@ -93,8 +110,8 @@ spec:
         - namespace: default
           name: ${CLUSTER_NAME}
         hostnames:
-        - talos.${PUBLIC_DOMAIN}
+        - talos-factory.${PUBLIC_DOMAIN}
         rules:
         - backendRefs:
-          - name: talos
+          - name: talos-factory
             port: 8080
