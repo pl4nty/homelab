@@ -53,7 +53,7 @@ spec:
           main:
             image:
               repository: quay.io/curl/curl
-              tag: 8.5.0
+              tag: 8.6.0
             command:
             - curl
             - anudegreeapp/scraper/plan_scraper.php
