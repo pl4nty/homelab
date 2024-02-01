@@ -33,8 +33,8 @@ spec:
         containers:
           main:
             image:
-              repository: ghcr.io/pl4nty/github-backup
-              tag: latest@sha256:86a833615b34444ae18393125ad12f51d3f2a33e2cb0ae980ac09f5bae2b5237
+              repository: ghcr.io/josegonzalez/python-github-backup
+              tag: 0.45.0
             args: 
             - pl4nty
             - --token-fine
