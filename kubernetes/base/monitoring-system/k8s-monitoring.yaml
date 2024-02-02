@@ -70,25 +70,15 @@ spec:
     metrics:
       extraMetricRelabelingRules: |-
         rule {
+          source_labels = ["__name__","mountpoint"]
+          separator = "@"
+          regex = "node_filesystem.*@/run/"
+          action = "drop"
+        }
+        rule {
           source_labels = ["namespace", "pod"]
           separator = "@"
           regex = "flux-system@(.+)-.+-.+"
           target_label = "pod"
           replacement = "$1"
         }
-
-      # rule {
-      #   source_labels = ["__name__"]
-      #   target_label = "exported_uid"
-      #   replacement = "NA"
-      # }
-      # rule {
-      #   source_labels = ["__name__"]
-      #   regex = "container_network_.*"
-      #   action = "drop"
-      # }
-      # rule {
-      #   source_labels = ["__name__"]
-      #   regex = "kube_pod_start_time"
-      #   action = "drop"
-      # }
