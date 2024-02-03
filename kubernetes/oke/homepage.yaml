@@ -40,7 +40,7 @@ spec:
         # background: https://www.canberratimes.com.au/images/transform/v1/crop/frm/silverstone-ct-migration/04c1cd85-b455-4e0d-ba28-00302d96b26b/r0_0_1280_854_w1200_h678_fmax.jpg
         background: https://live-production.wcms.abc-cdn.net.au/b06527bc72714bc050a7b9dcbdda8662
         cardBlur: sm
-        favicon: https://tplant.com.au/avatar.ico
+        favicon: https://${PUBLIC_DOMAIN}/avatar.ico
         theme: dark
         color: rose
         iconStyle: theme
@@ -100,7 +100,7 @@ spec:
             href: https://pdf.${PUBLIC_DOMAIN}
             icon: si-adobeacrobatreader
         - Talos Linux image factory:
-            href: https://talos.${PUBLIC_DOMAIN}
+            href: https://talos-factory.${PUBLIC_DOMAIN}
             icon: si-linuxcontainers
       - data:
         - ANU degree planner:
