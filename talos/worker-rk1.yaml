@@ -32,6 +32,8 @@ machine:
             - image: ghcr.io/nberlee/rk3588:v1.6.3
             # required for environment check, even if we're only using SPDK engine
             - image: ghcr.io/siderolabs/iscsi-tools:v0.1.4
+            # only required for v1
+            - image: ghcr.io/siderolabs/util-linux-tools:v2.39.3
     kernel:
         modules:
             - name: rockchip-cpufreq
@@ -40,6 +42,11 @@ machine:
         stableHostname: true
         apidCheckExtKeyUsage: true
         diskQuotaSupport: true
+    disks:
+        # The name of the disk to use.
+        - device: /dev/nvme0n1
+          partitions:
+            - mountpoint: /var/mnt/nvme0n1
     sysctls:
         vm.nr_hugepages: "1536"
 cluster:
@@ -78,8 +85,8 @@ sops:
             bHc2ZEhtek9kY25kejlWWkprdS9JZFUKTkXl4r0fRAwHB+KVUZWt8906yOM8hxSi
             Qgu8XoWJqrLPAUNzAPZzcryvAVGqZlH6HRaUQB47LQWnX2/pml9ThQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2024-01-25T22:18:54Z"
-    mac: ENC[AES256_GCM,data:XQFOgUdwSIIVGQ53LUAEXaTBo4z3RoiIYx/G8tPVXf9GwBEAPiF7uRC2GhjaYDt4VZ10wSArbxQaQwBYsFPvQxd+rED99+boXRVpwgpGTCFGEBT8aNLIoT8cDb2gUgt037UQesp6uqDSUvXksuO5/f8fHGfU9hwpSOW/FEaY28g=,iv:BNHLIluxCZy6vezYMsuzjgPIrw2aT7e+WC7+CAcRSpw=,tag:LWVglIKwSaS5sYgaaagbDw==,type:str]
+    lastmodified: "2024-02-07T13:16:13Z"
+    mac: ENC[AES256_GCM,data:RyE0iWlcXnu5UtqZBi4jSMvuPvrTm1eegXb02lsAvpTc2I8lalXl6k2rIoqtTaVZtdXBxqUQxHyBJxEvZ7ZyIR+3p3t0siWrZ+2rKHKehbQph9o8qkdtB7jynaRjBqDQbKuusreL/GDxbuWZocg+X+m8pvzEv2FcSL6dknOMH1Q=,iv:UphYDVxJAaGQJrWKeKWJKBx/P+6En8Ow2HRkwCfjADk=,tag:20fPDQwMhZ4hFOAEUtxXvg==,type:str]
     pgp: []
     encrypted_regex: ^(token|crt|key|id|secret|secretboxEncryptionSecret|ca)$
     version: 3.8.1
