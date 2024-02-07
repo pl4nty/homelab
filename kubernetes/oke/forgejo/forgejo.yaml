@@ -1,0 +1,75 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: forgejo
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: forgejo
+      version: 2.0.0
+      sourceRef:
+        kind: HelmRepository
+        name: forgejo
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  valuesFrom:
+    - targetPath: gitea.config.database.USER
+      kind: Secret
+      name: forego-cnpg-app
+      valuesKey: username
+    - targetPath: gitea.config.database.PASSWD
+      kind: Secret
+      name: forego-cnpg-app
+      valuesKey: password
+  values:
+    image:
+      registry: ghcr.io
+      repository: pl4nty/forgejo
+      tag: latest@sha256:50b48217311bac5824fcf25bf168fe0af478f3e433993d70828e00ad00921c11
+      rootless: false # can only build default Dockerfile, not Dockerfile.rootless
+
+    redis-cluster:
+      enabled: false
+    postgresql:
+      enabled: false
+    postgresql-ha:
+      enabled: false
+
+    persistence:
+      enabled: true
+
+    gitea:
+      config:
+        admin:
+          DISABLE_REGULAR_ORG_CREATION: true
+        cron:
+          ENABLED: true
+        database:
+          DB_TYPE: postgres
+          HOST: forgejo-cnpg-rw
+        session:
+          PROVIDER: db
+        cache:
+          ADAPTER: memory
+        queue:
+          TYPE: level
+        indexer:
+          REPO_INDEXER_ENABLED: true
+          REPO_INDEXER_REPO_TYPES: sources,forks,mirrors,templates
+        # mailer: TODO
+        service:
+          DISABLE_REGISTRATION: true
+        federation:
+          ENABLED: true
