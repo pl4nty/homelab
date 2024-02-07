@@ -29,7 +29,7 @@ spec:
   bootstrap:
     initdb:
       localeCollate: en_US.UTF-8
-      localeCtype: en_US.UTF-8
+      localeCType: en_US.UTF-8
     # recovery:
     #   source: forgejo-cnpg
 
