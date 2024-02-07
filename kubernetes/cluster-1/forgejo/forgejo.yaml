@@ -27,11 +27,11 @@ spec:
   valuesFrom:
     - targetPath: gitea.config.database.USER
       kind: Secret
-      name: forego-cnpg-app
+      name: forgejo-cnpg-app
       valuesKey: username
     - targetPath: gitea.config.database.PASSWD
       kind: Secret
-      name: forego-cnpg-app
+      name: forgejo-cnpg-app
       valuesKey: password
   values:
     image:
