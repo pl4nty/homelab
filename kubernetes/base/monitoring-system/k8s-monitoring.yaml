@@ -68,15 +68,15 @@ spec:
             targetPort: 514
             protocol: UDP
     metrics:
+        # rule {
+        #   source_labels = ["__name__","mountpoint"]
+        #   separator = "@"
+        #   regex = "node_filesystem_.*@/run/"
+        #   action = "drop"
+        # }
       extraMetricRelabelingRules: |-
         rule {
-          source_labels = ["__name__","mountpoint"]
-          separator = "@"
-          regex = "node_filesystem.*@/run/"
-          action = "drop"
-        }
-        rule {
-          source_labels = ["namespace", "pod"]
+          source_labels = ["namespace","pod"]
           separator = "@"
           regex = "flux-system@(.+)-.+-.+"
           target_label = "pod"
