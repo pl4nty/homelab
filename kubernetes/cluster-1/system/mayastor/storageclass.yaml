@@ -2,9 +2,6 @@ apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
   name: mayastor-0
-  # could also use built-in storageclass and manually label it as default
-  annotations:
-    storageclass.kubernetes.io/is-default-class: 'true'
 provisioner: io.openebs.csi-mayastor
 parameters:
   protocol: nvmf
