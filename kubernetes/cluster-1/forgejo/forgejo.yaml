@@ -37,7 +37,8 @@ spec:
     image:
       registry: ghcr.io
       repository: pl4nty/forgejo
-      tag: latest # SHA is too long
+      tag: latest
+      digest: sha256:50b48217311bac5824fcf25bf168fe0af478f3e433993d70828e00ad00921c11
       rootless: false # can only build default Dockerfile, not Dockerfile.rootless
 
     redis-cluster:
@@ -58,7 +59,7 @@ spec:
           ENABLED: true
         database:
           DB_TYPE: postgres
-          HOST: forgejo-cnpg-rw
+          HOST: forgejo-cnpg-rw:5432
         session:
           PROVIDER: db
         cache:
