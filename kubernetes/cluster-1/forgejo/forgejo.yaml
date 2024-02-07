@@ -60,7 +60,8 @@ spec:
         database:
           DB_TYPE: postgres
           HOST: forgejo-cnpg-rw:5432
-          NAME: forgejo
+          NAME: app
+          SCHEMA: public
         session:
           PROVIDER: db
         cache:
