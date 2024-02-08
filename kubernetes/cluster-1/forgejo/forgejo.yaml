@@ -34,12 +34,12 @@ spec:
       name: forgejo-cnpg-app
       valuesKey: password
   values:
-    image:
-      registry: ghcr.io
-      repository: pl4nty/forgejo
-      tag: latest
-      digest: sha256:50b48217311bac5824fcf25bf168fe0af478f3e433993d70828e00ad00921c11
-      rootless: false # can only build default Dockerfile, not Dockerfile.rootless
+    # image:
+    #   registry: ghcr.io
+    #   repository: pl4nty/forgejo
+    #   tag: latest
+    #   digest: sha256:50b48217311bac5824fcf25bf168fe0af478f3e433993d70828e00ad00921c11
+    #   rootless: false # can only build default Dockerfile, not Dockerfile.rootless
 
     redis-cluster:
       enabled: false
@@ -76,3 +76,6 @@ spec:
           DISABLE_REGISTRATION: true
         federation:
           ENABLED: true
+        server:
+          DOMAIN: forge.${PUBLIC_DOMAIN}
+          DISABLE_SSH: true
