@@ -39,7 +39,7 @@ spec:
           main:
             image:
               repository: mpepping/cyberchef
-              tag: v10.6.0
+              tag: v10.7.0
     service:
       main:
         ports:
