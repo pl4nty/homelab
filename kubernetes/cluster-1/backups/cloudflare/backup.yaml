@@ -27,6 +27,9 @@ spec:
   driftDetection:
     mode: enabled
   values:
+    defaultPodOptions:
+      nodeSelector:
+        kubernetes.io/arch: amd64
     controllers:
       main:
         type: cronjob
