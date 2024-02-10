@@ -24,6 +24,8 @@ spec:
       retries: 3
   uninstall:
     keepHistory: false
+  driftDetection:
+    mode: enabled
   values:
     controllers:
       main:
@@ -35,9 +37,9 @@ spec:
             image:
               repository: lfaoro/flares
               tag: v3.0.0
-            args: 
-            - --all
-            - --export
+            args:
+              - --all
+              - --export
             envFrom:
               - secretRef:
                   name: backup-cloudflare
@@ -45,22 +47,22 @@ spec:
       config:
         enabled: true
         globalMounts:
-        - path: /usr/backup
+          - path: /usr/backup
     service:
       main:
         enabled: false
   postRenderers:
-  - kustomize:
-      patchesStrategicMerge:
-      - kind: CronJob
-        apiVersion: batch/v1
-        metadata:
-          name: backup-cloudflare
-        spec:
-          jobTemplate:
+    - kustomize:
+        patchesStrategicMerge:
+          - kind: CronJob
+            apiVersion: batch/v1
+            metadata:
+              name: backup-cloudflare
             spec:
-              template:
+              jobTemplate:
                 spec:
-                  containers:
-                  - name: main
-                    workingDir: /usr/backup
+                  template:
+                    spec:
+                      containers:
+                        - name: main
+                          workingDir: /usr/backup
