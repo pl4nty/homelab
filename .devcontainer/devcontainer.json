@@ -26,7 +26,13 @@
 			]
 		}
 	},
-	"runArgs": ["--env-file",".devcontainer/devcontainer.env"],
+	"containerEnv": {
+		"KUBECONFIG": "/workspaces/homelab/.devcontainer/kubeconfig"
+	},
+	"runArgs": [
+		"--env-file",
+		".devcontainer/devcontainer.env"
+	],
 	"secrets": {
 		"SOPS_AGE_KEY": {},
 		"SOPS_AGE_RECIPIENTS": {}

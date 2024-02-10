@@ -1,1 +1,2 @@
 .devcontainer/devcontainer.env
+.devcontainer/kubeconfig
