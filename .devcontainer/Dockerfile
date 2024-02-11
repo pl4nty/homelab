@@ -10,9 +10,7 @@ RUN curl -L https://github.com/siderolabs/talos/releases/latest/download/talosct
   && chmod +x ~/bin/talosctl \
   && echo "source <(talosctl completion zsh)" >> ~/.zshrc
 
-RUN curl -L https://github.com/backube/volsync/releases/latest/download/kubectl-volsync.tar.gz -o kubectl-volsync.tar.gz \
-  && tar -xzf kubectl-volsync.tar.gz kubectl-volsync \
-  && mv kubectl-volsync ~/bin/kubectl-volsync
+RUN curl -s -L https://github.com/backube/volsync/releases/latest/download/kubectl-volsync.tar.gz | tar -xzf - -C ~/bin kubectl-volsync
 
 # https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins
 RUN echo "plugins+=(azure fluxcd kubectl helm)" >> ~/.zshrc

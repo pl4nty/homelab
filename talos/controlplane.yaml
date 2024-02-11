@@ -69,7 +69,7 @@ machine:
     #           gateway: 192.168.2.1 # The route's gateway (if empty, creates link scope route).
     #           metric: 1024 # The optional metric for the route.
     #       mtu: 1500 # The interface's MTU.
-    #       
+    #
     #       # # Picks a network device using the selector.
     #       # # select a device with bus prefix 00:*.
     #       # deviceSelector:
@@ -156,7 +156,7 @@ machine:
         # The disk used for installations.
         disk: /dev/nvme0n1
         # Allows for supplying the image used to perform the installation.
-        image: ghcr.io/siderolabs/installer:v1.5.2
+        image: factory.talos.dev/installer/613e1592b2da41ae5e265e8789429f22e121aab91cb4deb6bc3c0b6262961245:v1.6.4
         # Indicates if the installation disk should be wiped at installation time.
         wipe: false
         # # Look up disk using disk attributes like model, size, serial and others.
@@ -186,12 +186,12 @@ machine:
     #         # The TLS configuration for the registry.
     #         tls:
     #             insecureSkipVerify: true # Skip TLS server certificate verification (not recommended).
-    #             
+    #
     #             # # Enable mutual TLS authentication with the registry.
     #             # clientIdentity:
     #             #     crt: LS0tIEVYQU1QTEUgQ0VSVElGSUNBVEUgLS0t
     #             #     key: LS0tIEVYQU1QTEUgS0VZIC0tLQ==
-    #         
+    #
     #         # # The auth configuration for this registry.
     #         # auth:
     #         #     username: username # Optional registry authentication.
@@ -278,7 +278,7 @@ machine:
     # # Used to configure the machine's sysctls.
     # # MachineSysctls usage example.
     sysctls:
-        vm.nr_hugepages: "1536"
+        vm.nr_hugepages: "1664"
     # # Used to configure the machine's sysfs.
     # # MachineSysfs usage example.
     # sysfs:
@@ -293,11 +293,11 @@ machine:
     #             - # Deterministically generated key from the node UUID and PartitionLabel.
     #               nodeID: {}
     #               slot: 0 # Key slot number for LUKS2 encryption.
-    #               
+    #
     #               # # KMS managed encryption key.
     #               # kms:
     #               #     endpoint: https://192.168.88.21:4443 # KMS endpoint to Seal/Unseal the key.
-    #         
+    #
     #         # # Cipher kind to use for the encryption. Depends on the encryption provider.
     #         # cipher: aes-xts-plain64
     #         # # Defines the encryption sector size.
@@ -498,8 +498,8 @@ sops:
             V0I1bi9vTjVtTVNWa0JBYVM3UEVoU0UKlIziv/nIPnsfATFf5HirkiJHwFgTtaKf
             7E0q7iB3tN/eFb3aegc2/3gvV/qb4I8a9gq8xvxsDs04V4QNke4+8Q==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-12-24T05:13:34Z"
-    mac: ENC[AES256_GCM,data:ddY7KFOSIHi5VhimDrhep4GrB4CQR/XcKWB8cuugIWWjCAif2H3ZWrnwX51yG+/elNWr37GtY+sqr8ZoujaPJ/cyZyvaNrMrWX9jUX8Bb0ckL7xMigUHVeDnbdRIDWnbuBpLdH2UvlJp08qBvuwsu06e52WbK1XyizUZqebjGW0=,iv:dken4colGd93nScTmGALDqoyYlsz8HUW3DgEO/RX6MA=,tag:QqbX5qijoRyHbGckHBx5VQ==,type:str]
+    lastmodified: "2024-02-11T03:32:34Z"
+    mac: ENC[AES256_GCM,data:JHbsCHowePkBIMhZkIeV0/fXbXAzfy5mVrfz7qJ9KcTO1Eah+CDa3kRtD6VcpHqvJRCc4GMrIA+1PBix4rZROJYhY2XcSf9NnlrCGL4hqlm/7IPPWXf8hGeO0ALm8Cl7UV2DqapHwDsgEVoXXT/r0bUvK813HCv5tEPH+oWriQA=,iv:rFOkXIs0JaO/Dm9HLpmMIC5bYPz1iy90RycY80OWWFc=,tag:pG1Yz3W1FdzwwXo/e6SX6A==,type:str]
     pgp: []
     encrypted_regex: ^(token|crt|key|id|secret|secretboxEncryptionSecret)$
     version: 3.8.1
