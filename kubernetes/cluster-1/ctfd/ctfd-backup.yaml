@@ -9,7 +9,7 @@ spec:
     schedule: 0 0 * * *
   restic:
     repository: ctfd-backup
-    copyMethod: Clone
+    copyMethod: Snapshot
     pruneIntervalDays: 14
     retain:
       daily: 30
@@ -26,7 +26,7 @@ spec:
     schedule: 0 0 * * *
   restic:
     repository: ctfd-db-backup
-    copyMethod: Clone
+    copyMethod: Snapshot
     pruneIntervalDays: 14
     retain:
       daily: 30
