@@ -28,11 +28,11 @@ spec:
         compression: gzip
 
   bootstrap:
-    initdb:
-      localeCollate: en_US.UTF-8
-      localeCType: en_US.UTF-8
-    # recovery:
-    #   source: forgejo-cnpg
+    # initdb:
+    #   localeCollate: en_US.UTF-8
+    #   localeCType: en_US.UTF-8
+    recovery:
+      source: forgejo-cnpg
 
   externalClusters:
     - name: forgejo-cnpg
