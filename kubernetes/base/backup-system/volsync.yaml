@@ -32,8 +32,8 @@ spec:
     # nodeSelector:
     #   kubernetes.io/arch: amd64
     image: &image
-      repository: ghcr.io/onedr0p/volsync
-      tag: 0.8.0
+      repository: ghcr.io/pl4nty/volsync
+      tag: latest@sha256:e567273ebabacb6aa9383442d2ed3bee6cac7651075961efba6a739fde11faf2
     rclone: *image
     restic: *image
     rsync: *image
