@@ -27,9 +27,6 @@ spec:
   driftDetection:
     mode: enabled
   values:
-    defaultPodOptions:
-      nodeSelector:
-        kubernetes.io/arch: amd64
     controllers:
       main:
         type: cronjob
@@ -38,8 +35,8 @@ spec:
         containers:
           main:
             image:
-              repository: lfaoro/flares
-              tag: v3.0.0
+              repository: ghcr.io/pl4nty/flares
+              tag: latest@sha256:07f49f54300f43206babf8509b2e7ce0865eb6c86ed63de995ecd8289435ee61
             args:
               - --all
               - --export
