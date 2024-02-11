@@ -36,6 +36,9 @@ spec:
       resizerReplicaCount: 1
       snapshotterReplicaCount: 1
     defaultSettings:
+      backupTarget: s3://tplant-homelab-volumes@us-west-004/
+      backupTargetCredentialSecret: longhorn-backup
+      allowRecurringJobWhileVolumeDetached: true
       # defaultDataPath: /var/lib/longhorn (file-type, not block-type like /dev )
       createDefaultDiskLabeledNodes: true
       # use this to avoid cross-node volume access - but the scheduler doesn't respect it

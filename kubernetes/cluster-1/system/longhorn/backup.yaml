@@ -1,0 +1,12 @@
+apiVersion: longhorn.io/v1beta1
+kind: RecurringJob
+metadata:
+  name: backup
+  namespace: longhorn
+spec:
+  cron: 0 0 * * *
+  task: backup-force-create
+  groups:
+    - default
+  retain: 1
+  concurrency: 1
