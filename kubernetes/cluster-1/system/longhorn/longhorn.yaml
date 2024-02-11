@@ -42,9 +42,9 @@ spec:
       # systemManagedComponentsNodeSelector: node.longhorn.io/create-default-disk:config
       v1DataEngine: true
       v2DataEngine: true
-    # longhornManager:
-    #   nodeSelector:
-    #     node.longhorn.io/create-default-disk: config
+    longhornManager:
+      nodeSelector:
+        node.longhorn.io/create-default-disk: config
     longhornUI:
       replicas: 1
 
