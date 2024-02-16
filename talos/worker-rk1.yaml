@@ -26,14 +26,14 @@ machine:
     install:
         diskSelector:
             size: <= 100GB
-        image: ghcr.io/nberlee/installer:v1.6.3
+        image: ghcr.io/nberlee/installer:v1.6.4
         wipe: true
         extensions:
-            - image: ghcr.io/nberlee/rk3588:v1.6.3
+            - image: ghcr.io/nberlee/rk3588:v1.6.4
             # required for environment check, even if we're only using SPDK engine
             - image: ghcr.io/siderolabs/iscsi-tools:v0.1.4
             # only required for v1
-            - image: ghcr.io/siderolabs/util-linux-tools:v2.39.3
+            - image: ghcr.io/siderolabs/util-linux-tools:2.39.3
     kernel:
         modules:
             - name: rockchip-cpufreq
@@ -85,8 +85,8 @@ sops:
             bHc2ZEhtek9kY25kejlWWkprdS9JZFUKTkXl4r0fRAwHB+KVUZWt8906yOM8hxSi
             Qgu8XoWJqrLPAUNzAPZzcryvAVGqZlH6HRaUQB47LQWnX2/pml9ThQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2024-02-07T13:16:13Z"
-    mac: ENC[AES256_GCM,data:RyE0iWlcXnu5UtqZBi4jSMvuPvrTm1eegXb02lsAvpTc2I8lalXl6k2rIoqtTaVZtdXBxqUQxHyBJxEvZ7ZyIR+3p3t0siWrZ+2rKHKehbQph9o8qkdtB7jynaRjBqDQbKuusreL/GDxbuWZocg+X+m8pvzEv2FcSL6dknOMH1Q=,iv:UphYDVxJAaGQJrWKeKWJKBx/P+6En8Ow2HRkwCfjADk=,tag:20fPDQwMhZ4hFOAEUtxXvg==,type:str]
+    lastmodified: "2024-02-16T09:01:33Z"
+    mac: ENC[AES256_GCM,data:N6vyePpz19awlKyq1yAUBV4x+NmAFX8UT1Q8nKZSr6VWCYrw2wz0Di+4wWUW9/CX06rKaFcaIzF/qv1KtkTwYiIg4WgA2fEzw1UATOiNmwa7BLNKlJ8SyqxKu9rRjTwqndDV9Y1giZR0FyEuu3zNUXpVsy7prJid6z2hm2VfGjc=,iv:S5KvzMFUcvzjDQ8x1hM886rszIkUBjUSZRIvVJyTtp8=,tag:lxnpzb98TJ3Zymq99ufesA==,type:str]
     pgp: []
     encrypted_regex: ^(token|crt|key|id|secret|secretboxEncryptionSecret|ca)$
     version: 3.8.1
