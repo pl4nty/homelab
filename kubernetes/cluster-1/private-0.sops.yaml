@@ -74,7 +74,7 @@ spec:
             data:
                 enabled: true
                 accessMode: ReadWriteOnce
-                size: 4Gi
+                size: 16Gi
                 advancedMounts:
                     main:
                         main:
@@ -129,8 +129,8 @@ sops:
             MTRGNEdVem1xcmZuTm1PL2oyNWhJQ0kKtCodFUWHUZQRYBk9jDAWCcl7TjKUKhGb
             k0zV+9uZTfKhhpg1Zgjt4uu17MlYDAFBi1YK5lG++vhlT2QtRk3xag==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2024-02-16T11:01:26Z"
-    mac: ENC[AES256_GCM,data:YlebvKCkhsze59OUBMABcCEbMG//imVzkAFjpGPCA7ukTl14g3wuJg43R9qx6ZI3DEyInTt2/vO8p7QL1pQ4AK58V2Sdl5lTSV3e5gOZd3oII4XdpVeNkn8GzUDFQu8pRPjz4LVGDS5H+un8R9h8e1PtPxPS/24e3xAaVfpJxSA=,iv:Piuf8ULgTsTCH7311wLQhyxp3p7jsXHW+m1+xCW18bo=,tag:I5wrPQwZDQrLA0WsGOQl2Q==,type:str]
+    lastmodified: "2024-02-16T12:44:48Z"
+    mac: ENC[AES256_GCM,data:WVlVb5ghgPzcWjjWXhxCni1ziwatUhNJVfGgO5CE9A0lQxPy05IS7Hy67Ul6Piqq8jlgvN9cuWhkdW+asUF+Payw6EEOKiFSJvA65ZQ2ftwE7btvoTVgFIzJ9wT/NlRBBE6So1H9+wqDnR3cv7QzE/uU6GpmMznSLpY8wZQDXII=,iv:phNCsOpt2M/ia9fClKgoKQYvMVZua2qLl1PfN9r+LF4=,tag:6LUu6EwCAG1eMRhCF1/6kA==,type:str]
     pgp: []
     encrypted_regex: ^(image|env|args|advancedMounts)$
     version: 3.8.1
