@@ -45,6 +45,9 @@ spec:
         database: fleet
         username: fleet
         existingSecret: fleet
+      primary:
+        persistence:
+          size: 1Gi
     cache:
       address: fleet-redis-master:6379
     redis:
