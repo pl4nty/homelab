@@ -68,6 +68,11 @@ spec:
             targetPort: 514
             protocol: UDP
     metrics:
+      node-exporter:
+        metricsTuning:
+          dropMetricsForFilesystem:
+            - tempfs # default
+            - tmpfs
         # rule {
         #   source_labels = ["__name__","mountpoint"]
         #   separator = "@"
