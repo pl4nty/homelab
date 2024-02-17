@@ -2,7 +2,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
   name: volsync
-  namespace: backup-system
+  namespace: default
 spec:
   interval: 15m
   chart:
@@ -31,12 +31,12 @@ spec:
     # default image doesn't support arm64 backube/volsync#574
     # nodeSelector:
     #   kubernetes.io/arch: amd64
-    image: &image
-      repository: ghcr.io/pl4nty/volsync
-      tag: latest@sha256:e567273ebabacb6aa9383442d2ed3bee6cac7651075961efba6a739fde11faf2
-    rclone: *image
-    restic: *image
-    rsync: *image
-    rsync-tls: *image
-    syncthing: *image
+    # image: &image
+    #   repository: ghcr.io/pl4nty/volsync
+    #   tag: latest@sha256:e567273ebabacb6aa9383442d2ed3bee6cac7651075961efba6a739fde11faf2
+    # rclone: *image
+    # restic: *image
+    # rsync: *image
+    # rsync-tls: *image
+    # syncthing: *image
       
