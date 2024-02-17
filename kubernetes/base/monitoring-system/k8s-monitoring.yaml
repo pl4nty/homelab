@@ -29,6 +29,7 @@ spec:
   values:
     cluster:
       name: ${CLUSTER_NAME:=bootstrap}
+    # TODO use secret
     externalServices:
       prometheus:
         host: ${METRICS_HOST}
@@ -44,12 +45,6 @@ spec:
     opencost:
       enabled: false
     logs:
-      pod_logs:
-        namespaces:
-          - backup-system
-          - cnpg-system
-          - default
-          - monitoring-system
       extraConfig: |-
         loki.source.syslog "syslog_udp" {
           listener {
@@ -73,6 +68,10 @@ spec:
           dropMetricsForFilesystem:
             - tempfs # default
             - tmpfs
+      # kube-state-metrics:
+      #   metricsTuning:
+      #     excludeMetrics:
+      #       - kube_replicaset_status_.*
         # rule {
         #   source_labels = ["__name__","mountpoint"]
         #   separator = "@"
@@ -80,6 +79,13 @@ spec:
         #   action = "drop"
         # }
       extraMetricRelabelingRules: |-
+        rule {
+          source_labels = ["namespace","pod"]
+          separator = "@"
+          regex = "flux-system@(.+)-.+-.+"
+          target_label = "uid"
+          replacement = ""
+        }
         rule {
           source_labels = ["namespace","pod"]
           separator = "@"
