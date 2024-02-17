@@ -68,16 +68,14 @@ spec:
           dropMetricsForFilesystem:
             - tempfs # default
             - tmpfs
-      # kube-state-metrics:
-      #   metricsTuning:
-      #     excludeMetrics:
-      #       - kube_replicaset_status_.*
-        # rule {
-        #   source_labels = ["__name__","mountpoint"]
-        #   separator = "@"
-        #   regex = "node_filesystem_.*@/run/"
-        #   action = "drop"
-        # }
+      kube-state-metrics:
+        metricsTuning:
+          excludeMetrics:
+            - kube_replicaset_status_.*
+            - kube_replicaset_created
+            - kube_replicaset_metadata_generation
+            - kube_replicaset_owner
+            - kube_replicaset_spec_replicas
       extraMetricRelabelingRules: |-
         rule {
           source_labels = ["namespace","pod"]
