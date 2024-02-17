@@ -52,6 +52,7 @@ spec:
       auth:
         enabled: false
       architecture: standalone
-      # from fleet docs
-      persistence:
-        enabled: false
+      # https://fleetdm.com/docs/deploy/deploy-fleet-on-kubernetes#redis
+      master:
+        persistence:
+          enabled: false
