@@ -46,7 +46,7 @@ spec:
             - -container-signature-issuer
             - "^(https://token.actions.githubusercontent.com|https://accounts.google.com)$"
             - -container-signature-subject-regexp
-            - "(^https://github.com/pl4nty/talos|@siderolabs\\.com$)"
+            - "(^https://github.com/pl4nty/talos|@siderolabs.com$)"
             - -external-url
             - https://talos-factory.${PUBLIC_DOMAIN}/
             - -installer-external-repository
