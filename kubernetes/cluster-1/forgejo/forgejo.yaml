@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: forgejo
-      version: 3.0.1
+      version: 4.0.1
       sourceRef:
         kind: HelmRepository
         name: forgejo
@@ -40,6 +40,8 @@ spec:
     #   tag: latest
     #   digest: sha256:50b48217311bac5824fcf25bf168fe0af478f3e433993d70828e00ad00921c11
     #   rootless: false # can only build default Dockerfile, not Dockerfile.rootless
+    strategy:
+      type: Recreate
 
     redis-cluster:
       enabled: false

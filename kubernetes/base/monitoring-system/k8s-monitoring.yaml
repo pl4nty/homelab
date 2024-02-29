@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: k8s-monitoring
-      version: 0.10.2
+      version: 0.10.3
       sourceRef:
         kind: HelmRepository
         name: grafana
@@ -29,6 +29,7 @@ spec:
   values:
     cluster:
       name: ${CLUSTER_NAME:=bootstrap}
+    # TODO use secret
     externalServices:
       prometheus:
         host: ${METRICS_HOST}
@@ -44,12 +45,6 @@ spec:
     opencost:
       enabled: false
     logs:
-      pod_logs:
-        namespaces:
-          - backup-system
-          - cnpg-system
-          - default
-          - monitoring-system
       extraConfig: |-
         loki.source.syslog "syslog_udp" {
           listener {
@@ -68,13 +63,27 @@ spec:
             targetPort: 514
             protocol: UDP
     metrics:
-        # rule {
-        #   source_labels = ["__name__","mountpoint"]
-        #   separator = "@"
-        #   regex = "node_filesystem_.*@/run/"
-        #   action = "drop"
-        # }
+      node-exporter:
+        metricsTuning:
+          dropMetricsForFilesystem:
+            - tempfs # default
+            - tmpfs
+      kube-state-metrics:
+        metricsTuning:
+          excludeMetrics:
+            - kube_replicaset_status_.*
+            - kube_replicaset_created
+            - kube_replicaset_metadata_generation
+            - kube_replicaset_owner
+            - kube_replicaset_spec_replicas
       extraMetricRelabelingRules: |-
+        rule {
+          source_labels = ["namespace","pod"]
+          separator = "@"
+          regex = "flux-system@(.+)-.+-.+"
+          target_label = "uid"
+          replacement = ""
+        }
         rule {
           source_labels = ["namespace","pod"]
           separator = "@"
