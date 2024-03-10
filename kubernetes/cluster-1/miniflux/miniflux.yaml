@@ -40,7 +40,7 @@ spec:
           main:
             image:
               repository: ghcr.io/miniflux/miniflux
-              tag: 2.1.0
+              tag: 2.1.1
             env:
               RUN_MIGRATIONS: "1"
               CREATE_ADMIN: "1"
