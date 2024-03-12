@@ -38,6 +38,13 @@ spec:
               tag: latest@sha256:73d63e9304443d7eccf368cc935b1b9c5da36c76d4c25e66ecded7c41b26b1ea
             env:
               DATABASE_URL: sqlite:////opt/CTFd/CTFd/db/ctfd.db
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
       hacking-with-style:
         strategy: RollingUpdate
         rollingUpdate:
@@ -47,6 +54,13 @@ spec:
             image:
               repository: ghcr.io/pl4nty/hacking-with-style
               tag: latest@sha256:8e6c8f176426cdbe3458617df7482936ce5e299c7d7245ea1547f987d9ac24c8
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
     persistence:
       config:
         accessMode: ReadWriteOnce

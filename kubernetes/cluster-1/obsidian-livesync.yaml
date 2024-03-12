@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=/workspaces/homelab/.devcontainer/helmrelease.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -8,7 +9,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 2.6.0
+      version: 3.0.2
       sourceRef:
         kind: HelmRepository
         name: bjw-s
@@ -31,6 +32,15 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
+        initContainers:
+          init-config:
+            image:
+              repository: public.ecr.aws/docker/library/busybox:latest@sha256
+              tag: 650fd573e056b679a5110a70aabeb01e26b76e545ec4b9c70a9523f2dfaf18c6
+            command:
+              - "sh"
+              - "-c"
+              - "cp /tmp/config/*.ini /opt/couchdb/etc/; ls -lrt /opt/couchdb/etc;"
         containers:
           main:
             image:
@@ -39,18 +49,13 @@ spec:
             envFrom:
             - secretRef:
                 name: obsidian-livesync
-            initContainers:
-              init-config:
-                image: public.ecr.aws/docker/library/busybox:latest@sha256:650fd573e056b679a5110a70aabeb01e26b76e545ec4b9c70a9523f2dfaf18c6
-                command:
-                  - "sh"
-                  - "-c"
-                  - "cp /tmp/config/*.ini /default.d/; ls -lrt /default.d;"
-                volumeMounts:
-                - name: ini
-                  mountPath: /tmp/config
-                - name: default
-                  mountPath: /default.d
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
     configMaps:
       conf:
         data:
@@ -80,25 +85,29 @@ spec:
             max_age = 3600
     persistence:
       config:
-        enabled: true
+        accessMode: ReadWriteOnce
+        size: 1Gi
         globalMounts:
         - path: /opt/couchdb/data
       ini:
-        enabled: true
         type: configMap
         name: obsidian-livesync-conf
+        advancedMounts:
+          main:
+            init-config:
+              - path: /tmp/config
       default:
-        enabled: true
         type: emptyDir
-        mountPath: /opt/couchdb/etc/default.d
+        globalMounts:
+          - path: /opt/couchdb/etc/default.d
     service:
       main:
+        controller: main
         ports:
           http:
             port: 5984
     route:
       main:
-        enabled: true
         parentRefs:
         - namespace: default
           name: ${CLUSTER_NAME}
@@ -108,4 +117,3 @@ spec:
         - backendRefs:
           - name: obsidian-livesync
             port: 5984
-

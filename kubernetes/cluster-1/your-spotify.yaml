@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=/workspaces/homelab/.devcontainer/helmrelease.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -8,7 +9,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 2.6.0
+      version: 3.0.2
       sourceRef:
         kind: HelmRepository
         name: bjw-s
@@ -53,8 +54,14 @@ spec:
             envFrom:
             - secretRef:
                 name: your-spotify
+            probes: &probes
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
       client:
-        type: deployment
         strategy: *strat
         rollingUpdate: *ru
         pod: *pod
@@ -66,6 +73,7 @@ spec:
             env:
               TIMEZONE: ${TIMEZONE}
               API_ENDPOINT: https://spotify-api.${PUBLIC_DOMAIN}
+            probes: *probes
       mongodb:
         type: statefulset
         # default, but there's a bug where statefulset is null by default
@@ -78,9 +86,10 @@ spec:
             image:
               repository: docker.io/library/mongo
               tag: 6.0.4-focal
+            probes: *probes
     service:
-      # Server
       main:
+        controller: main
         ports:
           http:
             port: 8080
@@ -96,14 +105,14 @@ spec:
             port: 27017
     persistence:
       config:
-        enabled: true
+        accessMode: ReadWriteOnce
+        size: 1Gi
         advancedMounts:
           mongodb:
             main:
               - path: /data/db
     route:
       main:
-        enabled: true
         parentRefs:
         - namespace: default
           name: ${CLUSTER_NAME}
@@ -114,7 +123,6 @@ spec:
           - name: your-spotify
             port: 8080
       client:
-        enabled: true
         parentRefs:
         - namespace: default
           name: ${CLUSTER_NAME}

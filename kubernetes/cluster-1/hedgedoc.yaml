@@ -41,6 +41,13 @@ spec:
               tag: 2.7.6
             env:
               HD_BASE_URL: http://hedgedoc.${PUBLIC_DOMAIN}
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
       backend:
         strategy: RollingUpdate
         rollingUpdate:
@@ -67,11 +74,17 @@ spec:
             envFrom:
             - secretRef:
                 name: hedgedoc
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
       frontend:
-        type: deployment
         strategy: RollingUpdate
         rollingUpdate:
-          unavailable: "0"
+          unavailable: 0
         pod:
           nodeSelector:
             kubernetes.io/arch: amd64
@@ -84,6 +97,13 @@ spec:
               tag: develop
             env:
               HD_BASE_URL: https://hedgedoc.${PUBLIC_DOMAIN}
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
     configMaps:
       caddyfile:
         data:
@@ -111,14 +131,15 @@ spec:
 
     persistence:
       config:
-        enabled: true
+        accessMode: ReadWriteOnce
+        size: 1Gi
         advancedMounts:
           backend:
             main: 
             - path: /usr/src/app/backend/uploads
       caddyfile:
         type: configMap
-        name: hedgedoc-caddyfile
+        name: "{{ .Release.Name }}-caddyfile"
         advancedMounts:
           main:
             main: 
@@ -126,6 +147,7 @@ spec:
               subPath: Caddyfile
     service:
       main:
+        controller: main
         ports:
           http:
             port: 80
@@ -141,7 +163,6 @@ spec:
             port: 3001
     route:
       main:
-        enabled: true
         parentRefs:
         - namespace: default
           name: ${CLUSTER_NAME}
