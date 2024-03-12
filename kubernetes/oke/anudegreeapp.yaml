@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=/workspaces/homelab/.devcontainer/helmrelease.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -8,7 +9,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 2.6.0
+      version: 3.0.2
       sourceRef:
         kind: HelmRepository
         name: bjw-s
@@ -25,18 +26,11 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    defaultPodOptions:
-      automountServiceAccountToken: true
-      enableServiceLinks: true
-      # nodeSelector:
-      #   kubernetes.io/arch: arm64
     controllers:
       main:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
-        cronjob:
-          successfulJobsHistory: 1
         # pod:
         #   annotations:
         #     instrumentation.opentelemetry.io/inject-apache-httpd: "true"
@@ -45,6 +39,13 @@ spec:
             image:
               repository: ghcr.io/pl4nty/anudegreeapp
               tag: latest@sha256:f857fce336c2d7a3ce736c0f894927f39b3d8298ade63d3fca927326e61c43ae
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
       getdata:
         type: cronjob
         cronjob:
@@ -65,12 +66,12 @@ spec:
             - anudegreeapp/scraper/course_scraper.php
     service:
       main:
+        controller: main
         ports:
           http:
             port: 80
     route:
       main:
-        enabled: true
         parentRefs:
         - namespace: default
           name: ${CLUSTER_NAME}

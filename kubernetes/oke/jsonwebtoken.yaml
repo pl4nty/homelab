@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=/workspaces/homelab/.devcontainer/helmrelease.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -8,7 +9,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 2.6.0
+      version: 3.0.2
       sourceRef:
         kind: HelmRepository
         name: bjw-s
@@ -25,16 +26,14 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    defaultPodOptions:
-      automountServiceAccountToken: true
-      enableServiceLinks: true
-      annotations:
-        instrumentation.opentelemetry.io/inject-nginx: "true"
     controllers:
       main:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-nginx: "true"
         containers:
           main:
             image:
@@ -42,12 +41,12 @@ spec:
               tag: latest@sha256:aaa9dc6a1a1ce8b8f43b35542c94bfdf2bafdb1e644d482a1c4d7124850150de
     service:
       main:
+        controller: main
         ports:
           http:
             port: 80
     route:
       main:
-        enabled: true
         parentRefs:
         - namespace: default
           name: ${CLUSTER_NAME}

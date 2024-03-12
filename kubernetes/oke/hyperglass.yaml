@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=/workspaces/homelab/.devcontainer/helmrelease.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -9,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 2.6.0
+      version: 3.0.2
       sourceRef:
         kind: HelmRepository
         name: bjw-s
@@ -26,28 +27,29 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    defaultPodOptions:
-      annotations:
-        instrumentation.opentelemetry.io/inject-python: "true"
-      automountServiceAccountToken: true
-      enableServiceLinks: true
-      # nodeSelector:
-      #   kubernetes.io/arch: arm64
-      securityContext:
-        fsGroup: 2000
-        fsGroupChangePolicy: OnRootMismatch
     controllers:
       main:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-python: "true"
+          securityContext:
+            fsGroup: 2000
+            fsGroupChangePolicy: OnRootMismatch
         containers:
           main:
             image:
               repository: quay.io/timrabl/hyperglass # use GHCR once docker-hyperglass#43 is fixed
               tag: 1.0.4-1.0.233
             probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
               startup:
+                enabled: true
                 spec:
                   initialDelaySeconds: 300
             resources:
@@ -72,7 +74,7 @@ spec:
                 add:
                 - NET_RAW
     configMaps:
-      conf:
+      config:
         data:
           hyperglass.yaml: |
             cache:
@@ -125,6 +127,7 @@ spec:
                   source_address: 2001:db8::1
     service:
       main:
+        controller: main
         ports:
           http:
             port: 8001
@@ -137,7 +140,7 @@ spec:
       #         - path: /opt/hyperglass/hyperglass/static
       config-hyperglass:
         type: configMap
-        name: '{{ .Release.Name }}-conf'
+        name: '{{ .Release.Name }}-config'
         advancedMounts:
           main:
             main:
@@ -145,7 +148,7 @@ spec:
                 subPath: hyperglass.yaml
       config-commands:
         type: configMap
-        name: '{{ .Release.Name }}-conf'
+        name: '{{ .Release.Name }}-config'
         advancedMounts:
           main:
             main:
@@ -153,7 +156,7 @@ spec:
                 subPath: commands.yaml
       config-devices:
         type: configMap
-        name: '{{ .Release.Name }}-conf'
+        name: '{{ .Release.Name }}-config'
         advancedMounts:
           main:
             main:
@@ -161,7 +164,6 @@ spec:
                 subPath: devices.yaml
     route:
       main:
-        enabled: true
         parentRefs:
         - namespace: default
           name: ${CLUSTER_NAME}
