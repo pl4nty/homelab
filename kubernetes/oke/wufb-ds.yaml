@@ -57,6 +57,8 @@ spec:
     serviceMonitor:
       main:
         serviceName: wufb-ds
+        endpoints:
+        - port: http
     route:
       main:
         parentRefs:
