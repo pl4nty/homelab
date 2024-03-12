@@ -56,7 +56,12 @@ spec:
               - secretRef:
                   name: tf2
             probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
               startup:
+                enabled: true
                 spec:
                   failureThreshold: 600
             resources:
