@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=/workspaces/homelab/.devcontainer/helmrelease.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -8,7 +9,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 2.6.0
+      version: 3.0.2
       sourceRef:
         kind: HelmRepository
         name: bjw-s
@@ -24,31 +25,19 @@ spec:
       retries: 3
   uninstall:
     keepHistory: false
-  timeout: 20m
+  timeout: 20m # slow startup
   values:
-    defaultPodOptions:
-      nodeSelector:
-        kubernetes.io/arch: amd64
     controllers:
       main:
-        strategy: RollingUpdate
-        rollingUpdate:
-          unavailable: 0
-        # otherwise configMap will mount tf as root and unwritable, can't use securityContext
-        initContainers:
-          init:
-            image:
-              repository: busybox
-              tag: 1.36
-            command:
-            - sh
-            - -c
-            - mkdir -p /home/steam/tf-dedicated/tf/cfg && chown -R 1000:1000 /home/steam/tf-dedicated
+        type: statefulset
+        pod:
+          nodeSelector:
+            kubernetes.io/arch: amd64
         containers:
           main:
             image:
               repository: cm2network/tf2
-              tag: latest
+              tag: latest@sha256:f148a52c0bf6352c459bb05f7062379ad2c491551578d9de64abc0b257bfc85e
             env:
               SRCDS_HOSTNAME: "[AU] pl4nty's jungle GameTrackerClaimServer"
               SRCDS_REGION: 5
@@ -57,8 +46,8 @@ spec:
               SRCDS_STARTMAP: plr_hightower
               SRCDS_MAPCYCLE: mapcycle.txt
             envFrom:
-            - secretRef:
-                name: tf2
+              - secretRef:
+                  name: tf2
             probes:
               startup:
                 spec:
@@ -71,32 +60,29 @@ spec:
                 cpu: 1.5
                 memory: 1500Mi
     configMaps:
-      conf:
+      config:
         data:
           mapcycle.txt: |
             plr_hightower
     persistence:
       config:
-        enabled: true
+        accessMode: ReadWriteOnce
         size: 16Gi
         globalMounts:
-        - path: /home/steam/tf-dedicated
+          - path: /home/steam/tf-dedicated
       mapcycle:
         type: configMap
-        name: '{{ .Release.Name }}-conf'
-        advancedMounts:
-          main:
-            main: 
-            - path: /home/steam/tf-dedicated/tf/cfg/mapcycle.txt
-              subPath: mapcycle.txt
+        name: "{{ .Release.Name }}-config"
+        globalMounts:
+          - path: /home/steam/tf-dedicated/tf/cfg/mapcycle.txt
+            subPath: mapcycle.txt
     service:
       main:
+        controller: main
         type: LoadBalancer
         annotations:
           external-dns.alpha.kubernetes.io/hostname: tf2.${PUBLIC_DOMAIN}
         ports:
-          http:
-            enabled: false
           port1:
             port: 27015
             protocol: TCP
