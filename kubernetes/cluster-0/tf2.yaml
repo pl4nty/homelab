@@ -33,6 +33,12 @@ spec:
         pod:
           nodeSelector:
             kubernetes.io/arch: amd64
+        statefulset:
+          volumeClaimTemplates:
+          - name: config
+            size: 16Gi
+            globalMounts:
+              - path: /home/steam/tf-dedicated
         containers:
           main:
             image:
@@ -65,11 +71,6 @@ spec:
           mapcycle.txt: |
             plr_hightower
     persistence:
-      config:
-        accessMode: ReadWriteOnce
-        size: 16Gi
-        globalMounts:
-          - path: /home/steam/tf-dedicated
       mapcycle:
         type: configMap
         name: "{{ .Release.Name }}-config"
@@ -80,6 +81,10 @@ spec:
       main:
         controller: main
         type: LoadBalancer
+        sessionAffinity: ClientIP
+        sessionAffinityConfig:
+          clientIP:
+            timeoutSeconds: 43200 # 12 hours
         annotations:
           external-dns.alpha.kubernetes.io/hostname: tf2.${PUBLIC_DOMAIN}
         ports:
