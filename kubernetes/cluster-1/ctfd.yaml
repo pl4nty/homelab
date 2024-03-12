@@ -38,13 +38,14 @@ spec:
               tag: latest@sha256:73d63e9304443d7eccf368cc935b1b9c5da36c76d4c25e66ecded7c41b26b1ea
             env:
               DATABASE_URL: sqlite:////opt/CTFd/CTFd/db/ctfd.db
-            probes:
-              liveness:
-                enabled: true
-              readiness:
-                enabled: true
-              startup:
-                enabled: true
+            # TODO wrong port? gets 8080
+            # probes:
+            #   liveness:
+            #     enabled: true
+            #   readiness:
+            #     enabled: true
+            #   startup:
+            #     enabled: true
       hacking-with-style:
         strategy: RollingUpdate
         rollingUpdate:
