@@ -31,9 +31,10 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
-        pod:
-          annotations:
-            instrumentation.opentelemetry.io/inject-nginx: "true"
+        # broken with newer nginx?
+        # pod:
+        #   annotations:
+        #     instrumentation.opentelemetry.io/inject-nginx: "true"
         containers:
           main:
             image:
