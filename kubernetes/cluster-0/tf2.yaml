@@ -33,13 +33,13 @@ spec:
         pod:
           nodeSelector:
             kubernetes.io/arch: amd64
-        statefulset:
-          volumeClaimTemplates:
-          - name: config
-            accessMode: ReadWriteOnce
-            size: 16Gi
-            globalMounts:
-              - path: /home/steam/tf-dedicated
+        # statefulset:
+        #   volumeClaimTemplates:
+        #   - name: config
+        #     accessMode: ReadWriteOnce
+        #     size: 16Gi
+        #     globalMounts:
+        #       - path: /home/steam/tf-dedicated
         containers:
           main:
             image:
@@ -76,13 +76,13 @@ spec:
         data:
           mapcycle.txt: |
             plr_hightower
-    # persistence:
-    #   mapcycle:
-    #     type: configMap
-    #     name: "{{ .Release.Name }}-config"
-    #     globalMounts:
-    #       - path: /home/steam/tf-dedicated/tf/cfg/mapcycle.txt
-    #         subPath: mapcycle.txt
+    persistence:
+      mapcycle:
+        type: configMap
+        name: "{{ .Release.Name }}-config"
+        globalMounts:
+          - path: /home/steam/tf-dedicated/tf/cfg/mapcycle.txt
+            subPath: mapcycle.txt
     service:
       main:
         controller: main
