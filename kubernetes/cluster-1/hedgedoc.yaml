@@ -74,13 +74,14 @@ spec:
             envFrom:
             - secretRef:
                 name: hedgedoc
-            probes:
-              liveness:
-                enabled: true
-              readiness:
-                enabled: true
-              startup:
-                enabled: true
+            # TODO wrong port
+            # probes:
+            #   liveness:
+            #     enabled: true
+            #   readiness:
+            #     enabled: true
+            #   startup:
+            #     enabled: true
       frontend:
         strategy: RollingUpdate
         rollingUpdate:
@@ -97,13 +98,14 @@ spec:
               tag: develop
             env:
               HD_BASE_URL: https://hedgedoc.${PUBLIC_DOMAIN}
-            probes:
-              liveness:
-                enabled: true
-              readiness:
-                enabled: true
-              startup:
-                enabled: true
+            # TODO wrong port
+            # probes:
+            #   liveness:
+            #     enabled: true
+            #   readiness:
+            #     enabled: true
+            #   startup:
+            #     enabled: true
     configMaps:
       caddyfile:
         data:

@@ -73,7 +73,8 @@ spec:
             env:
               TIMEZONE: ${TIMEZONE}
               API_ENDPOINT: https://spotify-api.${PUBLIC_DOMAIN}
-            probes: *probes
+            # TODO wrong port
+            # probes: *probes
       mongodb:
         type: statefulset
         # default, but there's a bug where statefulset is null by default
@@ -86,7 +87,8 @@ spec:
             image:
               repository: docker.io/library/mongo
               tag: 6.0.4-focal
-            probes: *probes
+            # TODO wrong port
+            # probes: *probes
     service:
       main:
         controller: main
