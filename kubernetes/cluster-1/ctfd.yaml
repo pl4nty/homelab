@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=/workspaces/homelab/.devcontainer/helmrelease.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -8,7 +9,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 2.6.0
+      version: 3.0.2
       sourceRef:
         kind: HelmRepository
         name: bjw-s
@@ -25,11 +26,11 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    defaultPodOptions:
-      securityContext:
-        fsGroup: 1001
     controllers:
       main:
+        pod:
+          securityContext:
+            fsGroup: 1001
         containers:
           main:
             image:
@@ -48,13 +49,13 @@ spec:
               tag: latest@sha256:8e6c8f176426cdbe3458617df7482936ce5e299c7d7245ea1547f987d9ac24c8
     persistence:
       config:
-        enabled: true
+        accessMode: ReadWriteOnce
+        size: 1Gi
         advancedMounts:
           main:
             main:
             - path: /opt/CTFd/CTFd/uploads
       db:
-        enabled: true
         accessMode: ReadWriteOnce
         size: 1Gi
         advancedMounts:
@@ -63,6 +64,7 @@ spec:
             - path: /opt/CTFd/CTFd/db
     service:
       main:
+        controller: main
         ports:
           http:
             port: 8000
@@ -73,7 +75,6 @@ spec:
             port: 8080
     route:
       main:
-        enabled: true
         parentRefs:
         - namespace: default
           name: ${CLUSTER_NAME}
@@ -84,7 +85,6 @@ spec:
           - name: ctfd
             port: 8000
       hacking-with-style:
-        enabled: true
         parentRefs:
         - namespace: default
           name: ${CLUSTER_NAME}

@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=/workspaces/homelab/.devcontainer/helmrelease.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -8,32 +9,28 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 2.6.0
+      version: 3.0.2
       sourceRef:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
   values:
-    defaultPodOptions:
-      automountServiceAccountToken: true
-      enableServiceLinks: true
-      imagePullSecrets:
-        - name: mcc-registry
-      nodeSelector:
-        kubernetes.io/arch: amd64
-      securityContext:
-        fsGroup: 2000
-        # sysctls:
-        # - name: net.ipv4.tcp_max_tw_buckets
-        #   value: '1440000'
-        # - name: net.ipv4.ip_local_port_range
-        #   value: '8193 65000'
-        # - name: net.core.somaxconn
-        #   value: '1024'
     controllers:
       main:
         pod:
-          hostNetwork: true
+          nodeSelector:
+            kubernetes.io/arch: amd64
+          securityContext:
+            fsGroup: 2000
+          imagePullSecrets:
+          - name: mcc-registry
+          # sysctls:
+          # - name: net.ipv4.tcp_max_tw_buckets
+          #   value: '1440000'
+          # - name: net.ipv4.ip_local_port_range
+          #   value: '8193 65000'
+          # - name: net.core.somaxconn
+          #   value: '1024'
         containers:
           main:
             image:
@@ -55,16 +52,24 @@ spec:
               limits:
                 # cpu: 400m
                 memory: 1Gi
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
     service:
+      # healthchecks fail without http path
       main:
-        primary: false # healthchecks fail without http path
+        controller: main
         type: LoadBalancer
+        annotations:
+          external-mdns.blakecovarrubias.com/hostnames: _microsoft_mcc._tcp
         ports:
           http:
             port: 80
             targetPort: 8081
-        annotations:
-          external-mdns.blakecovarrubias.com/hostnames: _microsoft_mcc._tcp
       metrics:
         primary: true
         controller: main

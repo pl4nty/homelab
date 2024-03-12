@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=/workspaces/homelab/.devcontainer/helmrelease.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -8,7 +9,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 2.6.0
+      version: 3.0.2
       sourceRef:
         kind: HelmRepository
         name: bjw-s
@@ -29,7 +30,7 @@ spec:
       main:
         strategy: RollingUpdate
         rollingUpdate:
-          unavailable: "0"
+          unavailable: 0
         pod:
           annotations:
             instrumentation.opentelemetry.io/inject-sdk: "true"
@@ -41,10 +42,9 @@ spec:
             env:
               HD_BASE_URL: http://hedgedoc.${PUBLIC_DOMAIN}
       backend:
-        type: deployment
         strategy: RollingUpdate
         rollingUpdate:
-          unavailable: "0"
+          unavailable: 0
         pod:
           nodeSelector:
             kubernetes.io/arch: amd64
