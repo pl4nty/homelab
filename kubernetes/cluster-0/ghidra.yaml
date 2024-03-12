@@ -42,6 +42,13 @@ spec:
             env:
               GHIDRA_USERS: blacktop
               SERVER_LOG_LEVEL: info
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
     service:
       main:
         controller: main

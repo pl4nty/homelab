@@ -47,6 +47,13 @@ spec:
               - StoreWeb.dll
             env:
               ASPNETCORE_URLS: http://*:8080
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
     service:
       main:
         controller: main
