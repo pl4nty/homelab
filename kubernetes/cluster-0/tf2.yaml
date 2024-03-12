@@ -36,6 +36,7 @@ spec:
         statefulset:
           volumeClaimTemplates:
           - name: config
+            accessMode: ReadWriteOnce
             size: 16Gi
             globalMounts:
               - path: /home/steam/tf-dedicated
