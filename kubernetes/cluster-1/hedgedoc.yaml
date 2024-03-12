@@ -149,6 +149,7 @@ spec:
               subPath: Caddyfile
     service:
       main:
+        primary: true
         controller: main
         ports:
           http:
