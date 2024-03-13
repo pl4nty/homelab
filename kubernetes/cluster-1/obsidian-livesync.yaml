@@ -40,15 +40,15 @@ spec:
             command:
               - "sh"
               - "-c"
-              - "cp /tmp/config/*.ini /opt/couchdb/etc/; ls -lrt /opt/couchdb/etc;"
+              - "cp /tmp/config/*.ini /opt/couchdb/etc/default.d/; ls -lrt /opt/couchdb/etc/default.d;"
         containers:
           main:
             image:
               repository: couchdb
               tag: 3.3.3
             envFrom:
-            - secretRef:
-                name: obsidian-livesync
+              - secretRef:
+                  name: obsidian-livesync
             probes:
               liveness:
                 enabled: true
@@ -88,7 +88,7 @@ spec:
         accessMode: ReadWriteOnce
         size: 1Gi
         globalMounts:
-        - path: /opt/couchdb/data
+          - path: /opt/couchdb/data
       ini:
         type: configMap
         name: obsidian-livesync-conf
@@ -109,11 +109,11 @@ spec:
     route:
       main:
         parentRefs:
-        - namespace: default
-          name: ${CLUSTER_NAME}
+          - namespace: default
+            name: ${CLUSTER_NAME}
         hostnames:
-        - obsidian.${PUBLIC_DOMAIN}
+          - obsidian.${PUBLIC_DOMAIN}
         rules:
-        - backendRefs:
-          - name: obsidian-livesync
-            port: 5984
+          - backendRefs:
+              - name: obsidian-livesync
+                port: 5984
