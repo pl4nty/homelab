@@ -55,6 +55,8 @@ spec:
             envFrom:
               - secretRef:
                   name: tf2
+            securityContext:
+              fsGroup: 1000
             probes:
               liveness:
                 enabled: true
