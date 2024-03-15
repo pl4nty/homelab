@@ -40,13 +40,6 @@ spec:
             image:
               repository: manics/rsyslog-stdout
               tag: 0.1.0
-            probes:
-              liveness:
-                enabled: true
-              readiness:
-                enabled: true
-              startup:
-                enabled: true
     service:
       main:
         controller: main
