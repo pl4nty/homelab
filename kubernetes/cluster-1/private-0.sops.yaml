@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=/workspaces/homelab/.devcontainer/helmrelease.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
@@ -8,7 +9,7 @@ spec:
     chart:
         spec:
             chart: app-template
-            version: 2.0.1
+            version: 3.0.4
             sourceRef:
                 kind: HelmRepository
                 name: bjw-s
@@ -34,7 +35,7 @@ spec:
                     main:
                         image:
                             repository: ENC[AES256_GCM,data:WCZ9yC0f6EBGMOtSlKQ=,iv:ANTH4eW5Sp64lrHP6IVsKDImTtJkloKaHVSKxTwNIoo=,tag:i3Uj+geZohFxr9RWNOYT0g==,type:str]
-                            tag: ENC[AES256_GCM,data:11Pmf1048Q==,iv:VRBzf4p7bwvLstEAGOJkjzZJIPUJpryJuDJNhwtjuGg=,tag:5LHijrbT2vFzRgEekVSDBg==,type:str]
+                            tag: ENC[AES256_GCM,data:7e13gAReSA==,iv:nu7PeMVvD9M47bwTKDtP3/vDdBgS9BcpPSEg0YuLjKs=,tag:xdjTmqmZetqGq531BWz1jA==,type:str]
                         env:
                             - name: ENC[AES256_GCM,data:T/oRGxJQlDsAvV4=,iv:5ZYhuwd6Qdkgw9h9ic+uj2TqKslHrEo/bnIoPaGeszA=,tag:UvMlt2PNgBy3uNZFnj4yuQ==,type:str]
                               value: ENC[AES256_GCM,data:xlq4a+Rv,iv:fwT2lO8jC7roAdWh90dS5GN0YWi/aKdp+lBZeSlcfww=,tag:PnVsa3fTDqtVPu8BEhAKKQ==,type:str]
@@ -44,68 +45,52 @@ spec:
                               value: ENC[AES256_GCM,data:/5nyhATOpgxVog==,iv:QG+rBik0cK6HfnTtYTV/DkCK2sR89+RfgmIAWklEVYw=,tag:8oUPfZXq5+bq6Sqd9vrtHQ==,type:str]
                             - name: ENC[AES256_GCM,data:K3fqIuuw58m2tAg=,iv:6pKFsIxiu5mdbdQE2pGg+r7IbCD86lwbCOMX1Lc1LLA=,tag:xKfbbT71sABCWxnOu3MPMw==,type:str]
                               value: ENC[AES256_GCM,data:VwI09HBp+A==,iv:n5hq1pCxB6hRBcrJGV4FTVK1V1uFQjako8e+BSGQFXs=,tag:EHIrPNYQYeEmJujLaOtBaw==,type:str]
+                        probes:
+                            liveness:
+                                enabled: true
+                            readiness:
+                                enabled: true
+                            startup:
+                                enabled: true
                     sidecar-0:
                         image:
                             repository: ENC[AES256_GCM,data:z77iI9SWStkt9lcrn0lYAI7Fj+8/uT4=,iv:WfdzEK18LE241kilZ5Od33M2GY+w9WgSUHYA9fiQdZY=,tag:gyKoR0Q+S9wkzEdUzoPMQw==,type:str]
-                            tag: ENC[AES256_GCM,data:K0OxU9LYiBipeA==,iv:oI8kQdnN9jWRpnekyV2fHh7QAhjXCXsHuIBMZU8aE7I=,tag:bcNFvr+7kdpV/d0zjZjLJw==,type:str]
-                    sidecar-1:
-                        image:
-                            repository: ENC[AES256_GCM,data:ZqVh6+sfEwc8je80Ur+mJ8ZoTumyE3kGrA==,iv:+aok+n0j87mixQiiuplBKqlrB6tJGG0XVVys4FK0UV4=,tag:GNwyg7E4jzL+rCgmj2xAww==,type:str]
-                            tag: ENC[AES256_GCM,data:kvjgVmmf,iv:SJop7CDwQvRCqkUJss9/9agKPwXeL/IkIGDxiXXFdpQ=,tag:78aqu+Vk8RDDl4xEWV1bKA==,type:str]
-                        args:
-                            - ENC[AES256_GCM,data:xgumbWIK,iv:xyQKfwAAmhTWBuLDLOwfS7h0dMP/lPDpj5oZQdsMK14=,tag:jh/HL+EvwLYhPy/fOLE9rw==,type:str]
-                            - ENC[AES256_GCM,data:wuLdZQ==,iv:CsaQJikSG4DR+G83sOe60TEyz5QGdtNacc+nDWo8kKs=,tag:XyymSlwHfgE09xcNA4ahmA==,type:str]
-                            - ENC[AES256_GCM,data:HUE2zxlw5ty2fkZ8Rsj2,iv:1hxuTvdhjDKGPvsbZkP6VOA7Mqr34SryVaWtGkHfyng=,tag:TO6N+P0qhdCis/xTCZ54mw==,type:str]
-                            - ENC[AES256_GCM,data:gYANT4RsPlKbO4apBkdF,iv:dB+XkdefSAyYb4gZ1NDU3A4pDN60/WqR5HhipLz5zNc=,tag:eN35TFz5/ekqMVE/RsSKVw==,type:str]
-                            - ENC[AES256_GCM,data:xgumbWIK,iv:xyQKfwAAmhTWBuLDLOwfS7h0dMP/lPDpj5oZQdsMK14=,tag:jh/HL+EvwLYhPy/fOLE9rw==,type:str]
-                            - ENC[AES256_GCM,data:wuLdZQ==,iv:CsaQJikSG4DR+G83sOe60TEyz5QGdtNacc+nDWo8kKs=,tag:XyymSlwHfgE09xcNA4ahmA==,type:str]
-                            - ENC[AES256_GCM,data:dDnS8714+vnEc+1EPVnhPA==,iv:vhpOKAsx9XQOu+6hvhgyrKl+q3pC1b0VWcfJWseatVc=,tag:+D6/YH0qwIfm/eblfMAI5A==,type:str]
-                            - ENC[AES256_GCM,data:gYANT4RsPlKbO4apBkdF,iv:dB+XkdefSAyYb4gZ1NDU3A4pDN60/WqR5HhipLz5zNc=,tag:eN35TFz5/ekqMVE/RsSKVw==,type:str]
-                            - ENC[AES256_GCM,data:3gVRJ/H59w==,iv:g2ffpPNHLnC77CkrXNZcTQWTYrAjc9O5W0s57qa+RWo=,tag:j31Z6bNkyltpUMHmY9SK6w==,type:str]
+                            tag: ENC[AES256_GCM,data:+hYNPqQSIilfwg==,iv:Kr0B1DRiuW6NPTX4vKRUWItKDEMvQD7GlqTCN0v0+Es=,tag:rTywb3IUgYDTl44rzMfAzg==,type:str]
+                        probes:
+                            liveness:
+                                enabled: true
+                            readiness:
+                                enabled: true
+                            startup:
+                                enabled: true
         persistence:
             config:
-                enabled: true
-                advancedMounts:
-                    main:
-                        main:
-                            - path: ENC[AES256_GCM,data:1d1kRbeAIhrcNQvV,iv:oK7XV4ltnDZ1cIoO9Xln1tUhdHSdqa2Mapkgeewoccc=,tag:knwRuJRh5DHjKOPJ9KBOHw==,type:str]
-                        sidecar-1:
-                            - path: ENC[AES256_GCM,data:NBaI14QlTA==,iv:JA3km8KyueqrALx1j2O6cvYisB66dHMF37rXdLS/cy4=,tag:j5b7VCSjCiBzUa4ngpAczA==,type:str]
+                accessMode: ReadWriteOnce
+                size: 1Gi
+                globalMounts:
+                    - path: /root/.stash
             data:
-                enabled: true
                 accessMode: ReadWriteOnce
                 size: 16Gi
-                advancedMounts:
-                    main:
-                        main:
-                            - path: ENC[AES256_GCM,data:NpaeeOQ=,iv:HETL0+fls8mzFv5U0natRrfve5KNYP2YZllmFKhq9Bg=,tag:noZGB+aFhh1HD65B+epNiA==,type:str]
-                        sidecar-0:
-                            - path: ENC[AES256_GCM,data:tavIstlXLtY4eQ==,iv:oEwWnnbnqf0rmflZU9KgaL5dsxxwkzaiWNyFleMs36Y=,tag:M5SjEtp5MqeF2CsjO12lYg==,type:str]
+                globalMounts:
+                    - path: /data
             meta:
-                enabled: true
                 accessMode: ReadWriteOnce
                 size: 1Gi
-                advancedMounts:
-                    main:
-                        main:
-                            - path: ENC[AES256_GCM,data:jDeZTIebI9TF,iv:/3fp+YH4uiHrOMxrOizR8xt/7oMwFsmc0kTURh85aiU=,tag:TsmYXxUGxXlNxQhiAyGCgA==,type:str]
+                globalMounts:
+                    - path: /metadata
             generated:
-                enabled: true
                 accessMode: ReadWriteOnce
                 size: 1Gi
-                advancedMounts:
-                    main:
-                        main:
-                            - path: ENC[AES256_GCM,data:cM9FFLtH/5d75A==,iv:VWmaDqQNiLTUxtoq9eiD9lmHRR5VjAsDXjEfnsRe3TQ=,tag:2d47ywgHmsX8YUzEyPEHMw==,type:str]
+                globalMounts:
+                    - path: /generated
             cache:
-                enabled: true
                 type: emptyDir
-                advancedMounts:
-                    main:
-                        main:
-                            - path: ENC[AES256_GCM,data:5OK+SDOV,iv:ns6afRRYrOXia6qJnLCSg/1wnMIouXux/Uw/FJ/ezu0=,tag:ght/xtmn/GeslEqRQkYi5A==,type:str]
+                globalMounts:
+                    - path: /cache
         service:
             main:
+                controller: main
                 type: NodePort
                 ports:
                     http:
@@ -129,8 +114,8 @@ sops:
             MTRGNEdVem1xcmZuTm1PL2oyNWhJQ0kKtCodFUWHUZQRYBk9jDAWCcl7TjKUKhGb
             k0zV+9uZTfKhhpg1Zgjt4uu17MlYDAFBi1YK5lG++vhlT2QtRk3xag==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2024-02-16T12:44:48Z"
-    mac: ENC[AES256_GCM,data:WVlVb5ghgPzcWjjWXhxCni1ziwatUhNJVfGgO5CE9A0lQxPy05IS7Hy67Ul6Piqq8jlgvN9cuWhkdW+asUF+Payw6EEOKiFSJvA65ZQ2ftwE7btvoTVgFIzJ9wT/NlRBBE6So1H9+wqDnR3cv7QzE/uU6GpmMznSLpY8wZQDXII=,iv:phNCsOpt2M/ia9fClKgoKQYvMVZua2qLl1PfN9r+LF4=,tag:6LUu6EwCAG1eMRhCF1/6kA==,type:str]
+    lastmodified: "2024-03-15T09:49:47Z"
+    mac: ENC[AES256_GCM,data:BjBAmguupyB3V3Cs0qG6ooe+CtvaWiQ/sJSPOjlQhtbn2HLd0bhUa2/JOpoKtGblj1fLj6pemHEjuvngHUNfrX5w27Uks7vPI9puy6RMx6pxuThbjGCpW4HcyWKpZnELT52zuPgcLgdO0/krV27WQkA1UA1jwOk9zd1BzxXXIGw=,iv:I3wI+irh+Rrgll9aQ2TmFbi9iFvr8rQbbdk8wWSZWsM=,tag:CO5JrwT6jyjl+gEAP/LUJA==,type:str]
     pgp: []
     encrypted_regex: ^(image|env|args|advancedMounts)$
     version: 3.8.1
