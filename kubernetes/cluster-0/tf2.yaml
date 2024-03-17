@@ -33,6 +33,8 @@ spec:
         pod:
           nodeSelector:
             kubernetes.io/arch: amd64
+          securityContext:
+            fsGroup: 1000
         statefulset:
           volumeClaimTemplates:
           - name: config
@@ -55,8 +57,6 @@ spec:
             envFrom:
               - secretRef:
                   name: tf2
-            securityContext:
-              fsGroup: 1000
             probes:
               liveness:
                 enabled: true
