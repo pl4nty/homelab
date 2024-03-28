@@ -35,7 +35,7 @@ spec:
           main:
             image:
               repository: mpepping/cyberchef
-              tag: v10.9.0
+              tag: v10.10.0
             probes:
               liveness:
                 enabled: true
