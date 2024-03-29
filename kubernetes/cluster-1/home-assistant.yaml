@@ -82,5 +82,5 @@ spec:
         - home-assistant.${PRIVATE_DOMAIN}
         rules:
         - backendRefs:
-          - name: home-assistant
+          - name: home-assistant-main
             port: 8123
