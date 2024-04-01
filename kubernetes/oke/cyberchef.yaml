@@ -34,8 +34,8 @@ spec:
         containers:
           main:
             image:
-              repository: mpepping/cyberchef
-              tag: v10.13.0
+              repository: ghcr.io/gchq/cyberchef
+              tag: 10.14.0
             probes:
               liveness:
                 enabled: true
