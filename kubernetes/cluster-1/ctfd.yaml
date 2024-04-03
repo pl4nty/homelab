@@ -97,7 +97,7 @@ spec:
         - ctf.${PUBLIC_DOMAIN}
         rules:
         - backendRefs:
-          - name: ctfd
+          - name: ctfd-main
             port: 8000
       hacking-with-style:
         parentRefs:
