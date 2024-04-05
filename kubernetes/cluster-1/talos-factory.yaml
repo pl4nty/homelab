@@ -44,10 +44,10 @@ spec:
             - cache-signing-key.key
             - -cache-repository
             - ghcr.io/pl4nty/image-factory/cache
-            - -container-signature-issuer
+            - -container-signature-issuer-regexp
             - "^(https://accounts.google.com|https://token.actions.githubusercontent.com)$"
             - -container-signature-subject-regexp
-            - "(@siderolabs\\.com$|^https://github.com/pl4nty/talos)"
+            - "(@siderolabs.com$|^https://github.com/pl4nty/talos)"
             - -external-url
             - https://talos-factory.${PUBLIC_DOMAIN}/
             - -installer-external-repository
