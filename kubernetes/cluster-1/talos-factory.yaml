@@ -45,9 +45,9 @@ spec:
             - -cache-repository
             - ghcr.io/pl4nty/image-factory/cache
             - -container-signature-issuer
-            - "^(https://token.actions.githubusercontent.com|https://accounts.google.com)$"
+            - "^(https://accounts.google.com|https://token.actions.githubusercontent.com)$"
             - -container-signature-subject-regexp
-            - "(^https://github.com/pl4nty/talos|@siderolabs.com$)"
+            - "(@siderolabs\\.com$|^https://github.com/pl4nty/talos)"
             - -external-url
             - https://talos-factory.${PUBLIC_DOMAIN}/
             - -installer-external-repository
