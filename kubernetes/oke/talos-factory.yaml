@@ -34,8 +34,8 @@ spec:
         containers:
           main:
             image:
-              repository: ghcr.io/pl4nty/image-factory
-              tag: 2399f19
+              repository: ghcr.io/siderolabs/image-factory
+              tag: v0.3.0
             args:
             - -cache-signing-key-path
             - cache-signing-key.key
