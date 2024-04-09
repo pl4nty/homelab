@@ -30,6 +30,9 @@ spec:
   values:
     controllers:
       main:
+        pod:
+          nodeSelector:
+            node.longhorn.io/create-default-disk: config
         type: cronjob
         cronjob:
           schedule: "0 0 * * *"
