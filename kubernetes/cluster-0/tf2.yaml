@@ -46,7 +46,7 @@ spec:
           main:
             image:
               repository: cm2network/tf2
-              tag: latest@sha256:4f5c246dbf27b79cd30c296330787469510cf62cd4bb1e7543208ed8eb7878d6
+              tag: latest@sha256:c94989b48afc7704e9c04c062445b84bb2f2130306ade2a95d299499b74f740d
             env:
               SRCDS_HOSTNAME: "[AU] pl4nty's jungle GameTrackerClaimServer"
               SRCDS_REGION: 5
