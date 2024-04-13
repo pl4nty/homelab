@@ -38,7 +38,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/wufb-ds
-              tag: latest@sha256:490037bf57acb572e723a78e7dfad02404caab3350ba8a730b83a22a53de9ba0
+              tag: latest@sha256:64f4478493da948c9d7094a3736246df716c685812e19fd6d233039be7930728
             env:
               SERVER_EXPERIMENTAL_METRICS: true
             probes:
