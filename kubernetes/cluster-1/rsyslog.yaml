@@ -32,9 +32,6 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
-        pod:
-          nodeSelector:
-            kubernetes.io/arch: amd64
         containers:
           main:
             image:
