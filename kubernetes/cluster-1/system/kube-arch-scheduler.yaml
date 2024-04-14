@@ -27,12 +27,12 @@ spec:
   values:
     weight:
       arm64: 1
-      controllerManager:
-        manager:
-          image:
-            repository: ghcr.io/elementtech/kube-arch-scheduler
-            tag: v0.0.8
-          resources:
-            requests:
-              cpu: 0.1
-              memory: 20Mi
+    controllerManager:
+      manager:
+        image:
+          repository: ghcr.io/elementtech/kube-arch-scheduler
+          tag: v0.0.8
+        resources:
+          requests:
+            cpu: 0.1
+            memory: 20Mi
