@@ -30,8 +30,8 @@ spec:
     controllerManager:
       manager:
         image:
-          repository: ghcr.io/elementtech/kube-arch-scheduler
-          tag: v0.0.8
+          repository: ghcr.io/pl4nty/kube-arch-scheduler
+          tag: v0.1.0
         resources:
           requests:
             cpu: 0.1
