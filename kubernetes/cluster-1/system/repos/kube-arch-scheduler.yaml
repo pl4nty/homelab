@@ -5,4 +5,4 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1h
-  url: https://elementtech.github.io/kube-arch-scheduler
+  url: https://pl4nty.github.io/kube-arch-scheduler
