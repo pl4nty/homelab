@@ -28,9 +28,6 @@ spec:
   values:
     controllers:
       main:
-        pod:
-          nodeSelector:
-            kubernetes.io/arch: amd64
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0

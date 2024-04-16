@@ -27,9 +27,6 @@ spec:
   values:
     hostName: fleet.tplant.com.au
     replicas: 1
-    # no arm64 image available
-    nodeSelector:
-      kubernetes.io/arch: amd64
     fleet:
       # autoApplySQLMigrations: false
       logging:
