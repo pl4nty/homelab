@@ -12,7 +12,11 @@ RUN curl -L https://github.com/siderolabs/talos/releases/latest/download/talosct
 
 RUN curl -s -L https://github.com/backube/volsync/releases/latest/download/kubectl-volsync.tar.gz | tar -xzf - -C ~/bin kubectl-volsync
 
-# https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins
-RUN echo "plugins+=(azure fluxcd kubectl helm)" >> ~/.zshrc
+RUN curl -s -L https://github.com/kubecolor/kubecolor/releases/download/v0.3.0/kubecolor_0.3.0_linux_amd64.tar.gz | tar -xzf - -C ~/bin kubecolor
 
-RUN echo "source \$ZSH/oh-my-zsh.sh" >> ~/.zshrc
+# https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins
+RUN printf "plugins+=(azure fluxcd kubectl helm) \n\
+source <(kubectl completion zsh) \n\
+alias kubectl=kubecolor \n\
+compdef kubecolor=kubectl \n\
+source $ZSH/oh-my-zsh.sh" >> ~/.zshrc
