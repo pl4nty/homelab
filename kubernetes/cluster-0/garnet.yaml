@@ -35,7 +35,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/garnet
-              tag: latest@sha256:55a8bbdc47477f5a60208206e5d129598792dc5ae5926c0dc9f26104dea32cf8
+              tag: latest@sha256:6077223a3e9750f8bdeb019b87c1089f30bfbdb6aa504dbad8c109e3652fbbca
             probes:
               liveness:
                 enabled: true
