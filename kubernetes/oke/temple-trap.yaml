@@ -38,7 +38,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/temple-trap
-              tag: latest@sha256:3aa9674592d38a5634cbb574b750a52c94e016bbf9c3c74d2c3bb7c308a70116
+              tag: latest@sha256:85957035596d79fb8cc8cb0b730fb25857056e8b07c19eaec41f04ee081b4da5
     service:
       main:
         controller: main
