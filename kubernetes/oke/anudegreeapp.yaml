@@ -38,7 +38,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/anudegreeapp
-              tag: latest@sha256:f857fce336c2d7a3ce736c0f894927f39b3d8298ade63d3fca927326e61c43ae
+              tag: latest@sha256:87f99bdbe31ab7e6aef4f5f22e951fbc98ccc38d5d15c891d38b2fcd34e4d9cd
             probes:
               liveness:
                 enabled: true
