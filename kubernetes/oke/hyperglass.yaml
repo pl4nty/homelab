@@ -66,7 +66,7 @@ spec:
           ssh:
             image:
               repository: ghcr.io/pl4nty/ubuntu-ssh
-              tag: latest@sha256:7078a8ae08ef03746f0641d796314bdd9ffb6bac709976a3d4bc9dcb7b689b5a
+              tag: latest@sha256:fe816b4060e7f33dc4bafdaea34e1232653ed811398e284cce3591d58934ae44
             # allow ICMP access. net.ipv4.ping_group_range="0 [the uid ie 1000]" may still be required on the node
             # note that Azure loadbalancers (node egress) don't support ICMP
             securityContext:
