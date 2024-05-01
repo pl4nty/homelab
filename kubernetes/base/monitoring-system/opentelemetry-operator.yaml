@@ -31,13 +31,6 @@ spec:
       # controller_runtime_webhook_latency_seconds_bucket has high cardinality, no option to drop as of 0.33.0
       # serviceMonitor:
       #   enabled: true
-      # TODO remove once on by default
-      featureGates: operator.autoinstrumentation.go,operator.collector.rewritetargetallocator
-      # image:
-      #   tag: v0.81.0 # v0.81 generates a 0 port in collector which can't deploy
-      resources:
-        limits:
-          cpu: 200m
       collectorImage:
         repository: "otel/opentelemetry-collector-k8s"
     admissionWebhooks:
