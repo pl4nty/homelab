@@ -32,7 +32,7 @@ spec:
       # serviceMonitor:
       #   enabled: true
       # TODO remove once on by default
-      featureGates: operator.autoinstrumentation.go,operator.collector.rewritetargetallocator,operator.autoinstrumentation.nginx
+      featureGates: operator.autoinstrumentation.go,operator.collector.rewritetargetallocator
       # image:
       #   tag: v0.81.0 # v0.81 generates a 0 port in collector which can't deploy
       resources:
