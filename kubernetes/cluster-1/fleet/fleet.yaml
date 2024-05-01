@@ -27,6 +27,9 @@ spec:
   values:
     hostName: fleet.tplant.com.au
     replicas: 1
+    # manifest version unsupported by kube-arch-scheduler
+    nodeSelector:
+      kubernetes.io/arch: amd64
     fleet:
       # autoApplySQLMigrations: false
       logging:
