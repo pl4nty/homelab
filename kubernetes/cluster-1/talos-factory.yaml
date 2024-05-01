@@ -31,6 +31,10 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
+        # kube-arch-scheduler only supports manifests
+        pod:
+          nodeSelector:
+            kubernetes.io/arch: amd64
         containers:
           main:
             image:
