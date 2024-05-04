@@ -26,10 +26,9 @@ machine:
     install:
         diskSelector:
             size: <= 100GB
-        image: ghcr.io/nberlee/installer:v1.6.6-rk3588
+        image: ghcr.io/nberlee/installer:v1.7.1-rk3588
         wipe: true
         extensions:
-            - image: ghcr.io/nberlee/rk3588:v1.6.6
             # required for environment check, even if we're only using SPDK engine
             - image: ghcr.io/siderolabs/iscsi-tools:v0.1.4
             # only required for v1
@@ -85,8 +84,8 @@ sops:
             bHc2ZEhtek9kY25kejlWWkprdS9JZFUKTkXl4r0fRAwHB+KVUZWt8906yOM8hxSi
             Qgu8XoWJqrLPAUNzAPZzcryvAVGqZlH6HRaUQB47LQWnX2/pml9ThQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2024-03-10T04:38:03Z"
-    mac: ENC[AES256_GCM,data:YUKeMZGQtLMID4ilHkinhtMz4Hbc7BOS1hZyAXRb5qu3mO0J+i2u5LtEO0g80ho9ad6cO3/nmFINsvTfEI125jrIJT4DOFKvIiwNpp2wYrUG9BKDBBzqEg1bKs+uR+GAw1DTr2Fon3WGISlTgsGUG9d5ftOo0oqeNTaZSNGd9qI=,iv:DzsDku07aKOhAfY92mppbFWtB72scljqaBU40eGPkkA=,tag:Ga3OXzmHpxHhEiSvWabg8w==,type:str]
+    lastmodified: "2024-05-04T01:20:37Z"
+    mac: ENC[AES256_GCM,data:ny9Qx6CNRNAmwJC2MeyAT4+jiC5oq537ZO3NZnQPvd2Tq1hmi1d6k4f1RLnwbGSSOpWH8U3CQF65CYvquYZ4KXARTgO6/7DZYpsdw4MOp/qhphfpRKz1pKnmKe4+viB419n2kBpVy4QlP/qVZ6Ox9YzYtwrwlOrO2Yr6+zoA+ac=,iv:toIxI2YhC6hXHsfIzB7QkoAz9TFvKilnpEGlEnpE7Rs=,tag:YWLF0BwgB0QrOgVASbn7jQ==,type:str]
     pgp: []
     encrypted_regex: ^(token|crt|key|id|secret|secretboxEncryptionSecret|ca)$
     version: 3.8.1
