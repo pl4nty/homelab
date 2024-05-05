@@ -9,11 +9,9 @@ machine:
         key: ""
     certSANs: []
     kubelet:
-        image: ghcr.io/siderolabs/kubelet:v1.29.0
+        image: ghcr.io/siderolabs/kubelet:v1.29.4
         defaultRuntimeSeccompProfileEnabled: true
         disableManifestsDirectory: true
-        extraArgs:
-            rotate-server-certificates: true
         extraMounts:
             - destination: /var/lib/longhorn
               type: bind
@@ -29,6 +27,7 @@ machine:
         image: ghcr.io/nberlee/installer:v1.7.1-rk3588
         wipe: true
         extensions:
+            - image: ghcr.io/nberlee/rk3588:v1.7.1
             # required for environment check, even if we're only using SPDK engine
             - image: ghcr.io/siderolabs/iscsi-tools:v0.1.4
             # only required for v1
@@ -84,8 +83,8 @@ sops:
             bHc2ZEhtek9kY25kejlWWkprdS9JZFUKTkXl4r0fRAwHB+KVUZWt8906yOM8hxSi
             Qgu8XoWJqrLPAUNzAPZzcryvAVGqZlH6HRaUQB47LQWnX2/pml9ThQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2024-05-04T02:07:47Z"
-    mac: ENC[AES256_GCM,data:rmXXn4QMEoAc8E66h6fTBKqoYA4lEodAgj7K4zv59gyFXjeVHAzI+SfT/UUxm6Li60juEhattLGOSJC5+ZUPQ87BHwCoJk1ZDrnjyV8oZNfpI4RmZun2IsCcsEFWUKPGdP5864FSxH+WWvaJPWvtTpkTx2MafbA6IPohDY2jBQw=,iv:IFiRa9GAuXGVO1UZJLbCnHdpFgaOY5O71iiGrjv2LoM=,tag:N7SfPCGSrvpKCNradrySYw==,type:str]
+    lastmodified: "2024-05-04T04:10:33Z"
+    mac: ENC[AES256_GCM,data:6ngWG+UF9o34sbeiy/1IxAZk67GwwMlinbTZZAxk+4nhMMslyNAbKCfhxXdGojcqNaLECFmp7c1Ri2xKPn6f80cverkMhRLMnLim0ALJo9kJAGc4VrXVp+vUijnYUduk12gfctIS7fmZAL0RLKcfwr8wSo9qwgc9C5+teDw54aA=,iv:/T/FUuqHCkhqob0TVeuS4y4rCzr4PbK9Q4SoWCVFF1I=,tag:SezEIhf+liQjSyNjc8dRsg==,type:str]
     pgp: []
     encrypted_regex: ^(token|crt|key|id|secret|secretboxEncryptionSecret|ca)$
     version: 3.8.1
