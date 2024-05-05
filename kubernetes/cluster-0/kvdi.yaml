@@ -29,6 +29,8 @@ spec:
         auth:
           allowAnonymous: true
       templates:
-      - spec:
+      - metadata:
+          name: kasm-desktop
+        spec:
           desktop:
             image: kasmweb/desktop:1.15.0-rolling
