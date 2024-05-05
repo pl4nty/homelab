@@ -28,4 +28,7 @@ spec:
       spec:
         auth:
           allowAnonymous: true
-      # templates: []
+      templates:
+      - spec:
+          desktop:
+            image: kasmweb/desktop:1.15.0-rolling
