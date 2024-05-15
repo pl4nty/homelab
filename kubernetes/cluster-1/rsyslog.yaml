@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=/workspaces/homelab/.devcontainer/helmrelease.schema.json
 # Grafana Agent on 30514 only supports RFC5424, but NetComm NF20MESH is noncompliant
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: rsyslog
