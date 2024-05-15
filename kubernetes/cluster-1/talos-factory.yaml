@@ -39,7 +39,7 @@ spec:
           main:
             image:
               repository: ghcr.io/siderolabs/image-factory
-              tag: v0.3.3
+              tag: v0.4.1
             args:
             - -cache-signing-key-path
             - cache-signing-key.key
