@@ -35,7 +35,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/vnet-capacity-planner
-              tag: latest@sha256:c3cd01f16bf3c77854474526c2a69a8c044da16bdfbc565a867d8b45dab55a05
+              tag: latest@sha256:29172673aaeeb93724204a50d65b091a83b28883f5edd722841e3ed14c599c67
             probes:
               liveness:
                 enabled: true
