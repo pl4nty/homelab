@@ -40,8 +40,8 @@ spec:
         containers:
           main:
             image:
-              repository: ghcr.io/miniflux/miniflux
-              tag: 2.1.3
+              repository: ghcr.io/pl4nty/miniflux
+              tag: sha-8ce91c8
             env:
               RUN_MIGRATIONS: "1"
               CREATE_ADMIN: "1"
