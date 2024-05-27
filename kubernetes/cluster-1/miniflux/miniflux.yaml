@@ -52,6 +52,7 @@ spec:
                   name: miniflux-cnpg-app
                   key: uri
               POLLING_PARSING_ERROR_LIMIT: 10
+              FORCE_REFRESH_INTERVAL: -1 # otherwise refreshes all feed entries, not just recent. high AI summary cost
             envFrom:
             - secretRef:
                 name: miniflux
