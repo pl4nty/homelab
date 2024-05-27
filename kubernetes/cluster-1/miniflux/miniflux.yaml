@@ -45,7 +45,7 @@ spec:
             env:
               RUN_MIGRATIONS: "1"
               CREATE_ADMIN: "1"
-              LOG_LEVEL: info
+              LOG_LEVEL: debug
               BASE_URL: https://rss.${PRIVATE_DOMAIN}
               DATABASE_URL:
                 secretKeyRef:
