@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: k8s-monitoring
-      version: 0.13.4
+      version: 1.0.12
       sourceRef:
         kind: HelmRepository
         name: grafana
@@ -41,9 +41,16 @@ spec:
         basicAuth:
           username: ${LOGS_USERNAME}
           password: ${LOGS_PASSWORD}
+      tempo:
+        host: ${TRACES_HOST}
+        client_auth:
+          username: ${TRACES_USERNAME}
+          password: ${TRACES_PASSWORD}
     # https://github.com/grafana/k8s-monitoring-helm/issues/46#issuecomment-1668986219
     opencost:
       enabled: false
+    traces:
+      enabled: true
     # logs:
     #   extraConfig: |-
     #     loki.source.syslog "syslog_udp" {

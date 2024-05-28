@@ -1,0 +1,38 @@
+apiVersion: opentelemetry.io/v1alpha1
+kind: OpenTelemetryCollector
+metadata:
+  name: opentelemetry-sidecar
+  namespace: monitoring-system
+spec:
+  mode: sidecar
+  config: |
+    extensions:
+      basicauth/traces:
+        client_auth:
+          username: ${TRACES_USERNAME}
+          password: ${TRACES_PASSWORD}
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+          http:
+    processors:
+      batch:
+        send_batch_size: 100
+        send_batch_max_size: 300
+    exporters:
+      logging:
+        loglevel: debug
+      otlp:
+        endpoint: ${TRACES_ENDPOINT}
+        tls:
+          insecure: false
+        auth:
+          authenticator: basicauth/traces
+    service:
+      extensions: [ basicauth/traces ]
+      pipelines:
+        traces:
+          receivers: [ otlp ]
+          processors: [ batch ]
+          exporters: [ otlp, logging ]
