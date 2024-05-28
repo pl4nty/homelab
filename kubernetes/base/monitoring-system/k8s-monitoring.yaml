@@ -43,7 +43,7 @@ spec:
           password: ${LOGS_PASSWORD}
       tempo:
         host: ${TRACES_HOST}
-        client_auth:
+        basicAuth:
           username: ${TRACES_USERNAME}
           password: ${TRACES_PASSWORD}
     # https://github.com/grafana/k8s-monitoring-helm/issues/46#issuecomment-1668986219
