@@ -52,7 +52,7 @@ spec:
                   name: miniflux-cnpg-app
                   key: uri
               POLLING_PARSING_ERROR_LIMIT: 10
-              FORCE_REFRESH_INTERVAL: 1440 # refreshes have high AI summary cost. but -1 doesn't disable it
+              FORCE_REFRESH_INTERVAL: 43200 # refreshes have high AI summary cost. but -1 doesn't disable it
             envFrom:
             - secretRef:
                 name: miniflux
