@@ -63,4 +63,4 @@ spec:
         rules:
         - backendRefs:
           - name: cyberchef
-            port: 8000
+            port: 80
