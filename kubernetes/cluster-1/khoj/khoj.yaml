@@ -50,7 +50,7 @@ spec:
                 secretKeyRef:
                   name: khoj-cnpg-app
                   key: password
-              POSTGRES_HOST: miniflux-cnpg-rw
+              POSTGRES_HOST: khoj-cnpg-rw
             envFrom:
               - secretRef:
                   name: khoj
