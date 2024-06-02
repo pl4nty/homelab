@@ -39,7 +39,7 @@ spec:
               repository: ghcr.io/khoj-ai/khoj
               tag: 1.12.1
             args:
-              - --host="0.0.0.0"
+              - --host=0.0.0.0
               - --port=42110
               - -vv
               - --anonymous-mode
@@ -52,6 +52,7 @@ spec:
                   key: password
               POSTGRES_HOST: khoj-cnpg-rw
               KHOJ_DEBUG: "true"
+              KHOJ_DOMAIN: khoj.${PUBLIC_DOMAIN}
             envFrom:
               - secretRef:
                   name: khoj
@@ -62,8 +63,6 @@ spec:
                 enabled: true
               startup:
                 enabled: true
-                spec:
-                  initialDelaySeconds: 30
     persistence:
       config:
         accessMode: ReadWriteOnce
@@ -87,7 +86,7 @@ spec:
         - namespace: default
           name: ${CLUSTER_NAME}
         hostnames:
-        - khoj.${PRIVATE_DOMAIN}
+        - khoj.${PUBLIC_DOMAIN}
         rules:
         - backendRefs:
           - name: khoj
