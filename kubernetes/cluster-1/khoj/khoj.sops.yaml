@@ -10,6 +10,7 @@ stringData:
     KHOJ_ADMIN_PASSWORD: ENC[AES256_GCM,data:X2GteGC6b8hON8uwfn9N1Cj3MzkPcXQ28gbdhA==,iv:5F+PZ5AglpcrXjbaZ//SdlZSWJ6UoiGoeznnExJ4Nz0=,tag:0aCFjs+Lxdu73JVOXK5LnQ==,type:str]
     GOOGLE_CLIENT_ID: ENC[AES256_GCM,data:UH29ImOxx+QxJpnGlzE29gSDW2+VEKPIRrD8x26Z5qOz0q5dSvlg4hnpmyQsG4/hEQxii81VR3xB41wv2Cr/BK++IGUlsvAG,iv:CjuNlJGTAmbnhAV+JKGc4DgNNKyBUnmLMCa1kA2sVSM=,tag:qYYM13/OzJGF87CDYymuaA==,type:str]
     GOOGLE_CLIENT_SECRET: ENC[AES256_GCM,data:LTYX2Yk+4lmcXodfOevKO1f375bJq7ZypgIIIyD6XBkzmJA=,iv:YFLrA+h8S7jaAPoaJduzV9LtWqGt2fcAnLHYfy0Rs9k=,tag:oRiXZZfiJuiFev961UHUBA==,type:str]
+    SERPER_DEV_API_KEY: ENC[AES256_GCM,data:jHCYe/TtiFusdyMOHh+5gSsWqWcMRnkN+2uVyaJFSgZjV7Wq73IqzA==,iv:8LSJzk8+Jg8n6agwaINppjzfXwvxLgJ2525Zn5Lt4KE=,tag:uoW5YtX/dxhUChEoJrWGRw==,type:str]
 sops:
     kms: []
     gcp_kms: []
@@ -25,8 +26,8 @@ sops:
             U2RSWjN0TWZHUU1XR2lHUHAxRlpHbDAKS83hH0lg9S7YHo5oF4OTd+6XDuSASFod
             nekZY+oInlUFAhgCRpE4YgrJk+ph/DFxGw8Epe/EFB0xHlvDVy9AYQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2024-06-02T15:07:19Z"
-    mac: ENC[AES256_GCM,data:BIPBbcbkU4BfUlmAGtiskcjxcyhsd30kTz0PSyeQcYKVp7F6PSvhOczO4lW3CClf1x7SnpwW5bQPJiUsvI6r6Y/yEcdqB29zf/7+mfDBXObL14ZDhUJZipPKiQVrmXd0V6m0IBnVwmQKFHyrAUBI/BKAsv3yI96AfaKMsdtHmFk=,iv:6NafulK2Tjmwa9s7UYWkccV6BbjGLO1Dqhd/q1XmiUw=,tag:Yn8IZOSSQ0w0kYcuUW+JTQ==,type:str]
+    lastmodified: "2024-06-02T15:29:58Z"
+    mac: ENC[AES256_GCM,data:JY/4g/4G8qIU68ZnQcAljfi6auSa9sfZvP+/qV3/jcI8vH8WYotRXkozeTmSblz+8DetWCLDg3VxlqcURffwh/Oo3hkiDpUpIITFb9b0wXQbQzICcpXnMDgF0T02WdknSC03jOQOa0Zsn7fEAuZjngCl3Ttid52FnbguFs2cdtU=,iv:4KJ7YeO+gSlzQ5NC9i9bF1ml/nH5dTiy6oE5bAc5+7s=,tag:Z5NvcGxxiJaH5IZPG96HrQ==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.8.1
