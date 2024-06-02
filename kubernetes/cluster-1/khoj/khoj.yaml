@@ -38,10 +38,10 @@ spec:
             image:
               repository: ghcr.io/khoj-ai/khoj
               tag: 1.12.1
+            command: /bin/sh
             args:
-              - --host=0.0.0.0
-              - --port=42110
-              - -vv
+              - -c
+              - pip install khoj-assistant[prod] && python3 src/khoj/main.py --host=0.0.0.0 --port=42110 -vv
             env:
               POSTGRES_DB: app
               POSTGRES_USER: app
