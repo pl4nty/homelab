@@ -50,7 +50,7 @@ spec:
                   name: khoj-cnpg-app
                   key: password
               POSTGRES_HOST: khoj-cnpg-rw
-              KHOJ_DEBUG: "false"
+              # KHOJ_DEBUG: "true"
               KHOJ_DOMAIN: khoj.${PUBLIC_DOMAIN}
             envFrom:
               - secretRef:
