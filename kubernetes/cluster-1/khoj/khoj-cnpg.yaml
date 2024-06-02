@@ -13,7 +13,7 @@ spec:
   bootstrap:
     initdb:
       postInitTemplateSQL:
-        - CREATE EXTENSION vectors;
+        - CREATE EXTENSION vector;
 
   backup:
     retentionPolicy: 30d
