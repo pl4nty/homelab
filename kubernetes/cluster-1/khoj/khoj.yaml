@@ -63,6 +63,8 @@ spec:
                 enabled: true
               startup:
                 enabled: true
+                spec:
+                  initialDelaySeconds: 30
     persistence:
       config:
         accessMode: ReadWriteOnce
