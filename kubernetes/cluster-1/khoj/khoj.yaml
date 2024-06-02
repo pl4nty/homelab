@@ -1,0 +1,91 @@
+# yaml-language-server: $schema=/workspaces/homelab/.devcontainer/helmrelease.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: khoj
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.2.1
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    controllers:
+      main:
+        pod:
+          nodeSelector:
+            node.longhorn.io/create-default-disk: config
+        rollingUpdate:
+          unavailable: "0"
+        containers:
+          main:
+            image:
+              repository: ghcr.io/khoj-ai/khoj
+              tag: 1.12.1
+            args:
+              - --host="0.0.0.0"
+              - --port=42110
+              - -vv
+              - --anonymous-mode
+            env:
+              POSTGRES_DB: app
+              POSTGRES_USER: app
+              POSTGRES_PASSWORD:
+                secretKeyRef:
+                  name: khoj-cnpg-app
+                  key: password
+              POSTGRES_HOST: miniflux-cnpg-rw
+            envFrom:
+              - secretRef:
+                  name: khoj
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+    persistence:
+      config:
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        globalMounts:
+        - path: /root/.khoj
+      models:
+        accessMode: ReadWriteOnce
+        size: 4Gi
+        globalMounts:
+        - path: /root/.cache/torch/sentence_transformers
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 42110
+    route:
+      main:
+        parentRefs:
+        - namespace: default
+          name: ${CLUSTER_NAME}
+        hostnames:
+        - khoj.${PRIVATE_DOMAIN}
+        rules:
+        - backendRefs:
+          - name: khoj
+            port: 42110

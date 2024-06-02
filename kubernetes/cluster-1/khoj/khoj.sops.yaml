@@ -1,0 +1,30 @@
+kind: Secret
+apiVersion: v1
+metadata:
+    name: khoj
+    namespace: default
+type: Opaque
+stringData:
+    KHOJ_DJANGO_SECRET_KEY: ENC[AES256_GCM,data:Na5m952mc3ZQN0uVtnYyd9UgEw==,iv:7wUdNfQzFrT3QSGWfgwVjbTgSrQlfc6lvUMm1g8Oy1Y=,tag:4dw3h3abSYV8cme9CIjbAQ==,type:str]
+    KHOJ_ADMIN_EMAIL: ENC[AES256_GCM,data:sSxGt2uxcIZ/4YwHHGjhyFk=,iv:eRqaRFdVRF5qhHSqAzeTslaKlSGWJOsT5GGNvOPknqI=,tag:cOiwnchkJXAXXbQcgPdBHg==,type:str]
+    KHOJ_ADMIN_PASSWORD: ENC[AES256_GCM,data:X2GteGC6b8hON8uwfn9N1Cj3MzkPcXQ28gbdhA==,iv:5F+PZ5AglpcrXjbaZ//SdlZSWJ6UoiGoeznnExJ4Nz0=,tag:0aCFjs+Lxdu73JVOXK5LnQ==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA3dS81em1RY1B3Uy9TVGti
+            WUtuOUtGdUFDN0pLZlpSTmFIa3RMbTBZWlFVCmZYVVlrcWp2dVhsalErYWFTZnZC
+            N0l4UTZMaTlqZzREMkVodnYvNFZhajAKLS0tIEwvNGlDZzRzaUpWQUx3TzNIYkR0
+            U2RSWjN0TWZHUU1XR2lHUHAxRlpHbDAKS83hH0lg9S7YHo5oF4OTd+6XDuSASFod
+            nekZY+oInlUFAhgCRpE4YgrJk+ph/DFxGw8Epe/EFB0xHlvDVy9AYQ==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2024-06-02T13:49:15Z"
+    mac: ENC[AES256_GCM,data:7A0REQF+vFVbs8mkbLnGvpAn3a1K2Vb2RNmOi7KUUYv8LGRyPwYu2EiJ0SQhKEML24gS18g3p/ENKkMUWTa+lb6r/KvTu2ut+uEym0WKQ4gNR8p1gk/HAfylb5UNZtuESidLlWN1G3jm+Bv5US35gaJMtC2/JqUSPoKsBuStzFE=,iv:ZnnHmPGmBIg3IgZtZtI109zviYYFa4evRZu5iCb8X0s=,tag:X7QCQXVzdMmbOuGSmourGQ==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData)$
+    version: 3.8.1
