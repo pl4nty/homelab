@@ -39,9 +39,9 @@ spec:
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
         value: http://k8s-monitoring-alloy.monitoring-system:4318
   apacheHttpd:
-    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:61f3388185a4fa96da56d866f4e13e6f5af7289b9872b9a2b0112cf1d088f299
+    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:a95c86da5e4d704319922bff03f265ed154d4db8a356d301b1f84083472b1b8b
   nginx:
-    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:61f3388185a4fa96da56d866f4e13e6f5af7289b9872b9a2b0112cf1d088f299
+    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:a95c86da5e4d704319922bff03f265ed154d4db8a356d301b1f84083472b1b8b
   #   configPath: /etc/php/7.4/apache2/conf.d # HRConvert2
 ---
 apiVersion: opentelemetry.io/v1alpha1
