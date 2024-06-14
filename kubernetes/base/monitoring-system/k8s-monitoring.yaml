@@ -29,28 +29,33 @@ spec:
   values:
     cluster:
       name: ${CLUSTER_NAME:=bootstrap}
-    # TODO use secret
     externalServices:
       prometheus:
-        host: ${METRICS_HOST}
-        basicAuth:
-          username: ${METRICS_USERNAME}
-          password: ${METRICS_PASSWORD}
+        secret:
+          create: false
+          name: k8s-monitoring-metrics
+          namespace: monitoring-system
       loki:
-        host: ${LOGS_HOST}
-        basicAuth:
-          username: ${LOGS_USERNAME}
-          password: ${LOGS_PASSWORD}
+        secret:
+          create: false
+          name: k8s-monitoring-logs
+          namespace: monitoring-system
       tempo:
-        host: ${TRACES_HOST}
-        basicAuth:
-          username: ${TRACES_USERNAME}
-          password: ${TRACES_PASSWORD}
-    # https://github.com/grafana/k8s-monitoring-helm/issues/46#issuecomment-1668986219
-    opencost:
-      enabled: false
+        secret:
+          create: false
+          name: k8s-monitoring-traces
+          namespace: monitoring-system
+      pyroscope:
+        secret:
+          create: false
+          name: k8s-monitoring-profiles
+          namespace: monitoring-system
     traces:
       enabled: true
+    profiles:
+      enabled: true
+    opencost:
+      enabled: false
     # logs:
     #   extraConfig: |-
     #     loki.source.syslog "syslog_udp" {
@@ -70,11 +75,6 @@ spec:
     #         targetPort: 514
     #         protocol: UDP
     metrics:
-      node-exporter:
-        metricsTuning:
-          dropMetricsForFilesystem:
-            - tempfs # default
-            - tmpfs
       kube-state-metrics:
         metricsTuning:
           excludeMetrics:
@@ -83,6 +83,11 @@ spec:
             - kube_replicaset_metadata_generation
             - kube_replicaset_owner
             - kube_replicaset_spec_replicas
+      node-exporter:
+        metricsTuning:
+          dropMetricsForFilesystem:
+            - tempfs # default
+            - tmpfs
       extraMetricRelabelingRules: |-
         rule {
           source_labels = ["namespace","pod"]
