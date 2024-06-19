@@ -52,8 +52,9 @@ spec:
           namespace: monitoring-system
     traces:
       enabled: true
-    profiles:
-      enabled: true
+    # 4GB/day but only 50GB/month limit
+    # profiles:
+    #   enabled: true
     opencost:
       enabled: false
     # logs:
