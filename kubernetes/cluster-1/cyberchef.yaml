@@ -39,7 +39,7 @@ spec:
           main:
             image:
               repository: ghcr.io/gchq/cyberchef
-              tag: 10.18.8
+              tag: 10.19.0
             probes:
               liveness:
                 enabled: true
