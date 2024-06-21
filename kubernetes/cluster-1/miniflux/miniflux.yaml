@@ -55,6 +55,7 @@ spec:
               METRICS_COLLECTOR: "1"
               POLLING_SCHEDULER: entry_frequency
               SCHEDULER_ENTRY_FREQUENCY_MIN_INTERVAL: 720
+              FILTER_ENTRY_MAX_AGE_DAYS: 1 # stop refreshing entries after 1 day
             envFrom:
             - secretRef:
                 name: miniflux
