@@ -55,6 +55,8 @@ spec:
         pod:
           annotations:
             instrumentation.opentelemetry.io/inject-nodejs: "true"
+          securityContext:
+            fsGroup: 1000
         containers:
           main:
             image:
