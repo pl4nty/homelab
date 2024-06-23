@@ -12,6 +12,9 @@ spec:
   enableSuperuserAccess: true
   superuserSecret:
     name: ctfnote
+  postgresql:
+    parameters:
+      search_path: ctfnote
 
   backup:
     retentionPolicy: 30d
