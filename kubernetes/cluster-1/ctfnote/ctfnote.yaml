@@ -78,11 +78,11 @@ spec:
                   key: dbname
               DB_ADMIN_LOGIN:
                 secretKeyRef:
-                  name: ctfnote
+                  name: ctfnote-superuser
                   key: username
               DB_ADMIN_PASSWORD:
                 secretKeyRef:
-                  name: ctfnote
+                  name: ctfnote-superuser
                   key: password
               DB_USER_LOGIN:
                 secretKeyRef:

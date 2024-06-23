@@ -11,11 +11,12 @@ spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:16.3
   enableSuperuserAccess: true
   superuserSecret:
-    name: ctfnote
+    name: ctfnote-superuser
   postgresql:
     parameters:
+      # superuser name must be postgres so doesn't match schema name
       # https://github.com/TFNS/CTFNote/pull/124
-      search_path: ctfnote, public
+      search_path: ctfnote, "$user", public
 
   backup:
     retentionPolicy: 30d
@@ -37,6 +38,9 @@ spec:
   bootstrap:
     initdb:
       database: ctfnote
+      owner: user_postgraphile
+      secret:
+        name: ctfnote
   #   recovery:
   #     source: ctfnote-cnpg
 
