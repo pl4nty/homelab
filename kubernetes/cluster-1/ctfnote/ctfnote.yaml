@@ -57,7 +57,7 @@ spec:
                 topologyKey: kubernetes.io/hostname
           # hardcoded hostname
           hostAliases:
-            - ip: "ctfnote-api"
+            - ip: "10.102.29.154" # TODO terrifying, but /etc/hosts only accepts A records
               hostnames:
                 - "api"
       api:
@@ -165,7 +165,7 @@ spec:
         controller: main
         ports:
           http:
-            port: 8080
+            port: 80
       api:
         controller: api
         ports:
