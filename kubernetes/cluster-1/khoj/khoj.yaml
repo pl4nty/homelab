@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=/workspaces/homelab/.devcontainer/helmrelease.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.2.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -69,12 +69,12 @@ spec:
         accessMode: ReadWriteOnce
         size: 1Gi
         globalMounts:
-        - path: /root/.khoj
+          - path: /root/.khoj
       models:
         accessMode: ReadWriteOnce
         size: 4Gi
         globalMounts:
-        - path: /root/.cache/torch/sentence_transformers
+          - path: /root/.cache/torch/sentence_transformers
     service:
       main:
         controller: main
@@ -84,11 +84,11 @@ spec:
     route:
       main:
         parentRefs:
-        - namespace: default
-          name: ${CLUSTER_NAME}
+          - namespace: default
+            name: ${CLUSTER_NAME}
         hostnames:
-        - khoj.${PUBLIC_DOMAIN}
+          - khoj.${PUBLIC_DOMAIN}
         rules:
-        - backendRefs:
-          - name: khoj
-            port: 42110
+          - backendRefs:
+              - name: khoj
+                port: 42110

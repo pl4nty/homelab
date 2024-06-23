@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=/workspaces/homelab/.devcontainer/helmrelease.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.2.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -68,11 +68,11 @@ spec:
               HD_DATABASE_NAME: hedgedoc.sqlite
               HD_MEDIA_BACKEND: filesystem
               HD_MEDIA_BACKEND_FILESYSTEM_UPLOAD_PATH: uploads/
-              HD_AUTH_LOCAL_ENABLE_LOGIN: 'true'
-              HD_AUTH_LOCAL_ENABLE_REGISTER: 'true'
+              HD_AUTH_LOCAL_ENABLE_LOGIN: "true"
+              HD_AUTH_LOCAL_ENABLE_REGISTER: "true"
             envFrom:
-            - secretRef:
-                name: hedgedoc
+              - secretRef:
+                  name: hedgedoc
             # TODO wrong port
             # probes:
             #   liveness:
@@ -134,16 +134,16 @@ spec:
         size: 1Gi
         advancedMounts:
           backend:
-            main: 
-            - path: /usr/src/app/backend/uploads
+            main:
+              - path: /usr/src/app/backend/uploads
       caddyfile:
         type: configMap
         name: "{{ .Release.Name }}-caddyfile"
         advancedMounts:
           main:
-            main: 
-            - path: /etc/caddy/Caddyfile
-              subPath: Caddyfile
+            main:
+              - path: /etc/caddy/Caddyfile
+                subPath: Caddyfile
     service:
       main:
         primary: true
@@ -164,11 +164,11 @@ spec:
     route:
       main:
         parentRefs:
-        - namespace: default
-          name: ${CLUSTER_NAME}
+          - namespace: default
+            name: ${CLUSTER_NAME}
         hostnames:
-        - hedgedoc.${PUBLIC_DOMAIN}
+          - hedgedoc.${PUBLIC_DOMAIN}
         rules:
-        - backendRefs:
-          - name: hedgedoc
-            port: 80
+          - backendRefs:
+              - name: hedgedoc
+                port: 80

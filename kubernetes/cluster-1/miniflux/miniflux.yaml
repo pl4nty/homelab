@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=/workspaces/homelab/.devcontainer/helmrelease.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.2.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -27,11 +27,11 @@ spec:
     keepHistory: false
   values:
     # defaultPodOptions:
-      # process has no symbol section
-      # annotations:
-      #   sidecar.opentelemetry.io/inject: monitoring-system/opentelemetry-sidecar
-      #   instrumentation.opentelemetry.io/inject-go: monitoring-system/opentelemetry-sidecar
-      #   instrumentation.opentelemetry.io/otel-go-auto-target-exe: /usr/bin/miniflux
+    # process has no symbol section
+    # annotations:
+    #   sidecar.opentelemetry.io/inject: monitoring-system/opentelemetry-sidecar
+    #   instrumentation.opentelemetry.io/inject-go: monitoring-system/opentelemetry-sidecar
+    #   instrumentation.opentelemetry.io/otel-go-auto-target-exe: /usr/bin/miniflux
     controllers:
       main:
         strategy: RollingUpdate
@@ -57,8 +57,8 @@ spec:
               SCHEDULER_ENTRY_FREQUENCY_MIN_INTERVAL: 720
               FILTER_ENTRY_MAX_AGE_DAYS: 1 # stop refreshing entries after 1 day
             envFrom:
-            - secretRef:
-                name: miniflux
+              - secretRef:
+                  name: miniflux
             probes:
               liveness:
                 enabled: true
@@ -75,11 +75,11 @@ spec:
     route:
       main:
         parentRefs:
-        - namespace: default
-          name: ${CLUSTER_NAME}
+          - namespace: default
+            name: ${CLUSTER_NAME}
         hostnames:
-        - rss.${PRIVATE_DOMAIN}
+          - rss.${PRIVATE_DOMAIN}
         rules:
-        - backendRefs:
-          - name: miniflux
-            port: 8080
+          - backendRefs:
+              - name: miniflux
+                port: 8080

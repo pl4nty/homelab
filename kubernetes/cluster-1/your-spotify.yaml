@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=/workspaces/homelab/.devcontainer/helmrelease.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.2.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -52,8 +52,8 @@ spec:
               CORS: *client
               MONGO_ENDPOINT: mongodb://your-spotify-mongodb:27017/your_spotify
             envFrom:
-            - secretRef:
-                name: your-spotify
+              - secretRef:
+                  name: your-spotify
             probes: &probes
               liveness:
                 enabled: true
@@ -115,21 +115,21 @@ spec:
     route:
       main:
         parentRefs:
-        - namespace: default
-          name: ${CLUSTER_NAME}
+          - namespace: default
+            name: ${CLUSTER_NAME}
         hostnames:
-        - spotify-api.${PUBLIC_DOMAIN}
+          - spotify-api.${PUBLIC_DOMAIN}
         rules:
-        - backendRefs:
-          - name: your-spotify
-            port: 8080
+          - backendRefs:
+              - name: your-spotify
+                port: 8080
       client:
         parentRefs:
-        - namespace: default
-          name: ${CLUSTER_NAME}
+          - namespace: default
+            name: ${CLUSTER_NAME}
         hostnames:
-        - spotify.${PUBLIC_DOMAIN}
+          - spotify.${PUBLIC_DOMAIN}
         rules:
-        - backendRefs:
-          - name: your-spotify-client
-            port: 3000
+          - backendRefs:
+              - name: your-spotify-client
+                port: 3000

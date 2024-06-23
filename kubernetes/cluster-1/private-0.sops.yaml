@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=/workspaces/homelab/.devcontainer/helmrelease.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.2.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
@@ -107,13 +107,13 @@ sops:
     age:
         - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
           enc: |
-            -----BEGIN AGE ENCRYPTED FILE-----
-            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA4b2dtekNIZUxqK3pRTDYx
-            R01mK0pCOFVzU3BqcjBiamxYcmdERnFsT0dRClR4UHBGS2F4Y2dWMDU0Slp1dHMy
-            NTlPV1N5UlRlUTVWZGVZdjI5b3VBRmMKLS0tIG5BV3YvK3VBMVp3NVVXQXpKb0JD
-            MTRGNEdVem1xcmZuTm1PL2oyNWhJQ0kKtCodFUWHUZQRYBk9jDAWCcl7TjKUKhGb
-            k0zV+9uZTfKhhpg1Zgjt4uu17MlYDAFBi1YK5lG++vhlT2QtRk3xag==
-            -----END AGE ENCRYPTED FILE-----
+              -----BEGIN AGE ENCRYPTED FILE-----
+              YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA4b2dtekNIZUxqK3pRTDYx
+              R01mK0pCOFVzU3BqcjBiamxYcmdERnFsT0dRClR4UHBGS2F4Y2dWMDU0Slp1dHMy
+              NTlPV1N5UlRlUTVWZGVZdjI5b3VBRmMKLS0tIG5BV3YvK3VBMVp3NVVXQXpKb0JD
+              MTRGNEdVem1xcmZuTm1PL2oyNWhJQ0kKtCodFUWHUZQRYBk9jDAWCcl7TjKUKhGb
+              k0zV+9uZTfKhhpg1Zgjt4uu17MlYDAFBi1YK5lG++vhlT2QtRk3xag==
+              -----END AGE ENCRYPTED FILE-----
     lastmodified: "2024-03-15T09:49:47Z"
     mac: ENC[AES256_GCM,data:BjBAmguupyB3V3Cs0qG6ooe+CtvaWiQ/sJSPOjlQhtbn2HLd0bhUa2/JOpoKtGblj1fLj6pemHEjuvngHUNfrX5w27Uks7vPI9puy6RMx6pxuThbjGCpW4HcyWKpZnELT52zuPgcLgdO0/krV27WQkA1UA1jwOk9zd1BzxXXIGw=,iv:I3wI+irh+Rrgll9aQ2TmFbi9iFvr8rQbbdk8wWSZWsM=,tag:CO5JrwT6jyjl+gEAP/LUJA==,type:str]
     pgp: []

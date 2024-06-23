@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=/workspaces/homelab/.devcontainer/helmrelease.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.2.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -40,8 +40,8 @@ spec:
               repository: ghcr.io/pl4nty/tls-rpt-monitor
               tag: latest@sha256:e9c3e1a40a027429eff4133239e5c071f0718c212656e9c2b04c5165dbabb367
             envFrom:
-            - secretRef:
-                name: tls-rpt-monitor
+              - secretRef:
+                  name: tls-rpt-monitor
             probes:
               liveness:
                 enabled: true
@@ -58,11 +58,11 @@ spec:
     route:
       main:
         parentRefs:
-        - namespace: default
-          name: ${CLUSTER_NAME}
+          - namespace: default
+            name: ${CLUSTER_NAME}
         hostnames:
-        - tls-rpt.${PUBLIC_DOMAIN}
+          - tls-rpt.${PUBLIC_DOMAIN}
         rules:
-        - backendRefs:
-          - name: tls-rpt-monitor
-            port: 3000
+          - backendRefs:
+              - name: tls-rpt-monitor
+                port: 3000

@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=/workspaces/homelab/.devcontainer/helmrelease.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.2.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -41,29 +41,29 @@ spec:
               repository: ghcr.io/siderolabs/image-factory
               tag: v0.4.1
             args:
-            - -cache-signing-key-path
-            - cache-signing-key.key
-            - -cache-repository
-            - ghcr.io/pl4nty/image-factory/cache
-            - -container-signature-issuer-regexp
-            - "^(https://accounts.google.com|https://token.actions.githubusercontent.com)$"
-            - -container-signature-subject-regexp
-            - "(@siderolabs.com$|^https://github.com/pl4nty/talos)"
-            - -external-url
-            - https://talos-factory.${PUBLIC_DOMAIN}/
-            - -installer-external-repository
-            - ghcr.io/pl4nty
-            - -installer-internal-repository
-            - ghcr.io/pl4nty
-            - -schematic-service-repository
-            - ghcr.io/pl4nty/image-factory/schematics
-            - -secureboot
-            - -secureboot-pcr-key-path
-            - pcr-signing-key.pem
-            - -secureboot-signing-cert-path
-            - uki-signing-cert.pem
-            - -secureboot-signing-key-path
-            - uki-signing-key.pem
+              - -cache-signing-key-path
+              - cache-signing-key.key
+              - -cache-repository
+              - ghcr.io/pl4nty/image-factory/cache
+              - -container-signature-issuer-regexp
+              - "^(https://accounts.google.com|https://token.actions.githubusercontent.com)$"
+              - -container-signature-subject-regexp
+              - "(@siderolabs.com$|^https://github.com/pl4nty/talos)"
+              - -external-url
+              - https://talos-factory.${PUBLIC_DOMAIN}/
+              - -installer-external-repository
+              - ghcr.io/pl4nty
+              - -installer-internal-repository
+              - ghcr.io/pl4nty
+              - -schematic-service-repository
+              - ghcr.io/pl4nty/image-factory/schematics
+              - -secureboot
+              - -secureboot-pcr-key-path
+              - pcr-signing-key.pem
+              - -secureboot-signing-cert-path
+              - uki-signing-cert.pem
+              - -secureboot-signing-key-path
+              - uki-signing-key.pem
             env:
               GITHUB_TOKEN:
                 valueFrom:
@@ -87,14 +87,14 @@ spec:
         type: secret
         name: talos-factory
         globalMounts:
-        - path: /cache-signing-key.key
-          subPath: cache-signing-key.key
-        - path: /pcr-signing-key.pem
-          subPath: pcr-signing-key.pem
-        - path: /uki-signing-cert.pem
-          subPath: uki-signing-cert.pem
-        - path: /uki-signing-key.pem
-          subPath: uki-signing-key.pem
+          - path: /cache-signing-key.key
+            subPath: cache-signing-key.key
+          - path: /pcr-signing-key.pem
+            subPath: pcr-signing-key.pem
+          - path: /uki-signing-cert.pem
+            subPath: uki-signing-cert.pem
+          - path: /uki-signing-key.pem
+            subPath: uki-signing-key.pem
       dev:
         enabled: true
         type: hostPath
@@ -111,15 +111,15 @@ spec:
       main:
         serviceName: talos-factory
         endpoints:
-        - port: metrics
+          - port: metrics
     route:
       main:
         parentRefs:
-        - namespace: default
-          name: ${CLUSTER_NAME}
+          - namespace: default
+            name: ${CLUSTER_NAME}
         hostnames:
-        - talos-factory.${PUBLIC_DOMAIN}
+          - talos-factory.${PUBLIC_DOMAIN}
         rules:
-        - backendRefs:
-          - name: talos-factory
-            port: 8080
+          - backendRefs:
+              - name: talos-factory
+                port: 8080

@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=/workspaces/homelab/.devcontainer/helmrelease.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.2.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -41,37 +41,37 @@ spec:
             image:
               repository: ghcr.io/josegonzalez/python-github-backup
               tag: 0.45.2
-            args: 
-            - pl4nty
-            - --token-fine
-            - file:///usr/token
-            - --incremental
-            - --output
-            - /usr/backup
-            # - --all includes --assets, which crashes on azure-favicons
-            - --starred
-            - --watched
-            - --followers
-            - --following
-            - --issues
-            - --issue-comments
-            - --issue-events
-            - --pulls
-            - --pull-comments
-            - --pull-commits
-            - --pull-details
-            - --labels
-            - --hooks
-            - --milestones
-            - --repositories
-            - --bare
-            - --lfs
-            - --wikis
-            # gists are uninitialized and cause crash? maybe fine-grained tokens aren't supported
-            # - --gists
-            - --private
-            - --fork
-            - --releases
+            args:
+              - pl4nty
+              - --token-fine
+              - file:///usr/token
+              - --incremental
+              - --output
+              - /usr/backup
+              # - --all includes --assets, which crashes on azure-favicons
+              - --starred
+              - --watched
+              - --followers
+              - --following
+              - --issues
+              - --issue-comments
+              - --issue-events
+              - --pulls
+              - --pull-comments
+              - --pull-commits
+              - --pull-details
+              - --labels
+              - --hooks
+              - --milestones
+              - --repositories
+              - --bare
+              - --lfs
+              - --wikis
+              # gists are uninitialized and cause crash? maybe fine-grained tokens aren't supported
+              # - --gists
+              - --private
+              - --fork
+              - --releases
     persistence:
       config:
         accessMode: ReadWriteOnce

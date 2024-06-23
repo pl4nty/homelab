@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=/workspaces/homelab/.devcontainer/helmrelease.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.2.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -56,14 +56,14 @@ spec:
               repository: quay.io/curl/curl
               tag: 8.8.0
             command:
-            - curl
-            - anudegreeapp/scraper/plan_scraper.php
-            - "&&"
-            - curl
-            - anudegreeapp/scraper/subplan_scraper.php
-            - "&&"
-            - curl
-            - anudegreeapp/scraper/course_scraper.php
+              - curl
+              - anudegreeapp/scraper/plan_scraper.php
+              - "&&"
+              - curl
+              - anudegreeapp/scraper/subplan_scraper.php
+              - "&&"
+              - curl
+              - anudegreeapp/scraper/course_scraper.php
     service:
       main:
         controller: main
@@ -73,11 +73,11 @@ spec:
     route:
       main:
         parentRefs:
-        - namespace: default
-          name: ${CLUSTER_NAME}
+          - namespace: default
+            name: ${CLUSTER_NAME}
         hostnames:
-        - degree-planner.${PUBLIC_DOMAIN}
+          - degree-planner.${PUBLIC_DOMAIN}
         rules:
-        - backendRefs:
-          - name: anudegreeapp
-            port: 80
+          - backendRefs:
+              - name: anudegreeapp
+                port: 80

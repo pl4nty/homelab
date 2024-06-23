@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=/workspaces/homelab/.devcontainer/helmrelease.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.2.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -37,11 +37,11 @@ spec:
             fsGroup: 1000
         statefulset:
           volumeClaimTemplates:
-          - name: config
-            accessMode: ReadWriteOnce
-            size: 8Gi
-            globalMounts:
-              - path: /home/steam/tf-dedicated/tf/maps
+            - name: config
+              accessMode: ReadWriteOnce
+              size: 8Gi
+              globalMounts:
+                - path: /home/steam/tf-dedicated/tf/maps
         containers:
           main:
             image:
