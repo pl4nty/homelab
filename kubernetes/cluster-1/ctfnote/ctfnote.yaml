@@ -55,6 +55,11 @@ spec:
                     values:
                     - ctfnote 
                 topologyKey: kubernetes.io/hostname
+          # hardcoded hostname
+          hostAliases:
+            - ip: "ctfnote-api"
+              hostnames:
+                - "api"
       api:
         strategy: RollingUpdate
         rollingUpdate:
