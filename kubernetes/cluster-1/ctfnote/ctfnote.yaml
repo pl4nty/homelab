@@ -55,11 +55,14 @@ spec:
                     values:
                     - ctfnote 
                 topologyKey: kubernetes.io/hostname
-          # hardcoded hostname
+          # TODO hardcoded hostnames... terrifying, but /etc/hosts only accepts A records
           hostAliases:
-            - ip: "10.102.29.154" # TODO terrifying, but /etc/hosts only accepts A records
+            - ip: "10.102.29.154"
               hostnames:
                 - "api"
+            - ip: "10.96.206.172"
+              hostnames:
+                - "hedgedoc"
       api:
         strategy: RollingUpdate
         rollingUpdate:
