@@ -38,9 +38,6 @@ spec:
   bootstrap:
     initdb:
       database: ctfnote
-      owner: user_postgraphile
-      secret:
-        name: ctfnote
   #   recovery:
   #     source: ctfnote-cnpg
 
