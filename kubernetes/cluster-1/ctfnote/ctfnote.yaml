@@ -137,12 +137,12 @@ spec:
         ports:
           http:
             port: 8080
-      backend:
-        controller: backend
+      api:
+        controller: api
         ports:
           http:
             port: 3000
-      frontend:
+      hedgedoc:
         controller: hedgedoc
         ports:
           http:
