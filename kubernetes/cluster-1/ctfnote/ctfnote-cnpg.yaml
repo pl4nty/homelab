@@ -34,7 +34,9 @@ spec:
       data:
         compression: gzip
 
-  # bootstrap:
+  bootstrap:
+    initdb:
+      database: ctfnote
   #   recovery:
   #     source: ctfnote-cnpg
 
