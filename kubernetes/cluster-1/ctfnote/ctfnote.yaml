@@ -81,7 +81,7 @@ spec:
               DB_USER_LOGIN: user_postgraphile
               DB_USER_PASSWORD:
                 secretKeyRef:
-                  name: ctfnote-cnpg-app
+                  name: ctfnote
                   key: password
               DB_HOST: ctfnote-cnpg-rw
               DB_PORT: "5432"
