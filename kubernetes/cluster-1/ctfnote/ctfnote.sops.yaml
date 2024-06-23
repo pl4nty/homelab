@@ -5,7 +5,7 @@ metadata:
     namespace: default
 type: kubernetes.io/basic-auth
 stringData:
-    username: ENC[AES256_GCM,data:FIF2ITeKvzK96QK2mQ==,iv:y3MrOMYItQFCDpXns0HtKOw66KmMfBLiYH2Sr3/iKn8=,tag:Zy74X0Rff4Z5w73T1FoEvg==,type:str]
+    username: ENC[AES256_GCM,data:fhxLQc3zgZM=,iv:BWjgZLMAsWLONCnNh8l28aytnOJlzP6cuRa769XfTU4=,tag:5AoVH0XUW24WrdO0oykq+g==,type:str]
     password: ENC[AES256_GCM,data:bMDF4fvfK4YRIlON1Vpk5nTZhI9rfg==,iv:Ii4ViJKmxOhx8FnfcVF9QtrVMv1IkJIMWsEqqYk/4nY=,tag:NYtmgIpbUYLqHThsHrXE9A==,type:str]
 sops:
     kms: []
@@ -22,8 +22,8 @@ sops:
             RkVzYktPWTMvTXV5cmR1dlpNait5N2MKubyjyg4M70XLQIZhIsbpuUcWyEexxr+K
             wMSsj196NLt3vZYeta/nkW7mUmo+0Xu6zjpQzERAI+ZMU/zNsK1vqQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2024-06-23T05:57:36Z"
-    mac: ENC[AES256_GCM,data:oDilT2dBBFglRqDuy0k6vAbFCT+9trf0jroC+784I4n58LtM99b+rQUc7wXvAUndDAohoxycaWXhnJgMXwxEdzxAPtJBzfwurEViz1TrAWLAymxrNGSfsWxSpaU0Lgzv+HgQPTTYUSnvk8qoPk+f4KHqWrxiU/+Fc7w3CUzMPtg=,iv:lp87jNGXWAtpAryVhCtVMXknrWsrFTS86bQi8UJwLPI=,tag:5Hl6Zh+PvgWja+QvB18kvA==,type:str]
+    lastmodified: "2024-06-23T06:26:33Z"
+    mac: ENC[AES256_GCM,data:etJ03oDNkCQNhRfGyScE7pbXIUsuUQOgeXJse8kjcwl0ar3oUEcBQePqHkEIuP7Tvn4EOZG6tl7hMJ3GFd968SipmC9b8mYTZKN6uv1NqO1wZcWr9aPtk4ywonClsjcfeZDHaNQJDGQLQ217mGTPAyswIN/JoncCtCvftZpd4rY=,iv:76fBhqSVRj16WhQxb7pYR4CHXDQCzeCZ5nRHf99o1cw=,tag:LacxSs0rIsP/VBbSFy7nHA==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.8.1
