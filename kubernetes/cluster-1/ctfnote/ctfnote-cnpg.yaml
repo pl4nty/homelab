@@ -14,6 +14,7 @@ spec:
     name: ctfnote
   postgresql:
     parameters:
+      # https://github.com/TFNS/CTFNote/pull/124
       search_path: ctfnote, public
 
   backup:

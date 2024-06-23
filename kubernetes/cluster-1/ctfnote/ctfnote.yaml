@@ -110,7 +110,10 @@ spec:
               DISCORD_VOICE_CHANNELS: "3"
               TZ: ${TIMEZONE}
               LC_ALL: en_US.UTF-8
-              # SESSION_SECRET: ${SESSION_SECRET:-}
+              SESSION_SECRET:
+                secretKeyRef:
+                  name: ctfnote
+                  key: session_secret
             probes:
               liveness:
                 enabled: true
