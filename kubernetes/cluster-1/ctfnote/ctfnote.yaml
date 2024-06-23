@@ -172,4 +172,4 @@ spec:
         rules:
           - backendRefs:
               - name: ctfnote
-                port: 8080
+                port: 80
