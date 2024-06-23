@@ -14,7 +14,7 @@ spec:
     name: ctfnote
   postgresql:
     parameters:
-      search_path: ctfnote
+      search_path: ctfnote, public
 
   backup:
     retentionPolicy: 30d
