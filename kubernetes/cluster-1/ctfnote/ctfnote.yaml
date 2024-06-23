@@ -72,34 +72,19 @@ spec:
             env:
               PAD_CREATE_URL: http://ctfnote-hedgedoc:3000/new
               PAD_SHOW_URL: /
-              DB_DATABASE:
-                secretKeyRef:
-                  name: ctfnote-cnpg-app
-                  key: dbname
-              DB_ADMIN_LOGIN:
-                secretKeyRef:
-                  name: ctfnote-superuser
-                  key: username
+              DB_DATABASE: ctfnote
+              DB_ADMIN_LOGIN: postgres
               DB_ADMIN_PASSWORD:
                 secretKeyRef:
                   name: ctfnote-superuser
                   key: password
-              DB_USER_LOGIN:
-                secretKeyRef:
-                  name: ctfnote-cnpg-app
-                  key: username
+              DB_USER_LOGIN: user_postgraphile
               DB_USER_PASSWORD:
                 secretKeyRef:
                   name: ctfnote-cnpg-app
                   key: password
-              DB_HOST:
-                secretKeyRef:
-                  name: ctfnote-cnpg-app
-                  key: host
-              DB_PORT:
-                secretKeyRef:
-                  name: ctfnote-cnpg-app
-                  key: port
+              DB_HOST: ctfnote-cnpg-rw
+              DB_PORT: "5432"
               WEB_PORT: "3000"
               # CMD_DOMAIN: ${CMD_DOMAIN:-}
               CMD_PROTOCOL_USESSL: "false"
