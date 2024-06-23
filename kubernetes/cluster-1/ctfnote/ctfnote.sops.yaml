@@ -1,7 +1,7 @@
 kind: Secret
 apiVersion: v1
 metadata:
-    name: ctfnote-superuser
+    name: ctfnote
     namespace: default
 type: kubernetes.io/basic-auth
 stringData:
@@ -23,8 +23,8 @@ sops:
             RkVzYktPWTMvTXV5cmR1dlpNait5N2MKubyjyg4M70XLQIZhIsbpuUcWyEexxr+K
             wMSsj196NLt3vZYeta/nkW7mUmo+0Xu6zjpQzERAI+ZMU/zNsK1vqQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2024-06-23T07:26:32Z"
-    mac: ENC[AES256_GCM,data:M8hCDrZQRzt55RNQN40Ct5QqKlo3ces+3WJCc8pIY2NRaMROJ16X0j1DJxgPl1IWBvnV40bncc5x8Cogg2PeinKhsPvcTfiOzQwrCRSCQPa/BJJUtZUZH/BQjxGbO5bZmY/9BhMK6DMFmBQfzUADT8ZUHil5IhF1cwgUsr/OJlw=,iv:I3DPtqU9BCiYKBXp9uDZsi7r8GSa7xyTW5ZmWBA5qa8=,tag:RBElbLokcWH87JHUmeXaNA==,type:str]
+    lastmodified: "2024-06-23T07:33:09Z"
+    mac: ENC[AES256_GCM,data:Reel8Tu/q0TTVBBcTsxesJJCAxaFYdMeh8u2Mcif1DpcG7DISOxhltQjjT4a5AwfDNZrbdh45kr22JXW2Vm1BRfG4sAzFgHpMPHMVubY7crn6dPDq45MqU39YEM3KzG8pM66X0GDHFwK5ICTmf0uftneOtElIf+LQsRgWIvRE1M=,iv:Vn7d21+sTn8HZC2r9J2YFSwIrtQjELkxM9imH3STmjY=,tag:pFPWrmuPr8HxPfQ09cReaw==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.8.1
