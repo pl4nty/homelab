@@ -43,6 +43,18 @@ spec:
                 enabled: true
               startup:
                 enabled: true
+        pod:
+          # shared volume
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution: 
+              - labelSelector:
+                  matchExpressions:
+                  - key: app.kubernetes.io/instance
+                    operator: In 
+                    values:
+                    - ctfnote 
+                topologyKey: kubernetes.io/hostname
       api:
         strategy: RollingUpdate
         rollingUpdate:
@@ -61,11 +73,11 @@ spec:
                   key: dbname
               DB_ADMIN_LOGIN:
                 secretKeyRef:
-                  name: ctfnote-cnpg-app
+                  name: ctfnote
                   key: username
               DB_ADMIN_PASSWORD:
                 secretKeyRef:
-                  name: ctfnote-cnpg-app
+                  name: ctfnote
                   key: password
               DB_USER_LOGIN:
                 secretKeyRef:
@@ -119,6 +131,18 @@ spec:
               CMD_CSP_ENABLE: "false"
               CMD_IMAGE_UPLOAD_TYPE: "imgur"
               CMD_DOCUMENT_MAX_LENGTH: "100000"
+        pod:
+          # shared volume
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution: 
+              - labelSelector:
+                  matchExpressions:
+                  - key: app.kubernetes.io/instance
+                    operator: In 
+                    values:
+                    - ctfnote 
+                topologyKey: kubernetes.io/hostname
     persistence:
       config:
         accessMode: ReadWriteOnce

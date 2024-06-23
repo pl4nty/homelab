@@ -9,6 +9,8 @@ spec:
     size: 1Gi
     storageClass: longhorn-skipbackup
   imageName: ghcr.io/cloudnative-pg/postgresql:16.3
+  superuserSecret:
+    name: ctfnote
 
   backup:
     retentionPolicy: 30d
