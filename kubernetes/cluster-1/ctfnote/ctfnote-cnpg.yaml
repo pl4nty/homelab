@@ -11,7 +11,7 @@ spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:16.3
   enableSuperuserAccess: true
   superuserSecret:
-    name: ctfnote-superuser
+    name: ctfnote
   postgresql:
     parameters:
       # superuser name must be postgres so doesn't match schema name

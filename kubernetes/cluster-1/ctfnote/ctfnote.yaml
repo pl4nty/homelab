@@ -76,13 +76,11 @@ spec:
               DB_ADMIN_LOGIN: postgres
               DB_ADMIN_PASSWORD:
                 secretKeyRef:
-                  name: ctfnote-superuser
-                  key: password
-              DB_USER_LOGIN: user_postgraphile
-              DB_USER_PASSWORD:
-                secretKeyRef:
                   name: ctfnote
                   key: password
+              # hardcoded...
+              DB_USER_LOGIN: user_postgraphile
+              DB_USER_PASSWORD: secret_password
               DB_HOST: ctfnote-cnpg-rw
               DB_PORT: "5432"
               WEB_PORT: "3000"
