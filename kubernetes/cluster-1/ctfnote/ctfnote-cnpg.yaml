@@ -9,6 +9,7 @@ spec:
     size: 1Gi
     storageClass: longhorn-skipbackup
   imageName: ghcr.io/cloudnative-pg/postgresql:16.3
+  enableSuperuserAccess: true
   superuserSecret:
     name: ctfnote
 
