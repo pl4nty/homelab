@@ -41,7 +41,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/miniflux
-              tag: latest@sha256:20c529d5ac772a8c9eb63d6685eda345ea863ec72911b08ba8a9d754deec434e
+              tag: latest@sha256:fa8c555504f70d9eadb5ba65e62f7c74e1cd6362d49191b5be8a7ae01ea71e33
             env:
               RUN_MIGRATIONS: "1"
               CREATE_ADMIN: "1"
