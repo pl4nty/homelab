@@ -57,6 +57,8 @@ spec:
             instrumentation.opentelemetry.io/inject-nodejs: "true"
           securityContext:
             fsGroup: 1000
+          nodeSelector:
+            kubernetes.io/arch: amd64
         containers:
           main:
             image:
