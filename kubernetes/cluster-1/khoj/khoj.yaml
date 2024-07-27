@@ -64,6 +64,9 @@ spec:
                 enabled: true
                 spec:
                   initialDelaySeconds: 30
+            resources:
+              requests:
+                ephemeral-storage: 200Mi
     persistence:
       config:
         accessMode: ReadWriteOnce
