@@ -12,4 +12,4 @@ resources:
 - gateway.yaml
 images:
 - name: ghcr.io/pl4nty/cloudflare-kubernetes-gateway:v0.6.0-rc1:latest
-  newName: ghcr.io/pl4nty/cloudflare-kubernetes-gateway:v0.6.0-rc1
+  newTag: v0.6.0-rc1
