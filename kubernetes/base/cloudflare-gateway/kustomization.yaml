@@ -10,6 +10,6 @@ resources:
 - cloudflare.sops.yaml
 - gatewayclass.yaml
 - gateway.yaml
-# images:
-# - name: ghcr.io/pl4nty/cloudflare-kubernetes-gateway:v0.5.0
-#   newName: ghcr.io/pl4nty/cloudflare-kubernetes-gateway:v0.6.0-rc1
+images:
+- name: ghcr.io/pl4nty/cloudflare-kubernetes-gateway:v0.6.0-rc1:latest
+  newName: ghcr.io/pl4nty/cloudflare-kubernetes-gateway:v0.6.0-rc1
