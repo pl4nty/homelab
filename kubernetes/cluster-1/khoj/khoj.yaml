@@ -63,7 +63,7 @@ spec:
               startup:
                 enabled: true
                 spec:
-                  initialDelaySeconds: 120
+                  initialDelaySeconds: 180
             resources:
               requests:
                 ephemeral-storage: 200Mi
