@@ -1,0 +1,30 @@
+kind: Secret
+apiVersion: v1
+metadata:
+    name: tenant-lookup
+    namespace: default
+type: Opaque
+stringData:
+    AZURE_TENANT_ID: ENC[AES256_GCM,data:Zqf145lXDEN4GDRwRL0K01mBQT06hbHXa+d5aGwTqALUIo06,iv:nXUHguPZBIbFVyKk0Y0k2HbakFz1tf8IMkrnslsFSH4=,tag:GzMnmol3dnoL+txncRBQ6A==,type:str]
+    AZURE_CLIENT_ID: ENC[AES256_GCM,data:r9qMH3MjUgXH//CE9Jwnv/XqeGX3wFrUu1wMgKmxZQq+UJbK,iv:cVNF9g8801wysZ7GRfXHyT8PPYrV38Hqr7swP1lgFlI=,tag:ZQDZOkc5K9TvEQyMRry7qQ==,type:str]
+    AZURE_CLIENT_SECRET: ENC[AES256_GCM,data:41Iy2MkmX+4dvtwCmCUb3HXIYv+1FVxXp1L3IOXSWYjjGZHm5EFyYg==,iv:+usWxww/clk9oBx0Q0rA5mtBpcUCfCPPj+NKqWrAlPk=,tag:E/xORkr7c3V3VJvFcq3Uyw==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBUS3ZLWkVxV2haMUloTUIx
+            NnNMRlExL2ZkaVZ3VnRTZmgwaDNuV0dVN3c4CnNHblhiY0lhSXRWUEI5SVM3aTRH
+            eGNBMTg5MGJpVU82dzMremw0K1VuVEEKLS0tIHV1TFNGdEJMa1l0OTk2eWljQlFh
+            VVo5YlZyM2pqV2FZLytsQ3BTcyszVTAKSpjMZuokiMoQ/y0iEl3kJ7DRQSxY8a3g
+            IPXQmh3ZgDQR8BHo6shoNPs/3bE5l6I7SYWVTmil7mGxwigubr43YQ==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2024-08-14T15:05:21Z"
+    mac: ENC[AES256_GCM,data:vZ1projPBPrQVfbHe6nm+he7MqEedowzzPs+vpszOmeVj+e+DzhABI2wMBJlW5Scav4lsU8H6+U1r6CNmtTKSgUzCO27pX62j1hcuTcS1/ndxt1VPW6OBjE2Dm4drVdxTDWDBbnGEAXO6UBaB2CIZeu7kR43f++R8O63wUCBH0U=,iv:FjWnMNEItaPAOoCx139ORgmjiAf+zG70GF6EI/Xc94Y=,tag:S3qijW/cSgJf1BPWIm/J3Q==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData)$
+    version: 3.8.1
