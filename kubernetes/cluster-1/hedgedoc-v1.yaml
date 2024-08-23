@@ -28,6 +28,9 @@ spec:
   values:
     controllers:
       main:
+        pod:
+          securityContext:
+            fsGroup: 1001
         containers:
           main:
             image:
@@ -80,29 +83,12 @@ spec:
               capabilities:
                 drop:
                   - ALL
-    initContainers:
-      chown:
-        image:
-          repository: docker.io/library/busybox
-          tag: 1.36.1-musl
-          pullPolicy: IfNotPresent
-
-        command: [chown, -R, 1001:1001, /hedgedoc/]
-
-        securityContext:
-          runAsUser: 0
-          runAsNonRoot: false
-
-          capabilities:
-            add:
-              - CHOWN
-            drop:
-              - ALL
 
     persistence:
       config:
         accessMode: ReadWriteOnce
         size: 1Gi
+
         globalMounts:
           - path: /hedgedoc/db
     service:
