@@ -75,12 +75,6 @@ spec:
                   periodSeconds: 5
                   failureThreshold: 30
 
-            resources:
-              requests:
-                ephemeral-storage: 16Mi
-              limits:
-                ephemeral-storage: 64Mi
-
             securityContext:
               capabilities:
                 drop:
