@@ -2,7 +2,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: hedgedoc
+  name: hedgedoc-v1
   namespace: default
 spec:
   interval: 15m
