@@ -1,0 +1,125 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.2.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: hedgedoc
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.3.2
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              repository: forge.jthv.ai/elias/hedgedoc
+              tag: 1.9.9-0
+              pullPolicy: IfNotPresent
+
+            env:
+              NODE_ENV: production
+              CMD_DB_URL: sqlite:///hedgedoc/db/db.hedgedoc.sqlite
+              CMD_LOGLEVEL: warn
+              CMD_DOMAIN: hedgedoc-v1.${PUBLIC_DOMAIN}
+              CMD_PROTOCOL_USESSL: 'true'
+              CMD_CSP_ALLOW_FRAMING: 'false'
+              CMD_CSP_ALLOW_PDF_EMBED: 'false'
+              CMD_ALLOW_GRAVATAR: 'false'
+              CMD_ALLOW_ANONYMOUS: 'false'
+              CMD_ALLOW_ANONYMOUS_EDITS: 'true'
+              CMD_DEFAULT_PERMISSION: locked
+              # CMD_ALLOW_EMAIL_REGISTER: 'false'
+
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+
+                type: HTTP
+                spec:
+                  httpGet: &probe
+                    path: /_health
+                    port: &httpPort 3000
+
+              startup:
+                enabled: true
+                custom: true
+
+                type: HTTP
+                spec:
+                  httpGet: *probe
+                  periodSeconds: 5
+                  failureThreshold: 30
+
+            resources:
+              requests:
+                ephemeral-storage: 16Mi
+              limits:
+                ephemeral-storage: 64Mi
+
+            securityContext:
+              capabilities:
+                drop:
+                  - ALL
+    initContainers:
+      chown:
+        image:
+          repository: docker.io/library/busybox
+          tag: 1.36.1-musl
+          pullPolicy: IfNotPresent
+
+        command: [chown, -R, 1001:1001, /hedgedoc/]
+
+        securityContext:
+          runAsUser: 0
+          runAsNonRoot: false
+
+          capabilities:
+            add:
+              - CHOWN
+            drop:
+              - ALL
+
+    persistence:
+      config:
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        globalMounts:
+          - path: /hedgedoc/db
+    service:
+      main:
+        primary: true
+        controller: main
+        ports:
+          http:
+            port: 3000
+    route:
+      main:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - hedgedoc-v1.${PUBLIC_DOMAIN}
+        rules:
+          - backendRefs:
+              - name: hedgedoc-v1
+                port: 3000
