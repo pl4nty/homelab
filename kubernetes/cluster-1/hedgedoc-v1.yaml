@@ -26,6 +26,16 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: 1001
+        runAsGroup: 1001
+        runAsNonRoot: true
+
+        seccompProfile:
+          type: RuntimeDefault
+
     controllers:
       main:
         pod:
