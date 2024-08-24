@@ -64,9 +64,9 @@ spec:
       main:
         controller: main
         type: LoadBalancer
-        annotations:
-          external-mdns.blakecovarrubias.com/hostnames: example._microsoft_mcc._tcp
-          external-mdns.blakecovarrubias.com/without-namespace: "true"
+        # annotations:
+        #   external-mdns.blakecovarrubias.com/hostnames: example._microsoft_mcc._tcp
+        #   external-mdns.blakecovarrubias.com/without-namespace: "true"
         ports:
           http:
             port: 80
