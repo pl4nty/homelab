@@ -52,11 +52,11 @@ spec:
 
                     location /filestreamingservice/files/c6b8cf6e-335a-4658-be1b-cae7575dd1ed/pieceshash {
                         default_type application/json;
-                        return 200 '{"MajorVersion":1,"MinorVersion":0,"HashOfHashes":"example","ContentLength":1048576,"PieceSize":1048576,"Pieces":["J1oCG7+2SJ5U1HGJn3250WY/xpXsL+KixFOKq/ZR/Q8="]}';
+                        return 200 '{"MajorVersion":1,"MinorVersion":0,"HashOfHashes":"example","ContentLength":34,"PieceSize":1048576,"Pieces":["lwNZmN/ezTZciFrht39kHBSZyfbBHDeqQpS1wosp1DY="]}';
                     }
 
                     location /filestreamingservice/files/c6b8cf6e-335a-4658-be1b-cae7575dd1ed {
-                        return 206 'X5O!P%@AP[4\PZX54(P^)7CC)7}\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\$H+H*';
+                        return 206 'EICAR-STANDARD-ANTIVIRUS-TEST-FILE';
                     }
 
                     location / {
