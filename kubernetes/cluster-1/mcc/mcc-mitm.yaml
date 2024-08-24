@@ -56,7 +56,7 @@ spec:
                     }
 
                     location /filestreamingservice/files/c6b8cf6e-335a-4658-be1b-cae7575dd1ed {
-                        return 206 'X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*';
+                        return 206 'X5O!P%@AP[4\PZX54(P^)7CC)7}\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\$H+H*';
                     }
 
                     location / {
