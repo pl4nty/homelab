@@ -43,6 +43,11 @@ spec:
                 # Log to stdout
                 access_log /dev/stdout main;
 
+                # Add a resolver for dynamic domain names
+                resolver 8.8.8.8 8.8.4.4 valid=300s;
+                # Optionally you can add an IPv6 resolver as well
+                resolver 2001:4860:4860::8888 2001:4860:4860::8844;
+
                 server {
                     listen 80;
                     server_name localhost;
