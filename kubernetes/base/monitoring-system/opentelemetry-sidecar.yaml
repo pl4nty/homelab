@@ -9,7 +9,7 @@ spec:
     extensions:
       basicauth/traces:
         client_auth:
-          username: ${TRACES_USERNAME}
+          username: "${TRACES_USERNAME}"
           password: ${TRACES_PASSWORD}
     receivers:
       otlp:
