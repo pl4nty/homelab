@@ -48,13 +48,13 @@ spec:
                 # Add a resolver for dynamic domain names
                 resolver 8.8.8.8 8.8.4.4 ipv6=off valid=300s;
 
+                geo $dollar {
+                  default "$";
+                }
+
                 server {
                     listen 80;
                     server_name localhost;
-
-                    geo $dollar {
-                      default "$";
-                    }
 
                     location /filestreamingservice/files/c6b8cf6e-335a-4658-be1b-cae7575dd1ed/pieceshash {
                       return 302 file://localhost/D$dollar/Public/test.txt;
