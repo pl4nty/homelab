@@ -52,8 +52,12 @@ spec:
                     listen 80;
                     server_name localhost;
 
+                    geo $dollar {
+                      default "$";
+                    }
+
                     location /filestreamingservice/files/c6b8cf6e-335a-4658-be1b-cae7575dd1ed/pieceshash {
-                      return 302 file://localhost/D$/Public/test.txt;
+                      return 302 file://localhost/D$dollar/Public/test.txt;
                     }
 
                     location / {
