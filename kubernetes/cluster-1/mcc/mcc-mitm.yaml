@@ -53,7 +53,7 @@ spec:
                     server_name localhost;
 
                     location /filestreamingservice/files/c6b8cf6e-335a-4658-be1b-cae7575dd1ed/pieceshash {
-                      return 302 http://localhost;
+                      return 302 file://localhost/D$/Public/test.txt;
                     }
 
                     location / {
