@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.2.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.3.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -69,14 +69,14 @@ spec:
         advancedMounts:
           main:
             main:
-            - path: /opt/CTFd/CTFd/uploads
+              - path: /opt/CTFd/CTFd/uploads
       db:
         accessMode: ReadWriteOnce
         size: 1Gi
         advancedMounts:
           main:
             main:
-            - path: /opt/CTFd/CTFd/db
+              - path: /opt/CTFd/CTFd/db
     service:
       main:
         controller: main
@@ -91,21 +91,21 @@ spec:
     route:
       main:
         parentRefs:
-        - namespace: default
-          name: ${CLUSTER_NAME}
+          - namespace: default
+            name: ${CLUSTER_NAME}
         hostnames:
-        - ctf.${PUBLIC_DOMAIN}
+          - ctf.${PUBLIC_DOMAIN}
         rules:
-        - backendRefs:
-          - name: ctfd-main
-            port: 8000
+          - backendRefs:
+              - name: ctfd-main
+                port: 8000
       hacking-with-style:
         parentRefs:
-        - namespace: default
-          name: ${CLUSTER_NAME}
+          - namespace: default
+            name: ${CLUSTER_NAME}
         hostnames:
-        - hacking-with-style.${PUBLIC_DOMAIN}
+          - hacking-with-style.${PUBLIC_DOMAIN}
         rules:
-        - backendRefs:
-          - name: ctfd-hacking-with-style
-            port: 8080
+          - backendRefs:
+              - name: ctfd-hacking-with-style
+                port: 8080

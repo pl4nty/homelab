@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.2.1/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.3.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -47,14 +47,14 @@ spec:
           # shared volume
           affinity:
             podAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution: 
-              - labelSelector:
-                  matchExpressions:
-                  - key: app.kubernetes.io/instance
-                    operator: In 
-                    values:
-                    - ctfnote 
-                topologyKey: kubernetes.io/hostname
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchExpressions:
+                      - key: app.kubernetes.io/instance
+                        operator: In
+                        values:
+                          - ctfnote
+                  topologyKey: kubernetes.io/hostname
           # TODO hardcoded hostnames... terrifying, but /etc/hosts only accepts A records
           hostAliases:
             - ip: "10.102.29.154"
@@ -114,7 +114,7 @@ spec:
         containers:
           main:
             image:
-              repository:  quay.io/hedgedoc/hedgedoc
+              repository: quay.io/hedgedoc/hedgedoc
               tag: 1.9.9
             env:
               CMD_DB_URL:
@@ -129,14 +129,14 @@ spec:
           # shared volume
           affinity:
             podAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution: 
-              - labelSelector:
-                  matchExpressions:
-                  - key: app.kubernetes.io/instance
-                    operator: In 
-                    values:
-                    - ctfnote 
-                topologyKey: kubernetes.io/hostname
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchExpressions:
+                      - key: app.kubernetes.io/instance
+                        operator: In
+                        values:
+                          - ctfnote
+                  topologyKey: kubernetes.io/hostname
     persistence:
       config:
         accessMode: ReadWriteOnce
