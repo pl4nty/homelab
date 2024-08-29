@@ -42,6 +42,9 @@ spec:
     image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:b46f671979e98a5596bfcf332addf2931bd7cb2fb04e105934393dd007e122bb
   nginx:
     image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:b46f671979e98a5596bfcf332addf2931bd7cb2fb04e105934393dd007e122bb
+    attrs:
+      - name: NginxModuleTraceAsError
+        value: "OFF"
   #   configPath: /etc/php/7.4/apache2/conf.d # HRConvert2
 ---
 apiVersion: opentelemetry.io/v1alpha1
