@@ -31,9 +31,10 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
-        pod:
-          annotations:
-            instrumentation.opentelemetry.io/inject-apache-httpd: "true"
+        # doesn't match required OTel path
+        # pod:
+        #   annotations:
+        #     instrumentation.opentelemetry.io/inject-apache-httpd: "true"
         containers:
           main:
             image:

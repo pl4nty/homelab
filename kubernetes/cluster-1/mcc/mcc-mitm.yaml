@@ -17,6 +17,9 @@ spec:
   values:
     controllers:
       main:
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-nginx: "true"
         containers:
           main:
             image:
