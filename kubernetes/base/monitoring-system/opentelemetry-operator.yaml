@@ -27,14 +27,21 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    manager:
-      # controller_runtime_webhook_latency_seconds_bucket has high cardinality, no option to drop as of 0.33.0
-      # serviceMonitor:
-      #   enabled: true
-      collectorImage:
-        repository: otel/opentelemetry-collector-contrib
+    # use selfsigned from helm, not cert-manager
     admissionWebhooks:
       certManager:
         enabled: false
       autoGenerateCert:
         enabled: true
+    manager:
+      # controller_runtime_webhook_latency_seconds_bucket has high cardinality, no option to drop as of 0.33.0
+      # serviceMonitor:
+      #   enabled: true
+      # new k8s distro is missing prometheusremotewrite
+      # https://github.com/open-telemetry/opentelemetry-helm-charts/blob/main/charts/opentelemetry-operator/UPGRADING.md#0553-to-0560
+      collectorImage:
+        repository: otel/opentelemetry-collector-contrib
+      # disabled by default
+      extraArgs:
+        - --enable-go-instrumentation=true
+        - --enable-nginx-instrumentation=true
