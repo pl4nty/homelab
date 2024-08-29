@@ -77,6 +77,9 @@ spec:
               TIMEZONE: ${TIMEZONE}
               API_ENDPOINT: https://spotify-api.${PUBLIC_DOMAIN}
             probes: *probes
+            resources:
+              limits:
+                ephemeral-storage: 200Mi
       mongodb:
         type: statefulset
         # default, but there's a bug where statefulset is null by default
