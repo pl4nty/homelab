@@ -35,7 +35,7 @@ spec:
                     main:
                         image:
                             repository: ENC[AES256_GCM,data:WCZ9yC0f6EBGMOtSlKQ=,iv:ANTH4eW5Sp64lrHP6IVsKDImTtJkloKaHVSKxTwNIoo=,tag:i3Uj+geZohFxr9RWNOYT0g==,type:str]
-                            tag: ENC[AES256_GCM,data:7e13gAReSA==,iv:nu7PeMVvD9M47bwTKDtP3/vDdBgS9BcpPSEg0YuLjKs=,tag:xdjTmqmZetqGq531BWz1jA==,type:str]
+                            tag: ENC[AES256_GCM,data:cORzRfU6qg==,iv:8itAgsHgs+H7y9xQBUUvDgVxpwmbJ5mUmyVitcnAzus=,tag:7W5SMhncQXPWaczbIBALLg==,type:str]
                         env:
                             - name: ENC[AES256_GCM,data:T/oRGxJQlDsAvV4=,iv:5ZYhuwd6Qdkgw9h9ic+uj2TqKslHrEo/bnIoPaGeszA=,tag:UvMlt2PNgBy3uNZFnj4yuQ==,type:str]
                               value: ENC[AES256_GCM,data:xlq4a+Rv,iv:fwT2lO8jC7roAdWh90dS5GN0YWi/aKdp+lBZeSlcfww=,tag:PnVsa3fTDqtVPu8BEhAKKQ==,type:str]
@@ -55,7 +55,9 @@ spec:
                     sidecar-0:
                         image:
                             repository: ENC[AES256_GCM,data:z77iI9SWStkt9lcrn0lYAI7Fj+8/uT4=,iv:WfdzEK18LE241kilZ5Od33M2GY+w9WgSUHYA9fiQdZY=,tag:gyKoR0Q+S9wkzEdUzoPMQw==,type:str]
-                            tag: ENC[AES256_GCM,data:+hYNPqQSIilfwg==,iv:Kr0B1DRiuW6NPTX4vKRUWItKDEMvQD7GlqTCN0v0+Es=,tag:rTywb3IUgYDTl44rzMfAzg==,type:str]
+                            tag: ENC[AES256_GCM,data:jYwy/wmFEcvmHw==,iv:pJawy7OfqQWmU8u8mQx/j+NDau8cetjJO0gmjG4EY6I=,tag:MmQ75BE7F2bfUr7wXdG+fA==,type:str]
+                        env:
+                            DOWNLOAD_DIR: ENC[AES256_GCM,data:O+5w3Uc=,iv:RuOqaiy4zz62wJG3UXO8SGOAdPD4SoE7ypSgHgr05zM=,tag:CgGLBCMwbiDPXAd38fxoIw==,type:str]
                         probes:
                             liveness:
                                 enabled: true
@@ -107,15 +109,15 @@ sops:
     age:
         - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
           enc: |
-              -----BEGIN AGE ENCRYPTED FILE-----
-              YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA4b2dtekNIZUxqK3pRTDYx
-              R01mK0pCOFVzU3BqcjBiamxYcmdERnFsT0dRClR4UHBGS2F4Y2dWMDU0Slp1dHMy
-              NTlPV1N5UlRlUTVWZGVZdjI5b3VBRmMKLS0tIG5BV3YvK3VBMVp3NVVXQXpKb0JD
-              MTRGNEdVem1xcmZuTm1PL2oyNWhJQ0kKtCodFUWHUZQRYBk9jDAWCcl7TjKUKhGb
-              k0zV+9uZTfKhhpg1Zgjt4uu17MlYDAFBi1YK5lG++vhlT2QtRk3xag==
-              -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2024-03-15T09:49:47Z"
-    mac: ENC[AES256_GCM,data:BjBAmguupyB3V3Cs0qG6ooe+CtvaWiQ/sJSPOjlQhtbn2HLd0bhUa2/JOpoKtGblj1fLj6pemHEjuvngHUNfrX5w27Uks7vPI9puy6RMx6pxuThbjGCpW4HcyWKpZnELT52zuPgcLgdO0/krV27WQkA1UA1jwOk9zd1BzxXXIGw=,iv:I3wI+irh+Rrgll9aQ2TmFbi9iFvr8rQbbdk8wWSZWsM=,tag:CO5JrwT6jyjl+gEAP/LUJA==,type:str]
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA4b2dtekNIZUxqK3pRTDYx
+            R01mK0pCOFVzU3BqcjBiamxYcmdERnFsT0dRClR4UHBGS2F4Y2dWMDU0Slp1dHMy
+            NTlPV1N5UlRlUTVWZGVZdjI5b3VBRmMKLS0tIG5BV3YvK3VBMVp3NVVXQXpKb0JD
+            MTRGNEdVem1xcmZuTm1PL2oyNWhJQ0kKtCodFUWHUZQRYBk9jDAWCcl7TjKUKhGb
+            k0zV+9uZTfKhhpg1Zgjt4uu17MlYDAFBi1YK5lG++vhlT2QtRk3xag==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2024-09-01T01:41:16Z"
+    mac: ENC[AES256_GCM,data:rK3tylB46NcO9jETby1QwuttI8NQM1Gwd9kt51U1Zp25hveN6af01Ku6qEPvTiadQGYPWHAoI5vzutFF2vFuyUaDhY+AL9SUZym1JqgJkEIqw7hdR/BFZb+mdAwzZD1M5H7nRhItv4JdeC+0XNqj2qeK4X85jB2uRXb+oJTxyuA=,iv:ezpNdYjkzCGmvEp3CgIARWnn566P4bpnryNAn1vXSQM=,tag:3y3FdZxGQOsKDhQuOsfLsA==,type:str]
     pgp: []
     encrypted_regex: ^(image|env|args|advancedMounts)$
     version: 3.8.1
