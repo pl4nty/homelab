@@ -64,7 +64,7 @@ spec:
                 }
 
                 location /filestreamingservice/files/a576c046-8ce6-4937-aba7-157277dd1773/pieceshash {
-                  add-header Www-Authenticate 'Bearer realm="", authorization_uri="https://login.microsoftonline.com/common/oauth2/authorize", client_id="00000003-0000-0000-c000-000000000000"';
+                  add_header Www-Authenticate 'Bearer realm="", authorization_uri="https://login.microsoftonline.com/common/oauth2/authorize", client_id="00000003-0000-0000-c000-000000000000"';
                   return 401;
                 }
 
