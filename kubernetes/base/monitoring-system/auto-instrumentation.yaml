@@ -39,9 +39,9 @@ spec:
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
         value: http://k8s-monitoring-alloy.monitoring-system:4318
   apacheHttpd:
-    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:1a52ff79db3292131d6aae50238ba136b3e3a0617975e9096ea040f7b1ff250c
+    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:a9dfdde331e73cac03148dfce5ce4e8725e1ca610dc19fa8d98e33aaedaaf6f1
   nginx:
-    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:1a52ff79db3292131d6aae50238ba136b3e3a0617975e9096ea040f7b1ff250c
+    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:a9dfdde331e73cac03148dfce5ce4e8725e1ca610dc19fa8d98e33aaedaaf6f1
     attrs:
       - name: NginxModuleTraceAsError
         value: "OFF"
