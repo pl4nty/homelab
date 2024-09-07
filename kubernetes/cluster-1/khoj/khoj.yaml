@@ -65,8 +65,8 @@ spec:
                 spec:
                   initialDelaySeconds: 180
             resources:
-              requests:
-                ephemeral-storage: 0.3Gi
+              limits:
+                ephemeral-storage: 300Mi
     persistence:
       config:
         accessMode: ReadWriteOnce
