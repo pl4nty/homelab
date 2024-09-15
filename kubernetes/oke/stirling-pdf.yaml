@@ -37,8 +37,8 @@ spec:
         containers:
           main:
             image:
-              repository: ghcr.io/frooodle/s-pdf
-              tag: 0.18.1
+              repository: ghcr.io/stirling-tools/s-pdf
+              tag: 0.29.0
     service:
       main:
         controller: main
