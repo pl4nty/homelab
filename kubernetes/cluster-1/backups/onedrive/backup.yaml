@@ -35,7 +35,7 @@ spec:
           main:
             image:
               repository: rclone/rclone
-              tag: 1.68.0
+              tag: 1.68.1
             args:
               - copy
               - "onedrive:"
