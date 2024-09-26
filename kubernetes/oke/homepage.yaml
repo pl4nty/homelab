@@ -26,7 +26,7 @@ spec:
   values:
     image:
       repository: ghcr.io/gethomepage/homepage
-      tag: v0.9.9
+      tag: v0.9.10
     serviceAccount:
       name: default
     persistence:
