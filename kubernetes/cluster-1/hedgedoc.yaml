@@ -75,6 +75,9 @@ spec:
             envFrom:
               - secretRef:
                   name: hedgedoc
+            resources:
+              limits:
+                ephemeral-storage: 200Mi
             # TODO wrong port
             # probes:
             #   liveness:
