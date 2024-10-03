@@ -24,7 +24,7 @@ spec:
           main:
             image:
               repository: nginx
-              tag: 1.26.0
+              tag: 1.27.2
             probes:
               liveness:
                 enabled: true
