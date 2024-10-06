@@ -65,7 +65,7 @@ spec:
               startup:
                 enabled: true
                 spec:
-                  failureThreshold: 900
+                  failureThreshold: 1200
             resources:
               requests:
                 cpu: 30m
