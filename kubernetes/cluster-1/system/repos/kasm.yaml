@@ -1,0 +1,10 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: kasm
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: https://github.com/kasmtech/kasm-helm
+  ref:
+    branch: release/1.16.0

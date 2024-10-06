@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=../schemas/kasm.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kasm
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: kasm-single-zone
+      version: 1.16.0-develop
+      sourceRef:
+        kind: GitRepository
+        name: kasm
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    global:
+      hostname: kasm.${PUBLIC_DOMAIN}
