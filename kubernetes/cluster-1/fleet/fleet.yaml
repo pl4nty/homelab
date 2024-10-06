@@ -24,21 +24,34 @@ spec:
       retries: 3
   uninstall:
     keepHistory: false
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              version: batch/v1
+              kind: Job
+              name: fleet-migration
+            patch: |
+              - op: add
+                path: /spec/ttlSecondsAfterFinished
+                value: 60
   values:
-    hostName: fleet.tplant.com.au
+    hostName: fleet.${PUBLIC_DOMAIN}
     replicas: 1
     # manifest version unsupported by kube-arch-scheduler
     nodeSelector:
       kubernetes.io/arch: amd64
     fleet:
       # autoApplySQLMigrations: false
-      logging:
-        json: true
       tls:
         enabled: false
+      logging:
+        json: true
     database:
       address: fleet-mysql:3306
       secretName: fleet
+    cache:
+      address: fleet-redis-master:6379
     mysql:
       enabled: true
       auth:
@@ -48,8 +61,6 @@ spec:
       primary:
         persistence:
           size: 2Gi
-    cache:
-      address: fleet-redis-master:6379
     redis:
       enabled: true
       auth:

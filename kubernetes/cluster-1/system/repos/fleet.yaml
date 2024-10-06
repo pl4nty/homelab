@@ -5,4 +5,4 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1h
-  url: https://pl4nty.github.io/fleet-gh-pages/charts
+  url: https://fleetdm.github.io/fleet/charts
