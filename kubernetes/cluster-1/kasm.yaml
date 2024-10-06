@@ -28,3 +28,17 @@ spec:
   values:
     global:
       hostname: kasm.${PUBLIC_DOMAIN}
+    kasmApp:
+      servicesToDeploy:
+        kasmApi:
+          replicas: 1
+        kasmGuac:
+          deploy: false
+        kasmManager:
+          replicas: 1
+        kasmProxy:
+          replicas: 1
+        kasmShare:
+          deploy: false
+        rdpGateway:
+          deploy: false
