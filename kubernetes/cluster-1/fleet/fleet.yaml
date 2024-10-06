@@ -47,7 +47,7 @@ spec:
         existingSecret: fleet
       primary:
         persistence:
-          size: 1Gi
+          size: 2Gi
     cache:
       address: fleet-redis-master:6379
     redis:
