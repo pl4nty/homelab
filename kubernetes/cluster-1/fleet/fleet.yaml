@@ -60,7 +60,7 @@ spec:
         existingSecret: fleet
       primary:
         persistence:
-          size: 2Gi
+          size: 1Gi # 2Gi, but can't resize PVC template in StatefulSet
     redis:
       enabled: true
       auth:
