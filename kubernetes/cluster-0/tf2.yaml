@@ -65,6 +65,7 @@ spec:
               startup:
                 enabled: true
                 spec:
+                  periodSeconds: 30
                   failureThreshold: 1200
             resources:
               requests:
