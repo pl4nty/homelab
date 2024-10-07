@@ -38,6 +38,9 @@ spec:
   values:
     hostName: fleet.${PUBLIC_DOMAIN}
     replicas: 1
+    resources:
+      limits:
+        ephemeral-storage: 200Mi
     # manifest version unsupported by kube-arch-scheduler
     nodeSelector:
       kubernetes.io/arch: amd64
