@@ -49,3 +49,5 @@ spec:
           deploy: false
         rdpGateway:
           deploy: false
+        rdpHttpsGateway:
+          deploy: false
