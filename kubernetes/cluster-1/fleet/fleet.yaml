@@ -40,6 +40,7 @@ spec:
     replicas: 1
     resources:
       limits:
+        # TODO chart hardcodes cpu/mem only
         ephemeral-storage: 200Mi
     # manifest version unsupported by kube-arch-scheduler
     nodeSelector:
