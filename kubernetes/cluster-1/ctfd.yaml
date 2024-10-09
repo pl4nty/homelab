@@ -39,9 +39,9 @@ spec:
             env:
               DATABASE_URL: sqlite:////opt/CTFd/CTFd/db/ctfd.db
             # `shell -c` evaluates a string as shell input
-            command: [ "sh", "-c"]
+            # command: [ "sh", "-c"]
             # loop forever, outputting "yo" every 5 seconds
-            args: ["while true; do echo 'yo' && sleep 5; done;"]
+            # args: ["while true; do echo 'yo' && sleep 5; done;"]
             # TODO wrong port? gets 8080
             # probes:
             #   liveness:
