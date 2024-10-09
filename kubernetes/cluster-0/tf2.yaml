@@ -39,7 +39,7 @@ spec:
           volumeClaimTemplates:
             - name: config
               accessMode: ReadWriteOnce
-              size: 16Gi
+              size: 8Gi # 16Gi
               globalMounts:
                 - path: /home/steam/tf-dedicated/tf/maps
         containers:

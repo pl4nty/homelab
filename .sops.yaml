@@ -3,7 +3,7 @@ creation_rules:
   encrypted_regex: ^(image|env|args|advancedMounts)$
 - path_regex: .+\.sops\.yaml$
   encrypted_regex: ^(data|stringData)$
-- path_regex: ^talos/
+- path_regex: talos/*
   encrypted_regex: ^(token|crt|key|id|secret|secretboxEncryptionSecret|ca)$
 stores:
   yaml:
