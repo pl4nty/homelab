@@ -25,6 +25,8 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    superuser:
+      email: tom@tplant.com.au
     # minio_local: false
 
     # storages:
