@@ -38,10 +38,6 @@ spec:
               tag: latest@sha256:6e3960fa9c8f7fccfaf8bd4ba7e8f28d4688d70433c637e4b7316433bff3abe9
             env:
               DATABASE_URL: sqlite:////opt/CTFd/CTFd/db/ctfd.db
-            # `shell -c` evaluates a string as shell input
-            command: [ "sh", "-c"]
-            # loop forever, outputting "yo" every 5 seconds
-            args: ["while true; do echo 'yo' && sleep 5; done;"]
             # TODO wrong port? gets 8080
             # probes:
             #   liveness:
