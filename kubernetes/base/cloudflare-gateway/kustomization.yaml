@@ -29,6 +29,8 @@ patchesStrategicMerge:
           instrumentation.opentelemetry.io/inject-go: "monitoring-system/opentelemetry-sidecar"
           instrumentation.opentelemetry.io/otel-go-auto-target-exe: "/ko-app/cmd"
       spec:
+        securityContext:
+          runAsNonRoot: false
         affinity:
           nodeAffinity:
             requiredDuringSchedulingIgnoredDuringExecution:
