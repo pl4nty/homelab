@@ -16,6 +16,13 @@ images:
   newTag: a283f4b
 patchesStrategicMerge:
 - |-
+  apiVersion: v1
+  kind: Namespace
+  metadata:
+    name: system
+    labels:
+      pod-security.kubernetes.io/enforce=privileged
+- |-
   apiVersion: apps/v1
   kind: Deployment
   metadata:
