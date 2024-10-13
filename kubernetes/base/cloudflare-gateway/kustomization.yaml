@@ -19,7 +19,8 @@ patchesStrategicMerge:
   apiVersion: apps/v1
   kind: Deployment
   metadata:
-    name: controller-manager
+    name: cloudflare-controller-manager
+    namespace: cloudflare-system
   spec:
     template:
       metadata:
