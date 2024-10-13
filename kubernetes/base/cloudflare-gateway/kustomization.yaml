@@ -21,7 +21,7 @@ patchesStrategicMerge:
   metadata:
     name: system
     labels:
-      pod-security.kubernetes.io/enforce=privileged
+      pod-security.kubernetes.io/enforce: privileged
 - |-
   apiVersion: apps/v1
   kind: Deployment
