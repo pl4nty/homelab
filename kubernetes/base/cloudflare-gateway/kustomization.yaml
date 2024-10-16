@@ -6,14 +6,14 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
 - github.com/kubernetes-sigs/gateway-api//config/crd?ref=v1.2.0
-- github.com/pl4nty/cloudflare-kubernetes-gateway//config/default?ref=main
-- github.com/pl4nty/cloudflare-kubernetes-gateway//config/prometheus?ref=main
+- github.com/pl4nty/cloudflare-kubernetes-gateway//config/default?ref=v0.7.0
+- github.com/pl4nty/cloudflare-kubernetes-gateway//config/prometheus?ref=v0.7.0
 - cloudflare.sops.yaml
 - gatewayclass.yaml
 - gateway.yaml
-images:
-- name: ghcr.io/pl4nty/cloudflare-kubernetes-gateway
-  newTag: 8740a55
+# images:
+# - name: ghcr.io/pl4nty/cloudflare-kubernetes-gateway
+#   newTag: 8740a55
 patchesStrategicMerge:
 - |-
   apiVersion: v1
@@ -38,12 +38,12 @@ patchesStrategicMerge:
       spec:
         securityContext:
           runAsNonRoot: false
-        affinity:
-          nodeAffinity:
-            requiredDuringSchedulingIgnoredDuringExecution:
-              nodeSelectorTerms:
-              - matchExpressions:
-                - key: kubernetes.io/arch
-                  operator: In
-                  values:
-                  - amd64
+# affinity:
+#   nodeAffinity:
+#     requiredDuringSchedulingIgnoredDuringExecution:
+#       nodeSelectorTerms:
+#       - matchExpressions:
+#         - key: kubernetes.io/arch
+#           operator: In
+#           values:
+#           - amd64
