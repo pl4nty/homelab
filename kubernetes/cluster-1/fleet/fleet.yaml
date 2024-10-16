@@ -35,6 +35,14 @@ spec:
               - op: add
                 path: /spec/ttlSecondsAfterFinished
                 value: 60
+          - target:
+              version: apps/v1
+              kind: Deployment
+              name: fleet
+            patch: |
+              - op: add
+                path: /spec/template/spec/containers/0/resources/limits/ephemeral-storage
+                value: 200Mi
   values:
     hostName: fleet.${PUBLIC_DOMAIN}
     replicas: 1
