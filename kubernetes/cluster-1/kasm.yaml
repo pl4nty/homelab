@@ -39,9 +39,7 @@ spec:
           replicas: 1
           resources:
             limits:
-              cpu: "1"
-            requests:
-              cpu: 350m
+              cpu: "1.5"
         kasmProxy:
           replicas: 1
           resources:
