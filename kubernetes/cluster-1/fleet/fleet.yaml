@@ -59,6 +59,12 @@ spec:
         enabled: false
       logging:
         json: true
+    osquery:
+      logging:
+        filesystem:
+          enableRotation: true
+          enableCompression: true
+          volumeSize: 100Mi
     database:
       address: fleet-mysql:3306
       secretName: fleet
