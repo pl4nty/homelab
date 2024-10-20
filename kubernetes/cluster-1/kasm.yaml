@@ -38,13 +38,17 @@ spec:
         kasmManager:
           replicas: 1
           resources:
+            requests:
+              cpu: 150m
             limits:
               cpu: 1500m
         kasmProxy:
           replicas: 1
           resources:
+            requests:
+              cpu: 100m
             limits:
-              cpu: 500m
+              cpu: 1000m
         kasmShare:
           deploy: false
         rdpGateway:
