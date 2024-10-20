@@ -39,12 +39,12 @@ spec:
           replicas: 1
           resources:
             limits:
-              cpu: "1.5"
+              cpu: 1500m
         kasmProxy:
           replicas: 1
           resources:
             limits:
-              cpu: 350m
+              cpu: 500m
         kasmShare:
           deploy: false
         rdpGateway:
