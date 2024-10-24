@@ -115,7 +115,7 @@ spec:
           main:
             image:
               repository: quay.io/hedgedoc/hedgedoc
-              tag: 1.10.0
+              tag: 1.9.9
             env:
               CMD_DB_URL:
                 secretKeyRef:
@@ -126,8 +126,6 @@ spec:
               CMD_IMAGE_UPLOAD_TYPE: "imgur"
               CMD_DOCUMENT_MAX_LENGTH: "100000"
         pod:
-          nodeSelector:
-            kubernetes.io/arch: amd64
           # shared volume
           affinity:
             podAffinity:
