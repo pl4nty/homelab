@@ -126,6 +126,8 @@ spec:
               CMD_IMAGE_UPLOAD_TYPE: "imgur"
               CMD_DOCUMENT_MAX_LENGTH: "100000"
         pod:
+          nodeSelector:
+            kubernetes.io/arch: amd64
           # shared volume
           affinity:
             podAffinity:
