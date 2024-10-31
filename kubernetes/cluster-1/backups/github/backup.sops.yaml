@@ -5,7 +5,7 @@ metadata:
     namespace: default
 type: Opaque
 stringData:
-    token: ENC[AES256_GCM,data:hfiPGs3xQDxMerR8/TbVxy5a2og/HUrgi6QjP+bq8/JEYzeBKo1S9+H7DIo1MDOoLppKZmYiaXjJ9onS8B7oGqsHin+VqftXXm+zKQnQ+wllIDZeaSIU+tTHjxJM,iv:fW438XJccD+Blg/wuF5f7t09yPm6bQg/St0qAswl5Xg=,tag:erM9UIDGTwysEuIeuX9atg==,type:str]
+    token: ENC[AES256_GCM,data:Lzdrys0IO8uBsOOV1MwuOuON/s2iXh+vrL3gmFQ9X1ZFWdI6uv6oElSDiFXiRREkmtexzN/SMeGioxELOFNgXmS0QTWLhKHFDlR30bncxXbw80q8E6Yksye+rsof,iv:HPiCycnijma8UmS5HQfdk8kWhVlnJ/BdgeKuhhFxoqw=,tag:/61jhbTrUjl/PIkAUf8FGA==,type:str]
 sops:
     kms: []
     gcp_kms: []
@@ -21,8 +21,8 @@ sops:
             ZURqdGQ2aFNxSHNXOXZETmM1VWRHTjQKUXe/B2WjKTrEtlbBoWB0V2kZUF4zj9Ml
             6TctB68k6zdit/FBjrzo/45ewTU8cvL5yFYds+ypskTrnCNEZtoqIg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-10-28T05:46:40Z"
-    mac: ENC[AES256_GCM,data:a8kmoQfYuBLmoX8RGqP0yADxeo/H7v+SdgeVMmCO+FPb5eSM0NuhRzpD5CYSvSeAnz0GWoESxU5LUSVYvNxoHiNOZVvWibk44oPwS8/v0rNKwUGXfcBdXi5WBdWVFOSSzaTtx4st2/bZgPWHoEZNXprR2sEWFcYCypWI7LrQPSg=,iv:gD2ImJkvPwYRMUYMEp0SQmAQyPEP+ZbJuV2pLEtq/eQ=,tag:fWXqIkl8K5OQLDCMVw++zw==,type:str]
+    lastmodified: "2024-10-31T13:52:04Z"
+    mac: ENC[AES256_GCM,data:Vp+ij6ZR0dQYV/MEkvUieb446ZeU2VlhM8WSp3LaAaK1mAD/WLvbnBBupVCGSZrJ8duieu/i/ppH55mULjEBr850sByFeTkvAFvTivt59ki6jbLvFkoxQfvvWVvskJE2FdUmJ+y8mibSwHPEAS+r07esxPeLyrClkfa1fYLDigI=,iv:tGU3p/YUviB8SMx7rS0ihnOYzXZQlbDfk2yo1jNFn9k=,tag:r5Cb3a6+iBVylNt5emKvew==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.8.1
