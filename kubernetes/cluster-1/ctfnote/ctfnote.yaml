@@ -35,7 +35,7 @@ spec:
           main:
             image:
               repository: ghcr.io/tfns/ctfnote/front
-              tag: latest
+              tag: latest@sha256:b15b7a222d2fd4e25d570208957e93c009be75859fb77f8a617a7a0ccb69c97f
             probes:
               liveness:
                 enabled: true
@@ -71,7 +71,7 @@ spec:
           main:
             image:
               repository: ghcr.io/tfns/ctfnote/api
-              tag: latest
+              tag: latest@sha256:08b3b35b3f1b36d0605880f4fd60d38b0d49693b21d18021a3e7f54edaafa331
             env:
               PAD_CREATE_URL: http://ctfnote-hedgedoc:3000/new
               PAD_SHOW_URL: /
