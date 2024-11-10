@@ -29,12 +29,9 @@ spec:
   values:
     # use selfsigned from helm, not cert-manager
     admissionWebhooks:
-      timeoutSeconds: 30
       certManager:
         enabled: false
-      autoGenerateCert:
-        enabled: true
-        recreate: false
+      failurePolicy: Ignore # don't Fail on flaky TLS errors
     manager:
       # controller_runtime_webhook_latency_seconds_bucket has high cardinality, no option to drop as of 0.33.0
       # serviceMonitor:
