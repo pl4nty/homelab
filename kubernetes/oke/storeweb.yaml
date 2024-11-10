@@ -44,6 +44,7 @@ spec:
             #   - StoreWeb.dll
             command:
               - /bin/sh
+              - -c
             # env:
             #   ASPNETCORE_URLS: http://*:8080
             # probes:
