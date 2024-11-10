@@ -42,15 +42,17 @@ spec:
             # command:
             #   - dotnet
             #   - StoreWeb.dll
+            command:
+              - /bin/sh
             # env:
             #   ASPNETCORE_URLS: http://*:8080
-            probes:
-              liveness:
-                enabled: true
-              readiness:
-                enabled: true
-              startup:
-                enabled: true
+            # probes:
+            #   liveness:
+            #     enabled: true
+            #   readiness:
+            #     enabled: true
+            #   startup:
+            #     enabled: true
     service:
       main:
         controller: main
