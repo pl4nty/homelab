@@ -40,8 +40,7 @@ spec:
               repository: ghcr.io/pl4nty/reg2ps
               tag: latest@sha256:164e137524912283ad9101f9b6b219be31ee4daa5495b5e5d249fd6348ca386d
             command:
-              - dotnet
-              - REG2PS.dll
+              - REG2PS
             probes:
               liveness:
                 enabled: true
