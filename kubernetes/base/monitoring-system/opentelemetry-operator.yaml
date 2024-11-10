@@ -42,8 +42,8 @@ spec:
         repository: otel/opentelemetry-collector-contrib
       autoInstrumentationImage:
         dotnet:
-          repository: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-dotnet
-          tag: "1.9.0"
+          repository: ghcr.io/pl4nty/otel-operator-autoinstrumentation-dotnet
+          tag: latest@sha256:358512aab44a8900f0d3aaa8124372ad74ce3cea8b7b3543124dc11f1d073b23
       # disabled by default
       extraArgs:
         - --enable-go-instrumentation=true
