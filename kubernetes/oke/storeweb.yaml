@@ -39,18 +39,13 @@ spec:
             image:
               repository: ghcr.io/pl4nty/storeweb
               tag: latest@sha256:be55e3866a02c44bbf3bd3a5a649ab26b9a5f7f1a0faeb67e1169fa0b1f657f8
-            # command:
-            #   - dotnet
-            #   - StoreWeb.dll
-            # env:
-            #   ASPNETCORE_URLS: http://*:8080
-            # probes:
-            #   liveness:
-            #     enabled: true
-            #   readiness:
-            #     enabled: true
-            #   startup:
-            #     enabled: true
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
     service:
       main:
         controller: main

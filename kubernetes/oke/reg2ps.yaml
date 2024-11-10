@@ -31,10 +31,9 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
-        # fails to load dependency?
-        # pod:
-        #   annotations:
-        #     instrumentation.opentelemetry.io/inject-dotnet: "true"
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-dotnet: "true"
         containers:
           main:
             image:
