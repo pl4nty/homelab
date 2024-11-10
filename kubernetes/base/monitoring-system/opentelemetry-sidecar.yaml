@@ -1,11 +1,11 @@
-apiVersion: opentelemetry.io/v1alpha1
+apiVersion: opentelemetry.io/v1beta1
 kind: OpenTelemetryCollector
 metadata:
   name: opentelemetry-sidecar
   namespace: monitoring-system
 spec:
   mode: sidecar
-  config: |
+  config:
     extensions:
       basicauth/traces:
         client_auth:
