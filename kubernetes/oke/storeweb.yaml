@@ -42,8 +42,6 @@ spec:
             # command:
             #   - dotnet
             #   - StoreWeb.dll
-            command: [ "/bin/sh", "-c", "--" ]
-            args: [ "while true; do sleep 30; done;" ]
             # env:
             #   ASPNETCORE_URLS: http://*:8080
             # probes:
