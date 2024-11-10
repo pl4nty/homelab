@@ -31,16 +31,15 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
-        pod:
-          annotations:
-            instrumentation.opentelemetry.io/inject-dotnet: "true"
+        # fails to load dependency?
+        # pod:
+        #   annotations:
+        #     instrumentation.opentelemetry.io/inject-dotnet: "true"
         containers:
           main:
             image:
               repository: ghcr.io/pl4nty/reg2ps
               tag: latest@sha256:164e137524912283ad9101f9b6b219be31ee4daa5495b5e5d249fd6348ca386d
-            command:
-              - /app/REG2PS
             probes:
               liveness:
                 enabled: true
