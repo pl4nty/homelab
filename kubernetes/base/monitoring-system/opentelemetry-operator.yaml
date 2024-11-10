@@ -42,6 +42,7 @@ spec:
         repository: otel/opentelemetry-collector-contrib
       autoInstrumentationImage:
         dotnet:
+          repository: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-dotnet
           tag: "1.9.0"
       # disabled by default
       extraArgs:
