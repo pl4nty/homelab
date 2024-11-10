@@ -34,11 +34,14 @@ spec:
         pod:
           annotations:
             instrumentation.opentelemetry.io/inject-dotnet: "true"
+            instrumentation.opentelemetry.io/otel-dotnet-auto-runtime: "linux-musl-x64" # TODO support musl-arm64
         containers:
           main:
             image:
               repository: ghcr.io/pl4nty/storeweb
               tag: latest@sha256:be55e3866a02c44bbf3bd3a5a649ab26b9a5f7f1a0faeb67e1169fa0b1f657f8
+            env:
+              CORECLR_PROFILER_PATH: /otel-auto-instrumentation-dotnet/linux-musl-arm64/OpenTelemetry.AutoInstrumentation.Native.so # TODO support musl-arm64
             probes:
               liveness:
                 enabled: true
