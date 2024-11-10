@@ -29,6 +29,7 @@ spec:
   values:
     # use selfsigned from helm, not cert-manager
     admissionWebhooks:
+      timeoutSeconds: 60
       certManager:
         enabled: false
       autoGenerateCert:
