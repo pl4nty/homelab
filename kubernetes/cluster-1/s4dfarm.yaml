@@ -219,5 +219,5 @@ spec:
           - ctf-farm.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: s4dfarm
+              - name: s4dfarm-main
                 port: 80
