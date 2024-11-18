@@ -60,13 +60,6 @@ spec:
                     name: s4dfarm-cnpg-app
                     key: uri
               SERVER_PASSWORD: changeme
-            probes:
-              liveness:
-                enabled: true
-              readiness:
-                enabled: true
-              startup:
-                enabled: true
       celery:
         strategy: RollingUpdate
         rollingUpdate:
@@ -83,13 +76,6 @@ spec:
                   secretKeyRef:
                     name: s4dfarm-cnpg-app
                     key: uri
-            probes:
-              liveness:
-                enabled: true
-              readiness:
-                enabled: true
-              startup:
-                enabled: true
       httpproxy:
         strategy: RollingUpdate
         rollingUpdate:
@@ -117,13 +103,6 @@ spec:
             image:
               repository: redis
               tag: 7.2.0-alpine
-            probes:
-              liveness:
-                enabled: true
-              readiness:
-                enabled: true
-              startup:
-                enabled: true
       externalredis:
         strategy: RollingUpdate
         rollingUpdate:
