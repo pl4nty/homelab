@@ -43,6 +43,11 @@ spec:
                 enabled: true
               startup:
                 enabled: true
+      farm:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: 0
+        containers:
           farm:
             image:
               repository: ghcr.io/pl4nty/s4dfarm-farm
@@ -62,6 +67,11 @@ spec:
                 enabled: true
               startup:
                 enabled: true
+      celery:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: 0
+        containers:
           celery:
             image:
               repository: ghcr.io/pl4nty/s4dfarm-celery
@@ -80,6 +90,11 @@ spec:
                 enabled: true
               startup:
                 enabled: true
+      httpproxy:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: 0
+        containers:
           httpproxy:
             image:
               repository: ghcr.io/pl4nty/s4dfarm-httpproxy
@@ -93,6 +108,11 @@ spec:
                 enabled: true
               startup:
                 enabled: true
+      redis:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: 0
+        containers:
           redis:
             image:
               repository: redis
@@ -104,6 +124,11 @@ spec:
                 enabled: true
               startup:
                 enabled: true
+      externalredis:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: 0
+        containers:
           externalredis:
             image:
               repository: redis
