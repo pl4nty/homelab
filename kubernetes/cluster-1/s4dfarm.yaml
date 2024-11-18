@@ -135,6 +135,16 @@ spec:
         ports:
           http:
             port: 80
+      farm:
+        controller: farm
+        ports:
+          http:
+            port: 5000
+      celery:
+        controller: celery
+        ports:
+          http:
+            port: 5000
       httpproxy:
         controller: httpproxy
         ports:
@@ -151,6 +161,55 @@ spec:
           http:
             port: 6378
             targetPort: 6379
+    configMaps:
+      config:
+        data:
+          default.conf: |
+            resolver 127.0.0.11 valid=10s ipv6=off;
+            resolver_timeout 5s;
+
+            server {
+                listen 80;
+
+                server_name default;
+
+                location /api/ {
+                    set $backend s4dfarm-farm:5000;
+                    proxy_pass http://$backend;
+                    include proxy_params;
+                }
+
+                location /stats/ {
+                    set $backend s4dfarm-farm:5000;
+                    proxy_pass http://$backend;
+                    include proxy_params;
+                }
+
+                location /celery/metrics {
+                    set $backend s4dfarm-celery:5000;
+                    proxy_pass http://$backend/;
+                    include proxy_params;
+                }
+
+                location / {
+                    gzip on;
+                    gzip_static on;
+                    gzip_types text/plain text/css text/javascript application/javascript;
+                    gzip_disable "msie6";
+                    root /front;
+                    try_files $uri /index.html;
+                    autoindex off;
+                }
+            }
+    persistence:
+      config-main:
+        type: configMap
+        name: s4dfarm-config
+        advancedMounts:
+          main:
+            main:
+              - path: /etc/nginx/conf.d/default.conf
+                subPath: default.conf
     route:
       main:
         parentRefs:
