@@ -11,9 +11,9 @@ resources:
 - cloudflare.sops.yaml
 - gatewayclass.yaml
 - gateway.yaml
-# images:
-# - name: ghcr.io/pl4nty/cloudflare-kubernetes-gateway
-#   newTag: 8740a55
+images:
+- name: ghcr.io/pl4nty/cloudflare-kubernetes-gateway
+  newTag: 74ef220
 patchesStrategicMerge:
 - |-
   apiVersion: v1
@@ -38,12 +38,5 @@ patchesStrategicMerge:
       spec:
         securityContext:
           runAsNonRoot: false
-# affinity:
-#   nodeAffinity:
-#     requiredDuringSchedulingIgnoredDuringExecution:
-#       nodeSelectorTerms:
-#       - matchExpressions:
-#         - key: kubernetes.io/arch
-#           operator: In
-#           values:
-#           - amd64
+        nodeSelector:
+          kubernetes.io/arch: amd64
