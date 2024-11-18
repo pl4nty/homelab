@@ -14,6 +14,7 @@ resources:
 images:
 - name: ghcr.io/pl4nty/cloudflare-kubernetes-gateway
   newTag: 74ef220
+
 patchesStrategicMerge:
 - |-
   apiVersion: v1
@@ -30,13 +31,13 @@ patchesStrategicMerge:
     namespace: system
   spec:
     template:
-      metadata:
-        annotations:
-          sidecar.opentelemetry.io/inject: "monitoring-system/opentelemetry-sidecar"
-          instrumentation.opentelemetry.io/inject-go: "monitoring-system/opentelemetry-sidecar"
-          instrumentation.opentelemetry.io/otel-go-auto-target-exe: "/ko-app/cmd"
       spec:
-        securityContext:
-          runAsNonRoot: false
         nodeSelector:
           kubernetes.io/arch: amd64
+#         securityContext:
+#           runAsNonRoot: false
+#       metadata:
+#         annotations:
+#           sidecar.opentelemetry.io/inject: "monitoring-system/opentelemetry-sidecar"
+#           instrumentation.opentelemetry.io/inject-go: "monitoring-system/opentelemetry-sidecar"
+#           instrumentation.opentelemetry.io/otel-go-auto-target-exe: "/ko-app/cmd"
