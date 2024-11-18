@@ -53,7 +53,7 @@ spec:
               repository: ghcr.io/pl4nty/s4dfarm-farm
               tag: latest
             env:
-              REDIS_URL: 'redis://externalredis:6379/0'
+              REDIS_URL: 'redis://s4dfarm-redis:6379/0'
               POSTGRES_DSN:
                 valueFrom:
                   secretKeyRef:
@@ -70,7 +70,7 @@ spec:
               repository: ghcr.io/pl4nty/s4dfarm-celery
               tag: latest
             env:
-              CELERY_BROKER_URL: 'redis://externalredis:6379/1'
+              CELERY_BROKER_URL: 'redis://s4dfarm-redis:6379/1'
               POSTGRES_DSN:
                 valueFrom:
                   secretKeyRef:
@@ -86,7 +86,7 @@ spec:
               repository: ghcr.io/pl4nty/s4dfarm-httpproxy
               tag: latest
             env:
-              REDIS_URL: 'redis://externalredis:6379/2'
+              REDIS_URL: 'redis://s4dfarm-redis:6379/2'
             probes:
               liveness:
                 enabled: true
@@ -103,6 +103,13 @@ spec:
             image:
               repository: redis
               tag: 7.2.0-alpine
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
       externalredis:
         strategy: RollingUpdate
         rollingUpdate:
@@ -127,18 +134,23 @@ spec:
         controller: main
         ports:
           http:
-            port: 5137
+            port: 80
       httpproxy:
         controller: httpproxy
         ports:
           http:
             port: 8888
+      redis:
+        controller: redis
+        ports:
+          http:
+            port: 6379
       externalredis:
         controller: externalredis
         ports:
           http:
-            port: 6379
-            targetPort: 6378
+            port: 6378
+            targetPort: 6379
     route:
       main:
         parentRefs:
@@ -149,4 +161,4 @@ spec:
         rules:
           - backendRefs:
               - name: s4dfarm
-                port: 5137
+                port: 80
