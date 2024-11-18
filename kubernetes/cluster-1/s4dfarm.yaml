@@ -165,9 +165,6 @@ spec:
       config:
         data:
           default.conf: |
-            resolver 127.0.0.11 valid=10s ipv6=off;
-            resolver_timeout 5s;
-
             server {
                 listen 80;
 
