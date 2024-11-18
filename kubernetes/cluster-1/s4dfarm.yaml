@@ -174,19 +174,19 @@ spec:
                 server_name default;
 
                 location /api/ {
-                    set $backend s4dfarm-farm:5000;
+                    set $backend s4dfarm-farm.default.svc.cluster.local:5000;
                     proxy_pass http://$backend;
                     include proxy_params;
                 }
 
                 location /stats/ {
-                    set $backend s4dfarm-farm:5000;
+                    set $backend s4dfarm-farm.default.svc.cluster.local:5000;
                     proxy_pass http://$backend;
                     include proxy_params;
                 }
 
                 location /celery/metrics {
-                    set $backend s4dfarm-celery:5000;
+                    set $backend s4dfarm-celery.default.svc.cluster.local:5000;
                     proxy_pass http://$backend/;
                     include proxy_params;
                 }
