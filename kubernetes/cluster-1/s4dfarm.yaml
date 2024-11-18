@@ -1,0 +1,148 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.3.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: s4dfarm
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.5.1
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    controllers:
+      main:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: 0
+        containers:
+          main:
+            image:
+              repository: ghcr.io/pl4nty/s4dfarm-front
+              tag: latest
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+          farm:
+            image:
+              repository: ghcr.io/pl4nty/s4dfarm-farm
+              tag: latest
+            env:
+              REDIS_URL: 'redis://externalredis:6379/0'
+              POSTGRES_DSN:
+                valueFrom:
+                  secretKeyRef:
+                    name: s4dfarm-cnpg-app
+                    key: uri
+              SERVER_PASSWORD: changeme
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+          celery:
+            image:
+              repository: ghcr.io/pl4nty/s4dfarm-celery
+              tag: latest
+            env:
+              CELERY_BROKER_URL: 'redis://externalredis:6379/1'
+              POSTGRES_DSN:
+                valueFrom:
+                  secretKeyRef:
+                    name: s4dfarm-cnpg-app
+                    key: uri
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+          httpproxy:
+            image:
+              repository: ghcr.io/pl4nty/s4dfarm-httpproxy
+              tag: latest
+            env:
+              REDIS_URL: 'redis://externalredis:6379/2'
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+          redis:
+            image:
+              repository: redis
+              tag: 7.2.0-alpine
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+          externalredis:
+            image:
+              repository: redis
+              tag: 7.2.0-alpine
+            args:
+              - --requirepass
+              - changeme
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 5137
+      httpproxy:
+        controller: httpproxy
+        ports:
+          http:
+            port: 8888
+      externalredis:
+        controller: externalredis
+        ports:
+          http:
+            port: 6379
+            targetPort: 6378
+    route:
+      main:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - ctf-farm.${PUBLIC_DOMAIN}
+        rules:
+          - backendRefs:
+              - name: s4dfarm
+                port: 5137
