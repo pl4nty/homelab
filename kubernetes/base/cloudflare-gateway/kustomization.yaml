@@ -32,12 +32,12 @@ patchesStrategicMerge:
   spec:
     template:
       spec:
-        nodeSelector:
-          kubernetes.io/arch: amd64
-#         securityContext:
-#           runAsNonRoot: false
-#       metadata:
-#         annotations:
-#           sidecar.opentelemetry.io/inject: "monitoring-system/opentelemetry-sidecar"
-#           instrumentation.opentelemetry.io/inject-go: "monitoring-system/opentelemetry-sidecar"
-#           instrumentation.opentelemetry.io/otel-go-auto-target-exe: "/ko-app/cmd"
+        securityContext:
+          runAsNonRoot: false
+      metadata:
+        annotations:
+          sidecar.opentelemetry.io/inject: "monitoring-system/opentelemetry-sidecar"
+          instrumentation.opentelemetry.io/inject-go: "monitoring-system/opentelemetry-sidecar"
+          instrumentation.opentelemetry.io/otel-go-auto-target-exe: "/ko-app/cmd"
+#         nodeSelector:
+#           kubernetes.io/arch: amd64
