@@ -165,6 +165,9 @@ spec:
       config:
         data:
           default.conf: |
+            resolver kube-dns.kube-system.svc.cluster.local;
+            resolver_timeout 5s;
+
             server {
                 listen 80;
 
