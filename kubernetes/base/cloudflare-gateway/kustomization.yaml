@@ -19,21 +19,21 @@ patchesStrategicMerge:
     name: system
     labels:
       pod-security.kubernetes.io/enforce: privileged
-- |-
-  apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    name: controller-manager
-    namespace: system
-  spec:
-    template:
-      spec:
-        securityContext:
-          runAsNonRoot: false
-      metadata:
-        annotations:
-          sidecar.opentelemetry.io/inject: "monitoring-system/opentelemetry-sidecar"
-          instrumentation.opentelemetry.io/inject-go: "monitoring-system/opentelemetry-sidecar"
-          instrumentation.opentelemetry.io/otel-go-auto-target-exe: "/ko-app/cmd"
+# - |-
+#   apiVersion: apps/v1
+#   kind: Deployment
+#   metadata:
+#     name: controller-manager
+#     namespace: system
+#   spec:
+#     template:
+#       spec:
 #         nodeSelector:
 #           kubernetes.io/arch: amd64
+#         securityContext:
+#           runAsNonRoot: false
+#       metadata:
+#         annotations:
+#           sidecar.opentelemetry.io/inject: "monitoring-system/opentelemetry-sidecar"
+#           instrumentation.opentelemetry.io/inject-go: "monitoring-system/opentelemetry-sidecar"
+#           instrumentation.opentelemetry.io/otel-go-auto-target-exe: "/ko-app/cmd"
