@@ -35,7 +35,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/mha
-              tag: latest@sha256:3063790d9ff9e107c50c90675dceffb9d3c7dcf6fd0a8d152ca2b73ea2bf628d
+              tag: latest@sha256:93a1ab075b7e8b7765d0865ef45cb651fa2690b7b2a2519b43126c18bc095805
             env:
               SERVER_PORT: 8080
             probes:
