@@ -90,7 +90,7 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - khoj.${PUBLIC_DOMAIN}
+          - khoj.${PRIVATE_DOMAIN}
         rules:
           - backendRefs:
               - name: khoj
