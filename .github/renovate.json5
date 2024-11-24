@@ -83,7 +83,20 @@
   "packageRules": [
     {
       "matchUpdateTypes": ["patch"],
-      "matchPackageNames": ["immich-app/immich"],
+      "matchPackageNames": [
+        "immich-app/immich",
+        "opentelemetry-operator",
+        "ghcr.io/home-assistant/home-assistant",
+        "ghcr.io/khoj-ai/khoj",
+        "moby/buildkit"
+      ],
+      "automerge": true
+    },
+    {
+      "matchUpdateTypes": ["patch", "minor"],
+      "matchPackageNames": [
+        "k8s-monitoring"
+      ],
       "automerge": true
     }
   ]
