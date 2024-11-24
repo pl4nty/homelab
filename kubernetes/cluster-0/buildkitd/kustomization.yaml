@@ -22,7 +22,7 @@ patchesStrategicMerge:
           fsGroup: 1000
         containers:
         - name: buildkitd
-          image: moby/buildkit:v0.17.1-rootless
+          image: moby/buildkit:v0.17.2-rootless
           args:
           - --addr
           - unix:///run/user/1000/buildkit/buildkitd.sock
