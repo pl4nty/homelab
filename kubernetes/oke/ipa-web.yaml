@@ -31,11 +31,11 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
-        pod:
-          annotations:
-            sidecar.opentelemetry.io/inject: "monitoring-system/opentelemetry-sidecar"
-            instrumentation.opentelemetry.io/inject-go: "monitoring-system/opentelemetry-sidecar"
-            instrumentation.opentelemetry.io/otel-go-auto-target-exe: "/usr/bin/ipa-web"
+        # pod:
+        #   annotations:
+        #     sidecar.opentelemetry.io/inject: "monitoring-system/opentelemetry-sidecar"
+        #     instrumentation.opentelemetry.io/inject-go: "monitoring-system/opentelemetry-sidecar"
+        #     instrumentation.opentelemetry.io/otel-go-auto-target-exe: "/usr/bin/ipa-web"
         containers:
           main:
             image:
