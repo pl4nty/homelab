@@ -14,8 +14,9 @@ RUN curl -s -L https://github.com/backube/volsync/releases/latest/download/kubec
 
 RUN curl -s -L https://github.com/kubecolor/kubecolor/releases/download/v0.3.0/kubecolor_0.3.0_linux_amd64.tar.gz | tar -xzf - -C ~/bin kubecolor
 
-RUN curl -s -L https://github.com/cloudnative-pg/cloudnative-pg/releases/download/v1.23.2/kubectl-cnpg_1.23.2_linux_x86_64.deb \
-  && dpkg -i kubectl-cnpg_1.23.2_linux_x86_64.deb
+RUN curl -L https://github.com/cloudnative-pg/cloudnative-pg/releases/download/v1.23.2/kubectl-cnpg_1.23.2_linux_x86_64.deb -o ~/kubectl-cnpg.deb \
+  && sudo dpkg -i ~/kubectl-cnpg.deb \
+  && rm ~/kubectl-cnpg.deb
 
 # https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins
 RUN printf "plugins+=(azure fluxcd kubectl helm) \n\
