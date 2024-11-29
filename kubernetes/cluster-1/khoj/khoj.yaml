@@ -37,7 +37,7 @@ spec:
           main:
             image:
               repository: ghcr.io/khoj-ai/khoj
-              tag: 1.30.8
+              tag: 1.30.9
             command: /bin/sh
             args:
               - -c
