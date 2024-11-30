@@ -84,6 +84,15 @@ spec:
             - kube_replicaset_metadata_generation
             - kube_replicaset_owner
             - kube_replicaset_spec_replicas
+            - kube_pod_status_reason
+            - node_namespace_pod_container:container_memory_cache
+            - node_namespace_pod_container:container_memory_swap
+            - kube_pod_container_status_restarts_total
+            - kubelet_cgroup_manager_duration_seconds_bucket
+            - kubelet_pod_start_duration_seconds_bucket
+            - container_fs_.*
+            - cluster:namespace:pod_.*
+            - container_network_.*
       node-exporter:
         metricsTuning:
           dropMetricsForFilesystem:
