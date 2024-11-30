@@ -35,7 +35,7 @@ spec:
                     main:
                         image:
                             repository: ENC[AES256_GCM,data:WCZ9yC0f6EBGMOtSlKQ=,iv:ANTH4eW5Sp64lrHP6IVsKDImTtJkloKaHVSKxTwNIoo=,tag:i3Uj+geZohFxr9RWNOYT0g==,type:str]
-                            tag: ENC[AES256_GCM,data:cORzRfU6qg==,iv:8itAgsHgs+H7y9xQBUUvDgVxpwmbJ5mUmyVitcnAzus=,tag:7W5SMhncQXPWaczbIBALLg==,type:str]
+                            tag: ENC[AES256_GCM,data:xkt5pk3BVA==,iv:uWnZ7wpYqCn2NcAGd6Pqfmg4pHiKo++vt0+L+4n7AT4=,tag:EaaVyDB404eVqJQHEINz5w==,type:str]
                         env:
                             - name: ENC[AES256_GCM,data:T/oRGxJQlDsAvV4=,iv:5ZYhuwd6Qdkgw9h9ic+uj2TqKslHrEo/bnIoPaGeszA=,tag:UvMlt2PNgBy3uNZFnj4yuQ==,type:str]
                               value: ENC[AES256_GCM,data:xlq4a+Rv,iv:fwT2lO8jC7roAdWh90dS5GN0YWi/aKdp+lBZeSlcfww=,tag:PnVsa3fTDqtVPu8BEhAKKQ==,type:str]
@@ -55,7 +55,7 @@ spec:
                     sidecar-0:
                         image:
                             repository: ENC[AES256_GCM,data:z77iI9SWStkt9lcrn0lYAI7Fj+8/uT4=,iv:WfdzEK18LE241kilZ5Od33M2GY+w9WgSUHYA9fiQdZY=,tag:gyKoR0Q+S9wkzEdUzoPMQw==,type:str]
-                            tag: ENC[AES256_GCM,data:jYwy/wmFEcvmHw==,iv:pJawy7OfqQWmU8u8mQx/j+NDau8cetjJO0gmjG4EY6I=,tag:MmQ75BE7F2bfUr7wXdG+fA==,type:str]
+                            tag: ENC[AES256_GCM,data:6rhESDuXwf3PKw==,iv:LBPdSJeGr0x89R6/VsHpnz08qg0r9++6i+QY1wCzu9o=,tag:dYaSSS230tSsmKjWcrbd8w==,type:str]
                         env:
                             DOWNLOAD_DIR: ENC[AES256_GCM,data:O+5w3Uc=,iv:RuOqaiy4zz62wJG3UXO8SGOAdPD4SoE7ypSgHgr05zM=,tag:CgGLBCMwbiDPXAd38fxoIw==,type:str]
                         probes:
@@ -116,8 +116,8 @@ sops:
             MTRGNEdVem1xcmZuTm1PL2oyNWhJQ0kKtCodFUWHUZQRYBk9jDAWCcl7TjKUKhGb
             k0zV+9uZTfKhhpg1Zgjt4uu17MlYDAFBi1YK5lG++vhlT2QtRk3xag==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2024-09-01T01:41:16Z"
-    mac: ENC[AES256_GCM,data:rK3tylB46NcO9jETby1QwuttI8NQM1Gwd9kt51U1Zp25hveN6af01Ku6qEPvTiadQGYPWHAoI5vzutFF2vFuyUaDhY+AL9SUZym1JqgJkEIqw7hdR/BFZb+mdAwzZD1M5H7nRhItv4JdeC+0XNqj2qeK4X85jB2uRXb+oJTxyuA=,iv:ezpNdYjkzCGmvEp3CgIARWnn566P4bpnryNAn1vXSQM=,tag:3y3FdZxGQOsKDhQuOsfLsA==,type:str]
+    lastmodified: "2024-11-30T13:39:27Z"
+    mac: ENC[AES256_GCM,data:OMROOzz/iqHYdl38QZWbXolnKsKOSoWRN72ftjX88msbLvoqSsAINbw3Mkv+IVSN2OauHJ/UkfEBd3YuGlaobO+V/yKQ/F90Y2aJKkPRfc8JbAVgXNN55tnhLFlh73MuWpINR86GgYR8phUllKfD202YkoASI65xZFjVoH0qWkA=,iv:gm7Ra8ctpVJCed3jFnhcu9tSmg/tWjAdYPdkXFRKpdk=,tag:8WnhnmMnF9zSH8fn4jsnww==,type:str]
     pgp: []
     encrypted_regex: ^(image|env|args|advancedMounts)$
-    version: 3.8.1
+    version: 3.9.1
