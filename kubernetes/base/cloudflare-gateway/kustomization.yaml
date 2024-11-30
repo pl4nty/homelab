@@ -16,9 +16,9 @@ resources:
 #   newTag: 3cbf229
 patches:
 - patch: |-
-    metadata:
-      name: image-metrics-service
-      namespace: default
+    - op: replace
+      path: /metadata/namespace
+      value: default
   target:
     kind: Service
     name: image-metrics-service
