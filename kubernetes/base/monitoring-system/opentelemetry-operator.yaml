@@ -48,3 +48,4 @@ spec:
       extraArgs:
         - --enable-go-instrumentation=true
         - --enable-nginx-instrumentation=true
+        - --enable-cr-metrics=false
