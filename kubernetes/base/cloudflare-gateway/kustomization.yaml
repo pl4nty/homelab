@@ -7,7 +7,7 @@ kind: Kustomization
 resources:
 - github.com/kubernetes-sigs/gateway-api//config/crd?ref=v1.2.1
 - github.com/pl4nty/cloudflare-kubernetes-gateway//config/default?ref=v0.7.2
-- github.com/pl4nty/cloudflare-kubernetes-gateway//config/prometheus?ref=v0.7.2
+- github.com/pl4nty/cloudflare-kubernetes-gateway//config/prometheus?ref=623a5e755a32f050fbcc4dec5046c3b7be1be05f
 - cloudflare.sops.yaml
 - gatewayclass.yaml
 - gateway.yaml
