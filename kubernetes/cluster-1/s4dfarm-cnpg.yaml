@@ -27,9 +27,9 @@ spec:
       data:
         compression: gzip
 
-  # bootstrap:
-  #   recovery:
-  #     source: s4dfarm-cnpg
+  bootstrap:
+    recovery:
+      source: s4dfarm-cnpg
 
   externalClusters:
     - name: s4dfarm-cnpg
