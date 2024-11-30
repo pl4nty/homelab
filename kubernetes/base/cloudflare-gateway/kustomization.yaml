@@ -7,15 +7,22 @@ kind: Kustomization
 resources:
 - github.com/kubernetes-sigs/gateway-api//config/crd?ref=v1.2.1
 - github.com/pl4nty/cloudflare-kubernetes-gateway//config/default?ref=v0.7.2
-- github.com/pl4nty/cloudflare-kubernetes-gateway//config/prometheus?ref=ad43321d127ee9e1f4e17aba11499269c70cfe52
+- github.com/pl4nty/cloudflare-kubernetes-gateway//config/prometheus?ref=v0.7.2
 - cloudflare.sops.yaml
 - gatewayclass.yaml
 - gateway.yaml
 # images:
 # - name: ghcr.io/pl4nty/cloudflare-kubernetes-gateway
 #   newTag: 3cbf229
-# patchesStrategicMerge:
-# - |-
+patches:
+- patch: |-
+    metadata:
+      name: image-metrics-service
+      namespace: default
+  target:
+    kind: Service
+    name: image-metrics-service
+# - patch: |-
 #   apiVersion: apps/v1
 #   kind: Deployment
 #   metadata:
