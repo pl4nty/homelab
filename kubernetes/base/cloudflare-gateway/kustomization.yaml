@@ -11,25 +11,28 @@ resources:
 - cloudflare.sops.yaml
 - gatewayclass.yaml
 - gateway.yaml
+images:
+- name: ghcr.io/pl4nty/cloudflare-kubernetes-gateway
+  newTag: 3cbf229
 patchesStrategicMerge:
-- |-
-  apiVersion: v1
-  kind: Namespace
-  metadata:
-    name: system
-    labels:
-      pod-security.kubernetes.io/enforce: privileged
 # - |-
-#   apiVersion: apps/v1
-#   kind: Deployment
+#   apiVersion: v1
+#   kind: Namespace
 #   metadata:
-#     name: controller-manager
-#     namespace: system
-#   spec:
-#     template:
-#       spec:
-#         nodeSelector:
-#           kubernetes.io/arch: amd64
+#     name: system
+#     labels:
+#       pod-security.kubernetes.io/enforce: privileged
+- |-
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: controller-manager
+    namespace: system
+  spec:
+    template:
+      spec:
+        nodeSelector:
+          kubernetes.io/arch: amd64
 #         securityContext:
 #           runAsNonRoot: false
 #       metadata:
