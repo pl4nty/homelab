@@ -29,9 +29,6 @@ spec:
       arm64: 1
     controllerManager:
       manager:
-        image:
-          repository: ghcr.io/pl4nty/kube-arch-scheduler
-          tag: v0.1.0
         resources:
           requests:
             cpu: 0.1
