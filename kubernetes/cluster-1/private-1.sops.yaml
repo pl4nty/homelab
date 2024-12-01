@@ -28,6 +28,18 @@ spec:
     values:
         controllers:
             main:
+                pod:
+                    # shared volume
+                    affinity:
+                        podAffinity:
+                            requiredDuringSchedulingIgnoredDuringExecution:
+                                - labelSelector:
+                                    matchExpressions:
+                                        - key: app.kubernetes.io/instance
+                                          operator: In
+                                          values:
+                                            - private-0
+                                  topologyKey: kubernetes.io/hostname
                 containers:
                     main:
                         image:
@@ -135,8 +147,8 @@ sops:
             MTRGNEdVem1xcmZuTm1PL2oyNWhJQ0kKtCodFUWHUZQRYBk9jDAWCcl7TjKUKhGb
             k0zV+9uZTfKhhpg1Zgjt4uu17MlYDAFBi1YK5lG++vhlT2QtRk3xag==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2024-12-01T06:16:58Z"
-    mac: ENC[AES256_GCM,data:PZiaSygqnbiMK57s2g1sVN/IV9kVKtwtCFsIevLV2kmPKJ5siWKbdL+IWWcsfBi7H2QMFTsSKZMMLLeNI/lSgjnM96kYI9fHIX0NDiWWsJajO9Tj7EVL2fdyURNvii6NWfqVnOG/LRVBBHh0Sk+4PxU0N1VwFlL1pNTBokUZN6Y=,iv:mR/7qeaFwE6iOI2YEG5S36szDhYw53jaej52yz0kKRM=,tag:uRPl9PNK4r3GH3qBbqHtmw==,type:str]
+    lastmodified: "2024-12-01T06:24:56Z"
+    mac: ENC[AES256_GCM,data:jDoKGQJjhrkVYRq7/whwjXp7m6N4Ohk9GOUAbXv2CU/JDR+OttPD/VpMRvgoML3jRiBnJxNzf2qaXnaIFb3ApRRluIE1VW0mtQvIGVpA1Y40q60Wxb67RFxoHGzvQIerLFhM+kT+frRcIfPvLaw4JS94ScdK+tj75YkTZ/Grieo=,iv:RGGhhSp728Jkd5kKWRsqxcQKh+QnEY6Y4ZNDXsSAagg=,tag:kcMDrPTj+KyZVXm5SkXY9g==,type:str]
     pgp: []
     encrypted_regex: ^(image|env|args|advancedMounts)$
     version: 3.9.1
