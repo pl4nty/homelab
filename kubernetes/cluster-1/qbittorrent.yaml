@@ -1,0 +1,122 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.3.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: qbittorrent
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.5.1
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    controllers:
+      qbittorrent:
+        pod:
+          # shared volume
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchExpressions:
+                    - key: app.kubernetes.io/instance
+                      operator: In
+                      values:
+                      - private-0
+                  topologyKey: kubernetes.io/hostname
+        containers:
+          app:
+            image:
+              repository: ghcr.io/onedr0p/qbittorrent-beta
+              tag: "5.0.2"
+            env:
+              TZ: Australia/Canberra
+              QBT_WEBUI_PORT: &port 80
+              QBT_TORRENTING_PORT: &torrentPort 50413
+              # CROSS_SEED_ENABLED: false
+              # CROSS_SEED_HOST: cross-seed.default.svc.cluster.local
+              # CROSS_SEED_PORT: 80
+              # CROSS_SEED_SLEEP_INTERVAL: 0
+              # PUSHOVER_ENABLED: true
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 10
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 100m
+              limits:
+                memory: 8Gi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 568
+        runAsGroup: 568
+        fsGroup: 568
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile: { type: RuntimeDefault }
+    service:
+      main:
+        controller: qbittorrent
+        # type: LoadBalancer
+        ports:
+          http:
+            port: *port
+          # bittorrent:
+          #   enabled: true
+          #   port: *torrentPort
+          #   protocol: TCP
+    route:
+      main:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - qb.${PRIVATE_DOMAIN}
+        rules:
+          - backendRefs:
+              - name: qbittorrent
+                port: *port
+    persistence:
+      config:
+        accessMode: ReadWriteOnce
+        size: 1Gi
+      tmp:
+        type: emptyDir
+      # scripts:
+      #   type: configMap
+      #   name: qbittorrent-scripts
+      #   defaultMode: 0775
+      #   globalMounts:
+      #     - readOnly: true
+      media:
+        existingClaim: private-0-data
+        globalMounts:
+          - path: /media/Downloads/qbittorrent
+            subPath: Downloads/qbittorrent
