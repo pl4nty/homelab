@@ -39,7 +39,7 @@ spec:
             env:
               DJANGO_DEBUG: "True"
               ALLOWED_HOSTS: ciso-assistant-backend,localhost
-              CISO_ASSISTANT_URL: https://ciso-assistant.${PUBLIC_DOMAIN}
+              CISO_ASSISTANT_URL: https://ciso-assistant.${PRIVATE_DOMAIN}
               AUTH_TOKEN_TTL: "7200"
 
       huey:
@@ -76,7 +76,7 @@ spec:
               PUBLIC_BACKEND_API_EXPOSED_URL: http://ciso-assistant-backend:8000/api
               PROTOCOL_HEADER: x-forwarded-proto
               HOST_HEADER: x-forwarded-host
-              ORIGIN: https://ciso-assistant.${PUBLIC_DOMAIN}
+              ORIGIN: https://ciso-assistant.${PRIVATE_DOMAIN}
     ersistence:
       config:
         accessMode: ReadWriteOnce
@@ -102,7 +102,7 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - ciso-assistant.${PUBLIC_DOMAIN}
+          - ciso-assistant.${PRIVATE_DOMAIN}
         rules:
           - backendRefs:
               - name: ciso-assistant-main
