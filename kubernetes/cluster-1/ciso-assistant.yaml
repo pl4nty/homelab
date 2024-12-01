@@ -38,7 +38,7 @@ spec:
               tag: v1.9.17
             env:
               DJANGO_DEBUG: "True"
-              ALLOWED_HOSTS: backend,localhost
+              ALLOWED_HOSTS: ciso-assistant-backend,localhost
               CISO_ASSISTANT_URL: http://localhost
               AUTH_TOKEN_TTL: "7200"
 
@@ -53,7 +53,7 @@ spec:
               tag: v1.9.17
             env:
               - name: ALLOWED_HOSTS
-                value: backend,localhost
+                value: ciso-assistant-backend,localhost
               - name: DJANGO_DEBUG
                 value: "False"
             command:
