@@ -77,7 +77,7 @@ spec:
               PROTOCOL_HEADER: x-forwarded-proto
               HOST_HEADER: x-forwarded-host
               ORIGIN: https://ciso-assistant.${PRIVATE_DOMAIN}
-    ersistence:
+    persistence:
       config:
         accessMode: ReadWriteOnce
         size: 1Gi
