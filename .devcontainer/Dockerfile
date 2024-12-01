@@ -23,6 +23,6 @@ RUN printf "plugins+=(azure fluxcd kubectl helm) \n\
 source <(kubectl completion zsh) \n\
 alias kubectl=kubecolor \n\
 compdef kubecolor=kubectl \n\
-source $ZSH/oh-my-zsh.sh" >> ~/.zshrc
+source \$ZSH/oh-my-zsh.sh" >> ~/.zshrc
 
 ENV KUBE_EDITOR="code --wait"
