@@ -27,7 +27,7 @@ spec:
     keepHistory: false
   values:
     clientName: ciso-assistant
-    clusterDomain: ${PRIVATE_DOMAIN}
+    clusterDomain: ${PUBLIC_DOMAIN}
     emailAdmin: tom@tplant.com.au
     global:
       # depName=intuitem/ciso-assistant-community
@@ -58,7 +58,7 @@ spec:
     - name: ${CLUSTER_NAME}
       namespace: default
   hostnames:
-    - ciso-assistant.${PRIVATE_DOMAIN}
+    - ciso-assistant.${PUBLIC_DOMAIN}
   rules:
     - backendRefs:
         - name: ciso-assistant-octopus
