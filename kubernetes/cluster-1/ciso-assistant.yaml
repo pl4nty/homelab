@@ -72,15 +72,11 @@ spec:
               repository: ghcr.io/intuitem/ciso-assistant-community/frontend
               tag: v1.9.17
             env:
-              - name: PUBLIC_BACKEND_API_URL
-                value: http://ciso-assistant-backend:8000/api
-              - name: PUBLIC_BACKEND_API_EXPOSED_URL
-                value: http://ciso-assistant-backend:8000/api
-              - name: PROTOCOL_HEADER
-                value: x-forwarded-proto
-              - name: HOST_HEADER
-                value: x-forwarded-host
-          
+              PUBLIC_BACKEND_API_URL: http://ciso-assistant-backend:8000/api
+              PUBLIC_BACKEND_API_EXPOSED_URL: http://ciso-assistant-backend:8000/api
+              PROTOCOL_HEADER: x-forwarded-proto
+              HOST_HEADER: x-forwarded-host
+              ORIGIN: https://ciso-assistant.${PUBLIC_DOMAIN}
     ersistence:
       config:
         accessMode: ReadWriteOnce
