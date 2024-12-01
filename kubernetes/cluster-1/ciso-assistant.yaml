@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: ciso-assistant
-      version: v1.9.3
+      version: 0.1.0
       sourceRef:
         kind: HelmRepository
         name: ciso-assistant
@@ -27,3 +27,5 @@ spec:
     keepHistory: false
   values:
     emailAdmin: tom@tplant.com.au
+    global:
+      appVersion: v1.9.17
