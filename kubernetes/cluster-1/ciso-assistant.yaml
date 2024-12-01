@@ -39,7 +39,7 @@ spec:
             env:
               DJANGO_DEBUG: "True"
               ALLOWED_HOSTS: ciso-assistant-backend,localhost
-              CISO_ASSISTANT_URL: http://localhost
+              CISO_ASSISTANT_URL: https://ciso-assistant.${PUBLIC_DOMAIN}
               AUTH_TOKEN_TTL: "7200"
 
       huey:
@@ -109,5 +109,5 @@ spec:
           - ciso-assistant.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: ciso-assistant
+              - name: ciso-assistant-main
                 port: 3000
