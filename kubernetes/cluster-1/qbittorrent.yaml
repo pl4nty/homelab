@@ -73,13 +73,13 @@ spec:
             #     cpu: 100m
             #   limits:
             #     memory: 8Gi
-    # defaultPodOptions:
-    #   securityContext:
+    defaultPodOptions:
+      securityContext:
     #     runAsNonRoot: true
     #     runAsUser: 568
     #     runAsGroup: 568
-    #     fsGroup: 568
-    #     fsGroupChangePolicy: OnRootMismatch
+        fsGroup: 568
+        fsGroupChangePolicy: OnRootMismatch
     #     seccompProfile: { type: RuntimeDefault }
     service:
       main:
