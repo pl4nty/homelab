@@ -70,7 +70,7 @@ spec:
           main:
             image:
               repository: ghcr.io/intuitem/ciso-assistant-community/frontend
-              tag: v1.9.18
+              tag: v1.9.20
             env:
               PUBLIC_BACKEND_API_URL: http://ciso-assistant-backend:8000/api
               PUBLIC_BACKEND_API_EXPOSED_URL: http://ciso-assistant-backend:8000/api
