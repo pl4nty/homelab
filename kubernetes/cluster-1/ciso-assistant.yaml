@@ -41,27 +41,26 @@ spec:
               ALLOWED_HOSTS: ciso-assistant-backend,localhost
               CISO_ASSISTANT_URL: https://ciso-assistant.${PRIVATE_DOMAIN}
               AUTH_TOKEN_TTL: "7200"
-
-      huey:
-        strategy: RollingUpdate
-        rollingUpdate:
-          maxUnavailable: 0
-        containers:
-          main:
-            image:
-              repository: ghcr.io/intuitem/ciso-assistant-community/backend
-              tag: v1.9.20
-            env:
-              - name: ALLOWED_HOSTS
-                value: ciso-assistant-backend,localhost
-              - name: DJANGO_DEBUG
-                value: "False"
-            command:
-              - /bin/sh
-              - -c
-              - |
-                poetry run python manage.py run_huey
-
+      # unused
+      # huey:
+      #   strategy: RollingUpdate
+      #   rollingUpdate:
+      #     maxUnavailable: 0
+      #   containers:
+      #     main:
+      #       image:
+      #         repository: ghcr.io/intuitem/ciso-assistant-community/backend
+      #         tag: v1.9.20
+      #       env:
+      #         - name: ALLOWED_HOSTS
+      #           value: ciso-assistant-backend,localhost
+      #         - name: DJANGO_DEBUG
+      #           value: "False"
+      #       command:
+      #         - /bin/sh
+      #         - -c
+      #         - |
+      #           poetry run python manage.py run_huey
       main:
         strategy: RollingUpdate
         rollingUpdate:
