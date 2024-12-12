@@ -80,8 +80,10 @@ spec:
       config:
         accessMode: ReadWriteOnce
         size: 1Gi
-        globalMounts:
-          - path: /code/db
+        advancedMounts:
+          backend:
+            main:
+              - path: /code/db
 
     service:
       backend:
