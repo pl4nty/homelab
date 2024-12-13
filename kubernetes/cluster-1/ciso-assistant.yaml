@@ -35,7 +35,7 @@ spec:
           main:
             image:
               repository: ghcr.io/intuitem/ciso-assistant-community/backend
-              tag: v1.9.26
+              tag: v1.9.27
             env:
               DJANGO_DEBUG: "True"
               ALLOWED_HOSTS: ciso-assistant-backend,localhost
