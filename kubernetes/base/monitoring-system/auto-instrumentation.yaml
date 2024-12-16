@@ -4,6 +4,7 @@ metadata:
   name: opentelemetry
   namespace: default
 spec:
+
   exporter:
     endpoint: http://k8s-monitoring-alloy.monitoring-system:4317
   propagators:

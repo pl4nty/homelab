@@ -1,4 +1,4 @@
-apiVersion: helm.toolkit.fluxcd.io/v2
+# yaml-language-server: $schema=https://flux-helm-schema.tplant.com.au?values=https://raw.githubusercontent.com/open-telemetry/opentelemetry-helm-charts/refs/heads/main/charts/opentelemetry-operator/values.schema.json
 kind: HelmRelease
 metadata:
   name: opentelemetry-operator
