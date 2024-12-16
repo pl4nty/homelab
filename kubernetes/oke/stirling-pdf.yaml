@@ -38,7 +38,7 @@ spec:
           main:
             image:
               repository: ghcr.io/stirling-tools/s-pdf
-              tag: 0.36.2
+              tag: 0.36.3
     service:
       main:
         controller: main
