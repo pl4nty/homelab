@@ -71,7 +71,7 @@ spec:
           main:
             image:
               repository: ghcr.io/tfns/ctfnote/api
-              tag: latest@sha256:fc39121ad08d07ad4d4c2c416abfb06529a91e1132458c871575f50586a9e8d4
+              tag: latest@sha256:9c05fe64de9e020023681dec6dedb47d33f751d5a5ce866a342161d0812fc88a
             env:
               PAD_CREATE_URL: http://ctfnote-hedgedoc:3000/new
               PAD_SHOW_URL: /
