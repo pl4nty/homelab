@@ -38,7 +38,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/flux-helm-schema
-              tag: latest@sha256:13754ff951211a1f9a43610282f8c14f816bb5493018d1a1f571153b71ef0095
+              tag: latest@sha256:28c10451b880750210ffe811947d5834644cfe5d20ca871173be1ddf036b2c24
             probes:
               liveness:
                 enabled: true
