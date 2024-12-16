@@ -26,6 +26,9 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    defaultPodOptions:
+      annotations:
+        instrumentation.opentelemetry.io/inject-python: "true"
     controllers:
       main:
         strategy: RollingUpdate
