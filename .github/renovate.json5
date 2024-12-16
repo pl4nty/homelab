@@ -96,7 +96,9 @@
     {
       "matchUpdateTypes": ["patch", "minor"],
       "matchPackageNames": [
-        "k8s-monitoring"
+        "k8s-monitoring",
+        "ghcr.io/intuitem/ciso-assistant-community/backend",
+        "ghcr.io/intuitem/ciso-assistant-community/frontend"
       ],
       "automerge": true
     }
