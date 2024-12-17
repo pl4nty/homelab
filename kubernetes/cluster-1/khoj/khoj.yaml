@@ -33,6 +33,7 @@ spec:
             node.longhorn.io/create-default-disk: config
         rollingUpdate:
           unavailable: "0"
+        replicas: 0
         containers:
           main:
             image:
