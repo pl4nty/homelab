@@ -3,7 +3,7 @@ kind: Kustomization
 namespace: default
 resources:
 - buildkit-daemon-certs.sops.yaml
-- https://raw.githubusercontent.com/moby/buildkit/v0.18.1/examples/kubernetes/statefulset.rootless.yaml
+- https://raw.githubusercontent.com/moby/buildkit/v0.18.2/examples/kubernetes/statefulset.rootless.yaml
 - buildkitd-svc.yaml
 patchesStrategicMerge:
 - |-
@@ -22,7 +22,7 @@ patchesStrategicMerge:
           fsGroup: 1000
         containers:
         - name: buildkitd
-          image: moby/buildkit:v0.18.1-rootless
+          image: moby/buildkit:v0.18.2-rootless
           args:
           - --addr
           - unix:///run/user/1000/buildkit/buildkitd.sock
