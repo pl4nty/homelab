@@ -28,14 +28,6 @@ spec:
     - kustomize:
         patches:
           - target:
-              version: batch/v1
-              kind: Job
-              name: fleet-migration
-            patch: |
-              - op: add
-                path: /spec/ttlSecondsAfterFinished
-                value: 60
-          - target:
               version: apps/v1
               kind: Deployment
               name: fleet
@@ -45,7 +37,7 @@ spec:
                 value: 200Mi
   values:
     hostName: fleet.${PUBLIC_DOMAIN}
-    replicas: 1
+    replicas: 0
     # resources:
     #   limits:
     #     # TODO chart hardcodes cpu/mem only
