@@ -21,6 +21,7 @@ RUN curl -L https://github.com/cloudnative-pg/cloudnative-pg/releases/download/v
 # https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins
 RUN printf "plugins+=(azure fluxcd kubectl helm) \n\
 source <(kubectl completion zsh) \n\
+source <(kubectl cnpg completion zsh) \n\
 alias kubectl=kubecolor \n\
 compdef kubecolor=kubectl \n\
 source \$ZSH/oh-my-zsh.sh" >> ~/.zshrc
