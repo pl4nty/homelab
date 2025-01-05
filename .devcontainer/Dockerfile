@@ -25,4 +25,4 @@ alias kubectl=kubecolor \n\
 compdef kubecolor=kubectl \n\
 source \$ZSH/oh-my-zsh.sh" >> ~/.zshrc
 
-ENV KUBE_EDITOR="code --wait"
+ENV EDITOR="code --wait"
