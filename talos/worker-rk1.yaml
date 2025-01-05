@@ -31,6 +31,12 @@ machine:
         stableHostname: true
         apidCheckExtKeyUsage: true
         diskQuotaSupport: true
+        kubePrism:
+            enabled: true
+            port: 7445
+        hostDNS:
+            enabled: true
+            forwardKubeDNSToHost: true
     disks:
         # The name of the disk to use.
         - device: /dev/nvme0n1
@@ -74,8 +80,8 @@ sops:
             bHc2ZEhtek9kY25kejlWWkprdS9JZFUKTkXl4r0fRAwHB+KVUZWt8906yOM8hxSi
             Qgu8XoWJqrLPAUNzAPZzcryvAVGqZlH6HRaUQB47LQWnX2/pml9ThQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2025-01-05T07:56:41Z"
-    mac: ENC[AES256_GCM,data:AvE9gakRuqiu9ymzwg9dAitI1LccHha6n/zpWDRwQwpatkCE95+8TKSDzURYRgqC2WvSC7cGbqcXQ7Zy1iHh1KH+GpkqtHb3H6Fp7EDZlqDk2LcleiicLlL37r/+XH0sIPCF9idbtpnOVZgIjP6sf7rsK3EHoZZfolEI96kLkIU=,iv:BTAKLsWbR3JZP5gDhIjRjNtExrANjnVw8PPQrv+ZiF0=,tag:0fFoajzepDGFzRWTiX9u1w==,type:str]
+    lastmodified: "2025-01-05T11:29:00Z"
+    mac: ENC[AES256_GCM,data:17Z6csZ+/uySk58eiGHyTlEnNUi3/H1ylhOXq/Zt483VzOEKj1pGkdtU2wDt+9+i2d9lUJL5qMiPK+Mh3zymKpkDo5g2lsyuqIDchMc9GIdl9q985wAGMwa01zFUKPhPc/wuORI2MfDAi1X2gcQe5WG5CdU+Gdb6Zqcr13mb/TM=,iv:j5dLYqr733mZtMkeoU+iW8vmh8uWGYk8GkX2e/zGlCw=,tag:CUuamAzaNeiZ/t8gTKCfaw==,type:str]
     pgp: []
     encrypted_regex: ^(token|crt|key|id|secret|secretboxEncryptionSecret|ca)$
     version: 3.9.1
