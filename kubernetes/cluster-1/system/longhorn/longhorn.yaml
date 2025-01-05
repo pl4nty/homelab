@@ -45,6 +45,7 @@ spec:
       # systemManagedComponentsNodeSelector: node.longhorn.io/create-default-disk:config
       v1DataEngine: true
       v2DataEngine: false
+      backupstorePollInterval: 0 # only used by DR volumes not backups, expensive S3 list calls
     longhornManager:
       nodeSelector:
         node.longhorn.io/create-default-disk: config
