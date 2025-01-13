@@ -42,6 +42,7 @@ spec:
               tag: latest@sha256:be55e3866a02c44bbf3bd3a5a649ab26b9a5f7f1a0faeb67e1169fa0b1f657f8
             env:
               CORECLR_PROFILER_PATH: /otel-auto-instrumentation-dotnet/linux-musl-arm64/OpenTelemetry.AutoInstrumentation.Native.so # TODO support musl-arm64
+              OTEL_DOTNET_EXPERIMENTAL_HTTPCLIENT_DISABLE_URL_QUERY_REDACTION: "true"
             probes:
               liveness:
                 enabled: true
