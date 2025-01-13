@@ -46,7 +46,7 @@ spec:
           main:
             image:
               repository: cm2network/tf2
-              tag: latest@sha256:fdc64d4bfcf32aef43953d25ff45f1db8c1c773a15c0b7d336e4b9c000628e90
+              tag: latest@sha256:1ae83d614b0ac632bfad97053eb383febbce6f00c1a96d11bd7df5bbdbd11d92
             env:
               SRCDS_HOSTNAME: "[AU] pl4nty's jungle"
               SRCDS_REGION: 5
