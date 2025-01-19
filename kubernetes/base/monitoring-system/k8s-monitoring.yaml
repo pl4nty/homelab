@@ -40,14 +40,14 @@ spec:
           name: k8s-monitoring-metrics
           namespace: monitoring-system
         metricProcessingRules: |-
-          rule {
+          write_relabel_config {
             source_labels = ["namespace","pod"]
             separator = "@"
             regex = "flux-system@(.+)-.+-.+"
             target_label = "uid"
             replacement = ""
           }
-          rule {
+          write_relabel_config {
             source_labels = ["namespace","pod"]
             separator = "@"
             regex = "flux-system@(.+)-.+-.+"
@@ -109,6 +109,9 @@ spec:
       enabled: true
     alloy-logs:
       enabled: true
+      controller:
+        # daemonset isn't necessary without nodeLogs
+        type: deployment
     alloy-singleton:
       enabled: true
 
