@@ -76,10 +76,11 @@ spec:
 
     clusterMetrics:
       enabled: true
-      controlPlane:
-        enabled: true
-      kubeProxy:
-        enabled: true
+      # controlPlane:
+      #   enabled: true
+      # kubeProxy:
+      #   enabled: true
+      
       # energy metrics
       # kepler:
       # cost metrics
