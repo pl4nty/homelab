@@ -4,7 +4,6 @@ metadata:
     name: k8s-monitoring-traces
     namespace: monitoring-system
 stringData:
-    host: ENC[AES256_GCM,data:urp2H+uuHKNtN44U9cLUE4SAsqAsV51w8VYzfTO+XS4WwfW3jcYIEGsaGIC5C4jh,iv:GXebpb+pB2xM/lqzARhHvzdI74caCwi2OFtgEcb7TgA=,tag:rlYCMuQo4l26dTcwopL0ew==,type:str]
     username: ENC[AES256_GCM,data:RCuEXcIT,iv:en7zwGebOfkE80TF65WYotpF0w/hFYm2gTrLPKMq/Q4=,tag:1t1eEb1bCFVD7iwDINg5uA==,type:str]
     password: ENC[AES256_GCM,data:A9ahaUYNLXHz8mGBN9tsjlmSTv27TqUl0GtYysPopOwBLFGLx9OSohv7V18GuNvbqFGveYDkQ0kk2P10DjkSFw3lgq4Sn+6dYbkV/WmdRrdSGGFA839ujFyElvMiLMv3wj6IWRs22z1W5tiTsivd4jDnq/fL9JuDRZ0yE1pZXbgOnFl+jFw2HA==,iv:o+lqwkg0xor0Avpa4e85gcVC5FtkYoXKn/ywNT2oLHE=,tag:Df9AuKkPx9+Yvvsjf7/BbA==,type:str]
 sops:
@@ -22,8 +21,8 @@ sops:
             TXR6NE9INTkrY2JNUUVybDhyS1lZQzgKgQtMp6o+jqM7I12igb71G/3vKJcVaW3u
             wnUaLndhGcl/t/n787n2ColI8+HFpmfClYrxihJcfy/Q3RzuBUammQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2024-06-14T11:15:16Z"
-    mac: ENC[AES256_GCM,data:3bmxMs0B7fL1ODYacUdDnmyc0tKAVu6I/1dDQcREVRkT70djJlzc7htBdyt+GP17yfnQPxn/N/hRz2xvLzygCaTesFg4NYJcQ9bUEkAFrA5IMXg9FQui4Gm7Sbgi63Ck8t3TIuGft8UBUH5toWyj+zBpW17WSsNf2Njz/GqCzRE=,iv:7gMOfO/ThG56zFdOq673eLptc7eri5kspLKGBjK617U=,tag:B6lD5+cBeS7MmHYfTW2Gvw==,type:str]
+    lastmodified: "2025-01-19T12:11:55Z"
+    mac: ENC[AES256_GCM,data:/ayzlzVCkeAQkqqtHjQgu9PaTNqFhEpPA8/ugiMXtYvpYSeJuTbfeAREX89n309MOhROd3DMQ5IY/EUZLgP5b3HMT1qMHRE/TvYDuy2/FNzKwn+HVF/US8XCn7pd62DqYbVEa0Whs4DvE4rOjEZj5tE/IB2iQOtPsY6waOxdN7Q=,iv:hAO+81GnKb+9q9kNMF5AFH/diBGUGu9VvcVfkKu7PVU=,tag:IA9MQ0PXKtNJ8HnCJubweQ==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
-    version: 3.8.1
+    version: 3.9.1

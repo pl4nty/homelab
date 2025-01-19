@@ -33,6 +33,7 @@ spec:
     destinations:
       - name: metrics
         type: prometheus
+        url: https://prometheus-prod-09-prod-au-southeast-0.grafana.net/api/prom/push
         auth:
           type: basic
         secret:
@@ -56,6 +57,7 @@ spec:
           }
       - name: logs
         type: loki
+        url: https://logs-prod-004.grafana.net/loki/api/v1/push
         auth:
           type: basic
         secret:
@@ -64,6 +66,7 @@ spec:
           namespace: monitoring-system
       - name: traces
         type: otlp
+        url: https://tempo-prod-03-au-southeast-0.grafana.net/tempo/v1/traces
         auth:
           type: basic
         secret:
