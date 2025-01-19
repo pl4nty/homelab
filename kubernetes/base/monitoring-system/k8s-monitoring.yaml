@@ -94,6 +94,11 @@ spec:
     selfReporting:
       enabled: false
 
+    alloy-singleton:
+      enabled: true
+    alloy-metrics:
+      enabled: true
+
     # logs:
     #   extraConfig: |-
     #     loki.source.syslog "syslog_udp" {
