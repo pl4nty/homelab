@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://flux-helm-schema.tplant.com.au?values=https://raw.githubusercontent.com/grafana/k8s-monitoring-helm/refs/heads/main/charts/k8s-monitoring-v1/values.schema.json
+# yaml-language-server: $schema=https://flux-helm-schema.tplant.com.au?values=https://raw.githubusercontent.com/grafana/k8s-monitoring-helm/refs/heads/main/charts/k8s-monitoring/values.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: k8s-monitoring
-      version: 1.6.21
+      version: 2.0.4
       sourceRef:
         kind: HelmRepository
         name: grafana
@@ -30,34 +30,70 @@ spec:
   values:
     cluster:
       name: ${CLUSTER_NAME:=bootstrap}
-    externalServices:
-      prometheus:
+    destinations:
+      - name: metrics
+        type: prometheus
+        auth:
+          type: basic
         secret:
           create: false
           name: k8s-monitoring-metrics
           namespace: monitoring-system
-      loki:
+        metricProcessingRules: |-
+          rule {
+            source_labels = ["namespace","pod"]
+            separator = "@"
+            regex = "flux-system@(.+)-.+-.+"
+            target_label = "uid"
+            replacement = ""
+          }
+          rule {
+            source_labels = ["namespace","pod"]
+            separator = "@"
+            regex = "flux-system@(.+)-.+-.+"
+            target_label = "pod"
+            replacement = "$1"
+          }
+      - name: logs
+        type: loki
+        auth:
+          type: basic
         secret:
           create: false
           name: k8s-monitoring-logs
           namespace: monitoring-system
-      tempo:
+      - name: traces
+        type: tempo
+        auth:
+          type: basic
         secret:
           create: false
           name: k8s-monitoring-traces
           namespace: monitoring-system
-      pyroscope:
-        secret:
-          create: false
-          name: k8s-monitoring-profiles
-          namespace: monitoring-system
-    traces:
+
+    clusterMetrics:
+      enabled: true
+    clusterEvents:
+      enabled: true
+    nodeLogs:
+      enabled: true
+    podLogs:
+      enabled: true
+    # high metrics
+    # applicationObservability:
+    # eBPF, but we already have OTel
+    # autoInstrumentation:
+    # just use prom CRDs
+    # annotationAutodiscovery:
+    prometheusOperatorObjects:
       enabled: true
     # 4GB/day but only 50GB/month limit
-    # profiles:
-    #   enabled: true
-    opencost:
+    # profiling:
+    # likely high metrics
+    # integrations:
+    selfReporting:
       enabled: false
+
     # logs:
     #   extraConfig: |-
     #     loki.source.syslog "syslog_udp" {
@@ -76,41 +112,26 @@ spec:
     #         port: 514
     #         targetPort: 514
     #         protocol: UDP
-    metrics:
-      kube-state-metrics:
-        metricsTuning:
-          excludeMetrics:
-            - kube_replicaset_status_.*
-            - kube_replicaset_created
-            - kube_replicaset_metadata_generation
-            - kube_replicaset_owner
-            - kube_replicaset_spec_replicas
-            - kube_pod_status_reason
-            - node_namespace_pod_container:container_memory_cache
-            - node_namespace_pod_container:container_memory_swap
-            - kube_pod_container_status_restarts_total
-            - kubelet_cgroup_manager_duration_seconds_bucket
-            - kubelet_pod_start_duration_seconds_bucket
-            - container_fs_.*
-            - cluster:namespace:pod_.*
-            - container_network_.*
-      node-exporter:
-        metricsTuning:
-          dropMetricsForFilesystem:
-            - tempfs # default
-            - tmpfs
-      extraMetricRelabelingRules: |-
-        rule {
-          source_labels = ["namespace","pod"]
-          separator = "@"
-          regex = "flux-system@(.+)-.+-.+"
-          target_label = "uid"
-          replacement = ""
-        }
-        rule {
-          source_labels = ["namespace","pod"]
-          separator = "@"
-          regex = "flux-system@(.+)-.+-.+"
-          target_label = "pod"
-          replacement = "$1"
-        }
+    # metrics:
+    #   kube-state-metrics:
+    #     metricsTuning:
+    #       excludeMetrics:
+    #         - kube_replicaset_status_.*
+    #         - kube_replicaset_created
+    #         - kube_replicaset_metadata_generation
+    #         - kube_replicaset_owner
+    #         - kube_replicaset_spec_replicas
+    #         - kube_pod_status_reason
+    #         - node_namespace_pod_container:container_memory_cache
+    #         - node_namespace_pod_container:container_memory_swap
+    #         - kube_pod_container_status_restarts_total
+    #         - kubelet_cgroup_manager_duration_seconds_bucket
+    #         - kubelet_pod_start_duration_seconds_bucket
+    #         - container_fs_.*
+    #         - cluster:namespace:pod_.*
+    #         - container_network_.*
+    #   node-exporter:
+    #     metricsTuning:
+    #       dropMetricsForFilesystem:
+    #         - tempfs # default
+    #         - tmpfs
