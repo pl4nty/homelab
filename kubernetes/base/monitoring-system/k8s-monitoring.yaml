@@ -94,9 +94,11 @@ spec:
     selfReporting:
       enabled: false
 
-    alloy-singleton:
-      enabled: true
     alloy-metrics:
+      enabled: true
+    alloy-logs:
+      enabled: true
+    alloy-singleton:
       enabled: true
 
     # logs:
