@@ -74,13 +74,14 @@ spec:
           name: k8s-monitoring-traces
           namespace: monitoring-system
 
-    clusterMetrics:
-      enabled: true
+    # clusterMetrics:
+    #   enabled: true
+      # TODO enable after cluster consolidation
       # controlPlane:
       #   enabled: true
       # kubeProxy:
       #   enabled: true
-      
+
       # energy metrics
       # kepler:
       # cost metrics
