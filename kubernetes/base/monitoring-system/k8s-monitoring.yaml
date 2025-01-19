@@ -73,12 +73,21 @@ spec:
 
     clusterMetrics:
       enabled: true
+      controlPlane:
+        enabled: true
+      kubeProxy:
+        enabled: true
+      # energy metrics
+      # kepler:
+      # cost metrics
+      # opencost:
     clusterEvents:
       enabled: true
-    nodeLogs:
-      enabled: true
+    # journald isn't available on Talos
+    # nodeLogs:
     podLogs:
       enabled: true
+      gatherMethod: kubernetesApi
     # high metrics
     # applicationObservability:
     # eBPF, but we already have OTel
@@ -87,6 +96,8 @@ spec:
     # annotationAutodiscovery:
     prometheusOperatorObjects:
       enabled: true
+      crds:
+        deploy: true
     # 4GB/day but only 50GB/month limit
     # profiling:
     # likely high metrics
