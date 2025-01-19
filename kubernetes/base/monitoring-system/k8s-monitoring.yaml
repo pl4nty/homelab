@@ -63,7 +63,7 @@ spec:
           name: k8s-monitoring-logs
           namespace: monitoring-system
       - name: traces
-        type: tempo
+        type: otlp
         auth:
           type: basic
         secret:
