@@ -85,10 +85,17 @@ spec:
         metricsTuning:
           excludeMetrics:
             - kube_pod_status_reason
+            - kube_replicaset_created
+            - kube_replicaset_metadata_generation
+            - kube_replicaset_spec_replicas
+            - kube_replicaset_status_.*
+            - kube_secret_metadata_resource_version
+            - kube_pod_container_status_restarts_total
       node-exporter:
         metricsTuning:
           excludeMetrics:
             - node_filesystem_device_error
+            - node_filesystem_readonly
 
       # energy metrics
       # kepler:
