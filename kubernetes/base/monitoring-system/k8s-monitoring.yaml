@@ -81,13 +81,14 @@ spec:
       #   enabled: true
       # kubeProxy:
       #   enabled: true
-      # kube-state-metrics:
-      #   metricsTuning:
-      #     excludeMetrics:
-      #       - kube_pod_status_reason
+      kube-state-metrics:
+        metricsTuning:
+          excludeMetrics:
+            - kube_pod_status_reason
       node-exporter:
         metricsTuning:
-          useIntegrationAllowList: true
+          excludeMetrics:
+            - node_filesystem_device_error
 
       # energy metrics
       # kepler:
