@@ -6,14 +6,14 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
 - github.com/kubernetes-sigs/gateway-api//config/crd?ref=v1.2.1
-- github.com/pl4nty/cloudflare-kubernetes-gateway//config/default?ref=v0.8.1
+- github.com/pl4nty/cloudflare-kubernetes-gateway//config/default?ref=cea0499c13826223a4647477fe095b33eb6ea517
 # - github.com/pl4nty/cloudflare-kubernetes-gateway//config/prometheus?ref=v0.8.1
 - cloudflare.sops.yaml
 - gatewayclass.yaml
 - gateway.yaml
-# images:
-# - name: ghcr.io/pl4nty/cloudflare-kubernetes-gateway
-#   newTag: 1be7d5f
+images:
+- name: ghcr.io/pl4nty/cloudflare-kubernetes-gateway
+  newTag: 160f2fe
 patches:
 - patch: |-
     - op: replace
@@ -22,17 +22,17 @@ patches:
   target:
     kind: Service
     name: image-metrics-service
-# - patch: |-
-#     apiVersion: apps/v1
-#     kind: Deployment
-#     metadata:
-#       name: controller-manager
-#       namespace: system
-#     spec:
-#       template:
-#         spec:
-#           nodeSelector:
-#             kubernetes.io/arch: amd64
+- patch: |-
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: controller-manager
+      namespace: system
+    spec:
+      template:
+        spec:
+          nodeSelector:
+            kubernetes.io/arch: amd64
 # 
 #         securityContext:
 #           runAsNonRoot: false
