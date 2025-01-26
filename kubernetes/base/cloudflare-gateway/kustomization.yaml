@@ -6,7 +6,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
 - github.com/kubernetes-sigs/gateway-api//config/crd?ref=v1.2.1
-- github.com/pl4nty/cloudflare-kubernetes-gateway//config/default?ref=cea0499c13826223a4647477fe095b33eb6ea517
+- github.com/pl4nty/cloudflare-kubernetes-gateway//config/default?ref=3013daee0e88411f4aadae4e4fb6a27a47026c04
 # - github.com/pl4nty/cloudflare-kubernetes-gateway//config/prometheus?ref=v0.8.1
 - cloudflare.sops.yaml
 - gatewayclass.yaml
