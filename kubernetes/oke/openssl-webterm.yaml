@@ -35,7 +35,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/openssl-webterm
-              tag: latest@sha256:0a731f529258c0c226664bc521253c0b0325b785114de6ede8e255cca1ee0496
+              tag: latest@sha256:e1d3118b11cc828c7f1b9d519a9440ecb5454c783b24c44151da42c151cd2918
             probes:
               liveness:
                 enabled: true
