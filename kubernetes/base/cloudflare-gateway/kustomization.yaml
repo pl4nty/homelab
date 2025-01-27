@@ -13,7 +13,7 @@ resources:
 - gateway.yaml
 images:
 - name: ghcr.io/pl4nty/cloudflare-kubernetes-gateway
-  newTag: 1aa1d72
+  newTag: fb98b8c
 patches:
 - patch: |-
     - op: replace
