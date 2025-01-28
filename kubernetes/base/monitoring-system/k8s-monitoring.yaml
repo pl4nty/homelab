@@ -109,8 +109,14 @@ spec:
     podLogs:
       enabled: true
       gatherMethod: kubernetesApi
-    # high metrics
-    # applicationObservability:
+    applicationObservability:
+      enabled: true
+      receivers:
+        oltp:
+          grpc:
+            enabled: true
+          http:
+            enabled: true
     # eBPF, but we already have OTel
     # autoInstrumentation:
     # just use prom CRDs
