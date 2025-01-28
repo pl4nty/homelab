@@ -67,7 +67,7 @@ spec:
       - name: traces
         type: otlp
         protocol: http
-        url: https://tempo-prod-03-au-southeast-0.grafana.net/tempo/v1/traces
+        url: https://tempo-prod-03-au-southeast-0.grafana.net/tempo
         auth:
           type: basic
         secret:
