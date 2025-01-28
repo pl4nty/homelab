@@ -112,7 +112,7 @@ spec:
     applicationObservability:
       enabled: true
       receivers:
-        oltp:
+        otlp:
           grpc:
             enabled: true
           http:
