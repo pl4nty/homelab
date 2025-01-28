@@ -31,11 +31,11 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-nodejs: "true"
         containers:
           main:
-            pod:
-              annotations:
-                instrumentation.opentelemetry.io/inject-nodejs: "true"
             image:
               repository: ghcr.io/pl4nty/tenant-lookup
               tag: latest@sha256:2b1061642f554394804e039d610442f2703a93acbafc2eeff77c6b442e0a2518
