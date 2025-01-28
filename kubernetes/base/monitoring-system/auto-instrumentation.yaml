@@ -4,9 +4,8 @@ metadata:
   name: opentelemetry
   namespace: default
 spec:
-
   exporter:
-    endpoint: http://k8s-monitoring-alloy.monitoring-system:4317
+    endpoint: http://k8s-monitoring-alloy-receiver.monitoring-system:4317
   propagators:
     - tracecontext
     - baggage
@@ -29,7 +28,7 @@ spec:
       # Python autoinstrumentation uses http/proto by default
       # so data must be sent to 4318 instead of 4317.
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
-        value: http://k8s-monitoring-alloy.monitoring-system:4318
+        value: http://k8s-monitoring-alloy-receiver.monitoring-system:4318
       - name: OTEL_METRICS_EXPORTER
         value: none
   dotnet:
@@ -38,7 +37,7 @@ spec:
       # Dotnet autoinstrumentation uses http/proto by default
       # See https://github.com/open-telemetry/opentelemetry-dotnet-instrumentation/blob/888e2cd216c77d12e56b54ee91dafbc4e7452a52/docs/config.md#otlp
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
-        value: http://k8s-monitoring-alloy.monitoring-system:4318
+        value: http://k8s-monitoring-alloy-receiver.monitoring-system:4318
   apacheHttpd:
     image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:22c58c820c00389c7bbd4d24ebcade4636d0982f731eb0973a0a6e9960e68b1b
   nginx:

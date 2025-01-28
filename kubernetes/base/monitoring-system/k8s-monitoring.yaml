@@ -127,13 +127,17 @@ spec:
 
     alloy-metrics:
       enabled: true
+    alloy-singleton:
+      enabled: true
     alloy-logs:
       enabled: true
       controller:
         # daemonset isn't necessary without nodeLogs
         type: deployment
-    alloy-singleton:
+    alloy-receiver:
       enabled: true
+      controller:
+        type: deployment
 
     # logs:
     #   extraConfig: |-
