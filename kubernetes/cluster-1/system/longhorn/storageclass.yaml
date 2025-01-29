@@ -35,7 +35,8 @@ metadata:
 provisioner: driver.longhorn.io
 parameters:
   fsType: ext4
-  numberOfReplicas: "2"
+  numberOfReplicas: "1"
+  dataLocality: strict-local
   staleReplicaTimeout: "30"
   recurringJobSelector: '[
     {
@@ -43,21 +44,3 @@ parameters:
     "isGroup":true
     }
     ]'
-# ---
-# kind: StorageClass
-# apiVersion: storage.k8s.io/v1
-# metadata:
-#   name: longhorn-local
-#   namespace: default
-# provisioner: driver.longhorn.io
-# parameters:
-#   fsType: ext4
-#   numberOfReplicas: "1"
-#   dataLocality: strict-local
-#   staleReplicaTimeout: "30"
-#   recurringJobSelector: '[
-#     {
-#     "name":"skipbackup",
-#     "isGroup":true
-#     }
-#     ]'
