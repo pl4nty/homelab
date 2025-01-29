@@ -7,7 +7,7 @@ spec:
   instances: 2
   storage:
     size: 1Gi
-    storageClass: longhorn-skipbackup
+    storageClass: longhorn-local
   imageName: ghcr.io/cloudnative-pg/postgresql:16.1
 
   bootstrap:
