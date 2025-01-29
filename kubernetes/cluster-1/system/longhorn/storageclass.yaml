@@ -35,7 +35,8 @@ metadata:
 provisioner: driver.longhorn.io
 parameters:
   fsType: ext4
-  numberOfReplicas: "2"
+  numberOfReplicas: "1"
+  dataLocality: strict-local
   staleReplicaTimeout: "30"
   recurringJobSelector: '[
       {
