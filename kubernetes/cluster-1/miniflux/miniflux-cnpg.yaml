@@ -7,7 +7,7 @@ spec:
   instances: 2
   storage:
     size: 1Gi
-    storageClass: longhorn-skipbackup
+    storageClass: longhorn-local
   imageName: ghcr.io/cloudnative-pg/postgresql:15.5
 
   backup:
@@ -32,17 +32,17 @@ spec:
       source: miniflux-cnpg
 
   externalClusters:
-  - name: miniflux-cnpg
-    barmanObjectStore:
-      endpointURL: https://s3.us-west-004.backblazeb2.com
-      destinationPath: s3://tplant-homelab-postgres
-      s3Credentials:
-        accessKeyId:
-          name: cloudnative-pg
-          key: ACCESS_KEY_ID
-        secretAccessKey:
-          name: cloudnative-pg
-          key: ACCESS_SECRET_KEY
+    - name: miniflux-cnpg
+      barmanObjectStore:
+        endpointURL: https://s3.us-west-004.backblazeb2.com
+        destinationPath: s3://tplant-homelab-postgres
+        s3Credentials:
+          accessKeyId:
+            name: cloudnative-pg
+            key: ACCESS_KEY_ID
+          secretAccessKey:
+            name: cloudnative-pg
+            key: ACCESS_SECRET_KEY
 
   # otherwise postgres crashes with hugepages enabled
   resources:

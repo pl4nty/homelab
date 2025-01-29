@@ -30,7 +30,7 @@ parameters:
 kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
-  name: longhorn-skipbackup
+  name: longhorn-local
   namespace: default
 provisioner: driver.longhorn.io
 parameters:
@@ -38,10 +38,10 @@ parameters:
   numberOfReplicas: "2"
   staleReplicaTimeout: "30"
   recurringJobSelector: '[
-      {
-        "name":"skipbackup",
-        "isGroup":true
-      }
+    {
+    "name":"skipbackup",
+    "isGroup":true
+    }
     ]'
 ---
 kind: StorageClass
@@ -57,8 +57,8 @@ parameters:
   dataLocality: strict-local
   staleReplicaTimeout: "30"
   recurringJobSelector: '[
-      {
-        "name":"skipbackup",
-        "isGroup":true
-      }
+    {
+    "name":"skipbackup",
+    "isGroup":true
+    }
     ]'
