@@ -9,6 +9,9 @@ spec:
     size: 1Gi
     storageClass: longhorn-local
   imageName: ghcr.io/cloudnative-pg/postgresql:16.3
+  affinity:
+    nodeSelector:
+      node.longhorn.io/create-default-disk: config
   enableSuperuserAccess: true
   superuserSecret:
     name: ctfnote

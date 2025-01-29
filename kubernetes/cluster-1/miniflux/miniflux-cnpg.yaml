@@ -9,6 +9,9 @@ spec:
     size: 1Gi
     storageClass: longhorn-local
   imageName: ghcr.io/cloudnative-pg/postgresql:15.5
+  affinity:
+    nodeSelector:
+      node.longhorn.io/create-default-disk: config
 
   backup:
     retentionPolicy: 30d
