@@ -50,6 +50,7 @@ metadata:
   name: longhorn-local
   namespace: default
 provisioner: driver.longhorn.io
+# allowVolumeExpansion: true
 parameters:
   fsType: ext4
   numberOfReplicas: "1"
