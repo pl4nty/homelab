@@ -54,7 +54,7 @@ spec:
     persistence:
       config:
         accessMode: ReadWriteOnce
-        size: 1Gi
+        size: 4Gi
         globalMounts:
           - path: /config
     service:

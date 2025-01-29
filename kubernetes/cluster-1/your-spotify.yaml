@@ -113,7 +113,7 @@ spec:
     persistence:
       config:
         accessMode: ReadWriteOnce
-        size: 1Gi
+        size: 4Gi
         advancedMounts:
           mongodb:
             main:
