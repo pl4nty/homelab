@@ -35,7 +35,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/admxgen
-              tag: latest@sha256:8c1c8cb031917b6f8f43bceef602b0e299cb87392ddfdd30f01fec41b8d1f3be
+              tag: latest@sha256:d1c4bc3f09b040606c61279db6db3316021482b38813e2045005438687538bff
             env:
               SERVER_PORT: 8080
             probes:
