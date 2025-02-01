@@ -45,7 +45,7 @@ spec:
               - pl4nty
               - --token-fine
               - file:///usr/token
-              - --incremental
+              - --incremental-by-files
               - --output
               - /usr/backup
               # - --all includes --assets, which crashes on azure-favicons
