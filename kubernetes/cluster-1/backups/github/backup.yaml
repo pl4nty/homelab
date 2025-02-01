@@ -40,12 +40,12 @@ spec:
           main:
             image:
               repository: ghcr.io/josegonzalez/python-github-backup
-              tag: 0.48.0
+              tag: 0.49.0
             args:
               - pl4nty
               - --token-fine
               - file:///usr/token
-              - --incremental
+              - --incremental-by-files
               - --output
               - /usr/backup
               # - --all includes --assets, which crashes on azure-favicons
