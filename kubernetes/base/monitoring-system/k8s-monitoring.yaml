@@ -55,12 +55,19 @@ spec:
             target_label = "pod"
             replacement = "$1"
           }
+      - name: logs
+        type: loki
+        url: https://logs-prod-004.grafana.net/loki/api/v1/push
+        auth:
+          type: basic
+        secret:
+          create: false
+          name: k8s-monitoring-logs
+          namespace: monitoring-system
       - name: otlp
         type: otlp
         url: https://otlp-gateway-prod-au-southeast-0.grafana.net/otlp
         protocol: http
-        logs:
-          enabled: true
         auth:
           type: basic
         secret:
