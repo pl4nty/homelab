@@ -6,7 +6,7 @@ metadata:
 spec:
   instances: 2
   storage:
-    size: 1Gi
+    size: 2Gi
     storageClass: longhorn-local
   imageName: ghcr.io/cloudnative-pg/postgresql:15.5
   affinity:
