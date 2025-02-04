@@ -34,8 +34,6 @@ spec:
         enabled: false
       failurePolicy: Ignore # don't Fail on flaky TLS errors
     manager:
-      image:
-        tag: 0.114.0
       # controller_runtime_webhook_latency_seconds_bucket has high cardinality, no option to drop as of 0.33.0
       # serviceMonitor:
       #   enabled: true
