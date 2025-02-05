@@ -141,6 +141,9 @@ spec:
       controller:
         # daemonset isn't necessary without nodeLogs
         type: deployment
+      alloy:
+        mounts:
+          varlog: false
     alloy-receiver:
       enabled: true
       controller:
