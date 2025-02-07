@@ -38,7 +38,7 @@ spec:
           main:
             image:
               repository: ghcr.io/stirling-tools/s-pdf
-              tag: 0.40.2
+              tag: 0.41.0
             env:
               SYSTEM_ENABLEANALYTICS: false
     service:
