@@ -35,7 +35,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/ctfd
-              tag: latest@sha256:2be305e591a2266cf9ba36a00ca90b65a5c444b48cdbc6ca29d2d3c5ae27b7de
+              tag: latest@sha256:dc93fb5e787edf9a2060752bf1cd3388e4c20526fb0896762070c4de099f6ac4
             env:
               DATABASE_URL: sqlite:////opt/CTFd/CTFd/db/ctfd.db
             # TODO wrong port? gets 8080
