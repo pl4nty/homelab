@@ -144,6 +144,19 @@ spec:
       alloy:
         mounts:
           varlog: false
+      extraConfig: |-
+        loki.source.syslog "syslog_udp" {
+          listener {
+            address = "0.0.0.0:514"
+            protocol = "udp"
+            syslog_format = "rfc3164"
+            labels = { job = "integrations/syslog_exporter" }
+            label_structured_data = true
+            use_incoming_timestamp = true
+          }
+
+          forward_to = [loki.write.logs.receiver]
+        }
     alloy-receiver:
       enabled: true
       controller:
@@ -158,18 +171,6 @@ spec:
             port: 4318
             targetPort: 4318
             protocol: TCP
-
-    # logs:
-    #   extraConfig: |-
-    #     loki.source.syslog "syslog_udp" {
-    #       listener {
-    #         address = "0.0.0.0:514"
-    #         protocol = "udp"
-    #         labels = { job = "integrations/syslog_exporter" }
-    #       }
-
-    #       forward_to = [loki.write.grafana_cloud_loki.receiver]
-    #     }
     # grafana-agent-logs:
     #   agent:
     #     extraPorts:
