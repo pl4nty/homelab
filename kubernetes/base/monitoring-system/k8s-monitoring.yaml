@@ -144,8 +144,12 @@ spec:
       alloy:
         mounts:
           varlog: false
+      # TODO pending https://github.com/grafana/alloy/pull/2701
+      image:
+        tag: v1.7.0-rc.3
       # source uses negative timestamp
       # use_incoming_timestamp = true
+      # TODO use https://grafana.com/docs/alloy/latest/reference/components/otelcol/otelcol.receiver.syslog/
       extraConfig: |-
         loki.source.syslog "syslog_udp" {
           listener {
