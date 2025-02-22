@@ -163,12 +163,42 @@ spec:
           }
 
           output {
+            logs = [otelcol.processor.transform.syslog.input]
+          }
+        }
+
+        otelcol.processor.transform "syslog" {
+          error_mode = "silent"
+
+          log_statements {
+            context = "log"
+            statements = [
+              `set(resource.attributes["service.name"], "syslog")`,
+            ]
+          }
+
+          output {
             logs = [otelcol.exporter.loki.logs.input]
           }
         }
 
         otelcol.receiver.tcplog "tcplog" {
           listen_address = "0.0.0.0:5044"
+
+          output {
+            logs = [otelcol.processor.transform.tcplog.input]
+          }
+        }
+
+        otelcol.processor.transform "tcplog" {
+          error_mode = "silent"
+
+          log_statements {
+            context = "log"
+            statements = [
+              `set(resource.attributes["service.name"], "tcplog")`,
+            ]
+          }
 
           output {
             logs = [otelcol.exporter.loki.logs.input]
