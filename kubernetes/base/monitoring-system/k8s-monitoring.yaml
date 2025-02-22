@@ -144,11 +144,11 @@ spec:
       alloy:
         mounts:
           varlog: false
-      extraPorts:
-      - name: syslog-udp
-        port: 5044
-        targetPort: 5044
-        protocol: UDP
+        extraPorts:
+        - name: tcplog
+          port: 5044
+          targetPort: 5044
+          protocol: tcp
       # TODO pending https://github.com/grafana/alloy/pull/2701
         stabilityLevel: experimental
       image:
