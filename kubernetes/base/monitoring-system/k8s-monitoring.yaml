@@ -144,6 +144,8 @@ spec:
       alloy:
         mounts:
           varlog: false
+      # source uses negative timestamp
+      # use_incoming_timestamp = true
       extraConfig: |-
         loki.source.syslog "syslog_udp" {
           listener {
@@ -152,7 +154,6 @@ spec:
             syslog_format = "rfc3164"
             labels = { job = "integrations/syslog_exporter" }
             label_structured_data = true
-            use_incoming_timestamp = true
           }
 
           forward_to = [loki.write.logs.receiver]
