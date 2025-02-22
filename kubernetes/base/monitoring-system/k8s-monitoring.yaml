@@ -158,7 +158,7 @@ spec:
           }
 
           output {
-            logs = [otelcol.exporter.loki.logs]
+            logs = [otelcol.exporter.loki.logs.input]
           }
         }
 
@@ -167,7 +167,7 @@ spec:
           add_attributes = true
 
           output {
-            logs = [otelcol.exporter.loki.logs]
+            logs = [otelcol.exporter.loki.logs.input]
           }
         }
     alloy-receiver:
