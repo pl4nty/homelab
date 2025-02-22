@@ -152,7 +152,7 @@ spec:
             address = "0.0.0.0:514"
             protocol = "udp"
             syslog_format = "rfc3164"
-            labels = { job = "integrations/syslog_exporter" }
+            labels = { job = "syslog" }
             label_structured_data = true
           }
 
