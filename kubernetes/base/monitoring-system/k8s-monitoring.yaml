@@ -144,8 +144,8 @@ spec:
       alloy:
         mounts:
           varlog: false
-        stabilityLevel: public-preview
       # TODO pending https://github.com/grafana/alloy/pull/2701
+        stabilityLevel: experimental
       image:
         tag: v1.7.0-rc.3
       extraConfig: |-
