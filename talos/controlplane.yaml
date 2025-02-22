@@ -189,13 +189,14 @@ machine:
         #     size: 4GB # Disk size.
         #     model: WDC* # Disk model `/sys/block/<dev>/device/model`.
         #     busPath: /pci0000:00/0000:00:17.0/ata1/host0/target0:0:0/0:0:0:0 # Disk bus path.
-        # # Allows for supplying extra kernel args via the bootloader.
-        # extraKernelArgs:
-        #     - talos.platform=metal
-        #     - reboot=k
-        # # Allows for supplying additional system extension images to install on top of base Talos image.
-        # extensions:
-        #     - image: ghcr.io/siderolabs/gvisor:20220117.0-v1.0.0 # System extension image.
+        # Allows for supplying extra kernel args via the bootloader.
+        extraKernelArgs:
+            - talos.logging.kernel=tcp://k8s-monitoring-alloy-logs.monitoring-system.svc:5044/
+            #     - talos.platform=metal
+            #     - reboot=k
+            # # Allows for supplying additional system extension images to install on top of base Talos image.
+            # extensions:
+            #     - image: ghcr.io/siderolabs/gvisor:20220117.0-v1.0.0 # System extension image.
     # Used to configure the machine's container image registry mirrors.
     registries: {}
     # # Specifies mirror configuration for each registry host namespace.
@@ -350,39 +351,41 @@ machine:
         #     # List of udev rules to apply to the udev system
         #     rules:
         #         - SUBSYSTEM=="drm", KERNEL=="renderD*", GROUP="44", MODE="0660"
-        # # Configures the logging system.
-        # logging:
-        #     # Logging destination.
-        #     destinations:
-        #         - endpoint: tcp://1.2.3.4:12345 # Where to send logs. Supported protocols are "tcp" and "udp".
-        #           format: json_lines # Logs format.
-        # # Configures the kernel.
-        # kernel:
-        #     # Kernel modules to load.
-        #     modules:
-        #         - name: brtfs # Module name.
-        # # Configures the seccomp profiles for the machine.
-        # seccompProfiles:
-        #     - name: audit.json # The `name` field is used to provide the file name of the seccomp profile.
-        #       # The `value` field is used to provide the seccomp profile.
-        #       value:
-        #         defaultAction: SCMP_ACT_LOG
-        # # Override (patch) settings in the default OCI runtime spec for CRI containers.
-        # # override default open file limit
-        # baseRuntimeSpecOverrides:
-        #     process:
-        #         rlimits:
-        #             - hard: 1024
-        #               soft: 1024
-        #               type: RLIMIT_NOFILE
-        # # Configures the node annotations for the machine.
-        # # node annotations example.
-        # nodeAnnotations:
-        #     customer.io/rack: r13a25
-        # # Configures the node taints for the machine. Effect is optional.
-        # # node taints example.
-        # nodeTaints:
-        #     exampleTaint: exampleTaintValue:NoSchedule
+    # Configures the logging system.
+    logging:
+        # Logging destination.
+        destinations:
+            # Where to send logs. Supported protocols are "tcp" and "udp".
+            - endpoint: tcp://k8s-monitoring-alloy-logs.monitoring-system.svc:5044/
+              # Logs format.
+              format: json_lines
+              # # Configures the kernel.
+              # kernel:
+              #     # Kernel modules to load.
+              #     modules:
+              #         - name: brtfs # Module name.
+              # # Configures the seccomp profiles for the machine.
+              # seccompProfiles:
+              #     - name: audit.json # The `name` field is used to provide the file name of the seccomp profile.
+              #       # The `value` field is used to provide the seccomp profile.
+              #       value:
+              #         defaultAction: SCMP_ACT_LOG
+              # # Override (patch) settings in the default OCI runtime spec for CRI containers.
+              # # override default open file limit
+              # baseRuntimeSpecOverrides:
+              #     process:
+              #         rlimits:
+              #             - hard: 1024
+              #               soft: 1024
+              #               type: RLIMIT_NOFILE
+              # # Configures the node annotations for the machine.
+              # # node annotations example.
+              # nodeAnnotations:
+              #     customer.io/rack: r13a25
+              # # Configures the node taints for the machine. Effect is optional.
+              # # node taints example.
+              # nodeTaints:
+              #     exampleTaint: exampleTaintValue:NoSchedule
 # Provides cluster specific configuration options.
 cluster:
     # Globally unique identifier for this cluster (base64 encoded random 32 bytes).
@@ -574,8 +577,8 @@ sops:
             eUc5bG02d2g1WnJVZUpDdnNETFhnc1EKRqVoBX/o4N5Vstq8WlF6z2mFs2STQfd5
             GNyMloh8YKZ4SI38yTnxkfPjX43VxP3OEg2LydsPonm/y4zXMqWWag==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2025-01-05T08:40:33Z"
-    mac: ENC[AES256_GCM,data:jrHRV1dmuwdno6lr8vs/B7MVOBpA2UWne8IAWyOzyxYN5di5BUhVXWcGc7X3qsiHSMMW707U2H+7lg9muBLMPOo8pWYKzkZKbWxQonW7Qn+XrK/9xIVzvP6oKpSSnZspqN/ruiSfEQBJoVCqfz746z0Npc4wGK/iDRqwHVBLEK0=,iv:IlsCXPZZzpxXIBHMXK6/NGR/BXSbSJxLdqIhmj/6XTQ=,tag:wVK4/jkNWKTllhqv3kI0dg==,type:str]
+    lastmodified: "2025-02-22T07:45:34Z"
+    mac: ENC[AES256_GCM,data:Z5IIaekJTsnqA2nvBYeSSRtP1yu5bdIqDFZbIz+aK3qTD/0017qHtJu5gAaLWzMjGh6C/14Tl/CwgH/s0M8j8/dROOyrHRdZsDQnss4uZ7+cLyZ/HFq1hI+p8WFo1b16hNjuy6Ad8WDGs19NyldcCbeAhVFk5xAjEbSkKJ0loXY=,iv:PcpG4bdIker+AbWCzoP18qkY5fM+wgeO1qUfkpu/etE=,tag:OmhClhNc4C7MgAvO+cS67Q==,type:str]
     pgp: []
     encrypted_regex: ^(token|crt|key|id|secret|secretboxEncryptionSecret|ca)$
     version: 3.9.1

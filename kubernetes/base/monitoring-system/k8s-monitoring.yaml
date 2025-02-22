@@ -157,10 +157,6 @@ spec:
             add_attributes = true
           }
 
-          attributes {
-            job = "syslog"
-          }
-
           output {
             logs = [otelcol.exporter.loki.logs]
           }
