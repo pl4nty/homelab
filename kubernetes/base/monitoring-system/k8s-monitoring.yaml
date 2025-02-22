@@ -156,6 +156,7 @@ spec:
       extraConfig: |-
         otelcol.receiver.syslog "syslog_udp" {
           protocol = "rfc3164"
+          location = "Australia/Canberra"
 
           udp {
             listen_address = "0.0.0.0:514"
