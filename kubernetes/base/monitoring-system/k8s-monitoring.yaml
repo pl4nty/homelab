@@ -162,6 +162,15 @@ spec:
 
           forward_to = [loki.write.logs.receiver]
         }
+
+        otelcol.receiver.tcplog "tcplog" {
+          listen_address = "0.0.0.0:5044"
+          add_attributes = true
+
+          output {
+            logs = [otelcol.exporter.loki.logs]
+          }
+        }
     alloy-receiver:
       enabled: true
       controller:
