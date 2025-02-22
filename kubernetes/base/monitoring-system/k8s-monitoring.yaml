@@ -154,13 +154,12 @@ spec:
       image:
         tag: v1.7.0-rc.3
       extraConfig: |-
-        otelcol.receiver.syslog "syslog_udp" {
+        otelcol.receiver.syslog "syslog" {
           protocol = "rfc3164"
           location = "Australia/Canberra"
 
           udp {
             listen_address = "0.0.0.0:514"
-            add_attributes = true
           }
 
           output {
@@ -170,7 +169,6 @@ spec:
 
         otelcol.receiver.tcplog "tcplog" {
           listen_address = "0.0.0.0:5044"
-          add_attributes = true
 
           output {
             logs = [otelcol.exporter.loki.logs.input]

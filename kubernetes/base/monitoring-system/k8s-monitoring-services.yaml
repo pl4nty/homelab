@@ -11,13 +11,8 @@ spec:
     app.kubernetes.io/instance: k8s-monitoring
     app.kubernetes.io/name: alloy-logs
   ports:
-  - name: syslog-udp
+  - name: syslog
     port: 514
     targetPort: 514
     protocol: UDP
     nodePort: 30514
-  - name: tcplog
-    port: 5044
-    targetPort: 5044
-    protocol: UDP
-    nodePort: 30544
