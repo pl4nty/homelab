@@ -147,20 +147,22 @@ spec:
       # TODO pending https://github.com/grafana/alloy/pull/2701
       image:
         tag: v1.7.0-rc.3
-      # source uses negative timestamp
-      # use_incoming_timestamp = true
-      # TODO use https://grafana.com/docs/alloy/latest/reference/components/otelcol/otelcol.receiver.syslog/
       extraConfig: |-
-        loki.source.syslog "syslog_udp" {
-          listener {
-            address = "0.0.0.0:514"
-            protocol = "udp"
-            syslog_format = "rfc3164"
-            labels = { job = "syslog" }
-            label_structured_data = true
+        otelcol.receiver.syslog "syslog_udp" {
+          protocol = "rfc3164"
+
+          udp {
+            listen_address = "0.0.0.0:514"
+            add_attributes = true
           }
 
-          forward_to = [loki.write.logs.receiver]
+          attributes {
+            job = "syslog"
+          }
+
+          output {
+            logs = [otelcol.exporter.loki.logs]
+          }
         }
 
         otelcol.receiver.tcplog "tcplog" {
