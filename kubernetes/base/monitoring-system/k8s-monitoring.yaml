@@ -184,7 +184,6 @@ spec:
 
         otelcol.receiver.tcplog "tcplog" {
           listen_address = "0.0.0.0:5044"
-          add_attributes = true
 
           output {
             logs = [otelcol.processor.transform.tcplog.input]
