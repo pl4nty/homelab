@@ -198,7 +198,7 @@ machine:
             # busPath: /pci0000:00/*
         # Allows for supplying extra kernel args via the bootloader.
         extraKernelArgs:
-            - talos.logging.kernel=tcp://k8s-monitoring-alloy-logs.monitoring-system.svc:5044
+            - talos.logging.kernel=tcp://192.168.1.131:30544
         # Allows for supplying the image used to perform the installation.
         image: ghcr.io/nberlee/installer:v1.8.3-rk3588
         # Indicates if the installation disk should be wiped at installation time.
@@ -248,7 +248,7 @@ machine:
         # Logging destination.
         destinations:
             # Where to send logs. Supported protocols are "tcp" and "udp".
-            - endpoint: tcp://k8s-monitoring-alloy-logs.monitoring-system.svc:5044
+            - endpoint: tcp://192.168.1.131:30544
               # Logs format.
               format: json_lines
               # # Provides machine specific control plane configuration options.
@@ -586,8 +586,8 @@ sops:
             bHc2ZEhtek9kY25kejlWWkprdS9JZFUKTkXl4r0fRAwHB+KVUZWt8906yOM8hxSi
             Qgu8XoWJqrLPAUNzAPZzcryvAVGqZlH6HRaUQB47LQWnX2/pml9ThQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2025-02-23T05:59:50Z"
-    mac: ENC[AES256_GCM,data:S8iZ6kjSYsHsPGvGqhiTta2VKC96lMD1c107hr5LQN6APhh5UYq1xlLyuYTEeEtHRuf5kdOU3+XmMT0dL7RmRGk2PPffhhOhJBTwfRjgGzcKIq1bpX5MjOJhUwpeFi/GMx3++UopL2OOkHnrF2URh4Jx2tnyU/7nrX5ARmgC+0Q=,iv:63gTofSBMxXPbpEaN8oIn9pycIQB0mF+X8hmyJZIhII=,tag:g1dGOQnOiofF0ASW7++oeQ==,type:str]
+    lastmodified: "2025-02-23T07:05:59Z"
+    mac: ENC[AES256_GCM,data:A04x2Vf9N1zn09lHjO+YVuCPk6lDm3D2JTiQX9jUHvh0n4VNn6eBOP/lMpA2+y+JzoWKssGgIdejxHtrvLFpX2gGvXH1BRBZ+ZaEOwrWnp8HkBbjXNXk+qo5v1jsLdq/dnBfoho2cNeLvTbkiHuKZFTfwFEHKfVosdPcnA+//pM=,iv:vFHw/ZL9e9cCnjy4XmmCvt4TTVx0u7XV2r2+B8AkqrQ=,tag:RyE2kTbZuI9eCJfd4cXtgQ==,type:str]
     pgp: []
     encrypted_regex: ^(token|crt|key|id|secret|secretboxEncryptionSecret|ca)$
     version: 3.9.1
