@@ -140,5 +140,5 @@ spec:
           - webhook.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: webhook-site
+              - name: webhook-site-main
                 port: 80
