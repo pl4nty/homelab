@@ -31,12 +31,14 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
+        pod:
+          nodeSelector:
+            kubernetes.io/arch: amd64
         containers:
           main:
             image:
-              # webhooksite/webhook.site doesn't support ARM
-              repository: fascinatedcow/webhook.site
-              tag: 1.3.0
+              repository: webhooksite/webhook.site
+              tag: latest
             env:
               APP_ENV: dev
               APP_DEBUG: "true"
