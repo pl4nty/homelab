@@ -34,7 +34,8 @@ spec:
         containers:
           main:
             image:
-              repository: webhooksite/webhook.site
+              # webhooksite/webhook.site doesn't support ARM
+              repository: fascinatedcow/webhook.site
               tag: latest
             env:
               APP_ENV: dev
