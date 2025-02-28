@@ -72,9 +72,9 @@ spec:
               ECHO_REDIS_HOSTNAME: webhook-site-redis
               ECHO_PROTOCOL: http
               ECHO_ALLOW_CORS: "true"
-              ECHO_ALLOW_ORIGIN: *
-              ECHO_ALLOW_METHODS: *
-              ECHO_ALLOW_HEADERS: *
+              ECHO_ALLOW_ORIGIN: "*"
+              ECHO_ALLOW_METHODS: "*"
+              ECHO_ALLOW_HEADERS: "*"
             probes:
               liveness:
                 enabled: true
