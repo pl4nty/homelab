@@ -34,6 +34,11 @@ spec:
         pod:
           nodeSelector:
             kubernetes.io/arch: amd64
+          # laravel-echo-server hostname is hardcoded
+          hostAliases:
+            - ip: 10.105.231.239
+              hostnames:
+                - laravel-echo-server
         containers:
           main:
             image:
@@ -108,6 +113,7 @@ spec:
             port: 80
       laravel-echo-server:
         controller: laravel-echo-server
+        clusterIP: 10.105.231.239
         ports:
           http:
             port: 6001
