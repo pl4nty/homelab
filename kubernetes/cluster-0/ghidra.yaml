@@ -35,7 +35,7 @@ spec:
           main:
             image:
               repository: ghcr.io/blacktop/ghidra
-              tag: 11.2.1
+              tag: 11.3.1
             args:
               - server
               - -ip ghidra.${PUBLIC_DOMAIN}
