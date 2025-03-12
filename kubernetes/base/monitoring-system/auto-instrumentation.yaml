@@ -41,7 +41,7 @@ spec:
   apacheHttpd:
     image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd
   nginx:
-    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:1526f7ae0aa96db841fa35174d03401cce7309395de7f01e1b16877de12d7074
+    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:770765370256a94d92b6eb2c08e3191406f24d3f8daaaf69310400254a0dff5f
     attrs:
       - name: NginxModuleTraceAsError
         value: "OFF"
