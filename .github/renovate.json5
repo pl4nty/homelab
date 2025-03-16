@@ -64,15 +64,6 @@
   "hostRules": [
     {
       "hostType": "docker",
-      "matchHost": "docker.io",
-      // can't be encrypted, otherwise Renovate will block PR messages that contain "pl4nty" eg selfhosted containers
-      "username": "pl4nty",
-      "encrypted": {
-        "password": "wcFMA/xDdHCJBTolARAAgzXdRL7BR2DMhnKFeOcmKi53wrrGI85iaJ4xxVBHHVGR08+AdzBrYalAnWmh4R9ptWwUBCPgScJwdDbfHkOliJ0U3dddzuI0KI2+BS2L2STx/411WRfoLmYVQkbu4Q6Iiuoe7fiF2CpdAs1Pr1oUvXq1kXbxmbr5aMgcbWuDovh+z/OLpcDT4ZE68fxvfYvBj7VI76Y/6DN+DeHrYdnT4qFbWkmeZrIAMDR65W/hMPoUUDSqHR/5xdOvhxwwuBsXbJ4TiUdYlmT1FH6W1BfAu572BhT3BNXDdiw5Il/ZN+td4l1aG081OQJYHl91LvznFNBSiTmKK7kG3SHUqqHqYrpGYFsWBHn6nbaVuFA/oGTJ+9ebKNsA7zSQaJ+7Qtd0Dr0+geEaCY9FWW/IFR+PCCEM5ix8tH8sB1XfT9sxyWGac0fIuqPPdb0flRjq2Cc8edG9vmzMbKgEjXGiebSNx+Chtdh5+TJGN1wN5nJEtKrhN+qxRV1AegpVF3tvJb4Ei0TvuYpipvlIQ3m0fm8FzbvWsfUKr/OgxDhDlt5KDepVlZEYGSi+5HYsFpjNYZIbUXOy84JTX+k4KAXAJFwuS++UP1qku7rOLXmxdsHhG4zPfwsVx/aywn/J47rp6rfgKzLpfIHzyCYSa0X5Z1XKgTwqpF2MnRIKAbLUYsyHj0HSZAGjde23pIua7GMJ3mhdXPfDtYvIZ67JJ5+7QpPmsliaC6d1AMqkdiALhAx1KKAqPOwHoId2lI4TPG2AZsiKx3TMf63vSDaE2ToF+0eDWN/r6suxyp/zpjxJ7/M6lmNMCMp5P0A"
-      }
-    },
-    {
-      "hostType": "docker",
       "matchHost": "msconnectedcacheprod.azurecr.io",
       "encrypted": {
         "username": "wcFMA/xDdHCJBTolARAAg/NuhiylfhS5SRaYAdIqtwj6XapNA7cdIiDDfMCzRogBVYW7ufcI/9lg2OzKQiuQz6eOdnhwS1ieEINInovvY/sqvAsFsKv6Zxd0d+baxRVbm7oVWv/aZ4hgZnsZqX3k4DSzzFEuC+5optS1nufTTPizeG3GJJiHPfC9oI1uN1+PQ1YytLkrgyWizrnoopCT9TZ1K+qg2KhV7OwPxj167PwSK9XIvUVgzPYPFiU8olW9vUDVrYaQVln7jRcXVAJ8XUZcrSlxW+WDMxI8ICKUNbJCWvpQEGgsGHoT353fPVeDu1DJMGgxA8LmMcQwocpliD/FBATeVwyMTA5y4R3dfCpkxkfVVXt7ZN/xX0bmFw0BM+sEbHkebmEW8uQYHzT4/nDCEA56HilcUse/AH8gD1F7dqgs20toJ2T3avZ6bvubwPOWdyes71Wl7cogGwi7pgb5qZS+jaAqLT3azpgxgePttc9n9LlNGCBCNX67dQcsIbSyRDyC1+jfOp1f0IarsTOEe5xnD28U41bscxyDJqvvbAp/8Scl5K+4/aAfNjUXGSPhO0NQe1GGeL97LCnX6VKGDC2uoe605zkhPFtlE8SbjRy51KdeRTLu3WlRZRp5/os9L3GLwkDe01tDkK5K3R0V4JE6FLCX6zfEMSE05jGY+Zu0H+QAUMEjWEtUvQTSeAGiHZfiudU3p46CiJhHHxTEUFW0LI7ex6IPMZJ3warrVebieHnGfVZdow9cjH+EogieI5/awWUK3I1dqamt5zFcHf/PkkQWCVQy5kXsX02Y+6RWrqa1L9+po3HVMuq+PxTSjh2cRRBPmTLPTB3etxcSm/fWgk/SNA",
