@@ -12,6 +12,7 @@ patchesStrategicMerge:
   metadata:
     name: buildkitd
   spec:
+    replicas: 0
     serviceName: null
     template:
       metadata:
