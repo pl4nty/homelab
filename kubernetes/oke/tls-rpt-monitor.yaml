@@ -38,7 +38,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/tls-rpt-monitor
-              tag: latest@sha256:5c60043a69847b1e59256c5c21bf0188e4ebce214332631f2700187abc2d3fb8
+              tag: latest@sha256:5413c95c19f244067041282f4ffb06379c830b77a5193c43df024bfeba900476
             envFrom:
               - secretRef:
                   name: tls-rpt-monitor
