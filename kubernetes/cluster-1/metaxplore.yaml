@@ -28,6 +28,7 @@ spec:
   values:
     controllers:
       main:
+        replicas: 0
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
