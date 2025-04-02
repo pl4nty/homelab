@@ -35,7 +35,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/leekspin-no-js
-              tag: latest@sha256:ee6d487c91682e4f41d8a97c1b8db1103ecb216b290828c7be219bfcf5df7c67
+              tag: latest@sha256:859c464ef8e128a9d74ff4ba89be1e0848b6b88644f2216039295f2e71b5c688
             env:
               SERVER_PORT: 8080
             probes:
