@@ -35,7 +35,7 @@ spec:
     image:
       # quotes are required for regex
       # datasource=github-releases depName=immich-app/immich
-      tag: "v1.94.1"
+      tag: "v1.131.3"
 
     immich:
       persistence:
