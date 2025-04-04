@@ -43,7 +43,7 @@ spec:
           main:
             image:
               repository: ghcr.io/home-assistant/home-assistant
-              tag: 2025.2.5
+              tag: 2025.4.1
             probes:
               liveness:
                 enabled: true
