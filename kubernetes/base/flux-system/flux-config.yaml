@@ -7,7 +7,7 @@ spec:
   interval: 10m
   url: https://github.com/fluxcd/flux2
   ref:
-    tag: v2.4.0
+    tag: v2.5.1
   ignore:
     manifests/bases/image-reflector-controller
     manifests/bases/image-automation-controller
