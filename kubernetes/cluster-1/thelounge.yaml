@@ -35,10 +35,6 @@ spec:
               tag: 4.4.3
             env:
               THELOUNGE_HOME: /config
-            securityContext:
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
-              capabilities: { drop: ["ALL"] }
             probes:
               liveness:
                 enabled: true
@@ -49,13 +45,6 @@ spec:
                 cpu: 10m
               limits:
                 memory: 512Mi
-    defaultPodOptions:
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 100
-        fsGroup: 100
-        fsGroupChangePolicy: OnRootMismatch
     service:
       app:
         controller: *app
