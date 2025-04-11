@@ -8,7 +8,7 @@ spec:
   - name: ${CLUSTER_NAME}
     namespace: default
   hostnames:
-  - browsertrix.${PUBLIC_DOMAIN}
+  - browsertrix.${PRIVATE_DOMAIN}
   rules:
   - backendRefs:
     - name: browsertrix-cloud-frontend
