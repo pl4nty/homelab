@@ -27,6 +27,9 @@ spec:
     image:
       repository: ghcr.io/gethomepage/homepage
       tag: v1.1.1
+    env:
+    - name: HOMEPAGE_ALLOWED_HOSTS
+      value: lab.${PUBLIC_DOMAIN}
     serviceAccount:
       name: default
     persistence:
