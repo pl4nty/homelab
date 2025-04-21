@@ -38,7 +38,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/tenant-lookup
-              tag: latest@sha256:3d5a07a0d702668a4dc91e16d1b0f09960e6c29b4680d24378ef55af945dab0e
+              tag: latest@sha256:a650c6cf4e038b1a73d92301926d864b789f187ae2d63519c7db31e45093f1cb
             envFrom:
               - secretRef:
                   name: tenant-lookup
