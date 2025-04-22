@@ -34,7 +34,6 @@ spec:
               tag: 1.39.1
             env:
               TZ: ${TIMEZONE}
-              LD_SUPERUSER_NAME: tom@tplant.com.au
     service:
       main:
         controller: main
