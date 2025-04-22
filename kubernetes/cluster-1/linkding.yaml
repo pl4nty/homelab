@@ -65,9 +65,6 @@ spec:
         globalMounts:
         - path: /etc/linkding/bookmarks/templates/bookmarks/head.html
           subPath: head.html
-    configMapsFromFolder:
-      enabled: true
-      basePath: overrides
     configMaps:
       overrides:
         data:
