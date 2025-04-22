@@ -67,4 +67,4 @@ spec:
           subPath: head.html
     configMapsFromFolder:
       enabled: true
-      basePath: overrides
+      basePath: configs
