@@ -36,7 +36,7 @@ spec:
               TZ: ${TIMEZONE}
     service:
       main:
-        controller: *app
+        controller: main
         ports:
           http:
             port: 9090
