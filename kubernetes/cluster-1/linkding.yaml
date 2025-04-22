@@ -34,6 +34,7 @@ spec:
               tag: 1.39.1
             env:
               TZ: ${TIMEZONE}
+              SECURE_REFERRER_POLICY: origin
     service:
       main:
         controller: main
