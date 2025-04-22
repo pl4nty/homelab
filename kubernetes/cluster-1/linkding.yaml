@@ -61,10 +61,9 @@ spec:
       overrides:
         type: configMap
         name: "{{ .Release.Name }}-overrides"
-        advancedMounts:
-          globalMounts:
-          - path: /etc/linkding/bookmarks/templates/bookmarks/head.html
-            subPath: head.html
+        globalMounts:
+        - path: /etc/linkding/bookmarks/templates/bookmarks/head.html
+          subPath: head.html
     configMaps:
       overrides:
         data:
