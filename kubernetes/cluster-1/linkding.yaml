@@ -52,6 +52,8 @@ spec:
               - name: *app
                 port: 9090
     persistence:
-      data:
+      config:
+        accessMode: ReadWriteOnce
+        size: 1Gi
         globalMounts:
           - path: /etc/linkding/data
