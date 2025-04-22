@@ -1,0 +1,117 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.3.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app linkding
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.7.3
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              repository: sissbruecker/linkding
+              tag: 1.39.1
+            env:
+              TZ: ${TIMEZONE}
+              SECURE_REFERRER_POLICY: origin
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 9090
+    route:
+      main:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - links.${PUBLIC_DOMAIN}
+        rules:
+          - backendRefs:
+              - name: *app
+                port: 9090
+    persistence:
+      config:
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        globalMounts:
+          - path: /etc/linkding/data
+      overrides:
+        type: configMap
+        name: "{{ .Release.Name }}-overrides"
+        globalMounts:
+        - path: /etc/linkding/bookmarks/templates/bookmarks/head.html
+          subPath: head.html
+    configMapsFromFolder:
+      enabled: true
+      basePath: overrides
+    configMaps:
+      overrides:
+        data:
+          head.html: |-
+            {{`{% load static %}
+
+            <head>
+              <meta charset="UTF-8">
+              <link rel="icon" href="https://tplant.com.au/avatar.ico" sizes="256x256">
+              <link rel="icon" href="{% static 'favicon.svg' %}" sizes="any" type="image/svg+xml">
+              <link rel="apple-touch-icon" sizes="180x180" href="{% static 'apple-touch-icon.png' %}">
+              <link rel="mask-icon" href="{% static 'safari-pinned-tab.svg' %}" color="#5856e0">
+              <link rel="manifest" href="{% url 'bookmarks:manifest' %}">
+              <meta name="apple-mobile-web-app-capable" content="yes">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0, minimal-ui">
+              <meta name="description" content="Useful apps I've made or found on the web.">
+              <meta name="robots" content="index,follow">
+              <meta name="author" content="Tom Plant">
+              <title>apps.tplant.com.au</title>
+              {# Include specific theme variant based on user profile setting #}
+              {% if request.user_profile.theme == 'light' %}
+                <link href="{% static 'theme-light.css' %}?v={{ app_version }}" rel="stylesheet" type="text/css"/>
+                <meta name="theme-color" content="#5856e0">
+              {% elif request.user_profile.theme == 'dark' %}
+                <link href="{% static 'theme-dark.css' %}?v={{ app_version }}" rel="stylesheet" type="text/css"/>
+                <meta name="theme-color" content="#161822">
+              {% else %}
+                {# Use auto theme as fallback #}
+                <link href="{% static 'theme-dark.css' %}?v={{ app_version }}" rel="stylesheet" type="text/css"
+                      media="(prefers-color-scheme: dark)"/>
+                <link href="{% static 'theme-light.css' %}?v={{ app_version }}" rel="stylesheet" type="text/css"
+                      media="(prefers-color-scheme: light)"/>
+                <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#161822">
+                <meta name="theme-color" media="(prefers-color-scheme: light)" content="#5856e0">
+              {% endif %}
+              {% if request.user_profile.custom_css %}
+                <link href="{% url 'bookmarks:custom_css' %}?hash={{ request.user_profile.custom_css_hash }}" rel="stylesheet" type="text/css"/>
+              {% endif %}
+              <meta name="turbo-cache-control" content="no-preview">
+              {% if not request.global_settings.enable_link_prefetch %}
+                <meta name="turbo-prefetch" content="false">
+              {% endif %}
+              {% if rss_feed_url %}
+                <link rel="alternate" type="application/rss+xml" href="{{ rss_feed_url }}" />
+              {% endif %}
+              <script src="{% static "bundle.js" %}?v={{ app_version }}"></script>
+            </head>`}}
