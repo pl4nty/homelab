@@ -73,7 +73,7 @@ spec:
                     - path: /root/.stash
             data:
                 accessMode: ReadWriteOnce
-                size: 16Gi
+                size: 32Gi
                 globalMounts:
                     - path: /data
             meta:
@@ -116,8 +116,8 @@ sops:
             MTRGNEdVem1xcmZuTm1PL2oyNWhJQ0kKtCodFUWHUZQRYBk9jDAWCcl7TjKUKhGb
             k0zV+9uZTfKhhpg1Zgjt4uu17MlYDAFBi1YK5lG++vhlT2QtRk3xag==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2024-11-30T13:39:27Z"
-    mac: ENC[AES256_GCM,data:OMROOzz/iqHYdl38QZWbXolnKsKOSoWRN72ftjX88msbLvoqSsAINbw3Mkv+IVSN2OauHJ/UkfEBd3YuGlaobO+V/yKQ/F90Y2aJKkPRfc8JbAVgXNN55tnhLFlh73MuWpINR86GgYR8phUllKfD202YkoASI65xZFjVoH0qWkA=,iv:gm7Ra8ctpVJCed3jFnhcu9tSmg/tWjAdYPdkXFRKpdk=,tag:8WnhnmMnF9zSH8fn4jsnww==,type:str]
+    lastmodified: "2025-04-25T01:42:32Z"
+    mac: ENC[AES256_GCM,data:I/Am5JV4KYAU6FabWqt7Di48NeXiMmBA7Wl6Mbr0XBifA+djWC1ZvwH38ijjDtm7J0Mo0AkFQqOk1M17iDOkIXzAiUQRGuP+9qugBhUFUrUE5q/hACpXroE3/o4yas+ndSKMFjLtIJHNFqj2q2nAR/BGLF8q+mNl4SPce6j+1SM=,iv:GzLsNH3p2SO3Z6g6Gj5WSf116LfZXJlbEulGKxk9kRA=,tag:g2e2escwEUUIjPUjXnSIlw==,type:str]
     pgp: []
     encrypted_regex: ^(image|env|args|advancedMounts)$
     version: 3.9.1
