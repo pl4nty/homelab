@@ -1,10 +1,9 @@
-apiVersion: source.toolkit.fluxcd.io/v1beta2
-kind: OCIRepository
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
 metadata:
   name: bjw-s
   namespace: flux-system
 spec:
   interval: 1h
   url: oci://ghcr.io/bjw-s-labs/helm/app-template
-  ref:
-    tag: 3.7.3
+  type: oci
