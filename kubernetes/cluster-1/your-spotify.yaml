@@ -37,9 +37,9 @@ spec:
         strategy: &strat RollingUpdate
         rollingUpdate: &ru
           unavailable: 0
-        pod: &pod
-          annotations:
-            instrumentation.opentelemetry.io/inject-nodejs: "true"
+        # pod: &pod
+        #   annotations:
+        #     instrumentation.opentelemetry.io/inject-nodejs: "true"
         containers:
           main:
             image:
@@ -67,7 +67,7 @@ spec:
       client:
         strategy: *strat
         rollingUpdate: *ru
-        pod: *pod
+        # pod: *pod
         containers:
           main:
             image:
