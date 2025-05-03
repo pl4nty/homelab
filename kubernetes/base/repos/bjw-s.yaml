@@ -1,8 +1,10 @@
 apiVersion: source.toolkit.fluxcd.io/v1
-kind: HelmRepository
+kind: OCIRepository
 metadata:
   name: bjw-s
   namespace: flux-system
 spec:
   interval: 1h
-  url: https://bjw-s.github.io/helm-charts
+  url: oci://ghcr.io/bjw-s-labs/helm/app-template
+  ref:
+    tag: 3.7.3
