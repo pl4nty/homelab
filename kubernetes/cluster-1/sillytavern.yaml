@@ -39,7 +39,7 @@ spec:
             env: &env
               TZ: "${CONFIG_TZ}"
               SILLYTAVERN_LISTEN: "true"
-              SILLYTAVERN_WHITELISTMODE: "false"
+              SILLYTAVERN_WHITELIST: '["127.0.0.1", "::1", "0.0.0.0/0"]'
             resources:
               requests:
                 cpu: "10m"
