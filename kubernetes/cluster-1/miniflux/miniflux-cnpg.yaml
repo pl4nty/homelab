@@ -13,22 +13,22 @@ spec:
     nodeSelector:
       node.longhorn.io/create-default-disk: config
 
-  backup:
-    retentionPolicy: 30d
-    barmanObjectStore:
-      endpointURL: https://s3.us-west-004.backblazeb2.com
-      destinationPath: s3://tplant-homelab-postgres
-      s3Credentials:
-        accessKeyId:
-          name: cloudnative-pg
-          key: ACCESS_KEY_ID
-        secretAccessKey:
-          name: cloudnative-pg
-          key: ACCESS_SECRET_KEY
-      wal:
-        compression: gzip
-      data:
-        compression: gzip
+  # backup:
+  #   retentionPolicy: 30d
+  #   barmanObjectStore:
+  #     endpointURL: https://s3.us-west-004.backblazeb2.com
+  #     destinationPath: s3://tplant-homelab-postgres
+  #     s3Credentials:
+  #       accessKeyId:
+  #         name: cloudnative-pg
+  #         key: ACCESS_KEY_ID
+  #       secretAccessKey:
+  #         name: cloudnative-pg
+  #         key: ACCESS_SECRET_KEY
+  #     wal:
+  #       compression: gzip
+  #     data:
+  #       compression: gzip
 
   bootstrap:
     recovery:
