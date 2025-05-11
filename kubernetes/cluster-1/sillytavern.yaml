@@ -38,7 +38,7 @@ spec:
               tag: 1.12.14
             env: &env
               TZ: "${CONFIG_TZ}"
-              SILLYTAVERN_WHITELIST: '["0.0.0.0/0"]'
+              SILLYTAVERN_WHITELISTMODE: "false"
             resources:
               requests:
                 cpu: "10m"
