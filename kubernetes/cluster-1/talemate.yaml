@@ -70,7 +70,7 @@ spec:
         accessMode: ReadWriteOnce
         size: 2Gi
         globalMounts:
-          - subPath: config
+          - subPath: config.yaml
             path: /app/config.yaml
           - subPath: scenes
             path: /app/scenes
