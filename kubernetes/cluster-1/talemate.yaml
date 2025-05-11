@@ -1,0 +1,80 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.3.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: talemate
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.7.3
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    controllers:
+      main:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: 0
+        containers:
+          main:
+            image:
+              repository: ghcr.io/pl4nty/talemate
+              tag: latest@sha256:adbc03b66462c4b872604198b0cd411f53c0d17796647d9dcce7d06a686e83fa
+            env:
+              PYTHONUNBUFFERED: "1"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+    service:
+      main:
+        controller: main
+        ports:
+          frontend:
+            port: 8080
+          backend:
+            port: 5050
+    route:
+      main:
+        enabled: true
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - talemate.${PRIVATE_DOMAIN}
+        rules:
+          - backendRefs:
+              - name: talemate
+                port: 8080
+    persistence:
+      data:
+        accessMode: ReadWriteOnce
+        size: 2Gi
+        globalMounts:
+          - subPath: config
+            path: /app/config.yaml
+          - subPath: scenes
+            path: /app/scenes
+          - subPath: templates
+            path: /app/templates
+          - subPath: chroma
+            path: /app/chroma
