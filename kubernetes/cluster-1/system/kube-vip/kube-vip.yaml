@@ -32,7 +32,7 @@ spec:
           value: "6443"
         - name: vip_interface
           value: eno1
-        - name: vip_cidr
+        - name: vip_subnet
           value: "32"
         - name: cp_enable
           value: "false"
@@ -52,7 +52,7 @@ spec:
           value: "1"
         - name: address
           value: 192.168.0.40
-        image: ghcr.io/kube-vip/kube-vip:v0.8.10
+        image: ghcr.io/kube-vip/kube-vip:v0.9.1
         imagePullPolicy: Always
         name: kube-vip
         securityContext:
