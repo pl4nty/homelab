@@ -38,11 +38,7 @@ spec:
               tag: 1.12.14
             env: &env
               TZ: "${CONFIG_TZ}"
-            securityContext: &sc
-              readOnlyRootFilesystem: true
-              allowPrivilegeEscalation: false
-              capabilities:
-                drop: ["ALL"]
+              SILLYTAVERN_WHITELIST: '["0.0.0.0/0"]'
             resources:
               requests:
                 cpu: "10m"
