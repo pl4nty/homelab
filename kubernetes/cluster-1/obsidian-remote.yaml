@@ -1,0 +1,89 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.3.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: obsidian-remote
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.7.3
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    controllers:
+      main:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: 0
+        pod:
+          nodeSelector:
+            kubernetes.io/arch: arm64
+        containers:
+          main:
+            # separate amd64/arm64 Dockerfiles...
+            image:
+              repository: ghcr.io/sytone/obsidian-remote
+              tag: arm64
+            env:
+              TZ: "${TIMEZONE}"
+              TITLE: Obsidian
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+            securityContext:
+              runAsUser: 911
+              runAsGroup: 911
+              fsGroup: 911
+          rclone:
+            image:
+              repository: rclone/rclone
+              tag: 1.69.1
+            args:
+              - mount
+              - onedrive:Documents/heap /vaults/heap
+            envFrom:
+              - secretRef:
+                  name: backup-onedrive
+    persistence:
+      config:
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        globalMounts:
+          - path: /config
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 8080
+    route:
+      main:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - obsidian.${PRIVATE_DOMAIN}
+        rules:
+          - backendRefs:
+              - name: obsidian-remote
+                port: 8080
