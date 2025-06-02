@@ -38,6 +38,9 @@ spec:
               tag: latest@sha256:919c1e9f5783f03849f8b53acf73100c25f605b30ae9c9533c4b930a489ab048
             env:
               PYTHONUNBUFFERED: "1"
+            resources:
+              limits:
+                ephemeral-storage: 4Gi
             # probes:
             #   liveness:
             #     enabled: true
