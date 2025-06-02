@@ -32,7 +32,7 @@ spec:
           main:
             image:
               repository: sissbruecker/linkding
-              tag: 1.39.1
+              tag: 1.40.0
             env:
               TZ: ${TIMEZONE}
               SECURE_REFERRER_POLICY: origin
