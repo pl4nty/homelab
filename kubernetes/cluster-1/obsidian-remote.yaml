@@ -31,15 +31,11 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
-        pod:
-          nodeSelector:
-            kubernetes.io/arch: arm64
         containers:
           main:
-            # separate amd64/arm64 Dockerfiles...
             image:
-              repository: sytone/obsidian-remote
-              tag: arm64
+              repository: ghcr.io/pl4nty/obsidian-remote
+              tag: latest@sha256:40686586ba5bd9e9a0bedf3668562a62e141d44432207cc0131fc0c07da30d60
             env:
               TZ: "${TIMEZONE}"
               TITLE: Obsidian
