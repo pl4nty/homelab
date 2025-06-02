@@ -31,15 +31,6 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
-        initContainers:
-          init:
-            image:
-              repository: busybox
-              tag: latest
-            command:
-              - sh
-              - -c
-              - mkdir /vaults
         containers:
           main:
             image:
@@ -76,6 +67,11 @@ spec:
         size: 1Gi
         globalMounts:
           - path: /config
+      data:
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        globalMounts:
+          - path: /vaults/heap
     service:
       main:
         controller: main
