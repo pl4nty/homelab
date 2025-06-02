@@ -38,7 +38,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/jwtplayground
-              tag: latest@sha256:31c1f67372618039a6c43ddc76bdfb1522bf7aa3d4e0bbd77bcbd262c6d5c8fb
+              tag: latest@sha256:2abd88af3543c7de456b7e284a5da7eb63e59aa83eada381a6900723ac8f0e93
             env:
               PORT: 8080
             probes:
