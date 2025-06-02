@@ -29,14 +29,12 @@ spec:
   values:
     controllers:
       sillytavern:
-        type: deployment
-        replicas: 1
         containers:
           main:
-            image: &img
+            image:
               repository: ghcr.io/sillytavern/sillytavern
-              tag: 1.12.14
-            env: &env
+              tag: 1.13.0
+            env:
               TZ: "${CONFIG_TZ}"
               SILLYTAVERN_LISTEN: "true"
               SILLYTAVERN_WHITELIST: '["127.0.0.1", "::1", "0.0.0.0/0"]'
