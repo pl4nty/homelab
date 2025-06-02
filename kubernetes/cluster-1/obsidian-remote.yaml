@@ -38,7 +38,7 @@ spec:
           main:
             # separate amd64/arm64 Dockerfiles...
             image:
-              repository: ghcr.io/sytone/obsidian-remote
+              repository: sytone/obsidian-remote
               tag: arm64
             env:
               TZ: "${TIMEZONE}"
