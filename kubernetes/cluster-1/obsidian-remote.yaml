@@ -31,6 +31,15 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
+        initContainers:
+          init:
+            image:
+              repository: busybox
+              tag: latest
+            command:
+              - sh
+              - -c
+              - mkdir /vaults
         containers:
           main:
             image:
