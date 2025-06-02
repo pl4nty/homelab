@@ -77,16 +77,16 @@
       versioningTemplate: 'semver',
     },
   ],
-  hostRules: [
-    {
-      hostType: 'docker',
-      matchHost: 'msconnectedcacheprod.azurecr.io',
-      encrypted: {
-        username: 'wcFMA/xDdHCJBTolARAAg/NuhiylfhS5SRaYAdIqtwj6XapNA7cdIiDDfMCzRogBVYW7ufcI/9lg2OzKQiuQz6eOdnhwS1ieEINInovvY/sqvAsFsKv6Zxd0d+baxRVbm7oVWv/aZ4hgZnsZqX3k4DSzzFEuC+5optS1nufTTPizeG3GJJiHPfC9oI1uN1+PQ1YytLkrgyWizrnoopCT9TZ1K+qg2KhV7OwPxj167PwSK9XIvUVgzPYPFiU8olW9vUDVrYaQVln7jRcXVAJ8XUZcrSlxW+WDMxI8ICKUNbJCWvpQEGgsGHoT353fPVeDu1DJMGgxA8LmMcQwocpliD/FBATeVwyMTA5y4R3dfCpkxkfVVXt7ZN/xX0bmFw0BM+sEbHkebmEW8uQYHzT4/nDCEA56HilcUse/AH8gD1F7dqgs20toJ2T3avZ6bvubwPOWdyes71Wl7cogGwi7pgb5qZS+jaAqLT3azpgxgePttc9n9LlNGCBCNX67dQcsIbSyRDyC1+jfOp1f0IarsTOEe5xnD28U41bscxyDJqvvbAp/8Scl5K+4/aAfNjUXGSPhO0NQe1GGeL97LCnX6VKGDC2uoe605zkhPFtlE8SbjRy51KdeRTLu3WlRZRp5/os9L3GLwkDe01tDkK5K3R0V4JE6FLCX6zfEMSE05jGY+Zu0H+QAUMEjWEtUvQTSeAGiHZfiudU3p46CiJhHHxTEUFW0LI7ex6IPMZJ3warrVebieHnGfVZdow9cjH+EogieI5/awWUK3I1dqamt5zFcHf/PkkQWCVQy5kXsX02Y+6RWrqa1L9+po3HVMuq+PxTSjh2cRRBPmTLPTB3etxcSm/fWgk/SNA',
-        password: 'wcFMA/xDdHCJBTolAQ//aF3hR/Ri6PhScjyr5y1r8BDe6zNdcefjOAYLIn0LcTmS7KVerLHHDia89PQ8Y9p0S0xitUtle31KsCNIKA8K7FCtZY1rFoLS2OxuC0OD/8Ds7Fk1VT39EmyuNjFLJxkwoWVJ/lChMkelrHE5OAyXCoC1NifSDPH0aiA1KxuEKIWMQx+zy/ySoVkaIqnBW1WqTVQvgRBe8G0IKjl3UWu7x81IjiclLI3zWA0xhKJtDrgMaoyZL5/FndIMLLNThC8IadcmKjfe0tcwfEOvi9rB7hYQO4Fy8oIwIx98wqljkBjtZ7Qgmgk2saqSoCyC1zRJxvslKfoGTGevvdeb0LCu1dKLLB5dN5M5+0Gi93CBSW5RECQz5b/Q7ZQGfbV7AdIhdA6uozjfPARBXRPxhQGgkJihaXFlL2HkBWoNonLSM9kn44r6qErloJZAYrbh06O4jv3cwEwFYw7qJC22ftvzuxbMeAC73R2/7TAUeNwLaxnX6eJUtiMmE6nhkAP7MerR3pVtRdOv34zgJHavBmSgbRu7jrLEVlMy74fwtpPus/havvcX7xC7EFmEOfmGXUlZKi2kQn0RaGXep9/Rmcj7ZC1KluILyP2ZppPN3lKp8WggIcjcq5hDwuwVU6/y/vtR2lX5FdTi/Ol/IkBBzoS7YzujSDfMrIhcWdpl3nrcZJjSfAEF+Ij9LJMiwtDzdJjMYKvHCVbn9qIndWkK+5RkD1MaAP/cZba6LBgkHt4yJX+2y/NXWI1hXnSWg9ywGNW1VSg9yEX5USmothgmXbwMs06UMulMVhsVM5ScD0DBXnO1FHzelJUrjNcTdT52lDQkh3ko+UKJYpjRwnx34YQ',
-      },
-    },
-  ],
+  // hostRules: [
+  //   {
+  //     hostType: 'docker',
+  //     matchHost: 'msconnectedcacheprod.azurecr.io',
+  //     encrypted: {
+  //       username: 'wcFMA/xDdHCJBTolARAAg/NuhiylfhS5SRaYAdIqtwj6XapNA7cdIiDDfMCzRogBVYW7ufcI/9lg2OzKQiuQz6eOdnhwS1ieEINInovvY/sqvAsFsKv6Zxd0d+baxRVbm7oVWv/aZ4hgZnsZqX3k4DSzzFEuC+5optS1nufTTPizeG3GJJiHPfC9oI1uN1+PQ1YytLkrgyWizrnoopCT9TZ1K+qg2KhV7OwPxj167PwSK9XIvUVgzPYPFiU8olW9vUDVrYaQVln7jRcXVAJ8XUZcrSlxW+WDMxI8ICKUNbJCWvpQEGgsGHoT353fPVeDu1DJMGgxA8LmMcQwocpliD/FBATeVwyMTA5y4R3dfCpkxkfVVXt7ZN/xX0bmFw0BM+sEbHkebmEW8uQYHzT4/nDCEA56HilcUse/AH8gD1F7dqgs20toJ2T3avZ6bvubwPOWdyes71Wl7cogGwi7pgb5qZS+jaAqLT3azpgxgePttc9n9LlNGCBCNX67dQcsIbSyRDyC1+jfOp1f0IarsTOEe5xnD28U41bscxyDJqvvbAp/8Scl5K+4/aAfNjUXGSPhO0NQe1GGeL97LCnX6VKGDC2uoe605zkhPFtlE8SbjRy51KdeRTLu3WlRZRp5/os9L3GLwkDe01tDkK5K3R0V4JE6FLCX6zfEMSE05jGY+Zu0H+QAUMEjWEtUvQTSeAGiHZfiudU3p46CiJhHHxTEUFW0LI7ex6IPMZJ3warrVebieHnGfVZdow9cjH+EogieI5/awWUK3I1dqamt5zFcHf/PkkQWCVQy5kXsX02Y+6RWrqa1L9+po3HVMuq+PxTSjh2cRRBPmTLPTB3etxcSm/fWgk/SNA',
+  //       password: 'wcFMA/xDdHCJBTolAQ//aF3hR/Ri6PhScjyr5y1r8BDe6zNdcefjOAYLIn0LcTmS7KVerLHHDia89PQ8Y9p0S0xitUtle31KsCNIKA8K7FCtZY1rFoLS2OxuC0OD/8Ds7Fk1VT39EmyuNjFLJxkwoWVJ/lChMkelrHE5OAyXCoC1NifSDPH0aiA1KxuEKIWMQx+zy/ySoVkaIqnBW1WqTVQvgRBe8G0IKjl3UWu7x81IjiclLI3zWA0xhKJtDrgMaoyZL5/FndIMLLNThC8IadcmKjfe0tcwfEOvi9rB7hYQO4Fy8oIwIx98wqljkBjtZ7Qgmgk2saqSoCyC1zRJxvslKfoGTGevvdeb0LCu1dKLLB5dN5M5+0Gi93CBSW5RECQz5b/Q7ZQGfbV7AdIhdA6uozjfPARBXRPxhQGgkJihaXFlL2HkBWoNonLSM9kn44r6qErloJZAYrbh06O4jv3cwEwFYw7qJC22ftvzuxbMeAC73R2/7TAUeNwLaxnX6eJUtiMmE6nhkAP7MerR3pVtRdOv34zgJHavBmSgbRu7jrLEVlMy74fwtpPus/havvcX7xC7EFmEOfmGXUlZKi2kQn0RaGXep9/Rmcj7ZC1KluILyP2ZppPN3lKp8WggIcjcq5hDwuwVU6/y/vtR2lX5FdTi/Ol/IkBBzoS7YzujSDfMrIhcWdpl3nrcZJjSfAEF+Ij9LJMiwtDzdJjMYKvHCVbn9qIndWkK+5RkD1MaAP/cZba6LBgkHt4yJX+2y/NXWI1hXnSWg9ywGNW1VSg9yEX5USmothgmXbwMs06UMulMVhsVM5ScD0DBXnO1FHzelJUrjNcTdT52lDQkh3ko+UKJYpjRwnx34YQ',
+  //     },
+  //   },
+  // ],
   packageRules: [
     {
       matchUpdateTypes: [
