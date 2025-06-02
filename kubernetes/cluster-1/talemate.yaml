@@ -35,7 +35,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/talemate
-              tag: latest@sha256:adbc03b66462c4b872604198b0cd411f53c0d17796647d9dcce7d06a686e83fa
+              tag: latest@sha256:919c1e9f5783f03849f8b53acf73100c25f605b30ae9c9533c4b930a489ab048
             env:
               PYTHONUNBUFFERED: "1"
             probes:
