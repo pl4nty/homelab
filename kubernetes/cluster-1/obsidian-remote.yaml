@@ -56,7 +56,8 @@ spec:
               tag: 1.69.1
             args:
               - mount
-              - onedrive:Documents/heap /vaults/heap
+              - onedrive:Documents/heap
+              - /vaults/heap
             envFrom:
               - secretRef:
                   name: backup-onedrive
