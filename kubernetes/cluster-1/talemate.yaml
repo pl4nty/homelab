@@ -72,12 +72,12 @@ spec:
       data:
         accessMode: ReadWriteOnce
         size: 2Gi
-        globalMounts:
-          - subPath: config.yaml
-            path: /app/config.yaml
-          - subPath: scenes
-            path: /app/scenes
-          - subPath: templates
-            path: /app/templates
-          - subPath: chroma
-            path: /app/chroma
+        # globalMounts:
+        #   - subPath: config.yaml
+        #     path: /app/config.yaml
+        #   - subPath: scenes
+        #     path: /app/scenes
+        #   - subPath: templates
+        #     path: /app/templates
+        #   - subPath: chroma
+        #     path: /app/chroma
