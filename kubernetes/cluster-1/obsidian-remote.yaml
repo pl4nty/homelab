@@ -39,11 +39,11 @@ spec:
             env:
               TZ: "${TIMEZONE}"
               TITLE: Obsidian
-            #   DOCKER_MODS: linuxserver/mods:universal-package-install
-            #   INSTALL_PACKAGES: rclone|fuse
-            # envFrom:
-            #   - secretRef:
-            #       name: backup-onedrive
+              DOCKER_MODS: linuxserver/mods:universal-package-install
+              INSTALL_PACKAGES: rclone|fuse
+            envFrom:
+              - secretRef:
+                  name: backup-onedrive
             # probes:
             #   liveness:
             #     enabled: true
@@ -55,19 +55,6 @@ spec:
             #   runAsUser: 911
             #   runAsGroup: 911
             #   fsGroup: 911
-          rclone:
-            image:
-              repository: rclone/rclone
-              tag: 1.69.1
-            args:
-              - mount
-              - onedrive:Documents/heap
-              - /vaults/heap
-              - --vfs-cache-mode
-              - full
-            envFrom:
-              - secretRef:
-                  name: backup-onedrive
     persistence:
       config:
         accessMode: ReadWriteOnce
@@ -86,7 +73,7 @@ spec:
             #!/usr/bin/with-contenv bash
 
             exec mkdir -p /vaults/heap
-          # exec rclone mount onedrive:Documents/heap /vaults/heap --vfs-cache-mode full
+            exec rclone mount onedrive:Documents/heap /vaults/heap --vfs-cache-mode full
     service:
       main:
         controller: main
