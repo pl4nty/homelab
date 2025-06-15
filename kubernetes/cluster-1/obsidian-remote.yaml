@@ -64,7 +64,7 @@ spec:
         size: 1Gi
         storageClass: rclone
         annotations:
-          csi-rclone/umask: "911"
+          csi-rclone/umask: "000"
         globalMounts:
         - path: /vaults/heap
     service:
