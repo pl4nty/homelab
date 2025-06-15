@@ -39,11 +39,6 @@ spec:
             env:
               TZ: "${TIMEZONE}"
               TITLE: Obsidian
-              DOCKER_MODS: linuxserver/mods:universal-package-install
-              INSTALL_PACKAGES: rclone|fuse3
-            envFrom:
-              - secretRef:
-                  name: backup-onedrive
             resources:
               limits:
                 ephemeral-storage: 500Mi

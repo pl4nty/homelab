@@ -12,3 +12,12 @@ resources:
 images:
 - name: wunderio/csi-rclone
   newTag: v3.0.1
+patches:
+- patch: |-
+    - op: add
+      path: /metadata/labels
+      value:
+        pod-security.kubernetes.io/enforce: privileged
+  target:
+    kind: Namespace
+    name: csi-rclone
