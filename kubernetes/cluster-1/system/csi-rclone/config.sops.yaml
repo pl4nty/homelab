@@ -6,7 +6,7 @@ metadata:
 type: Opaque
 stringData:
     remote: ENC[AES256_GCM,data:wR4n6bqYy98=,iv:t6Ygw0LiaXX8ewK39h3DZPsf2QnR7v364IqMe0E0qvs=,tag:FzXph1E7aTO1fTob9150Mw==,type:str]
-    remotePath: ENC[AES256_GCM,data:9XI76lNcXqTP8vtqkZ8=,iv:kbXsbXNMUV+t4Hi0TdmCSk2PKy4QEdwL7aw2o5WOmf4=,tag:n0xeWjV1ogQcZh6a6OVEXg==,type:str]
+    remotePath: ENC[AES256_GCM,data:q+3vZvQh1ssDYjtZzUlR,iv:Q6uffVpX/Y8SsQ5z9gtkkcY4sz0SfNql9Rbxpnfy1QI=,tag:hA6xYB4LDwmZPIIdu9ELZg==,type:str]
     onedrive-drive-type: ENC[AES256_GCM,data:akluGKZ/z0s=,iv:qHYfbdNB8/6YE+KGJ18txvP4gLhWTgOZDHXE0en/t1Q=,tag:s38e5NEAJcrkQAL1cTAoMw==,type:str]
     config-onedrive-drive-type: ENC[AES256_GCM,data:0SHywpXMVNg=,iv:P7HvnWu8Lt3lZVnPgbsN1XddUCUBwMH+pBiT7PrQNdY=,tag:LsNpQxYZ4gmATwT26cvobw==,type:str]
     onedrive-access-scopes: ENC[AES256_GCM,data:ZLPQB7enoI3Q0Y+ojKXQrz8bTmiq4ukDMa5ueR4=,iv:NNXdbVZx3fvqPRzveQe98Qpt+djfdmmxitcQRFIORkE=,tag:/o9NeJMMJPe8P6nCkFlwOQ==,type:str]
@@ -30,8 +30,8 @@ sops:
             RDN5OGJTYVZ1cjAzUk9mN1ZGbnovTDQKsR3TetMCoPm7XHr6iDiSxY3IGPtV/Oq5
             pzAtonxbtj9+j4BGJiXeWPy0xaNRWeoCSxhOp3pHyqVArQNIMqJwbw==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2025-06-15T09:50:57Z"
-    mac: ENC[AES256_GCM,data:ydglZtmlyjQDOW3FsEhcDRBfAcaQSfbPBq9XwqTCfWDWAht+9LJUO9Jg1krUH0RZtgLoPxSEYObYiMAi1nxdHAaG1t0m8VuwIciFDvlLXbIdfjYFmJ+GuqMqUY/PMxNuLTZEccoIJHj3vfAeZQWuwW557Ho5QQxQXC0Byg9ri8U=,iv:t/jfu7iXrEwrv3xml4TNY0OFxhQ/MKPIv270sJeGKlc=,tag:m6zIEUHVaWoGDT387lw7yA==,type:str]
+    lastmodified: "2025-06-15T10:37:19Z"
+    mac: ENC[AES256_GCM,data:2NvkjBOtdsqtZr/TcJXwN2AsIFFV+pr9fDy2yCcltpKhnkFTEyN9WMVDrGzqSp2CVptFM0zVzUR5Amze3RCi51P87GR62wrlLKL8fXNCchQVpyYNmS97q7VEWAIxz9+fEQmLD3N5yQ7tcyEfAgZ9LNcS3rgNBpZIF7NcVSRs5gA=,iv:mTw/fhWQ9Ye8pB50K0bDi0+ycHQOm4PsPzX3n9HD4IQ=,tag:McEtarLyzJaNXNQxzk1HTw==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.9.1
