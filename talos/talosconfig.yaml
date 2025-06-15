@@ -21,8 +21,8 @@ sops:
             eUc5bG02d2g1WnJVZUpDdnNETFhnc1EKRqVoBX/o4N5Vstq8WlF6z2mFs2STQfd5
             GNyMloh8YKZ4SI38yTnxkfPjX43VxP3OEg2LydsPonm/y4zXMqWWag==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2025-01-05T06:52:13Z"
-    mac: ENC[AES256_GCM,data:lmNlwl2sjjkCIIjJTyZSs6qSY5kEgkcko0BWfwOZEvukVSAvYyERtiLw0GuHwviwryNp0jmczoTH4nfv4CRGC2+YJcP8SwzGTfAg0vGtKGLP+1SCIex15x6DWeWs15bMRaXtd4bMSlOZcLCUrvWFJmbxKjljowISZFWNiIiRr0I=,iv:d1CguZFa4QPXN+i/t9XA829t0iDkAoe8NbtOKHlr0yc=,tag:4mrb75HNvjQAdcKSuA96JA==,type:str]
+    lastmodified: "2025-06-12T09:48:43Z"
+    mac: ENC[AES256_GCM,data:N2HsdHDz0beiEvzOjFUFgYP3yLJX6kXWZdhPuFFKn0Ftr9Jls2DHfKImrMUDOdx2suNBOHcG0s7R3rshpZI0zf7WbuoVGZdv5bOOdesQxVM4R+CXnDYQKnNrSAFLJ6mhCxvGUFSqzkbbqEwB8SHdWCkxwZbdN7ZAr6lCT3nSvl8=,iv:W7CGOef8a8v1JmiVnK5TqXdZnDwLtaOLe+BDsC6wVCQ=,tag:qC6/e4MQX9RTYqkpPuqz+A==,type:str]
     pgp: []
     encrypted_regex: ^(token|crt|key|id|secret|secretboxEncryptionSecret|ca)$
     version: 3.9.1
