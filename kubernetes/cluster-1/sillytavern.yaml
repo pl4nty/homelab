@@ -77,7 +77,7 @@ spec:
     persistence:
       data:
         accessMode: ReadWriteOnce
-        size: 1Gi
+        size: 8Gi
         globalMounts:
           - subPath: config
             path: /home/node/app/config
