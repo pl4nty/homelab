@@ -33,4 +33,7 @@ patches:
           containers:
           - name: rclone
             args:
+            - /bin/csi-rclone-plugin
+            - --nodeid=$(NODE_ID)
+            - --endpoint=$(CSI_ENDPOINT)
             - --v=5
