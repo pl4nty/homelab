@@ -69,7 +69,6 @@ spec:
         size: ReadWriteMany
         storageClass: rclone
         annotations:
-          csi-rclone/storage-path: nginx
           csi-rclone/umask: "911"
         globalMounts:
         - path: /vaults/heap
