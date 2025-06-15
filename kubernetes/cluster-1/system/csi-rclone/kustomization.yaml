@@ -36,4 +36,20 @@ patches:
             - /bin/csi-rclone-plugin
             - --nodeid=$(NODE_ID)
             - --endpoint=$(CSI_ENDPOINT)
-            - --v=5
+            - --v=10
+- patch: |-
+    apiVersion: apps/v1
+    kind: StatefulSet
+    metadata:
+      name: csi-controller-rclone
+      namespace: csi-rclone
+    spec:
+      template:
+        spec:
+          containers:
+          - name: rclone
+            args:
+            - /bin/csi-rclone-plugin
+            - --nodeid=$(NODE_ID)
+            - --endpoint=$(CSI_ENDPOINT)
+            - --v=10
