@@ -1,7 +1,13 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-- github.com/wunderio/csi-rclone//deploy/kubernetes/1.20
+- https://raw.githubusercontent.com/wunderio/csi-rclone/master/deploy/kubernetes/1.20/_csi-rclone-namespace.yaml
+- https://raw.githubusercontent.com/wunderio/csi-rclone/master/deploy/kubernetes/1.20/csi-controller-rbac.yaml
+- https://raw.githubusercontent.com/wunderio/csi-rclone/master/deploy/kubernetes/1.20/csi-controller-rclone.yaml
+- https://raw.githubusercontent.com/wunderio/csi-rclone/master/deploy/kubernetes/1.20/csi-driver.yaml
+- https://raw.githubusercontent.com/wunderio/csi-rclone/master/deploy/kubernetes/1.20/csi-nodeplugin-rbac.yaml
+- https://raw.githubusercontent.com/wunderio/csi-rclone/master/deploy/kubernetes/1.20/csi-nodeplugin-rclone.yaml
+- https://raw.githubusercontent.com/wunderio/csi-rclone/master/deploy/kubernetes/1.20/csi-rclone-storageclass.yaml
 - config.sops.yaml
 images:
 - name: wunderio/csi-rclone
