@@ -47,6 +47,11 @@ spec:
             resources:
               limits:
                 ephemeral-storage: 500Mi
+            securityContext:
+              privileged: true
+              capabilities:
+                add:
+                  - SYS_ADMIN
             # probes:
             #   liveness:
             #     enabled: true
