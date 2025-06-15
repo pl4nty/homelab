@@ -21,3 +21,16 @@ patches:
   target:
     kind: Namespace
     name: csi-rclone
+- patch: |-
+    apiVersion: apps/v1
+    kind: DaemonSet
+    metadata:
+      name: csi-nodeplugin-rclone
+      namespace: csi-rclone
+    spec:
+      template:
+        spec:
+          containers:
+          - name: rclone
+            args:
+            - --v=5

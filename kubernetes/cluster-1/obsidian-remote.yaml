@@ -66,7 +66,7 @@ spec:
         annotations:
           csi-rclone/umask: "022"
         globalMounts:
-          - path: /rclone
+          - path: /vaults/heap
     service:
       main:
         controller: main
