@@ -39,6 +39,11 @@ spec:
             env:
               TZ: "${TIMEZONE}"
               TITLE: Obsidian
+            #   DOCKER_MODS: linuxserver/mods:universal-package-install
+            #   INSTALL_PACKAGES: rclone|fuse
+            # envFrom:
+            #   - secretRef:
+            #       name: backup-onedrive
             # probes:
             #   liveness:
             #     enabled: true
@@ -69,6 +74,19 @@ spec:
         size: 1Gi
         globalMounts:
           - path: /config
+      scripts:
+        type: configMap
+        name: "{{ .Release.Name }}-scripts"
+        globalMounts:
+        - path: /custom-services.d
+    configMaps:
+      scripts:
+        data:
+          mount: |-
+            #!/usr/bin/with-contenv bash
+
+            exec mkdir -p /vaults/heap
+          # exec rclone mount onedrive:Documents/heap /vaults/heap --vfs-cache-mode full
     service:
       main:
         controller: main
