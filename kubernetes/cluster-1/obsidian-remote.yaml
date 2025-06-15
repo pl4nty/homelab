@@ -49,10 +49,6 @@ spec:
                 enabled: true
               startup:
                 enabled: true
-            securityContext:
-              runAsUser: 911
-              runAsGroup: 911
-              fsGroup: 911
     persistence:
       config:
         accessMode: ReadWriteOnce
