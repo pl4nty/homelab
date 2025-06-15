@@ -140,7 +140,7 @@ spec:
       #         - path: /opt/hyperglass/hyperglass/static
       config-hyperglass:
         type: configMap
-        name: "{{ .Release.Name }}-config"
+        name: "{{ .Release.Name }}"
         advancedMounts:
           main:
             main:
@@ -148,7 +148,7 @@ spec:
                 subPath: hyperglass.yaml
       config-commands:
         type: configMap
-        name: "{{ .Release.Name }}-config"
+        name: "{{ .Release.Name }}"
         advancedMounts:
           main:
             main:
@@ -156,7 +156,7 @@ spec:
                 subPath: commands.yaml
       config-devices:
         type: configMap
-        name: "{{ .Release.Name }}-config"
+        name: "{{ .Release.Name }}"
         advancedMounts:
           main:
             main:
