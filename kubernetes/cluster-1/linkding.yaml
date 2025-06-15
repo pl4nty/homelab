@@ -31,8 +31,8 @@ spec:
         containers:
           main:
             image:
-              repository: sissbruecker/linkding
-              tag: 1.39.1
+              repository: ghcr.io/sissbruecker/linkding
+              tag: 1.40.0
             env:
               TZ: ${TIMEZONE}
               SECURE_REFERRER_POLICY: origin
