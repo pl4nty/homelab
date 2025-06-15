@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Secret
 metadata:
     name: rclone-secret
-    namespace: kube-system
+    namespace: csi-rclone
 type: Opaque
 stringData:
     remote: ENC[AES256_GCM,data:wR4n6bqYy98=,iv:t6Ygw0LiaXX8ewK39h3DZPsf2QnR7v364IqMe0E0qvs=,tag:FzXph1E7aTO1fTob9150Mw==,type:str]
@@ -27,8 +27,8 @@ sops:
             RDN5OGJTYVZ1cjAzUk9mN1ZGbnovTDQKsR3TetMCoPm7XHr6iDiSxY3IGPtV/Oq5
             pzAtonxbtj9+j4BGJiXeWPy0xaNRWeoCSxhOp3pHyqVArQNIMqJwbw==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2025-06-15T07:58:57Z"
-    mac: ENC[AES256_GCM,data:zkn86jkNAZ8WSMoQa1bHnQiccxG7WYEvjoI2wajdYy4liG+KIJzW5hBWYdgd2/6YQqRcMTI5amsiKAYB/+tbZMkYEA+FkLoVz2nor53cThhNqA2Fdg9ebpdPMRyrlv/UjY5XWod3d40dAFz+Pl1bEglrpJYS0WMJ/mK4meknh8g=,iv:CKZ0icKkWDjnAEoYBMPr2It8B1gK0/nhxqbkyyXyztc=,tag:y5T4m3D0R94jD7Wpf/VAAA==,type:str]
+    lastmodified: "2025-06-15T09:00:00Z"
+    mac: ENC[AES256_GCM,data:fZi0BuEoyu3JExqBVi3kURVWxiaNvyEGmUNKQYGdLjTV5Xj85ZaIJrFMxRtHhkC2q+SjzN3aQE1KhZeYyi1s+4bpmeSYHmA0P/mQEgUvqv1HhGJWOcArkFd7wHVyoWxlKf7G2HasZU4YvngNv7fVM3JYK0NVedRi6KfPE4fWDRc=,iv:cjl/zD0S/BwahIjBeOlH7IYZuCEGX0wgzqt1ceMgSX4=,tag:JLjmTCstykxwJs9LLC+91w==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.9.1
