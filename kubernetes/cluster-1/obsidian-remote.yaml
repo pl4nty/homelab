@@ -65,8 +65,8 @@ spec:
         globalMounts:
           - path: /config
       data:
-        accessMode: ReadWriteOnce
-        size: ReadWriteMany
+        accessMode: ReadWriteMany
+        size: 1Gi
         storageClass: rclone
         annotations:
           csi-rclone/umask: "911"
