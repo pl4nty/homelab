@@ -25,5 +25,3 @@ source <(kubectl cnpg completion zsh) \n\
 alias kubectl=kubecolor \n\
 compdef kubecolor=kubectl \n\
 source \$ZSH/oh-my-zsh.sh" >> ~/.zshrc
-
-ENV EDITOR="code --wait"

@@ -33,5 +33,8 @@
 	"secrets": {
 		"SOPS_AGE_KEY": {},
 		"SOPS_AGE_RECIPIENTS": {}
+	},
+	"remoteEnv": {
+		"EDITOR": "code --wait"
 	}
 }
