@@ -23,7 +23,9 @@ spec:
     keepHistory: false
   values:
     initContainers:
-      - image: ghcr.io/headlamp-k8s/headlamp-plugin-flux:v0.2.0
+      # default image is amd64-only, and nodeSelector isn't available
+      # ghcr.io/headlamp-k8s/headlamp-plugin-flux:v0.2.0
+      - image: iotops/headlamp-plugin-flux:latest
         command:
           - /bin/sh
           - -c
