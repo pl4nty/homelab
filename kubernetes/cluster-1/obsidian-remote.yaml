@@ -32,7 +32,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/obsidian-remote
-              tag: latest@sha256:7dc0a9e7f4b9ba3de597c4d3d89ead973104c8184e5374476fc90e74915eab25
+              tag: latest@sha256:a60991b0a5b884a168af6516d08062412402bbef417b78f7d90cab30c58c1721
             env:
               TZ: "${TIMEZONE}"
               TITLE: Obsidian
