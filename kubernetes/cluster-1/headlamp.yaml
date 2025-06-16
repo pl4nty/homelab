@@ -9,6 +9,7 @@ spec:
   chartRef:
     kind: OCIRepository
     name: headlamp
+    namespace: flux-system
   maxHistory: 3
   install:
     createNamespace: true
