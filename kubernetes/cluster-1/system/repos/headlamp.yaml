@@ -1,0 +1,10 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: headlamp
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: oci://ghcr.io/home-operations/charts-mirror/headlamp
+  ref:
+    tag: 0.31.1
