@@ -63,8 +63,8 @@ spec:
         type: configMap
         name: "{{ .Release.Name }}"
         globalMounts:
-        - path: /etc/linkding/bookmarks/templates/bookmarks/head.html
-          subPath: head.html
+          - path: /etc/linkding/bookmarks/templates/bookmarks/head.html
+            subPath: head.html
     configMaps:
       overrides:
         data:
@@ -74,7 +74,6 @@ spec:
             <head>
               <meta charset="UTF-8">
               <link rel="icon" href="https://tplant.com.au/avatar.ico" sizes="256x256">
-              <link rel="icon" href="{% static 'favicon.svg' %}" sizes="any" type="image/svg+xml">
               <link rel="apple-touch-icon" sizes="180x180" href="{% static 'apple-touch-icon.png' %}">
               <link rel="mask-icon" href="{% static 'safari-pinned-tab.svg' %}" color="#5856e0">
               <link rel="manifest" href="{% url 'linkding:manifest' %}">
