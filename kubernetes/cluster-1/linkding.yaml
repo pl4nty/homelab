@@ -61,7 +61,7 @@ spec:
           - path: /etc/linkding/data
       overrides:
         type: configMap
-        name: "{{ .Release.Name }}-overrides"
+        name: "{{ .Release.Name }}"
         globalMounts:
         - path: /etc/linkding/bookmarks/templates/bookmarks/head.html
           subPath: head.html
