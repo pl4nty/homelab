@@ -50,6 +50,9 @@ spec:
               # remotes have no hashes in common so can't use checksum, see rclone/rclone#6585
               # - --checksum
               - --size-only
+              # API returns Personal Vault, but it's encrypted
+              # https://forum.rclone.org/t/onedrive-personal-vault-issue/51929/13
+              - --exclude='/Personal Vault/**'
             envFrom:
               - secretRef:
                   name: backup-onedrive
