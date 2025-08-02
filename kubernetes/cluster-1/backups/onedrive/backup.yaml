@@ -53,6 +53,8 @@ spec:
               # API returns Personal Vault, but it's encrypted
               # https://forum.rclone.org/t/onedrive-personal-vault-issue/51929/13
               - --exclude='/Personal Vault/**'
+              - --exclude="/Personal Vault/**"
+              - --exclude='Personal Vault/**'
             envFrom:
               - secretRef:
                   name: backup-onedrive
