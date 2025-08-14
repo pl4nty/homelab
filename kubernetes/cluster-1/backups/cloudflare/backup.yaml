@@ -35,7 +35,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/flares
-              tag: latest@sha256:63e963b32ed6763cf9b057ef33d4e3e58c9525c8b7974573bbddc7dde06dcfc8
+              tag: latest@sha256:56c9f4b6ec0a2a07023016e8a46665f177c359e9ffa4bb2273a644160341cd36
             args:
               - --all
               - --export
