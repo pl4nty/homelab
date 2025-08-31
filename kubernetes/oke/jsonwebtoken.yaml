@@ -39,7 +39,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/jsonwebtoken
-              tag: latest@sha256:fcc3e548e1c2f73851a347bc359d88187ab62c8d1b6c2f0eae828768203c011f
+              tag: latest@sha256:ef9c19836c442ce93bad4df44e24ee96ece892bed4e2579c41a8ac1b902c7ef0
     service:
       main:
         controller: main
