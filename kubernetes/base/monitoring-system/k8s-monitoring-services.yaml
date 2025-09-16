@@ -8,7 +8,7 @@ metadata:
 spec:
   type: NodePort
   selector:
-    app.kubernetes.io/instance: k8s-monitoring
+    app.kubernetes.io/instance: k8s-monitoring-alloy-logs
     app.kubernetes.io/name: alloy-logs
   ports:
   - name: syslog
