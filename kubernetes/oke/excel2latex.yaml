@@ -35,7 +35,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/excel2latex
-              tag: latest@sha256:28de5d87ce5f5aaba434e7f6f88f9fa4d28f9bd204b4a8f577b85a0b73647434
+              tag: latest@sha256:4ec23e695bce2ccbafdc1cf98c7c83628240d69591aaf363a078efe8f5034902
             env:
               SERVER_PORT: 8080
               SERVER_LOG_LEVEL: info
