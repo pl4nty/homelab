@@ -38,7 +38,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/tsuro
-              tag: latest@sha256:3e71aae065989123397440e67e1408b288c1da62fa9def4468d897cf532811be
+              tag: latest@sha256:25a8e110064d3eedf7abb6e941fa6108ca0a97f0ff7cd35aa1939f10ea82861e
             resources:
               # at idle
               requests:
