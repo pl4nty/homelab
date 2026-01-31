@@ -35,7 +35,7 @@ spec:
           main:
             image:
               repository: ghcr.io/tfns/ctfnote/front
-              tag: latest@sha256:5973490df18c41d0433436fbcf51872ecdd6d3ec45914f276bf2b84c2d3f488b
+              tag: latest@sha256:244f778dd53e632c01a2293213a15cb08aef4731ce7cc2aec773f31eaefd0b45
             probes:
               liveness:
                 enabled: true
