@@ -35,7 +35,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/web-admx-tool
-              tag: latest@sha256:bb3c3d5b0b836cc75c759e26d96a46c24645e47c108f6589cea5ee2231700e65
+              tag: latest@sha256:69df801bd6283714116208c2ebb8a06c601324900c412db3b8151b11ea7dac5c
             env:
               SERVER_PORT: 8080
             probes:
