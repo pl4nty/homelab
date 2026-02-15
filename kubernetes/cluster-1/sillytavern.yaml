@@ -33,7 +33,7 @@ spec:
           main:
             image:
               repository: ghcr.io/sillytavern/sillytavern
-              tag: 1.13.0
+              tag: 1.16.0
             env:
               TZ: "${CONFIG_TZ}"
               SILLYTAVERN_LISTEN: "true"
