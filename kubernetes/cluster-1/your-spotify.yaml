@@ -72,7 +72,7 @@ spec:
           main:
             image:
               repository: yooooomi/your_spotify_client
-              tag: 1.13.1
+              tag: 1.18.0
             env:
               TIMEZONE: ${TIMEZONE}
               API_ENDPOINT: https://spotify-api.${PUBLIC_DOMAIN}
