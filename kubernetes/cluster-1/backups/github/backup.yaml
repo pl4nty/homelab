@@ -75,7 +75,7 @@ spec:
     persistence:
       config:
         accessMode: ReadWriteOnce
-        size: 16Gi
+        size: 32Gi
         globalMounts:
           - path: /usr/backup
       token:
