@@ -10,11 +10,13 @@ RUN curl -L https://github.com/siderolabs/talos/releases/latest/download/talosct
   && chmod +x ~/bin/talosctl \
   && echo "source <(talosctl completion zsh)" >> ~/.zshrc
 
-RUN curl -s -L https://github.com/backube/volsync/releases/latest/download/kubectl-volsync.tar.gz | tar -xzf - -C ~/bin kubectl-volsync
+RUN curl -s -L https://github.com/backube/volsync/releases/latest/download/kubectl-volsync-linux-amd64.tar.gz | tar -xzf - -C ~/bin kubectl-volsync
 
-RUN curl -s -L https://github.com/kubecolor/kubecolor/releases/download/v0.3.0/kubecolor_0.3.0_linux_amd64.tar.gz | tar -xzf - -C ~/bin kubecolor
+RUN curl -s -L https://github.com/kubecolor/kubecolor/releases/download/v0.5.3/kubecolor_0.5.3_linux_amd64.deb -o ~/kubecolor.deb \
+  && sudo dpkg -i ~/kubecolor.deb \
+  && rm ~/kubecolor.deb
 
-RUN curl -L https://github.com/cloudnative-pg/cloudnative-pg/releases/download/v1.23.2/kubectl-cnpg_1.23.2_linux_x86_64.deb -o ~/kubectl-cnpg.deb \
+RUN curl -L https://github.com/cloudnative-pg/cloudnative-pg/releases/download/v1.28.1/kubectl-cnpg_1.28.1_linux_x86_64.deb -o ~/kubectl-cnpg.deb \
   && sudo dpkg -i ~/kubectl-cnpg.deb \
   && rm ~/kubectl-cnpg.deb
 
