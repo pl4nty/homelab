@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.3.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
     name: private-1
@@ -133,10 +133,6 @@ spec:
             tmp:
                 type: emptyDir
 sops:
-    kms: []
-    gcp_kms: []
-    azure_kv: []
-    hc_vault: []
     age:
         - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
           enc: |
@@ -147,8 +143,7 @@ sops:
             MTRGNEdVem1xcmZuTm1PL2oyNWhJQ0kKtCodFUWHUZQRYBk9jDAWCcl7TjKUKhGb
             k0zV+9uZTfKhhpg1Zgjt4uu17MlYDAFBi1YK5lG++vhlT2QtRk3xag==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2024-12-01T06:24:56Z"
-    mac: ENC[AES256_GCM,data:jDoKGQJjhrkVYRq7/whwjXp7m6N4Ohk9GOUAbXv2CU/JDR+OttPD/VpMRvgoML3jRiBnJxNzf2qaXnaIFb3ApRRluIE1VW0mtQvIGVpA1Y40q60Wxb67RFxoHGzvQIerLFhM+kT+frRcIfPvLaw4JS94ScdK+tj75YkTZ/Grieo=,iv:RGGhhSp728Jkd5kKWRsqxcQKh+QnEY6Y4ZNDXsSAagg=,tag:kcMDrPTj+KyZVXm5SkXY9g==,type:str]
-    pgp: []
+    lastmodified: "2026-03-01T07:22:01Z"
+    mac: ENC[AES256_GCM,data:l9/nowLZXAmNwrmY8li+eyQLXL+unJCyyMlufentnVAE28F7yMustm6xxZM4I/GVvEzrGGwPi/vVv/9Ww1DLRvE7gIHYxas4ZYUU1asQ4mhyLk+YMW0xEKumDmy8DWhJfb+0b6otD5UASLPHOUj4dv2KtSazfY5sp2GgZBPhc2Y=,iv:LzASAyogIhjWcSEeob0NFx1z0l1j5X7skSdaS12S+2Q=,tag:zayoRCyxPv0Y/j2gNH3aYw==,type:str]
     encrypted_regex: ^(image|env|args|advancedMounts)$
-    version: 3.9.1
+    version: 3.12.1
