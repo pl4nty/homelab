@@ -115,7 +115,7 @@ spec:
           main:
             image:
               repository: quay.io/hedgedoc/hedgedoc
-              tag: 1.10.3
+              tag: 1.10.7
             env:
               CMD_DB_URL:
                 secretKeyRef:
