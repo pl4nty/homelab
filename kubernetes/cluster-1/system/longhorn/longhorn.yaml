@@ -52,6 +52,14 @@ spec:
     #     node.longhorn.io/create-default-disk: config
     longhornUI:
       replicas: 1
+    image:
+      longhorn:
+        instanceManager:
+          tag: v1.11.0-hotfix-1
+        manager:
+          tag: v1.11.0-hotfix-1
+    preUpgradeChecker:
+      upgradeVersionCheck: false
 
 # k annotate storageclass longhorn storageclass.kubernetes.io/is-default-class=true
 
