@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.3.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -34,11 +34,11 @@ spec:
                         podAffinity:
                             requiredDuringSchedulingIgnoredDuringExecution:
                                 - labelSelector:
-                                    matchExpressions:
-                                        - key: app.kubernetes.io/instance
-                                          operator: In
-                                          values:
-                                            - private-0
+                                      matchExpressions:
+                                          - key: app.kubernetes.io/instance
+                                            operator: In
+                                            values:
+                                                - private-0
                                   topologyKey: kubernetes.io/hostname
                 containers:
                     main:
@@ -72,9 +72,9 @@ spec:
                               value: ENC[AES256_GCM,data:bQ7W,iv:+KmC4JFLIBDhJqcQVuCZnOVR+s+rME/ui1M9NGDE+pY=,tag:QTAX3lR0KGGN7DP4RNbERQ==,type:str]
                             - name: ENC[AES256_GCM,data:H7JlsfkZRUaorFrl2I3d+rLc3b5DYJBH9Vni8A==,iv:K2m0/PeU5/kyZkRo61MDcIZa0ZsMHIQA6O1x8LMV8Bg=,tag:sxUZnjEF7IMmeFTEEuM2lg==,type:str]
                               valueFrom:
-                                secretKeyRef:
-                                    name: ENC[AES256_GCM,data:LT7glz9izcbxiy3LM0rUCUJ9,iv:i+JNPzyyPuqlSNNqaeN6Ig+k/htV4tPtjRebXbSgJcA=,tag:4F/cEqIeoNIH0iawWA7icA==,type:str]
-                                    key: ENC[AES256_GCM,data:47+NRkZ+yeU=,iv:mEeK4x2KO/qwAPj6sq7AitbfDMqgiFpF04IFvajYGCA=,tag:fRSpyAa9gU2lBxGmBuD5WQ==,type:str]
+                                  secretKeyRef:
+                                      name: ENC[AES256_GCM,data:LT7glz9izcbxiy3LM0rUCUJ9,iv:i+JNPzyyPuqlSNNqaeN6Ig+k/htV4tPtjRebXbSgJcA=,tag:4F/cEqIeoNIH0iawWA7icA==,type:str]
+                                      key: ENC[AES256_GCM,data:47+NRkZ+yeU=,iv:mEeK4x2KO/qwAPj6sq7AitbfDMqgiFpF04IFvajYGCA=,tag:fRSpyAa9gU2lBxGmBuD5WQ==,type:str]
                             - name: ENC[AES256_GCM,data:WW/rbsi8Sk8zDGQVP7Ypqp4cij3VLoh0r3U=,iv:FPHLipl8O1pbFnbEtwu+jrClf1gJ/bqiuRl5UkOo7EU=,tag:iqBW/Ar20XN1o+Gzg9N9Vg==,type:str]
                               value: ENC[AES256_GCM,data:bQ7W,iv:+KmC4JFLIBDhJqcQVuCZnOVR+s+rME/ui1M9NGDE+pY=,tag:QTAX3lR0KGGN7DP4RNbERQ==,type:str]
                         probes:
@@ -136,13 +136,13 @@ sops:
     age:
         - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
           enc: |
-            -----BEGIN AGE ENCRYPTED FILE-----
-            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA4b2dtekNIZUxqK3pRTDYx
-            R01mK0pCOFVzU3BqcjBiamxYcmdERnFsT0dRClR4UHBGS2F4Y2dWMDU0Slp1dHMy
-            NTlPV1N5UlRlUTVWZGVZdjI5b3VBRmMKLS0tIG5BV3YvK3VBMVp3NVVXQXpKb0JD
-            MTRGNEdVem1xcmZuTm1PL2oyNWhJQ0kKtCodFUWHUZQRYBk9jDAWCcl7TjKUKhGb
-            k0zV+9uZTfKhhpg1Zgjt4uu17MlYDAFBi1YK5lG++vhlT2QtRk3xag==
-            -----END AGE ENCRYPTED FILE-----
+              -----BEGIN AGE ENCRYPTED FILE-----
+              YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA4b2dtekNIZUxqK3pRTDYx
+              R01mK0pCOFVzU3BqcjBiamxYcmdERnFsT0dRClR4UHBGS2F4Y2dWMDU0Slp1dHMy
+              NTlPV1N5UlRlUTVWZGVZdjI5b3VBRmMKLS0tIG5BV3YvK3VBMVp3NVVXQXpKb0JD
+              MTRGNEdVem1xcmZuTm1PL2oyNWhJQ0kKtCodFUWHUZQRYBk9jDAWCcl7TjKUKhGb
+              k0zV+9uZTfKhhpg1Zgjt4uu17MlYDAFBi1YK5lG++vhlT2QtRk3xag==
+              -----END AGE ENCRYPTED FILE-----
     lastmodified: "2026-03-01T07:22:01Z"
     mac: ENC[AES256_GCM,data:l9/nowLZXAmNwrmY8li+eyQLXL+unJCyyMlufentnVAE28F7yMustm6xxZM4I/GVvEzrGGwPi/vVv/9Ww1DLRvE7gIHYxas4ZYUU1asQ4mhyLk+YMW0xEKumDmy8DWhJfb+0b6otD5UASLPHOUj4dv2KtSazfY5sp2GgZBPhc2Y=,iv:LzASAyogIhjWcSEeob0NFx1z0l1j5X7skSdaS12S+2Q=,tag:zayoRCyxPv0Y/j2gNH3aYw==,type:str]
     encrypted_regex: ^(image|env|args|advancedMounts)$

@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.3.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -105,13 +105,13 @@ sops:
     age:
         - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
           enc: |
-            -----BEGIN AGE ENCRYPTED FILE-----
-            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA4b2dtekNIZUxqK3pRTDYx
-            R01mK0pCOFVzU3BqcjBiamxYcmdERnFsT0dRClR4UHBGS2F4Y2dWMDU0Slp1dHMy
-            NTlPV1N5UlRlUTVWZGVZdjI5b3VBRmMKLS0tIG5BV3YvK3VBMVp3NVVXQXpKb0JD
-            MTRGNEdVem1xcmZuTm1PL2oyNWhJQ0kKtCodFUWHUZQRYBk9jDAWCcl7TjKUKhGb
-            k0zV+9uZTfKhhpg1Zgjt4uu17MlYDAFBi1YK5lG++vhlT2QtRk3xag==
-            -----END AGE ENCRYPTED FILE-----
+              -----BEGIN AGE ENCRYPTED FILE-----
+              YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA4b2dtekNIZUxqK3pRTDYx
+              R01mK0pCOFVzU3BqcjBiamxYcmdERnFsT0dRClR4UHBGS2F4Y2dWMDU0Slp1dHMy
+              NTlPV1N5UlRlUTVWZGVZdjI5b3VBRmMKLS0tIG5BV3YvK3VBMVp3NVVXQXpKb0JD
+              MTRGNEdVem1xcmZuTm1PL2oyNWhJQ0kKtCodFUWHUZQRYBk9jDAWCcl7TjKUKhGb
+              k0zV+9uZTfKhhpg1Zgjt4uu17MlYDAFBi1YK5lG++vhlT2QtRk3xag==
+              -----END AGE ENCRYPTED FILE-----
     lastmodified: "2026-03-01T07:21:55Z"
     mac: ENC[AES256_GCM,data:6mlECwgcDRf4ICTREDEmEuEXJeY8vfqlS1u4kXW+v/4H740TJqmE/+X4NCLZXo0aeH+2S9890KYj5pMFzvwCI1qGkSIhlahwMmCZO82X4xEqcQTT0jBlT/94lTNDxGP0LjTcG6kSg9HXTxWahZnlUvuFySscbJmHE6hf8jNhcDk=,iv:Tvzpf9gFAO0vY1dwj/AgM2wYOkh7rCqPutCvTvut0oI=,tag:s/06UpHcWq5NJSCXqqs5Fg==,type:str]
     encrypted_regex: ^(image|env|args|advancedMounts)$
