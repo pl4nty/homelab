@@ -11,9 +11,9 @@ resources:
 - cloudflare.sops.yaml
 - gatewayclass.yaml
 - gateway.yaml
-# images:
-# - name: ghcr.io/pl4nty/cloudflare-kubernetes-gateway
-#   newTag: 134e091-dirty
+images:
+- name: ghcr.io/pl4nty/cloudflare-kubernetes-gateway
+  newTag: e26f013
 patches:
 - patch: |-
     - op: replace
@@ -22,17 +22,17 @@ patches:
   target:
     kind: Service
     name: image-metrics-service
-# - patch: |-
-#     apiVersion: apps/v1
-#     kind: Deployment
-#     metadata:
-#       name: controller-manager
-#       namespace: system
-#     spec:
-#       template:
-#         spec:
-#           nodeSelector:
-#             kubernetes.io/arch: amd64
+- patch: |-
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: controller-manager
+      namespace: system
+    spec:
+      template:
+        spec:
+          nodeSelector:
+            kubernetes.io/arch: amd64
 # 
 #         securityContext:
 #           runAsNonRoot: false
