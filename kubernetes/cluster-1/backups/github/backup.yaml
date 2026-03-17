@@ -63,6 +63,7 @@ spec:
               - --labels
               - --hooks
               - --milestones
+              - --security-advisories
               - --repositories
               - --bare
               - --lfs
@@ -70,8 +71,8 @@ spec:
               # gists are uninitialized and cause crash? maybe fine-grained tokens aren't supported
               # - --gists
               - --private
-              - --fork
               - --releases
+              - --attachments
     persistence:
       config:
         accessMode: ReadWriteOnce
