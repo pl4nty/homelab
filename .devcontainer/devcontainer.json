@@ -35,6 +35,6 @@
 		"SOPS_AGE_RECIPIENTS": {}
 	},
 	"remoteEnv": {
-		"EDITOR": "code --wait"
+		"EDITOR": "code-insiders --wait"
 	}
 }
