@@ -1,0 +1,37 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: obot
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: obot
+      version: v0.18.1
+      sourceRef:
+        kind: HelmRepository
+        name: obot
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  valuesFrom:
+    - kind: Secret
+      name: obot-cnpg-app
+      valuesKey: uri
+      targetPath: config.OBOT_SERVER_DSN
+  values:
+    config:
+      OBOT_SERVER_ENABLE_AUTHENTICATION: true
+      OBOT_SERVER_HOSTNAME: https://obot.${PUBLIC_DOMAIN}
+    persistence:
+      size: 8Gi
