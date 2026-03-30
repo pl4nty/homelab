@@ -35,6 +35,7 @@
 		"SOPS_AGE_RECIPIENTS": {}
 	},
 	"remoteEnv": {
-		"EDITOR": "code-insiders --wait"
+		"EDITOR": "code-insiders --wait",
+		"TALOSCONFIG": "talos/.decrypted~talosconfig.yaml"
 	}
 }
