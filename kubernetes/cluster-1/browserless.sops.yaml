@@ -1,0 +1,23 @@
+kind: Secret
+apiVersion: v1
+metadata:
+    name: browserless
+    namespace: default
+type: Opaque
+stringData:
+    TOKEN: ENC[AES256_GCM,data:VWBrHVL78V7bBg7vb0Kj1OWciZ8lWZncdog=,iv:diNkX080UfV+6rF2430ks6AwJn6QXNvRAGKZyHvC310=,tag:EQgj9P/6xv5vtQ8Uiy8SNQ==,type:str]
+sops:
+    age:
+        - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSB6OG5lbEwwY000YzV4M1hI
+            cUxkRVM0YjFwSENjM3lMK0VqK0RrZ3R5bmxRCjBGWTNNdDVsMGNqZXpiNVF3cnI0
+            TVorK1NJN1JiZnJ4V2NNZjY2UDRzcmsKLS0tIDJYa3lsWUR0U3BteTQ1SG14Q0k0
+            cUs1NEk5L0pkYWV4T0RldW5Ta3l4UEkK69KmR4STRimmW0NKkycs6BRQebBKYga1
+            Kg3nJ0IcBuZEgRBKCkI8mk9Isj5X7k91b9xwzNcJ3G1sai9LjXaJ0w==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2026-04-03T01:51:52Z"
+    mac: ENC[AES256_GCM,data:wr+U9zR0tnHYGRDqpNDWTbczl82fieGL2cFz3QLmyyI786ccqmI0vbIVIGERQx1IOJSRAPJGTywWvGVxebet7XVI7OdIUkfMyBMrZDkWgarJY9Jaxjx/y5xw/dHb4j8+KIyUZrbZBJGzw6T6YqtxNxSdva6umGxnifbOyH1SWz4=,iv:EGvDW4TnQ2Q9I5/qJGXCxFIb87DL5uWW8l3DiGKcaD0=,tag:Piq38r1Nl2lkKSk4src8Uw==,type:str]
+    encrypted_regex: ^(data|stringData)$
+    version: 3.12.2

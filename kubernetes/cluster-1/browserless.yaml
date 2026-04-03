@@ -1,0 +1,66 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: browserless
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: 4.6.2
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    controllers:
+      main:
+        containers:
+          app:
+            image:
+              repository: ghcr.io/browserless/chromium
+              tag: v2.44.0@sha256:2bd6951670a44a797f54ca3d4a977b324d98e4158cd84e847ec7c8c3ed27097e
+              pullPolicy: IfNotPresent
+            env:
+              TZ: ${TIMEZONE}
+              DEBUG: "browserless*,-*:trace,-*:verbose"
+              ENABLE_DEBUGGER: "false"
+              TIMEOUT: "60000"
+            envFrom:
+              - secretRef:
+                  name: browserless
+            securityContext:
+              runAsUser: 999
+              runAsGroup: 999
+              allowPrivilegeEscalation: false
+              capabilities: { drop: [ ALL ] }
+        pod:
+          securityContext:
+            runAsNonRoot: true
+            seccompProfile: { type: RuntimeDefault }
+
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 80
+            targetPort: 3000
+
+    persistence:
+      tmp:
+        accessMode: ReadWriteOnce
+        size: 4Gi

@@ -46,7 +46,7 @@ spec:
               repository: ghcr.io/onedr0p/qbittorrent-beta
               tag: "5.0.3"
             env:
-              TZ: Australia/Canberra
+              TZ: ${TIMEZONE}
               QBT_WEBUI_PORT: &port 80
               QBT_TORRENTING_PORT: &torrentPort 50413
               # CROSS_SEED_ENABLED: false
