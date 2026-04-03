@@ -50,6 +50,8 @@ spec:
         pod:
           securityContext:
             runAsNonRoot: true
+            fsGroup: 999
+            fsGroupChangePolicy: OnRootMismatch
             seccompProfile: { type: RuntimeDefault }
 
     service:
