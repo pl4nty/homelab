@@ -41,8 +41,8 @@ spec:
         containers:
           main:
             image:
-              repository: quay.io/timrabl/hyperglass # use GHCR once docker-hyperglass#43 is fixed
-              tag: 1.0.4-1.0.233
+              repository: ghcr.io/m0nsterrr/hyperglass
+              tag: v2.0.4
             probes:
               liveness:
                 enabled: true
