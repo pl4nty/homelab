@@ -35,6 +35,7 @@ spec:
         pod:
           annotations:
             instrumentation.opentelemetry.io/inject-python: "true"
+            instrumentation.opentelemetry.io/otel-python-platform: "musl"
           securityContext:
             fsGroup: 2000
             fsGroupChangePolicy: OnRootMismatch
