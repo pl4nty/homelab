@@ -61,7 +61,7 @@ spec:
                 ephemeral-storage: 2Gi
           redis:
             image:
-              repository: redis
+              repository: docker.io/redis
               tag: 8.6.2
           ssh:
             image:
