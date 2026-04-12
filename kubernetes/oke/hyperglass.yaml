@@ -42,8 +42,11 @@ spec:
         containers:
           main:
             image:
-              repository: ghcr.io/m0nsterrr/hyperglass
-              tag: v2.0.4
+              # no arm64
+              # repository: ghcr.io/m0nsterrr/hyperglass
+              # tag: v2.0.4
+              repository: quay.io/timrabl/hyperglass
+              tag: 1.0.4-1.0.233
             probes:
               liveness:
                 enabled: true
