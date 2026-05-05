@@ -97,7 +97,7 @@ spec:
           redis:
             image:
               repository: redis
-              tag: 8.6.2-alpine
+              tag: 8.6.3-alpine
             probes:
               liveness:
                 enabled: true
