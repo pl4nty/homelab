@@ -28,6 +28,8 @@ spec:
   values:
     controllers:
       main:
+        # pending replacement
+        replicas: 0
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
