@@ -1,0 +1,32 @@
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: selfhost
+  namespace: toolhive-system
+spec:
+  groupRef:
+    name: toolhive
+  telemetryConfigRef:
+    name: toolhive
+  externalAuthConfigRef:
+    name: entra-upstream
+  image: ghcr.io/astral-sh/uv:0.8.6
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          command:
+            - uvx
+          args:
+            - git+https://github.com/pl4nty/mcp#copilot/add-tools-for-flowsavvy-tasks
+  secrets:
+    - name: toolhive
+      key: entra-client-id
+      targetEnvName: AZURE_CLIENT_ID
+    - name: toolhive
+      key: entra-client-secret
+      targetEnvName: AZURE_CLIENT_SECRET
+    - name: toolhive
+      key: flowsavvy-cookie
+      targetEnvName: FLOWSAVVY_COOKIE
+            - mcp-server

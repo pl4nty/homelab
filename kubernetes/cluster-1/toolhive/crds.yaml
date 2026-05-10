@@ -1,7 +1,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: toolhive-crds
+  name: toolhive-operator-crds
   namespace: toolhive-system
 spec:
   interval: 1h

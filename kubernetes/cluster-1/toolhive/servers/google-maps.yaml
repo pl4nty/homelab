@@ -1,0 +1,24 @@
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: google-maps
+  namespace: toolhive-system
+spec:
+  groupRef:
+    name: toolhive
+  telemetryConfigRef:
+    name: toolhive
+  image: docker.io/library/node:22.14.0-bookworm
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          command:
+            - /bin/sh
+            - -lc
+          args:
+            - npx -y @cablate/mcp-google-map --stdio
+  secrets:
+    - name: toolhive-secrets
+      key: google-maps-api-key
+      targetEnvName: GOOGLE_MAPS_API_KEY

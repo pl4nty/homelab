@@ -1,0 +1,21 @@
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: grafana
+  namespace: toolhive-system
+spec:
+  groupRef:
+    name: toolhive
+  telemetryConfigRef:
+    name: toolhive-otel
+  image: docker.io/grafana/mcp-grafana:0.14.0
+  args:
+    - -t
+    - stdio
+  env:
+    - name: GRAFANA_URL
+      value: https://tplant.grafana.net
+  secrets:
+    - name: toolhive-secrets
+      key: grafana-service-account-token
+      targetEnvName: GRAFANA_SERVICE_ACCOUNT_TOKEN

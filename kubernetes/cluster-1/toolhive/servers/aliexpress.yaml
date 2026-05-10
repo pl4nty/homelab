@@ -1,0 +1,27 @@
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: aliexpress-scraper
+  namespace: toolhive-system
+spec:
+  groupRef:
+    name: toolhive
+  image: docker.io/library/node:22.14.0-bookworm
+  telemetryConfigRef:
+    name: toolhive
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          command:
+            - /bin/sh
+            - -lc
+          args:
+            - npx -y github:pl4nty/aliexpress-product-scraper#copilot/implement-mcp-server-search-tool
+  env:
+    - name: PUPPETEER_SKIP_DOWNLOAD
+      value: "true"
+  secrets:
+    - name: toolhive-secrets
+      key: browser-ws-endpoint
+      targetEnvName: BROWSER_WS_ENDPOINT

@@ -1,0 +1,44 @@
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: amazon-scraper
+  namespace: toolhive-system
+spec:
+  groupRef:
+    name: toolhive
+  telemetryConfigRef:
+    name: toolhive
+  image: docker.io/library/node:22.14.0-bookworm
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          command:
+            - /bin/sh
+            - -lc
+          args:
+            - npx -y github:pl4nty/mcp-server-amazon#make_npx_installable
+          workingDir: /workspace
+          volumeMounts:
+            - name: amazon-cookies
+              mountPath: /workspace/amazonCookies.json
+              subPath: amazonCookies.json
+              readOnly: true
+      volumes:
+        - name: amazon-cookies
+          secret:
+            secretName: toolhive-secrets
+            items:
+              - key: amazonCookies.json
+                path: amazonCookies.json
+  env:
+    - name: PUPPETEER_SKIP_DOWNLOAD
+      value: "true"
+    - name: EXPORT_LIVE_SCRAPING_FOR_MOCKS
+      value: "false"
+    - name: AMAZON_COOKIES_PATH
+      value: amazonCookies.json
+  secrets:
+    - name: toolhive-secrets
+      key: browser-ws-endpoint
+      targetEnvName: BROWSER_WS_ENDPOINT
