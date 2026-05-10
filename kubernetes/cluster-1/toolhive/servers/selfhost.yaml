@@ -20,13 +20,18 @@ spec:
           args:
             - git+https://github.com/pl4nty/mcp#copilot/add-tools-for-flowsavvy-tasks
             - mcp-server
+          env:
+            - name: AZURE_CLIENT_ID
+              value: "foo"
+            - name: AZURE_CLIENT_SECRET
+              value: "bar"
   secrets:
-    - name: toolhive
-      key: entra-client-id
-      targetEnvName: AZURE_CLIENT_ID
-    - name: toolhive
-      key: entra-client-secret
-      targetEnvName: AZURE_CLIENT_SECRET
+    # - name: toolhive
+    #   key: entra-client-id
+    #   targetEnvName: AZURE_CLIENT_ID
+    # - name: toolhive
+    #   key: entra-client-secret
+    #   targetEnvName: AZURE_CLIENT_SECRET
     - name: toolhive
       key: flowsavvy-cookie
       targetEnvName: FLOWSAVVY_COOKIE
