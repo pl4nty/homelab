@@ -1,0 +1,20 @@
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: youtube-transcript
+  namespace: toolhive-system
+spec:
+  groupRef:
+    name: toolhive
+  telemetryConfigRef:
+    name: toolhive
+  image: ghcr.io/astral-sh/uv:0.8.6
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          command:
+            - uvx
+          args:
+            - git+https://github.com/jkawamoto/mcp-youtube-transcript
+            - mcp-youtube-transcript

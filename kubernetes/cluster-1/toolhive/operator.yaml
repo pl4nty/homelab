@@ -1,0 +1,27 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: toolhive-operator
+  namespace: toolhive-system
+spec:
+  dependsOn:
+    - name: toolhive-operator-crds
+  interval: 1h
+  chart:
+    spec:
+      chart: toolhive-operator
+      sourceRef:
+        kind: HelmRepository
+        name: toolhive
+        namespace: flux-system
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    operator:
+      rbac:
+        scope: cluster

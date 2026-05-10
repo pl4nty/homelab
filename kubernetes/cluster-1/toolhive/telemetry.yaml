@@ -1,0 +1,13 @@
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPTelemetryConfig
+metadata:
+  name: toolhive
+  namespace: toolhive-system
+spec:
+  openTelemetry:
+    enabled: true
+    endpoint: k8s-monitoring-alloy-receiver.monitoring-system:4317
+    insecure: true
+    tracing:
+      enabled: true
+      samplingRate: "1.0"

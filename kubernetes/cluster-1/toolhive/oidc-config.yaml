@@ -1,0 +1,9 @@
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPOIDCConfig
+metadata:
+  name: toolhive
+  namespace: toolhive-system
+spec:
+  type: inline
+  inline:
+    issuer: https://toolhive.${PUBLIC_DOMAIN}

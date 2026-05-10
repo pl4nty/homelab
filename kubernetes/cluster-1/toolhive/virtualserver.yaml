@@ -1,0 +1,37 @@
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: VirtualMCPServer
+metadata:
+  name: toolhive
+  namespace: toolhive-system
+spec:
+  groupRef:
+    name: toolhive
+  telemetryConfigRef:
+    name: toolhive
+  authServerConfig:
+    issuer: https://toolhive.${PUBLIC_DOMAIN}
+    upstreamProviders:
+      - name: entra
+        type: oidc
+        oidcConfig:
+          issuerUrl: https://login.microsoftonline.com/organizations/v2.0
+          clientId: 5c3c299e-f61f-41cc-b4e1-f12018b84afa
+          clientSecretRef:
+            name: toolhive-secrets
+            key: entra-client-secret
+          scopes:
+            - openid
+            - profile
+            - email
+            - offline_access
+            - https://graph.microsoft.com/User.Read
+            - https://graph.microsoft.com/Calendars.ReadWrite
+            - https://graph.microsoft.com/Tasks.ReadWrite
+  incomingAuth:
+    type: oidc
+    oidcConfigRef:
+      name: toolhive
+      audience: https://toolhive.${PUBLIC_DOMAIN}
+      resourceUrl: https://toolhive.${PUBLIC_DOMAIN}
+  outgoingAuth:
+    source: discovered

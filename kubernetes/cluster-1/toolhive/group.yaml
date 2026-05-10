@@ -1,0 +1,7 @@
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPGroup
+metadata:
+  name: toolhive
+  namespace: toolhive-system
+spec:
+  description: All selfhosted MCP tools

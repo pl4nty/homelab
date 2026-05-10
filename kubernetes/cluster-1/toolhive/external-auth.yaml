@@ -1,0 +1,9 @@
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPExternalAuthConfig
+metadata:
+  name: entra-upstream
+  namespace: toolhive-system
+spec:
+  type: upstreamInject
+  upstreamInject:
+    providerName: entra

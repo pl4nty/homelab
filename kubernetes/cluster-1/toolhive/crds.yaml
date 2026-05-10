@@ -1,0 +1,28 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: toolhive-crds
+  namespace: toolhive-system
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: toolhive-operator-crds
+      sourceRef:
+        kind: HelmRepository
+        name: toolhive
+        namespace: flux-system
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    crds:
+      keep: true
+      install:
+        server: true
+        registry: false
+        virtualMcp: true
