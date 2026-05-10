@@ -36,6 +36,7 @@ spec:
         type: cronjob
         cronjob:
           schedule: "0 0 * * *"
+          activeDeadlineSeconds: 21600  # 6h, prevents stuck jobs
         containers:
           main:
             image:

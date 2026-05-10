@@ -1,0 +1,12 @@
+{
+	"servers": {
+		"kubernetes": {
+			"command": "pnx",
+			"args": [
+				"-y",
+				"kubernetes-mcp-server@latest"
+			]
+		}
+	},
+	"inputs": []
+}

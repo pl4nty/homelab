@@ -45,6 +45,7 @@ spec:
               liveness:
                 enabled: true
                 custom: true
+                # ataxx doesn't have a "new game" button, so we just restart it regularly
                 spec:
                   failureThreshold: 1
                   periodSeconds: 300
