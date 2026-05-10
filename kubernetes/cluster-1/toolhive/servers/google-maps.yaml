@@ -19,6 +19,6 @@ spec:
           args:
             - npx -y @cablate/mcp-google-map --stdio
   secrets:
-    - name: toolhive-secrets
+    - name: toolhive
       key: google-maps-api-key
       targetEnvName: GOOGLE_MAPS_API_KEY

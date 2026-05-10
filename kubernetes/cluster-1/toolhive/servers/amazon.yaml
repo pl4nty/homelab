@@ -27,7 +27,7 @@ spec:
       volumes:
         - name: amazon-cookies
           secret:
-            secretName: toolhive-secrets
+            secretName: toolhive
             items:
               - key: amazonCookies.json
                 path: amazonCookies.json
@@ -39,6 +39,6 @@ spec:
     - name: AMAZON_COOKIES_PATH
       value: amazonCookies.json
   secrets:
-    - name: toolhive-secrets
+    - name: toolhive
       key: browser-ws-endpoint
       targetEnvName: BROWSER_WS_ENDPOINT

@@ -16,6 +16,6 @@ spec:
     - name: GRAFANA_URL
       value: https://tplant.grafana.net
   secrets:
-    - name: toolhive-secrets
+    - name: toolhive
       key: grafana-service-account-token
       targetEnvName: GRAFANA_SERVICE_ACCOUNT_TOKEN

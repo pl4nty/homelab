@@ -17,7 +17,7 @@ spec:
           issuerUrl: https://login.microsoftonline.com/organizations/v2.0
           clientId: 5c3c299e-f61f-41cc-b4e1-f12018b84afa
           clientSecretRef:
-            name: toolhive-secrets
+            name: toolhive
             key: entra-client-secret
           scopes:
             - openid

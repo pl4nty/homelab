@@ -22,6 +22,6 @@ spec:
     - name: PUPPETEER_SKIP_DOWNLOAD
       value: "true"
   secrets:
-    - name: toolhive-secrets
+    - name: toolhive
       key: browser-ws-endpoint
       targetEnvName: BROWSER_WS_ENDPOINT
