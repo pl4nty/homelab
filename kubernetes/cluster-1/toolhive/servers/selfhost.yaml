@@ -19,6 +19,7 @@ spec:
             - uvx
           args:
             - git+https://github.com/pl4nty/mcp#copilot/add-tools-for-flowsavvy-tasks
+            - mcp-server
   secrets:
     - name: toolhive
       key: entra-client-id
@@ -29,4 +30,3 @@ spec:
     - name: toolhive
       key: flowsavvy-cookie
       targetEnvName: FLOWSAVVY_COOKIE
-            - mcp-server
