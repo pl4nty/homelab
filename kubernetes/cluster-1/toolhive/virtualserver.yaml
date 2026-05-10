@@ -14,7 +14,7 @@ spec:
       - name: entra
         type: oidc
         oidcConfig:
-          issuerUrl: https://login.microsoftonline.com/organizations/v2.0
+          issuerUrl: https://login.microsoftonline.com/common/v2.0
           clientId: 5c3c299e-f61f-41cc-b4e1-f12018b84afa
           clientSecretRef:
             name: toolhive
@@ -26,7 +26,6 @@ spec:
             - offline_access
             - https://graph.microsoft.com/User.Read
             - https://graph.microsoft.com/Calendars.ReadWrite
-            - https://graph.microsoft.com/Tasks.ReadWrite
   incomingAuth:
     type: oidc
     oidcConfigRef:

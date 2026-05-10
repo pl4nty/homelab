@@ -6,7 +6,7 @@ metadata:
 spec:
   openTelemetry:
     enabled: true
-    endpoint: k8s-monitoring-alloy-receiver.monitoring-system:4317
+    endpoint: k8s-monitoring-alloy-receiver.monitoring-system:4318
     insecure: true
     tracing:
       enabled: true

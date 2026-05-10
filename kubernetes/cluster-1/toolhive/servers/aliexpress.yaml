@@ -19,6 +19,10 @@ spec:
           args:
             - npx -y github:pl4nty/aliexpress-product-scraper#copilot/implement-mcp-server-search-tool
   env:
+    - name: HOME
+      value: /tmp
+    - name: NPM_CONFIG_CACHE
+      value: /tmp/.npm
     - name: PUPPETEER_SKIP_DOWNLOAD
       value: "true"
   secrets:

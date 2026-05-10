@@ -11,5 +11,5 @@ spec:
     - toolhive.${PUBLIC_DOMAIN}
   rules:
     - backendRefs:
-        - name: toolhive
+        - name: vmcp-toolhive
           port: 8080

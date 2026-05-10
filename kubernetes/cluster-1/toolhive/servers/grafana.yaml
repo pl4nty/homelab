@@ -7,7 +7,7 @@ spec:
   groupRef:
     name: toolhive
   telemetryConfigRef:
-    name: toolhive-otel
+    name: toolhive
   image: docker.io/grafana/mcp-grafana:0.14.0
   args:
     - -t

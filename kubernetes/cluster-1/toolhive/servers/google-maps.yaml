@@ -18,6 +18,11 @@ spec:
             - -lc
           args:
             - npx -y @cablate/mcp-google-map --stdio
+  env:
+    - name: HOME
+      value: /tmp
+    - name: NPM_CONFIG_CACHE
+      value: /tmp/.npm
   secrets:
     - name: toolhive
       key: google-maps-api-key

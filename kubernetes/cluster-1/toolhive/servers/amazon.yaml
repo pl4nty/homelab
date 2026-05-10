@@ -32,6 +32,10 @@ spec:
               - key: amazonCookies.json
                 path: amazonCookies.json
   env:
+    - name: HOME
+      value: /tmp
+    - name: NPM_CONFIG_CACHE
+      value: /tmp/.npm
     - name: PUPPETEER_SKIP_DOWNLOAD
       value: "true"
     - name: EXPORT_LIVE_SCRAPING_FOR_MOCKS
