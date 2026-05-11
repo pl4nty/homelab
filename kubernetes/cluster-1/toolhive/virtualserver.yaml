@@ -26,7 +26,7 @@ spec:
             - email
             - offline_access
             - https://graph.microsoft.com/User.Read
-            - https://graph.microsoft.com/Calendars.ReadWrite
+            - https://graph.microsoft.com/Calendars.Read
   incomingAuth:
     type: oidc
     oidcConfigRef:
