@@ -11,6 +11,8 @@ spec:
   externalAuthConfigRef:
     name: entra-upstream
   image: ghcr.io/astral-sh/uv:python3.12-bookworm
+  transport: streamable-http
+  mcpPort: 8000
   podTemplateSpec:
     spec:
       containers:
@@ -18,15 +20,19 @@ spec:
           command:
             - uvx
           args:
+            - --from
             - git+https://github.com/pl4nty/mcp#copilot/add-tools-for-flowsavvy-tasks
             - mcp-server
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           env:
             - name: HOME
-              value: /dev/shm
+              value: /tmp
             - name: XDG_CACHE_HOME
-              value: /dev/shm/.cache
+              value: /tmp/.cache
             - name: UV_CACHE_DIR
-              value: /dev/shm/.cache/uv
+              value: /tmp/.cache/uv
             - name: AZURE_CLIENT_ID
               valueFrom:
                 secretKeyRef:
@@ -37,6 +43,9 @@ spec:
                 secretKeyRef:
                   name: toolhive
                   key: entra-client-secret
+      volumes:
+        - name: tmp
+          emptyDir: {}
   secrets:
     - name: toolhive
       key: flowsavvy-cookie

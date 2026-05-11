@@ -8,7 +8,7 @@ spec:
     name: toolhive
   telemetryConfigRef:
     name: toolhive
-  image: ghcr.io/astral-sh/uv:0.8.6
+  image: ghcr.io/astral-sh/uv:python3.12-bookworm
   podTemplateSpec:
     spec:
       containers:
@@ -17,4 +17,16 @@ spec:
             - uvx
           args:
             - git+https://github.com/jkawamoto/mcp-youtube-transcript
-            - mcp-youtube-transcript
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          env:
+            - name: HOME
+              value: /tmp
+            - name: XDG_CACHE_HOME
+              value: /tmp/.cache
+            - name: UV_CACHE_DIR
+              value: /tmp/.cache/uv
+      volumes:
+        - name: tmp
+          emptyDir: {}
