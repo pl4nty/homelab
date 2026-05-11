@@ -35,3 +35,6 @@ spec:
       resourceUrl: https://mcp.${PUBLIC_DOMAIN}
   outgoingAuth:
     source: discovered
+  config:
+    operational:
+      logLevel: debug
