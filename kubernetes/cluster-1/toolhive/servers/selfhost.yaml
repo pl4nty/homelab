@@ -21,7 +21,7 @@ spec:
             - uvx
           args:
             - --from
-            - git+https://github.com/pl4nty/mcp#copilot/add-tools-for-flowsavvy-tasks
+            - git+https://github.com/pl4nty/mcp@copilot/add-tools-for-flowsavvy-tasks
             - mcp-server
           volumeMounts:
             - name: tmp

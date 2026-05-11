@@ -21,7 +21,3 @@ spec:
   upgrade:
     remediation:
       retries: 3
-  values:
-    operator:
-      rbac:
-        scope: cluster

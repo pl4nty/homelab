@@ -23,6 +23,4 @@ spec:
     crds:
       keep: true
       install:
-        server: true
         registry: false
-        virtualMcp: true

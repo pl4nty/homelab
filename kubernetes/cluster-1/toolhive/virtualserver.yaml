@@ -9,7 +9,7 @@ spec:
   telemetryConfigRef:
     name: toolhive
   authServerConfig:
-    issuer: https://toolhive.${PUBLIC_DOMAIN}
+    issuer: https://mcp.${PUBLIC_DOMAIN}
     upstreamProviders:
       - name: entra
         type: oidc
@@ -31,7 +31,7 @@ spec:
     type: oidc
     oidcConfigRef:
       name: toolhive
-      audience: https://toolhive.${PUBLIC_DOMAIN}
-      resourceUrl: https://toolhive.${PUBLIC_DOMAIN}
+      audience: https://mcp.${PUBLIC_DOMAIN}
+      resourceUrl: https://mcp.${PUBLIC_DOMAIN}
   outgoingAuth:
     source: discovered

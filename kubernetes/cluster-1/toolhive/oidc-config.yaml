@@ -6,4 +6,4 @@ metadata:
 spec:
   type: inline
   inline:
-    issuer: https://toolhive.${PUBLIC_DOMAIN}
+    issuer: https://mcp.${PUBLIC_DOMAIN}
