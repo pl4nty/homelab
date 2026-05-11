@@ -4,6 +4,7 @@ metadata:
   name: toolhive
   namespace: toolhive-system
 spec:
+  logLevel: debug
   openTelemetry:
     enabled: true
     endpoint: k8s-monitoring-alloy-receiver.monitoring-system:4318
