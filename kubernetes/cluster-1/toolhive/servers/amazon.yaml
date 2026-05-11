@@ -24,6 +24,8 @@ spec:
               mountPath: /workspace/amazonCookies.json
               subPath: amazonCookies.json
               readOnly: true
+            - name: tmp
+              mountPath: /tmp
       volumes:
         - name: amazon-cookies
           secret:
@@ -31,6 +33,8 @@ spec:
             items:
               - key: amazonCookies.json
                 path: amazonCookies.json
+        - name: tmp
+          emptyDir: {}
   env:
     - name: HOME
       value: /tmp

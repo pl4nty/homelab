@@ -10,7 +10,7 @@ spec:
     name: toolhive
   externalAuthConfigRef:
     name: entra-upstream
-  image: ghcr.io/astral-sh/uv:0.8.6
+  image: ghcr.io/astral-sh/uv:python3.12-bookworm
   podTemplateSpec:
     spec:
       containers:
@@ -21,17 +21,23 @@ spec:
             - git+https://github.com/pl4nty/mcp#copilot/add-tools-for-flowsavvy-tasks
             - mcp-server
           env:
+            - name: HOME
+              value: /dev/shm
+            - name: XDG_CACHE_HOME
+              value: /dev/shm/.cache
+            - name: UV_CACHE_DIR
+              value: /dev/shm/.cache/uv
             - name: AZURE_CLIENT_ID
-              value: "foo"
+              valueFrom:
+                secretKeyRef:
+                  name: toolhive
+                  key: entra-client-id
             - name: AZURE_CLIENT_SECRET
-              value: "bar"
+              valueFrom:
+                secretKeyRef:
+                  name: toolhive
+                  key: entra-client-secret
   secrets:
-    # - name: toolhive
-    #   key: entra-client-id
-    #   targetEnvName: AZURE_CLIENT_ID
-    # - name: toolhive
-    #   key: entra-client-secret
-    #   targetEnvName: AZURE_CLIENT_SECRET
     - name: toolhive
       key: flowsavvy-cookie
       targetEnvName: FLOWSAVVY_COOKIE

@@ -18,6 +18,12 @@ spec:
             - -lc
           args:
             - npx -y @cablate/mcp-google-map --stdio
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
   env:
     - name: HOME
       value: /tmp

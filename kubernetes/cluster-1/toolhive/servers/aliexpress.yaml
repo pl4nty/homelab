@@ -18,6 +18,12 @@ spec:
             - -lc
           args:
             - npx -y github:pl4nty/aliexpress-product-scraper#copilot/implement-mcp-server-search-tool
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
   env:
     - name: HOME
       value: /tmp
