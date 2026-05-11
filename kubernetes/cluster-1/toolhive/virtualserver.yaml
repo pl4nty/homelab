@@ -14,7 +14,8 @@ spec:
       - name: entra
         type: oidc
         oidcConfig:
-          issuerUrl: https://login.microsoftonline.com/common/v2.0
+          # OIDC common issuerUrl returns {tenantid} issuer, which toolhive rejects
+          issuerUrl: https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0
           clientId: 5c3c299e-f61f-41cc-b4e1-f12018b84afa
           clientSecretRef:
             name: toolhive
