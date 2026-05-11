@@ -31,8 +31,8 @@ spec:
     type: oidc
     oidcConfigRef:
       name: toolhive
-      audience: https://mcp.${PUBLIC_DOMAIN}
-      resourceUrl: https://mcp.${PUBLIC_DOMAIN}
+      audience: https://mcp.${PUBLIC_DOMAIN}/
+      resourceUrl: https://mcp.${PUBLIC_DOMAIN}/
   outgoingAuth:
     source: discovered
   config:
