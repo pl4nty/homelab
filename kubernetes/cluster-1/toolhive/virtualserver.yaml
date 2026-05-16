@@ -31,7 +31,6 @@ spec:
             - https://graph.microsoft.com/MailboxSettings.Read
             - https://graph.microsoft.com/Contacts.ReadWrite
             - https://graph.microsoft.com/Files.ReadWrite
-            - https://graph.microsoft.com/Groups.ReadWrite.All
   incomingAuth:
     type: oidc
     oidcConfigRef:
@@ -77,7 +76,6 @@ spec:
             - https://graph.microsoft.com/MailboxSettings.Read
             - https://graph.microsoft.com/Contacts.ReadWrite
             - https://graph.microsoft.com/Files.ReadWrite
-            - https://graph.microsoft.com/Groups.ReadWrite.All
   incomingAuth:
     type: oidc
     oidcConfigRef:
