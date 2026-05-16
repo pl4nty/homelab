@@ -5,7 +5,8 @@
 			"args": [
 				"-y",
 				"kubernetes-mcp-server@latest"
-			]
+			],
+			"type": "stdio"
 		}
 	},
 	"inputs": []
