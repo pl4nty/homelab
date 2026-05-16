@@ -14,9 +14,25 @@ spec:
   transport: streamable-http
   mcpPort: 9000
   # Upstream image hardcodes path="/mcp/outlook" but ToolHive proxies to /mcp
-  args:
-    - "uv"
-    - "run"
-    - "python"
-    - "-c"
-    - "import asyncio; from app.main import mcp, setup_server; asyncio.run(setup_server()); mcp.run(transport='streamable-http', host='0.0.0.0', port=9000, path='/mcp')"
+  podTemplateSpec:
+    containers:
+      - name: mcp
+        args:
+          - "uv"
+          - "run"
+          - "python"
+          - "-c"
+          - "import asyncio; from app.main import mcp, setup_server; asyncio.run(setup_server()); mcp.run(transport='streamable-http', host='0.0.0.0', port=9000, path='/mcp')"
+        volumeMounts:
+          - name: tmp
+            mountPath: /tmp
+        env:
+          - name: HOME
+            value: /tmp
+          - name: XDG_CACHE_HOME
+            value: /tmp/.cache
+          - name: UV_CACHE_DIR
+            value: /tmp/.cache/uv
+    volumes:
+      - name: tmp
+        emptyDir: {}

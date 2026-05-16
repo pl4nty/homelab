@@ -89,26 +89,13 @@ spec:
       logLevel: debug
     aggregation:
       tools:
-        - workload: outlook
-          filter:
-            - list_mail_folders
-            - list_emails
-            - get_email_details
-            - search_emails
-            - get_my_email_address
-            - list_attachments
-            - read_attachment
-            - list_groups
-            - list_group_threads
-            - list_group_thread_email_attachments
-            - list_group_thread_posts
         - workload: calendar
           filter:
-            - list_calendars
-            - list_events_today
-            - list_events
-            - get_event_details
             - get_event_attachments
+            - get_event_details
+            - list_calendars
+            - list_events
+            - list_events_today
             - search_events
         - workload: contact
           filter:
@@ -116,15 +103,25 @@ spec:
             - get_contact
         - workload: onedrive
           filter:
-            - list_all_drives
             - get_drive
-            - list_drive_items
-            - list_shared_with_me_items
             - get_drive_item
+            - list_all_drives
+            - list_drive_items
             - list_permissions
-        - workload: grafana
+            - list_shared_with_me_items
+        - workload: outlook
+          filter:
+            - get_email_details
+            - get_my_email_address
+            - list_attachments
+            - list_emails
+            - list_group_thread_email_attachments
+            - list_group_thread_posts
+            - list_group_threads
+            - list_groups
+            - list_mail_folders
+            - read_attachment
+            - search_emails
         - workload: selfhost
-        - workload: aliexpress-scraper
-        - workload: amazon-scraper
         - workload: google-maps
         - workload: youtube-transcript
