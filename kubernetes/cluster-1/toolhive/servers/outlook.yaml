@@ -27,6 +27,8 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
+            - name: venv
+              mountPath: /app/.venv
           env:
             - name: HOME
               value: /tmp
@@ -36,4 +38,6 @@ spec:
               value: /tmp/.cache/uv
       volumes:
         - name: tmp
+          emptyDir: {}
+        - name: venv
           emptyDir: {}
