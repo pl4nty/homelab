@@ -1,0 +1,15 @@
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: contact
+  namespace: toolhive-system
+spec:
+  groupRef:
+    name: toolhive
+  telemetryConfigRef:
+    name: toolhive
+  externalAuthConfigRef:
+    name: entra-upstream
+  image: ghcr.io/obot-platform/microsoft-office-365-mcp/microsoft365-contact:latest@sha256:fca8305cc678a9f40359e8dadbc314d390a5239af80acfd15b81701316dc75d5
+  transport: streamable-http
+  mcpPort: 9000

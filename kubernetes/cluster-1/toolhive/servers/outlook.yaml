@@ -1,0 +1,22 @@
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: outlook
+  namespace: toolhive-system
+spec:
+  groupRef:
+    name: toolhive
+  telemetryConfigRef:
+    name: toolhive
+  externalAuthConfigRef:
+    name: entra-upstream
+  image: ghcr.io/obot-platform/microsoft-office-365-mcp/outlook:latest@sha256:611982786f492988ec8c5325ca382026d50249088e1cf4314e1498327540a426
+  transport: streamable-http
+  mcpPort: 9000
+  # Upstream image hardcodes path="/mcp/outlook" but ToolHive proxies to /mcp
+  args:
+    - "uv"
+    - "run"
+    - "python"
+    - "-c"
+    - "import asyncio; from app.main import mcp, setup_server; asyncio.run(setup_server()); mcp.run(transport='streamable-http', host='0.0.0.0', port=9000, path='/mcp')"

@@ -1,0 +1,15 @@
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: onedrive
+  namespace: toolhive-system
+spec:
+  groupRef:
+    name: toolhive
+  telemetryConfigRef:
+    name: toolhive
+  externalAuthConfigRef:
+    name: entra-upstream
+  image: ghcr.io/obot-platform/microsoft-office-365-mcp/microsoft365-onedrive:latest@sha256:0bd28d1c5c788591ebc59756ad03a0ac3e5bb686923d4792462b612b282cc679
+  transport: streamable-http
+  mcpPort: 9000

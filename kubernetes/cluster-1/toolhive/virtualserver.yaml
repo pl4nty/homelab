@@ -26,7 +26,12 @@ spec:
             - email
             - offline_access
             - https://graph.microsoft.com/User.Read
-            - https://graph.microsoft.com/Calendars.Read
+            - https://graph.microsoft.com/Calendars.ReadWrite
+            - https://graph.microsoft.com/Mail.ReadWrite
+            - https://graph.microsoft.com/MailboxSettings.Read
+            - https://graph.microsoft.com/Contacts.ReadWrite
+            - https://graph.microsoft.com/Files.ReadWrite
+            - https://graph.microsoft.com/Groups.ReadWrite.All
   incomingAuth:
     type: oidc
     oidcConfigRef:
@@ -38,3 +43,90 @@ spec:
   config:
     operational:
       logLevel: debug
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: VirtualMCPServer
+metadata:
+  name: toolhive-safe
+  namespace: toolhive-system
+spec:
+  groupRef:
+    name: toolhive
+  telemetryConfigRef:
+    name: toolhive
+  authServerConfig:
+    issuer: https://mcp-safe.${PUBLIC_DOMAIN}
+    upstreamProviders:
+      - name: entra
+        type: oidc
+        oidcConfig:
+          # OIDC common issuerUrl returns {tenantid} issuer, which toolhive rejects
+          issuerUrl: https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0
+          clientId: 5c3c299e-f61f-41cc-b4e1-f12018b84afa
+          clientSecretRef:
+            name: toolhive
+            key: entra-client-secret
+          scopes:
+            - openid
+            - profile
+            - email
+            - offline_access
+            - https://graph.microsoft.com/User.Read
+            - https://graph.microsoft.com/Calendars.ReadWrite
+            - https://graph.microsoft.com/Mail.ReadWrite
+            - https://graph.microsoft.com/MailboxSettings.Read
+            - https://graph.microsoft.com/Contacts.ReadWrite
+            - https://graph.microsoft.com/Files.ReadWrite
+            - https://graph.microsoft.com/Groups.ReadWrite.All
+  incomingAuth:
+    type: oidc
+    oidcConfigRef:
+      name: toolhive-safe
+      audience: https://mcp-safe.${PUBLIC_DOMAIN}/
+      resourceUrl: https://mcp-safe.${PUBLIC_DOMAIN}/
+  outgoingAuth:
+    source: discovered
+  config:
+    operational:
+      logLevel: debug
+    aggregation:
+      tools:
+        - workload: outlook
+          filter:
+            - list_mail_folders
+            - list_emails
+            - get_email_details
+            - search_emails
+            - get_my_email_address
+            - list_attachments
+            - read_attachment
+            - list_groups
+            - list_group_threads
+            - list_group_thread_email_attachments
+            - list_group_thread_posts
+        - workload: calendar
+          filter:
+            - list_calendars
+            - list_events_today
+            - list_events
+            - get_event_details
+            - get_event_attachments
+            - search_events
+        - workload: contact
+          filter:
+            - list_contacts
+            - get_contact
+        - workload: onedrive
+          filter:
+            - list_all_drives
+            - get_drive
+            - list_drive_items
+            - list_shared_with_me_items
+            - get_drive_item
+            - list_permissions
+        - workload: grafana
+        - workload: selfhost
+        - workload: aliexpress-scraper
+        - workload: amazon-scraper
+        - workload: google-maps
+        - workload: youtube-transcript

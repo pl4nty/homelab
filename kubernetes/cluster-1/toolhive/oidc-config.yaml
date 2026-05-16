@@ -7,3 +7,13 @@ spec:
   type: inline
   inline:
     issuer: https://mcp.${PUBLIC_DOMAIN}
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPOIDCConfig
+metadata:
+  name: toolhive-safe
+  namespace: toolhive-system
+spec:
+  type: inline
+  inline:
+    issuer: https://mcp-safe.${PUBLIC_DOMAIN}
