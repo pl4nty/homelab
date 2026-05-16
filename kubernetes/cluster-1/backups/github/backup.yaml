@@ -72,13 +72,14 @@ spec:
               # gists are uninitialized and cause crash? maybe fine-grained tokens aren't supported
               # - --gists
               - --private
+              # backup size becoming pretty large...
               - --fork
               - --releases
               - --attachments
     persistence:
       config:
         accessMode: ReadWriteOnce
-        size: 32Gi
+        size: 64Gi
         globalMounts:
           - path: /usr/backup
       token:
