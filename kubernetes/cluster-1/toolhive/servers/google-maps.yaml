@@ -8,7 +8,7 @@ spec:
     name: toolhive
   telemetryConfigRef:
     name: toolhive
-  image: docker.io/library/node:22.14.0-bookworm
+  image: docker.io/library/node:24.15.0-bookworm
   podTemplateSpec:
     spec:
       containers:
