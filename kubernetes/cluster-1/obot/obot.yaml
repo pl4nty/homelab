@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: obot
-      version: v0.21.1
+      version: v0.22.1
       sourceRef:
         kind: HelmRepository
         name: obot
