@@ -24,7 +24,12 @@ spec:
             - name: vault
               mountPath: /vault
         - name: sync
-          image: ghcr.io/belphemur/obsidian-headless-sync-docker:latest@sha256:2e8731a6cc246af383579478e2719b56efec0a63ac5baae731e88b13b1cc9ab7
+          image: docker.io/library/node:22.14.0-bookworm
+          command:
+            - /bin/sh
+            - -lc
+          args:
+            - npx -y obsidian-headless sync-setup --vault heap --password "$VAULT_PASSWORD" && exec npx -y obsidian-headless sync --continuous
           env:
             - name: OBSIDIAN_AUTH_TOKEN
               valueFrom:
@@ -36,23 +41,15 @@ spec:
                 secretKeyRef:
                   name: toolhive
                   key: obsidian-vault-password
-            - name: VAULT_NAME
-              value: heap
-            - name: PUID
-              value: "0"
-            - name: PGID
-              value: "0"
           volumeMounts:
+            - name: tmp
+              mountPath: /tmp
             - name: vault
               mountPath: /vault
-            - name: config
-              mountPath: /config
       volumes:
         - name: tmp
           emptyDir: {}
         - name: vault
-          emptyDir: {}
-        - name: config
           emptyDir: {}
   env:
     - name: HOME
