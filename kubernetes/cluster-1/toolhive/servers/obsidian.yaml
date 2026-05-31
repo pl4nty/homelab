@@ -1,0 +1,57 @@
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: obsidian
+  namespace: toolhive-system
+spec:
+  groupRef:
+    name: toolhive
+  telemetryConfigRef:
+    name: toolhive
+  image: docker.io/library/node:22.14.0-bookworm
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          command:
+            - /bin/sh
+            - -lc
+          args:
+            - npx -y @bitbonsai/mcpvault /vault
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: vault
+              mountPath: /vault
+        - name: sync
+          image: ghcr.io/belphemur/obsidian-headless-sync-docker:latest@sha256:2e8731a6cc246af383579478e2719b56efec0a63ac5baae731e88b13b1cc9ab7
+          env:
+            - name: OBSIDIAN_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: toolhive
+                  key: obsidian-auth-token
+            - name: VAULT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: toolhive
+                  key: obsidian-vault-password
+            - name: VAULT_NAME
+              value: heap
+          volumeMounts:
+            - name: vault
+              mountPath: /vault
+            - name: config
+              mountPath: /config
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: vault
+          emptyDir: {}
+        - name: config
+          emptyDir: {}
+  env:
+    - name: HOME
+      value: /tmp
+    - name: NPM_CONFIG_CACHE
+      value: /tmp/.npm
