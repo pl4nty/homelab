@@ -29,7 +29,7 @@ spec:
             - /bin/sh
             - -lc
           args:
-            - npx -y obsidian-headless sync-setup --vault heap --password "$VAULT_PASSWORD" && exec npx -y obsidian-headless sync --continuous
+            - npx -y obsidian-headless sync-setup --path /vault --vault heap --password "$VAULT_PASSWORD" && exec npx -y obsidian-headless sync --continuous
           env:
             - name: OBSIDIAN_AUTH_TOKEN
               valueFrom:
