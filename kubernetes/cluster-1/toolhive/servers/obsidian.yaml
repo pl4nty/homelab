@@ -38,6 +38,10 @@ spec:
                   key: obsidian-vault-password
             - name: VAULT_NAME
               value: heap
+            - name: PUID
+              value: "0"
+            - name: PGID
+              value: "0"
           volumeMounts:
             - name: vault
               mountPath: /vault
