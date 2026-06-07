@@ -20,31 +20,31 @@
     'prIgnoreNotification',
   ],
   flux: {
-    fileMatch: [
-      'kubernetes/[^.]+\\.ya?ml$',
+    managerFilePatterns: [
+      '/kubernetes/[^.]+\\.ya?ml$/',
     ],
   },
   'helm-values': {
-    fileMatch: [
-      'kubernetes/[^.]+\\.ya?ml$',
+    managerFilePatterns: [
+      '/kubernetes/[^.]+\\.ya?ml$/',
     ],
   },
   kubernetes: {
-    fileMatch: [
-      'kubernetes/[^.]+\\.ya?ml$',
+    managerFilePatterns: [
+      '/kubernetes/[^.]+\\.ya?ml$/',
     ],
   },
   kustomize: {
-    fileMatch: [
-      'kubernetes/[^.]+kustomization\\.ya?ml$',
+    managerFilePatterns: [
+      '/kubernetes/[^.]+kustomization\\.ya?ml$/',
     ],
   },
   customManagers: [
     {
       customType: 'regex',
       description: 'Process CRD dependencies',
-      fileMatch: [
-        'kubernetes/[^.]+\\.ya?ml$',
+      managerFilePatterns: [
+        '/kubernetes/[^.]+\\.ya?ml$/',
       ],
       matchStrings: [
         'registryUrl=(?<registryUrl>\\S+) chart=(?<depName>\\S+)\n.*?(?<currentValue>[^-\\s]*)\n',
@@ -55,8 +55,8 @@
     {
       customType: 'regex',
       description: 'Process custom dependencies',
-      fileMatch: [
-        'kubernetes/[^.]+\\.ya?ml$',
+      managerFilePatterns: [
+        '/kubernetes/[^.]+\\.ya?ml$/',
       ],
       matchStrings: [
         'datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( versioning=(?<versioning>\\S+))?\n.*?"(?<currentValue>.*)"\n',
@@ -67,8 +67,8 @@
     {
       customType: 'regex',
       description: 'Process raw GitHub URLs',
-      fileMatch: [
-        'kubernetes/[^.]+\\.ya?ml$',
+      managerFilePatterns: [
+        '/kubernetes/[^.]+\\.ya?ml$/',
       ],
       matchStrings: [
         'https:\\/\\/raw.githubusercontent.com\\/(?<depName>[\\w\\d\\-_]+\\/[\\w\\d\\-_]+)\\/(?<currentValue>[\\w\\d\\.\\-_]+)\\/.*',
