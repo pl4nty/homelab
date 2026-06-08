@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: browsertrix
-      version: 1.22.9
+      version: 1.22.10
       sourceRef:
         kind: HelmRepository
         name: browsertrix
