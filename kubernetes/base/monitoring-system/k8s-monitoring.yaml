@@ -31,7 +31,7 @@ spec:
     cluster:
       name: ${CLUSTER_NAME:=bootstrap}
     destinations:
-      - name: metrics
+      metrics:
         type: prometheus
         url: https://prometheus-prod-09-prod-au-southeast-0.grafana.net/api/prom/push
         auth:
@@ -55,7 +55,7 @@ spec:
             target_label = "pod"
             replacement = "$1"
           }
-      - name: logs
+      logs:
         type: loki
         url: https://logs-prod-004.grafana.net/loki/api/v1/push
         auth:
@@ -64,7 +64,7 @@ spec:
           create: false
           name: k8s-monitoring-logs
           namespace: monitoring-system
-      - name: otlp
+      otlp:
         type: otlp
         url: https://otlp-gateway-prod-au-southeast-0.grafana.net/otlp
         protocol: http
@@ -92,23 +92,33 @@ spec:
             - kube_replicaset_status_.*
             - kube_secret_metadata_resource_version
             - kube_pod_container_status_restarts_total
-      node-exporter:
+      collector: alloy-metrics
+    hostMetrics:
+      linuxHosts:
+        enabled: true
         metricsTuning:
           excludeMetrics:
             - node_filesystem_device_error
             - node_filesystem_readonly
-
+      enabled: true
+      collector: alloy-metrics
+    telemetryServices:
+      kube-state-metrics:
+        deploy: true
+      node-exporter:
+        deploy: true
       # energy metrics
       # kepler:
       # cost metrics
       # opencost:
     clusterEvents:
       enabled: true
+      collector: alloy-singleton
     # journald isn't available on Talos
     # nodeLogs:
-    podLogs:
+    podLogsViaKubernetesApi:
       enabled: true
-      gatherMethod: kubernetesApi
+      collector: alloy-logs
     applicationObservability:
       enabled: true
       receivers:
@@ -117,108 +127,106 @@ spec:
             enabled: true
           http:
             enabled: true
+      collector: alloy-receiver
     # eBPF, but we already have OTel
     # autoInstrumentation:
     # just use prom CRDs
     # annotationAutodiscovery:
     prometheusOperatorObjects:
       enabled: true
-      crds:
-        deploy: true
+      collector: alloy-metrics
     # 4GB/day but only 50GB/month limit
     # profiling:
     # likely high metrics
     # integrations:
     selfReporting:
       enabled: false
+    collectors:
+      alloy-metrics:
+        presets:
+          - clustered
+          - statefulset
+      alloy-singleton:
+        presets:
+          - singleton
+      alloy-logs:
+        presets:
+          # daemonset isn't necessary without nodeLogs
+          - deployment
+        alloy:
+          extraPorts:
+            - name: tcplog
+              port: 5044
+              targetPort: 5044
+              protocol: TCP
+        # TODO pending https://github.com/grafana/alloy/pull/2701
+          stabilityLevel: experimental
+        image:
+          tag: v1.10.2
+        extraConfig: |-
+          otelcol.receiver.syslog "syslog" {
+            protocol = "rfc3164"
+            location = "Australia/Canberra"
 
-    alloy-metrics:
-      enabled: true
-    alloy-singleton:
-      enabled: true
-    alloy-logs:
-      enabled: true
-      controller:
-        # daemonset isn't necessary without nodeLogs
-        type: deployment
-      alloy:
-        mounts:
-          varlog: false
-          dockercontainers: false
-        extraPorts:
-        - name: tcplog
-          port: 5044
-          targetPort: 5044
-          protocol: TCP
-      # TODO pending https://github.com/grafana/alloy/pull/2701
-        stabilityLevel: experimental
-      image:
-        tag: v1.10.2
-      extraConfig: |-
-        otelcol.receiver.syslog "syslog" {
-          protocol = "rfc3164"
-          location = "Australia/Canberra"
+            udp {
+              listen_address = "0.0.0.0:514"
+            }
 
-          udp {
-            listen_address = "0.0.0.0:514"
+            output {
+              logs = [otelcol.processor.transform.syslog.input]
+            }
           }
 
-          output {
-            logs = [otelcol.processor.transform.syslog.input]
-          }
-        }
+          otelcol.processor.transform "syslog" {
+            error_mode = "silent"
 
-        otelcol.processor.transform "syslog" {
-          error_mode = "silent"
+            log_statements {
+              context = "log"
+              statements = [
+                `set(resource.attributes["service.name"], "syslog")`,
+              ]
+            }
 
-          log_statements {
-            context = "log"
-            statements = [
-              `set(resource.attributes["service.name"], "syslog")`,
-            ]
-          }
-
-          output {
-            logs = [otelcol.exporter.loki.logs.input]
-          }
-        }
-
-        otelcol.receiver.tcplog "tcplog" {
-          listen_address = "0.0.0.0:5044"
-
-          output {
-            logs = [otelcol.processor.transform.tcplog.input]
-          }
-        }
-
-        otelcol.processor.transform "tcplog" {
-          error_mode = "silent"
-
-          log_statements {
-            context = "log"
-            statements = [
-              `set(resource.attributes["service.name"], "tcplog")`,
-            ]
+            output {
+              logs = [otelcol.exporter.loki.logs.input]
+            }
           }
 
-          output {
-            logs = [otelcol.exporter.loki.logs.input]
+          otelcol.receiver.tcplog "tcplog" {
+            listen_address = "0.0.0.0:5044"
+
+            output {
+              logs = [otelcol.processor.transform.tcplog.input]
+            }
           }
-        }
-    alloy-receiver:
-      enabled: true
-      controller:
-        type: deployment
-      alloy:
-        extraPorts:
-          - name: otlp-grpc
-            port: 4317
-            targetPort: 4317
-            protocol: TCP
-          - name: otlp-http
-            port: 4318
-            targetPort: 4318
-            protocol: TCP
+
+          otelcol.processor.transform "tcplog" {
+            error_mode = "silent"
+
+            log_statements {
+              context = "log"
+              statements = [
+                `set(resource.attributes["service.name"], "tcplog")`,
+              ]
+            }
+
+            output {
+              logs = [otelcol.exporter.loki.logs.input]
+            }
+          }
+      alloy-receiver:
+        presets:
+          - deployment
+        alloy:
+          extraPorts:
+            - name: otlp-grpc
+              port: 4317
+              targetPort: 4317
+              protocol: TCP
+            - name: otlp-http
+              port: 4318
+              targetPort: 4318
+              protocol: TCP
     # grafana-agent-logs:
     #   agent:
     #     extraPorts:
