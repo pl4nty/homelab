@@ -6,12 +6,8 @@ metadata:
 type: Opaque
 stringData:
     ACCOUNT_ID: ENC[AES256_GCM,data:ouT5fNZYRnlzHRwvFyG2Dq/e3nyX110LbUyoHa7zA+o=,iv:HDu9C65bNwfZkLo5CB35egpxlZCAn/C29/Vz3qD6v60=,tag:++uGMWRPMUQXxIVMByl2Sg==,type:str]
-    TOKEN: ENC[AES256_GCM,data:WDYZ3Eux36Sg5mgBBgvwSZ9qV9MTSEpVIEbk6g4fCDtNKSam/pWqiw==,iv:3rEUjMwnQu25K8lixZ52fFWcGgnJhbUo64ioXVFVhj0=,tag:0N/hC4NKTHroC4XhvYEVbg==,type:str]
+    TOKEN: ENC[AES256_GCM,data:xMpo1WqBYgegBcxCrYqeXhXnWw+SWpuzr0IkQYaw7EPJTejb6UXCWWX25NFoJAZ+F8G3r3Q=,iv:B18HR11qUt7mbK8dDroYLenm9m1KfhjUyvqA2ibeksY=,tag:AlGGX14QGpoDnVpYgFmLHg==,type:str]
 sops:
-    kms: []
-    gcp_kms: []
-    azure_kv: []
-    hc_vault: []
     age:
         - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
           enc: |
@@ -22,8 +18,7 @@ sops:
             S0o4Y0VxMGRndjk5VXFSRkVoMHlTWXMKHBa0emodcwOW0DKNk+cMqvRlxMch/M5D
             OnkvvL4EukfmKC7uywUnkW441Z2kSl3lVthW9j2k0V1AphSQnJsjaA==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-11-06T12:43:35Z"
-    mac: ENC[AES256_GCM,data:7joc73btgkIwGBSh+nW2BSp97Z0rGMaCEydW7xV/rKgipAEI+MuuwBiEHtlV7TDElsDqQVA9hL8046w1wZYRVQTI/S2e74A1H3IxzBUzi/381BztKlJD9NojW+W38AitnsWEKTg7YCRkN5BUMHsi7FUcbIUV2jVXWxK0oSQyZ2g=,iv:meTeKJX8UwzBa+8h8KDOLHBhswCv+6MCxEHD1MdgH9w=,tag:JODw2I1HZ50k1+A4C45ZIw==,type:str]
-    pgp: []
+    lastmodified: "2026-06-09T11:25:36Z"
+    mac: ENC[AES256_GCM,data:BxfFTCfhpk+J/BHAa8nDDz9FO4TZ1uXFdTi/I9ZG0y9pqHbFZnP1wlxyN5u/jDLGSp69LO3Z3N287lNWwjsep/n+U5agWRWRcJCWKusTRLAyo1FXBZHP3hCWHG0KvBOpwoDTFLWQn0Ch0WYE/20d/YPvREG27kviTTteU251l5w=,iv:/lUM2FBHi8r01DyPnS5bayNADoQgSVLMS+HQMy6GsRI=,tag:c50PzqCMc3/2aKVg9onc/g==,type:str]
     encrypted_regex: ^(data|stringData)$
-    version: 3.8.1
+    version: 3.12.2
