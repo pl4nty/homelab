@@ -28,6 +28,8 @@ spec:
   driftDetection:
     mode: enabled
   values:
+    global:
+      createDefaultServiceAccount: false
     controllers:
       main:
         pod:

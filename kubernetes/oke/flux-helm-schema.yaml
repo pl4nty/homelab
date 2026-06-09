@@ -26,6 +26,8 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    global:
+      createDefaultServiceAccount: false
     # defaultPodOptions:
     #   annotations:
     #     instrumentation.opentelemetry.io/inject-python: "true"

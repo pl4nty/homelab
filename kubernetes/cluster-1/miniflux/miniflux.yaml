@@ -26,6 +26,8 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    global:
+      createDefaultServiceAccount: false
     # defaultPodOptions:
     # process has no symbol section
     # annotations:

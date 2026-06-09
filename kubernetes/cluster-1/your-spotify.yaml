@@ -26,11 +26,11 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    defaultPodOptions:
-      automountServiceAccountToken: true
-      enableServiceLinks: true
-      # nodeSelector:
-      #   kubernetes.io/arch: arm64
+    global:
+      createDefaultServiceAccount: false
+    # defaultPodOptions:
+    #   nodeSelector:
+    #     kubernetes.io/arch: arm64
     controllers:
       # Server
       main:
