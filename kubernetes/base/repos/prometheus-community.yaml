@@ -1,8 +1,13 @@
 apiVersion: source.toolkit.fluxcd.io/v1
-kind: HelmRepository
+kind: OCIRepository
 metadata:
-  name: prometheus-community
+  name: prometheus-operator-crds
   namespace: flux-system
 spec:
   interval: 1h
-  url: https://prometheus-community.github.io/helm-charts
+  url: oci://ghcr.io/prometheus-community/charts/prometheus-operator-crds
+  layerSelector:
+    mediaType: 'application/vnd.cncf.helm.chart.content.v1.tar+gzip'
+    operation: copy
+  ref:
+    tag: 29.0.0
