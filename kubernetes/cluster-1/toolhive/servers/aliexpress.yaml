@@ -11,6 +11,9 @@ spec:
     name: toolhive
   podTemplateSpec:
     spec:
+      resources:
+        requests:
+          memory: 512Mi
       containers:
         - name: mcp
           command:
