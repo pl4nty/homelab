@@ -6,7 +6,7 @@ metadata:
 spec:
   groupRef:
     name: toolhive
-  image: docker.io/library/node:22.22.3-bookworm
+  image: docker.io/library/node:22.23.1-bookworm
   telemetryConfigRef:
     name: toolhive
   podTemplateSpec:
