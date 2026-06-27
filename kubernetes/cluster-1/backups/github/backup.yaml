@@ -43,7 +43,7 @@ spec:
           main:
             image:
               repository: ghcr.io/josegonzalez/python-github-backup
-              tag: 0.62.1
+              tag: 0.63.0
             args:
               - pl4nty
               - --token-fine
