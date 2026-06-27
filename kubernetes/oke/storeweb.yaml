@@ -41,7 +41,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/storeweb
-              tag: edge@sha256:c4c32dfbe46d1a7ca53769aeae4afa70a4c070ed39a89d3fd8d61bce4b0e5702
+              tag: edge@sha256:8aebc8a65e4d22bbf5fa7f0e8b88ac162ce110808affc717ac3c7ded46e5afb9
             env:
               CORECLR_PROFILER_PATH: /otel-auto-instrumentation-dotnet/linux-musl-arm64/OpenTelemetry.AutoInstrumentation.Native.so # TODO support musl-arm64
               OTEL_DOTNET_EXPERIMENTAL_HTTPCLIENT_DISABLE_URL_QUERY_REDACTION: "true"
