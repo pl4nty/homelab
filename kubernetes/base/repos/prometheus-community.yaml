@@ -10,4 +10,4 @@ spec:
     mediaType: 'application/vnd.cncf.helm.chart.content.v1.tar+gzip'
     operation: copy
   ref:
-    tag: 29.0.0
+    tag: 30.0.1
