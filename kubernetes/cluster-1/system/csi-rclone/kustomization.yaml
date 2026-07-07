@@ -11,7 +11,7 @@ resources:
 - config.sops.yaml
 images:
 - name: wunderio/csi-rclone
-  newTag: v3.0.1
+  newTag: v3.1.0
 patches:
 - patch: |-
     - op: add
