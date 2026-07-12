@@ -10,6 +10,7 @@ spec:
   chart:
     spec:
       chart: toolhive-operator
+      version: 0.5.5
       sourceRef:
         kind: HelmRepository
         name: toolhive
