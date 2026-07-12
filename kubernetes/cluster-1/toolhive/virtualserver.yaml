@@ -42,6 +42,8 @@ spec:
   config:
     operational:
       logLevel: debug
+    codeMode:
+      enabled: true
 ---
 apiVersion: toolhive.stacklok.dev/v1beta1
 kind: VirtualMCPServer
@@ -87,6 +89,8 @@ spec:
   config:
     operational:
       logLevel: debug
+    codeMode:
+      enabled: true
     aggregation:
       tools:
         - workload: calendar
