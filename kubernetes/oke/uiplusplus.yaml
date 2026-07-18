@@ -37,7 +37,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/uiplusplus
-              tag: latest@sha256:18266364250513bce43cc51c13dcda36c35886b80ed3d4d1df5c07c34ec65912
+              tag: latest@sha256:5b44383300dd0e8822ee7cf15c0e6f8d813853611e2e90e694e78abb60f32b35
             env:
               SERVER_PORT: 8080
             probes:
