@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kubernetes-mcp
+  namespace: toolhive-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubernetes-mcp
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: kubernetes-mcp
+    namespace: toolhive-system
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: kubernetes
+  namespace: toolhive-system
+spec:
+  groupRef:
+    name: toolhive
+  telemetryConfigRef:
+    name: toolhive
+  image: quay.io/containers/kubernetes_mcp_server:v0.0.65
+  serviceAccount: kubernetes-mcp
