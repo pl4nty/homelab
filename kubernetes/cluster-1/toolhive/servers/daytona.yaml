@@ -1,0 +1,45 @@
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: daytona
+  namespace: toolhive-system
+spec:
+  groupRef:
+    name: toolhive
+  telemetryConfigRef:
+    name: toolhive
+  image: docker.io/library/node:22.23.1-bookworm
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          command:
+            - /bin/sh
+            - -lc
+          args:
+            - |
+              set -eu
+              arch="$(uname -m)"
+              case "$arch" in
+                x86_64) arch=amd64 ;;
+                aarch64) arch=arm64 ;;
+              esac
+              curl -fsSL "https://github.com/daytonaio/daytona/releases/download/${DAYTONA_VERSION}/daytona-linux-${arch}" -o /tmp/daytona
+              chmod +x /tmp/daytona
+              exec /tmp/daytona mcp start
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          env:
+            - name: HOME
+              value: /tmp
+            # renovate: datasource=github-releases depName=daytonaio/daytona
+            - name: DAYTONA_VERSION
+              value: "v0.190.0"
+      volumes:
+        - name: tmp
+          emptyDir: {}
+  secrets:
+    - name: toolhive
+      key: daytona-api-key
+      targetEnvName: DAYTONA_API_KEY
