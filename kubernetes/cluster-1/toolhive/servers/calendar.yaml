@@ -13,3 +13,13 @@ spec:
   image: ghcr.io/obot-platform/microsoft-office-365-mcp/microsoft365-calendar:latest@sha256:ce55b522d86ad2149d5147672579d79dc2741240226aff9a9366534c87928fdb
   transport: streamable-http
   mcpPort: 9000
+  # Image uses a binary at /root
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            runAsNonRoot: false
+            readOnlyRootFilesystem: false

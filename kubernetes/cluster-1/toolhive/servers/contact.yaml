@@ -13,3 +13,13 @@ spec:
   image: ghcr.io/obot-platform/microsoft-office-365-mcp/microsoft365-contact:latest@sha256:fca8305cc678a9f40359e8dadbc314d390a5239af80acfd15b81701316dc75d5
   transport: streamable-http
   mcpPort: 9000
+  # Image uses a binary at /root
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            runAsNonRoot: false
+            readOnlyRootFilesystem: false
