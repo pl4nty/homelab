@@ -37,7 +37,7 @@ spec:
               repository: ghcr.io/sillytavern/sillytavern
               tag: 1.18.0
             env:
-              TZ: "${CONFIG_TZ}"
+              TZ: "${TIMEZONE}"
               SILLYTAVERN_LISTEN: "true"
               SILLYTAVERN_WHITELIST: '["::/0", "0.0.0.0/0"]'
             resources:

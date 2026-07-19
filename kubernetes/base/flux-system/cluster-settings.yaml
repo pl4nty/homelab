@@ -7,3 +7,5 @@ data:
   TIMEZONE: Australia/Canberra
   PUBLIC_DOMAIN: tplant.com.au
   PRIVATE_DOMAIN: tplant.au
+  BOOTSTRAP_CLOUDFLARE_DOMAIN: ""
+  BOOTSTRAP_CLOUDFLARE_EMAIL: ""
