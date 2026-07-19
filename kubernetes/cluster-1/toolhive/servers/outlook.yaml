@@ -20,9 +20,7 @@ spec:
       containers:
         - name: mcp
           args:
-            - "uv"
-            - "run"
-            - "python"
+            - "/app/.venv/bin/python"
             - "-c"
             - |
               import app.client as _c
@@ -45,10 +43,6 @@ spec:
           env:
             - name: HOME
               value: /tmp
-            - name: XDG_CACHE_HOME
-              value: /tmp/.cache
-            - name: UV_CACHE_DIR
-              value: /tmp/.cache/uv
       volumes:
         - name: tmp
           emptyDir: {}
