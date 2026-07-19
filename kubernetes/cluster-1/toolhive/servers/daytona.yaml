@@ -39,6 +39,9 @@ spec:
       volumes:
         - name: tmp
           emptyDir: {}
+  env:
+    - name: DAYTONA_API_URL
+      value: https://app.daytona.io/api
   secrets:
     - name: toolhive
       key: daytona-api-key
