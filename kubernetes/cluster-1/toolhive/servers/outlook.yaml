@@ -13,7 +13,8 @@ spec:
   image: ghcr.io/obot-platform/microsoft-office-365-mcp/outlook:latest@sha256:611982786f492988ec8c5325ca382026d50249088e1cf4314e1498327540a426
   transport: streamable-http
   mcpPort: 9000
-  # Upstream image hardcodes path="/mcp/outlook" but ToolHive proxies to /mcp
+  # Image hardcodes /mcp/outlook but ToolHive proxies to /mcp
+  # Image reads the token from x-forwarded-access-token not Authorization
   podTemplateSpec:
     spec:
       containers:
@@ -23,12 +24,24 @@ spec:
             - "run"
             - "python"
             - "-c"
-            - "import asyncio; from app.main import mcp, setup_server; asyncio.run(setup_server()); mcp.run(transport='streamable-http', host='0.0.0.0', port=9000, path='/mcp')"
+            - |
+              import app.client as _c
+              from fastmcp.server.dependencies import get_http_headers
+              from fastmcp.exceptions import ToolError
+              def _get_access_token():
+                  h = get_http_headers()
+                  t = h.get("x-forwarded-access-token") or ((h.get("authorization") or "").split(" ", 1)[-1] if h.get("authorization") else None)
+                  if not t:
+                      raise ToolError("No access token found in headers, available headers: " + str(h))
+                  return t
+              _c.get_access_token = _get_access_token
+              import asyncio
+              from app.main import mcp, setup_server
+              asyncio.run(setup_server())
+              mcp.run(transport="streamable-http", host="0.0.0.0", port=9000, path="/mcp")
           volumeMounts:
             - name: tmp
               mountPath: /tmp
-            - name: venv
-              mountPath: /app/.venv
           env:
             - name: HOME
               value: /tmp
@@ -38,6 +51,4 @@ spec:
               value: /tmp/.cache/uv
       volumes:
         - name: tmp
-          emptyDir: {}
-        - name: venv
           emptyDir: {}
