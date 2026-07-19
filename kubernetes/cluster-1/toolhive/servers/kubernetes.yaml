@@ -29,3 +29,9 @@ spec:
     name: toolhive
   image: quay.io/containers/kubernetes_mcp_server:v0.0.65
   serviceAccount: kubernetes-mcp
+  transport: streamable-http
+  mcpPort: 8080
+  args:
+    - --port
+    - "8080"
+    - --stateless
