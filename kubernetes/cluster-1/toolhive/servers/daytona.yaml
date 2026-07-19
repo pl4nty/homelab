@@ -24,7 +24,7 @@ spec:
                 x86_64) arch=amd64 ;;
                 aarch64) arch=arm64 ;;
               esac
-              curl -fsSL "https://github.com/daytonaio/daytona/releases/download/$DAYTONA_VERSION/daytona-linux-$arch" -o /tmp/daytona
+              curl -fsSL "https://github.com/daytona/clients/releases/download/$DAYTONA_VERSION/daytona-linux-$arch" -o /tmp/daytona
               chmod +x /tmp/daytona
               exec /tmp/daytona mcp start
           volumeMounts:
@@ -33,9 +33,9 @@ spec:
           env:
             - name: HOME
               value: /tmp
-            # renovate: datasource=github-releases depName=daytonaio/daytona
+            # renovate: datasource=github-releases depName=daytona/clients
             - name: DAYTONA_VERSION
-              value: "v0.190.0"
+              value: "v0.199.0"
       volumes:
         - name: tmp
           emptyDir: {}
