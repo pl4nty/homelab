@@ -89,8 +89,6 @@ spec:
   config:
     operational:
       logLevel: debug
-    codeMode:
-      enabled: true
     aggregation:
       tools:
         - workload: calendar
