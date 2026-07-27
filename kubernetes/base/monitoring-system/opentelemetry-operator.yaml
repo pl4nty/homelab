@@ -41,10 +41,6 @@ spec:
       # https://github.com/open-telemetry/opentelemetry-helm-charts/blob/main/charts/opentelemetry-operator/UPGRADING.md#0553-to-0560
       collectorImage:
         repository: otel/opentelemetry-collector-contrib
-      autoInstrumentationImage:
-        dotnet:
-          repository: ghcr.io/pl4nty/otel-operator-autoinstrumentation-dotnet
-          tag: latest@sha256:358512aab44a8900f0d3aaa8124372ad74ce3cea8b7b3543124dc11f1d073b23
       # disabled by default
       extraArgs:
         - --enable-go-instrumentation=true
