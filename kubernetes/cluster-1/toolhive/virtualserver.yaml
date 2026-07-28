@@ -90,7 +90,21 @@ spec:
     operational:
       logLevel: debug
     aggregation:
+      # vMCP advertises every tool from any workload in the group that isn't
+      # listed below, so unsafe workloads need an explicit excludeAll.
       tools:
+        - workload: amazon-scraper
+          excludeAll: true
+        - workload: daytona
+          excludeAll: true
+        - workload: github
+          excludeAll: true
+        - workload: grafana
+          excludeAll: true
+        - workload: kubernetes
+          excludeAll: true
+        - workload: obsidian
+          excludeAll: true
         - workload: calendar
           filter:
             - get_event_attachments
