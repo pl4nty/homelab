@@ -99,12 +99,6 @@ spec:
           excludeAll: true
         - workload: github
           excludeAll: true
-        - workload: grafana
-          excludeAll: true
-        - workload: kubernetes
-          excludeAll: true
-        - workload: obsidian
-          excludeAll: true
         - workload: calendar
           filter:
             - get_event_attachments
@@ -117,6 +111,93 @@ spec:
           filter:
             - list_contacts
             - get_contact
+        - workload: grafana
+          filter:
+            - analyze_loki_labels
+            - check_datasources_health
+            - find_error_pattern_logs
+            - find_slow_requests
+            - generate_deeplink
+            - get_alert_group
+            - get_annotation_tags
+            - get_annotations
+            - get_assertions
+            - get_current_oncall_users
+            - get_dashboard_by_uid
+            - get_dashboard_panel_queries
+            - get_dashboard_property
+            - get_dashboard_summary
+            - get_datasource
+            - get_incident
+            - get_oncall_shift
+            - get_panel_image
+            - get_plugin
+            - get_sift_analysis
+            - get_sift_investigation
+            - get_snapshot
+            - list_alert_groups
+            - list_datasources
+            - list_incidents
+            - list_loki_label_names
+            - list_loki_label_values
+            - list_oncall_schedules
+            - list_oncall_teams
+            - list_oncall_users
+            - list_prometheus_label_names
+            - list_prometheus_label_values
+            - list_prometheus_metric_metadata
+            - list_prometheus_metric_names
+            - list_provisioning_repositories
+            - list_pyroscope_label_names
+            - list_pyroscope_label_values
+            - list_pyroscope_profile_types
+            - list_sift_investigations
+            - list_snapshots
+            - query_loki_logs
+            - query_loki_patterns
+            - query_loki_stats
+            - query_prometheus
+            - query_prometheus_histogram
+            - query_pyroscope
+            - search_dashboards
+            - search_folders
+            - search_plugin_information
+            - suggest_loki_alloy_label_config
+            - tempo_docs-config
+            - tempo_docs-traceql
+            - tempo_get-attribute-names
+            - tempo_get-attribute-values
+            - tempo_get-trace
+            - tempo_traceql-metrics-instant
+            - tempo_traceql-metrics-range
+            - tempo_traceql-search
+            - validate_provisioning_file
+        - workload: kubernetes
+          filter:
+            - configuration_view
+            - events_list
+            - namespaces_list
+            - nodes_log
+            - nodes_stats_summary
+            - nodes_top
+            - pods_get
+            - pods_list
+            - pods_list_in_namespace
+            - pods_log
+            - pods_top
+            - projects_list
+            - resources_get
+            - resources_list
+        - workload: obsidian
+          filter:
+            - get_frontmatter
+            - get_notes_info
+            - get_vault_stats
+            - list_all_tags
+            - list_directory
+            - read_multiple_notes
+            - read_note
+            - search_notes
         - workload: onedrive
           filter:
             - get_drive
