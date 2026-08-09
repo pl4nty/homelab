@@ -37,7 +37,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/flat-viewer
-              tag: latest
+              tag: latest@sha256:05b26cdb371330a8a5f075ee6aacc2a788cc1da05052dcea9821c020dda91ee3
             probes:
               liveness:
                 enabled: true
