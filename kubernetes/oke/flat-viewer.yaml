@@ -57,7 +57,7 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - flat.${PUBLIC_DOMAIN}
+          - flatgithub.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
               - name: flat-viewer
