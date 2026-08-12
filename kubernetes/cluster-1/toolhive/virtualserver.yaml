@@ -90,15 +90,11 @@ spec:
     operational:
       logLevel: debug
     aggregation:
-      # vMCP advertises every tool from any workload in the group that isn't
-      # listed below, so unsafe workloads need an explicit excludeAll.
+      # defaultToolVisibility: deny means any workload in the group with no
+      # entry below contributes no tools, so unsafe workloads just stay
+      # unlisted instead of needing an explicit excludeAll.
+      defaultToolVisibility: deny
       tools:
-        - workload: amazon-scraper
-          excludeAll: true
-        - workload: daytona
-          excludeAll: true
-        - workload: github
-          excludeAll: true
         - workload: calendar
           filter:
             - get_event_attachments
