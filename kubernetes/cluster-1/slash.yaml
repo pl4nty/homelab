@@ -34,7 +34,7 @@ spec:
           main:
             image:
               repository: yourselfhosted/slash
-              tag: 1.0.0-rc.0
+              tag: 1.0.0-rc.0@sha256:5bf4fe1b8a3cee002212815b95e897ecec590cb7fb503c04bb99bf9e4d06447b
             probes:
               liveness:
                 enabled: true
