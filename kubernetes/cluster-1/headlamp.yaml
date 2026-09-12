@@ -25,7 +25,7 @@ spec:
     initContainers:
       # default image is amd64-only, and nodeSelector isn't available
       # ghcr.io/headlamp-k8s/headlamp-plugin-flux:v0.2.0
-      - image: iotops/headlamp-plugin-flux:latest
+      - image: iotops/headlamp-plugin-flux:latest@sha256:bcfbfe6257c3367669847ada2017ebac593004afbd9e92c9ce5796675920ef2e
         command:
           - /bin/sh
           - -c
