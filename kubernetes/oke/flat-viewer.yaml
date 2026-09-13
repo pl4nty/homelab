@@ -5,26 +5,9 @@ metadata:
   name: flat-viewer
   namespace: default
 spec:
-  interval: 15m
-  chart:
-    spec:
-      chart: app-template
-      version: 5.0.1
-      sourceRef:
-        kind: HelmRepository
-        name: bjw-s
-        namespace: flux-system
-  maxHistory: 3
-  install:
-    createNamespace: true
-    remediation:
-      retries: 3
-  upgrade:
-    cleanupOnFail: true
-    remediation:
-      retries: 3
-  uninstall:
-    keepHistory: false
+  chartRef:
+    kind: OCIRepository
+    name: app-template
   values:
     global:
       createDefaultServiceAccount: false
