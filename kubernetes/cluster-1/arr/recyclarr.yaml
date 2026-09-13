@@ -73,13 +73,19 @@ spec:
     configMaps:
       config-file:
         data:
-          # TRaSH Guides [Anime] Remux-1080p, per recyclarr/config-templates
-          # no $schema comment here - flux postBuild would substitute it away
           recyclarr.yml: |-
             sonarr:
               anime:
                 base_url: http://sonarr:8989
                 api_key: !env_var SONARR_API_KEY
+                media_naming:
+                  series: jellyfin-tvdb
+                  season: default
+                  episodes:
+                    rename: true
+                    standard: default
+                    daily: default
+                    anime: default
                 quality_definition:
                   type: anime
                 quality_profiles:
