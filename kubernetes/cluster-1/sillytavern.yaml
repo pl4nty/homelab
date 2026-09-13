@@ -6,6 +6,7 @@ metadata:
   name: &app sillytavern
   namespace: default
 spec:
+  interval: 1h
   chartRef:
     kind: OCIRepository
     name: app-template

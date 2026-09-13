@@ -12,13 +12,16 @@ spec:
     kind: GitRepository
     name: home-kubernetes
   patches:
+  # release defaults, hoisted out of every HelmRelease. scoped to the default
+  # namespace so longhorn, toolhive and kube-arch-scheduler keep their own.
+  # spec.interval stays per-release: it is a required field, so a HelmRelease
+  # without one fails the API dry-run before any patch is applied
   - patch: |-
       apiVersion: helm.toolkit.fluxcd.io/v2
       kind: HelmRelease
       metadata:
         name: not-used
       spec:
-        interval: 15m
         maxHistory: 3
         install:
           createNamespace: true

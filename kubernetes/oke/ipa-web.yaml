@@ -5,6 +5,7 @@ metadata:
   name: ipa-web
   namespace: default
 spec:
+  interval: 15m
   chartRef:
     kind: OCIRepository
     name: app-template

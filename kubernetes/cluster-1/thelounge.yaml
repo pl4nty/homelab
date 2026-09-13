@@ -5,6 +5,7 @@ metadata:
   name: &app thelounge
   namespace: default
 spec:
+  interval: 1h
   chartRef:
     kind: OCIRepository
     name: app-template

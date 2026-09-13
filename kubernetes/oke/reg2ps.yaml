@@ -5,6 +5,7 @@ metadata:
   name: reg2ps
   namespace: default
 spec:
+  interval: 15m
   chartRef:
     kind: OCIRepository
     name: app-template
