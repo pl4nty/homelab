@@ -26,9 +26,9 @@ spec:
               QBT_TORRENTING_PORT: 50414
               # save paths as config rather than a UI click, so a rebuilt
               # instance lands in the right place on the shared volume
-              QBT_BitTorrent__Session__DefaultSavePath: /media/downloads
-              QBT_BitTorrent__Session__TempPath: /media/downloads/incomplete
-              QBT_BitTorrent__Session__TempPathEnabled: "true"
+              QBT_BitTorrent__Session__DefaultSavePath: /data/torrents/shows
+              # the layout has no torrents/incomplete - partials stay in place
+              QBT_BitTorrent__Session__TempPathEnabled: "false"
             probes:
               liveness:
                 enabled: true
@@ -92,4 +92,4 @@ spec:
       media:
         existingClaim: media
         globalMounts:
-          - path: /media
+          - path: /data

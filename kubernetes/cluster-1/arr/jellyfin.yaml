@@ -88,5 +88,5 @@ spec:
       media:
         existingClaim: media
         globalMounts:
-          - path: /media
+          - path: /data
             readOnly: true

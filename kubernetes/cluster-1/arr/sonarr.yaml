@@ -16,7 +16,7 @@ spec:
       sonarr:
         containers:
           app:
-            image:
+            image: &image
               repository: ghcr.io/home-operations/sonarr
               tag: 4.0.20
             env:
@@ -50,6 +50,25 @@ spec:
                   timeoutSeconds: 1
                   failureThreshold: 3
               readiness: *probes
+        initContainers:
+          init-layout:
+            image: *image
+            command:
+              - /bin/sh
+              - -c
+              - >-
+                mkdir -p
+                /data/torrents/books /data/torrents/movies
+                /data/torrents/music /data/torrents/shows
+                /data/usenet/incomplete
+                /data/usenet/complete/books /data/usenet/complete/movies
+                /data/usenet/complete/music /data/usenet/complete/shows
+                /data/media/books /data/media/movies
+                /data/media/music /data/media/shows
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
         pod:
           securityContext:
             runAsNonRoot: true
@@ -101,4 +120,4 @@ spec:
       media:
         existingClaim: media
         globalMounts:
-          - path: /media
+          - path: /data
