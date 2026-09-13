@@ -1,0 +1,111 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app qbittorrent
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: 5.0.1
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    global:
+      createDefaultServiceAccount: false
+    controllers:
+      qbittorrent:
+        containers:
+          app:
+            image:
+              repository: ghcr.io/home-operations/qbittorrent
+              tag: 5.2.3
+            env:
+              TZ: ${TIMEZONE}
+              QBT_WEBUI_PORT: &port 80
+              # qbittorrent-private holds 50413
+              QBT_TORRENTING_PORT: 50414
+              # save paths as config rather than a UI click, so a rebuilt
+              # instance lands in the right place on the shared volume
+              QBT_BitTorrent__Session__DefaultSavePath: /media/downloads
+              QBT_BitTorrent__Session__TempPath: /media/downloads/incomplete
+              QBT_BitTorrent__Session__TempPathEnabled: "true"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 10
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                memory: 2Gi
+        pod:
+          securityContext:
+            runAsUser: 568
+            runAsGroup: 568
+            fsGroup: 568
+            fsGroupChangePolicy: OnRootMismatch
+          # media is strict-local, so follow jellyfin to its node
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchExpressions:
+                      - key: app.kubernetes.io/instance
+                        operator: In
+                        values:
+                          - jellyfin
+                  topologyKey: kubernetes.io/hostname
+    service:
+      app:
+        controller: *app
+        ports:
+          http:
+            port: *port
+    route:
+      app:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - qb.${PRIVATE_DOMAIN}
+        rules:
+          - backendRefs:
+              - name: *app
+                port: *port
+    persistence:
+      config:
+        accessMode: ReadWriteOnce
+        size: 1Gi
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 256Mi
+        globalMounts:
+          - path: /tmp
+      media:
+        existingClaim: media
+        globalMounts:
+          - path: /media

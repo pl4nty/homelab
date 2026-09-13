@@ -1,0 +1,24 @@
+kind: Secret
+apiVersion: v1
+metadata:
+  name: arr
+  namespace: default
+type: Opaque
+stringData:
+  SONARR_API_KEY: ENC[AES256_GCM,data:KTfcVdD2tQlWoQ4mRFOq85m9T7sjgpg4XTBthF8xHSo=,iv:SNcxwceBcc1nfgoEkLLFjfvnEE9CedVRG4vGSAHgVMY=,tag:VKwz/ZDtZaqEQA2QjkccAQ==,type:str]
+  PROWLARR_API_KEY: ENC[AES256_GCM,data:biYJMO2vOgBc1CVfugTj2ehXUK3MSgnHCut002mbb+4=,iv:Suj7hKYF/m+cIDmNsjX7A7t+yNVAITCCU8yx5AQeQqA=,tag:edyoC+7SxInUD8DJ2aekeg==,type:str]
+sops:
+  age:
+    - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBkUEwvK2haRTc3eVBhTFQ3
+        K2owNGpRelYrc3hSMklwdTYyT1IyajFDemdRClgvblU4ZlF0NXIxbW1GcHJBMUhY
+        Zk80elErYWJYcG9naHdzV1FpYXdCa2sKLS0tIGdNb0thdytWY0NubDlMOFBWSits
+        cGdCU0xaNDNqamJUbFlyYzR5QUdtQ0EKa/peKOceXZU7SE1yb0by5IM/O6nNdKYZ
+        QOJnpXp7UdUCJw6QzPyqLILSiJ5yviPuxeRFNzTo159M3limJfVxVg==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2026-09-13T06:19:58Z"
+  mac: ENC[AES256_GCM,data:kT4iTeYPgaHSVFWy+qoutYbeQtR7YN8Hf/YYkKwA7JXmTLVMku8o8Yjh7P17XHJhS+HXCKwOtn0CSTXBqUBXVhrG5uWgMjBKhS2BFMlcb86xXvMRyz8eJb2NjAhJkC5SRZxsxDtHFXEuR7hzWzCMtyBK1plz+XbJGlmqIMvc0Nc=,iv:2occwkE/oYHrWm4XOH+L6Utg0XbDBM61SMNMBFo78eo=,tag:RSuFhnCj01T4ZQoziAtcFA==,type:str]
+  encrypted_regex: ^(data|stringData)$
+  version: 3.12.2

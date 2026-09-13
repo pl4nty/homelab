@@ -1,0 +1,104 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: recyclarr
+  namespace: default
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: app-template
+      version: 5.0.1
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    global:
+      createDefaultServiceAccount: false
+    controllers:
+      recyclarr:
+        type: cronjob
+        cronjob:
+          schedule: 0 3 * * *
+          concurrencyPolicy: Forbid
+          successfulJobsHistory: 1
+          failedJobsHistory: 1
+          backoffLimit: 2
+        containers:
+          app:
+            image:
+              repository: ghcr.io/recyclarr/recyclarr
+              tag: 8.7.2
+            args:
+              - sync
+            env:
+              TZ: ${TIMEZONE}
+              # .NET writes diagnostic pipes to /tmp, which trips readOnlyRootFilesystem
+              COMPlus_EnableDiagnostics: "0"
+              SONARR_API_KEY:
+                secretKeyRef:
+                  name: arr
+                  key: SONARR_API_KEY
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                memory: 512Mi
+        pod:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 568
+            runAsGroup: 568
+            fsGroup: 568
+            fsGroupChangePolicy: OnRootMismatch
+            seccompProfile: { type: RuntimeDefault }
+    persistence:
+      # recyclarr clones the TRaSH guides in here on every run
+      config:
+        accessMode: ReadWriteOnce
+        size: 2Gi
+        storageClass: longhorn-local
+        globalMounts:
+          - path: /config
+      config-file:
+        type: configMap
+        name: "{{ .Release.Name }}"
+        globalMounts:
+          - path: /config/recyclarr.yml
+            subPath: recyclarr.yml
+            readOnly: true
+    configMaps:
+      config-file:
+        data:
+          # TRaSH Guides [Anime] Remux-1080p, per recyclarr/config-templates
+          # no $schema comment here - flux postBuild would substitute it away
+          recyclarr.yml: |-
+            sonarr:
+              anime:
+                base_url: http://sonarr:8989
+                api_key: !env_var SONARR_API_KEY
+                quality_definition:
+                  type: anime
+                quality_profiles:
+                  - trash_id: 20e0fc959f1f1704bed501f23bdae76f # [Anime] Remux-1080p
+                    reset_unmatched_scores:
+                      enabled: true

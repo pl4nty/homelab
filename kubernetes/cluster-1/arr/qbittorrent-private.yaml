@@ -2,7 +2,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: qbittorrent
+  name: qbittorrent-private
   namespace: default
 spec:
   interval: 15m
@@ -29,7 +29,7 @@ spec:
     global:
       createDefaultServiceAccount: false
     controllers:
-      qbittorrent:
+      qbittorrent-private:
         pod:
           # shared volume
           affinity:
@@ -85,7 +85,7 @@ spec:
     #     seccompProfile: { type: RuntimeDefault }
     service:
       main:
-        controller: qbittorrent
+        controller: qbittorrent-private
         # type: LoadBalancer
         ports:
           http:
@@ -100,10 +100,10 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - qb.${PRIVATE_DOMAIN}
+          - qb-private.${PRIVATE_DOMAIN}
         rules:
           - backendRefs:
-              - name: qbittorrent
+              - name: qbittorrent-private
                 port: *port
     persistence:
       config:

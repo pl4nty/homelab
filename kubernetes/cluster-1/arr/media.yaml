@@ -1,0 +1,16 @@
+# shared by jellyfin and the arr stack, so imports are hardlinks rather than copies.
+# longhorn-local is strict-local, so every pod mounting this has to land on the same
+# node - jellyfin is the anchor (RKMPP pins it to the RK3588 node) and the rest use
+# podAffinity to follow it
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn-local
+  resources:
+    requests:
+      storage: 32Gi

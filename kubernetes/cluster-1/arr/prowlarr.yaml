@@ -41,12 +41,19 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/onedr0p/prowlarr-develop
-              tag: 1.32.2.4987@sha256:f3c0edbd19d744c8306ae8f72e75f0fb54ff662e9f7b22a4d9029e5c0b7f075c
+              repository: ghcr.io/home-operations/prowlarr
+              tag: 2.6.4
             env:
+              TZ: ${TIMEZONE}
+              # .NET writes diagnostic pipes to /tmp, which trips readOnlyRootFilesystem
+              COMPlus_EnableDiagnostics: "0"
               PROWLARR__AUTH__METHOD: External
               PROWLARR__AUTH__REQUIRED: DisabledForLocalAddresses
-              # PROWLARR__API_KEY
+              # pinned so a rebuilt instance keeps the same key
+              PROWLARR__AUTH__APIKEY:
+                secretKeyRef:
+                  name: arr
+                  key: PROWLARR_API_KEY
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
@@ -64,12 +71,12 @@ spec:
                   timeoutSeconds: 1
                   failureThreshold: 3
               readiness: *probes
-            # resources:
-            #   requests:
-            #     cpu: 100m
-            #     memory: 600Mi
-            #   limits:
-            #     memory: 1Gi
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                memory: 1Gi
     service:
       main:
         controller: prowlarr
@@ -91,3 +98,9 @@ spec:
       config:
         accessMode: ReadWriteOnce
         size: 4Gi
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 256Mi
+        globalMounts:
+          - path: /tmp
