@@ -37,7 +37,6 @@ spec:
               tag: "12.0"
             env:
               TZ: ${TIMEZONE}
-              JELLYFIN_PublishedServerUrl: http://jellyfin.local:8096
             securityContext:
               # RKMPP needs the VPU device nodes and an unmasked /sys/firmware to read
               # the device tree - privileged is the only way to get both in Kubernetes
@@ -77,12 +76,11 @@ spec:
     service:
       app:
         controller: *app
-        type: LoadBalancer
-        annotations:
-          external-mdns.blakecovarrubias.com/hostnames: *app
+        type: NodePort
         ports:
           http:
             port: *port
+            nodePort: 30096
     persistence:
       config:
         accessMode: ReadWriteOnce
