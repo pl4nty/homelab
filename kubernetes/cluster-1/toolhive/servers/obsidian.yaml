@@ -8,7 +8,7 @@ spec:
     name: toolhive
   telemetryConfigRef:
     name: toolhive
-  image: docker.io/library/node:22.23.1-bookworm
+  image: docker.io/library/node:22.23.3-bookworm@sha256:363e1587494626837fa7f9a23bdb453d13b0ff3c67c705c2805cfc69c2d2fad7
   podTemplateSpec:
     spec:
       containers:
@@ -24,7 +24,7 @@ spec:
             - name: vault
               mountPath: /vault
         - name: sync
-          image: docker.io/library/node:22.23.1-bookworm
+          image: docker.io/library/node:22.23.3-bookworm@sha256:363e1587494626837fa7f9a23bdb453d13b0ff3c67c705c2805cfc69c2d2fad7
           command:
             - /bin/sh
             - -lc
