@@ -75,7 +75,7 @@ spec:
           main:
             image:
               repository: docker.io/library/mongo
-              tag: 7.0.37-jammy
+              tag: 7.0.41-jammy@sha256:52ba5332636758f2375228827d5cf7460e25c02063ba19c243e5d262cf4e7924
             probes: *probes
     service:
       main:
