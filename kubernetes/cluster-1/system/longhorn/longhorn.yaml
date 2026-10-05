@@ -21,6 +21,7 @@ spec:
     timeout: 15m
   upgrade:
     cleanupOnFail: true
+    timeout: 15m
     remediation:
       retries: 3
   uninstall:
@@ -52,12 +53,6 @@ spec:
     #     node.longhorn.io/create-default-disk: config
     longhornUI:
       replicas: 1
-    image:
-      longhorn:
-        instanceManager:
-          tag: v1.11.0-hotfix-1
-        manager:
-          tag: v1.11.0-hotfix-1
     preUpgradeChecker:
       upgradeVersionCheck: false
 
