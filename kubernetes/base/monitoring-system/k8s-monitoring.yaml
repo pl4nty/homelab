@@ -116,7 +116,10 @@ spec:
       collector: alloy-singleton
     # journald isn't available on Talos
     # nodeLogs:
-    podLogsViaKubernetesApi:
+    # read /var/log/pods on each node. Streaming via the kubernetes API holds a kubelet
+    # inotify instance per container, which exhausted the limit on OKE and replaced
+    # pod logs with "failed to create fsnotify watcher: too many open files"
+    podLogsViaLoki:
       enabled: true
       collector: alloy-logs
     applicationObservability:
@@ -151,8 +154,8 @@ spec:
           - singleton
       alloy-logs:
         presets:
-          # daemonset isn't necessary without nodeLogs
-          - deployment
+          - daemonset
+          - filesystem-log-reader
         alloy:
           extraPorts:
             - name: tcplog
