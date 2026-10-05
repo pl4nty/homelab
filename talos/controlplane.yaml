@@ -195,7 +195,9 @@ machine:
         #     - image: ghcr.io/siderolabs/gvisor:20220117.0-v1.0.0 # System extension image.
     # Used to configure the machine's sysctls.
     sysctls:
-        vm.nr_hugepages: "1664"
+        # no hugepages on the control plane: they're unswappable and starved etcd/apiserver
+        # (mayastor, which needed them, is archived; cnpg pods schedule on workers)
+        vm.nr_hugepages: "0"
     # Features describe individual Talos features that can be switched on or off.
     features:
         # Enable role-based access control (RBAC).
