@@ -43,6 +43,14 @@ machine:
         defaultRuntimeSeccompProfileEnabled: true
         # The `disableManifestsDirectory` field configures the kubelet to get static pod manifests from the /etc/kubernetes/manifests directory.
         disableManifestsDirectory: true
+        # etcd runs outside kubelet accounting, so reserve more for it (talos default 512Mi).
+        # setting systemReserved replaces all of talos' defaults, so keep the other keys
+        extraConfig:
+            systemReserved:
+                cpu: 50m
+                memory: 1Gi
+                pid: "100"
+                ephemeral-storage: 256Mi
         # # The `ClusterDNS` field is an optional reference to an alternative kubelet clusterDNS ip list.
         # clusterDNS:
         #     - 10.96.0.10
