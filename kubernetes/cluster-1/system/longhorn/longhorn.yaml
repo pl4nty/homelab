@@ -46,6 +46,8 @@ spec:
       v1DataEngine: true
       v2DataEngine: false
       backupstorePollInterval: 0 # only used by DR volumes not backups, expensive S3 list calls
+      # upgrade volumes to the default engine image so old engine-image daemonsets can be removed
+      concurrentAutomaticEngineUpgradePerNodeLimit: 1
     # this also applies to engines :(
     # longhornManager:
     #   nodeSelector:
