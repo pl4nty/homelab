@@ -21,7 +21,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/devx-api
-              tag: latest
+              tag: latest@sha256:862ba9dd8c123720729e59a20ff1575b714c2453c34bd7962b7d34355e1a103b
             probes:
               liveness:
                 enabled: true
