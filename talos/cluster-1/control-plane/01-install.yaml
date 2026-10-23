@@ -1,0 +1,5 @@
+machine:
+  install:
+    disk: /dev/nvme0n1
+    extraKernelArgs:
+      - talos.logging.kernel=tcp://k8s-monitoring-alloy-logs.monitoring-system.svc:5044/

@@ -1,0 +1,5 @@
+machine:
+  logging:
+    destinations:
+      - endpoint: tcp://k8s-monitoring-alloy-logs.monitoring-system.svc:5044/
+        format: json_lines

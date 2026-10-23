@@ -1,0 +1,23 @@
+# Rendered and applied with topf (https://github.com/postfinance/topf), see README.md
+clusterName: cluster-1
+clusterEndpoint: https://192.168.1.131:6443
+kubernetesVersion: 1.34.2
+talosVersion: 1.11.1
+schematicId: "@schematics/metal.yaml"
+
+# secrets.yaml is the talosctl secrets bundle, SOPS-encrypted (see .sops.yaml)
+
+nodes:
+  - host: talos-ivx-yqq
+    ip: 192.168.1.131
+    role: control-plane
+  # Turing RK1 (RK3588)
+  - host: talos-d04-4hs
+    ip: 192.168.1.133
+    role: worker
+    schematicId: "@schematics/turingrk1.yaml"
+  - host: talos-uj3-t5w
+    ip: 192.168.1.134
+    role: worker
+    schematicId: "@schematics/turingrk1.yaml"
+  # talos-ipn-zif (riscv64) runs a custom Talos build and isn't managed here

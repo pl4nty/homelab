@@ -1,0 +1,4 @@
+# topf render output, talosconfig and kubeconfig contain key material
+/output/
+talosconfig
+kubeconfig
