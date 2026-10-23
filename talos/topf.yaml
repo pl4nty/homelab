@@ -1,0 +1,22 @@
+# cluster-1 Talos config, rendered and applied with topf (https://github.com/postfinance/topf)
+#   topf apply --dry-run   # diff against live nodes
+#   topf apply             # config changes
+#   topf upgrade           # talosVersion or schematic changes
+# patches: all/cluster-1.yaml.tpl. secrets.yaml: `talosctl gen secrets` bundle, SOPS-encrypted
+clusterName: cluster-1
+clusterEndpoint: https://192.168.1.131:6443
+kubernetesVersion: 1.34.2
+talosVersion: 1.11.1
+# per-node: workers are Turing RK1 and need the rockchip overlay
+schematicId: "@schematic.yaml.tpl"
+
+nodes:
+  - host: talos-ivx-yqq
+    ip: 192.168.1.131
+    role: control-plane
+  - host: talos-d04-4hs
+    ip: 192.168.1.133
+    role: worker
+  - host: talos-uj3-t5w
+    ip: 192.168.1.134
+    role: worker
