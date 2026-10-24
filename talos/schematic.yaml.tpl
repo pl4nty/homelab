@@ -1,5 +1,5 @@
-{{- if eq .Node.Role "worker" }}
-# workers are Turing RK1 (RK3588)
+{{- /* riscv nodes don't use Image Factory: their installer is set in all/cluster-1.yaml.tpl */ -}}
+{{- if eq .Node.Data.hw "rk1" }}
 overlay:
   image: siderolabs/sbc-rockchip
   name: turingrk1

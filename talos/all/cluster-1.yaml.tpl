@@ -1,28 +1,45 @@
-# Only non-default settings. Role-specific blocks are templated, so that the whole
-# cluster is one patch. Workers are all Turing RK1: OS on eMMC, data on NVMe.
+# Only non-default settings. Hardware-specific blocks are keyed on .Node.Data.hw
+# (see topf.yaml), role-specific blocks on .Node.Role, so a node can change role
+# without changing hardware config.
+{{- $hw := .Node.Data.hw }}
 {{- $cp := eq .Node.Role "control-plane" }}
-{{- $logs := ternary "tcp://k8s-monitoring-alloy-logs.monitoring-system.svc:5044/" "tcp://192.168.1.131:30544" $cp }}
+{{- /* kernel logs ship before cluster DNS is up, so non-CP nodes use the alloy NodePort on the cluster endpoint */ -}}
+{{- $logs := printf "tcp://%s:30544" (urlParse .ClusterEndpoint).hostname }}
+{{- if $cp }}{{ $logs = "tcp://k8s-monitoring-alloy-logs.monitoring-system.svc:5044/" }}{{ end }}
 machine:
   install:
-{{- if $cp }}
+{{- if eq $hw "nuc" }}
     disk: /dev/nvme0n1
-{{- else }}
+{{- else if eq $hw "rk1" }}
     diskSelector:
       size: <= 100GB
+{{- else if eq $hw "riscv" }}
+{{- if not (and (hasKey .Node.Data "installer") (hasKey .Node.Data "installDisk")) }}{{ fail "riscv nodes need data.installer and data.installDisk" }}{{ end }}
+    image: {{ .Node.Data.installer }}
+    disk: {{ .Node.Data.installDisk }}
+{{- else }}{{ fail (printf "%s: unknown data.hw %q" .Node.Host $hw) }}
 {{- end }}
     extraKernelArgs:
       - talos.logging.kernel={{ $logs }}
-{{- if not $cp }}
+{{- if eq $hw "rk1" }}
   disks:
     - device: /dev/nvme0n1
       partitions:
         - mountpoint: /var/mnt/nvme0n1
+{{- end }}
+{{- if eq $hw "riscv" }}
+  # most images have no riscv64 build
+  nodeTaints:
+    kubernetes.io/arch: riscv64:NoSchedule
 {{- end }}
   logging:
     destinations:
       - endpoint: {{ $logs }}
         format: json_lines
   kubelet:
+{{- if hasKey .Node.Data "kubeletImage" }}
+    image: {{ .Node.Data.kubeletImage }}
+{{- end }}
     extraArgs:
       rotate-server-certificates: "true"
     extraMounts:
@@ -44,13 +61,12 @@ machine:
         ephemeral-storage: 256Mi
 {{- end }}
   sysctls:
-{{- if $cp }}
-    # no hugepages on the control plane: they're unswappable and starved etcd/apiserver
-    # (mayastor, which needed them, is archived; cnpg pods schedule on workers)
-    vm.nr_hugepages: "0"
-{{- else }}
+{{- if eq $hw "rk1" }}
     # 512Mi for cnpg pods (100Mi hugepages-2Mi each), previously 3Gi for mayastor (archived)
     vm.nr_hugepages: "256"
+{{- else }}
+    # none on the 8GiB nuc (they're unswappable and starved etcd/apiserver) or riscv boards
+    vm.nr_hugepages: "0"
 {{- end }}
 {{- if $cp }}
 cluster:
