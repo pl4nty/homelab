@@ -1,0 +1,38 @@
+# cluster-1 Talos config, rendered and applied with topf (https://github.com/postfinance/topf)
+#   topf apply --dry-run   # diff against live nodes
+#   topf apply             # config changes
+#   topf upgrade           # talosVersion or schematic changes
+# Patches: all/cluster-1.yaml.tpl, keyed on role and on data.hw. Schematic: schematic.yaml.tpl.
+# secrets.yaml: `talosctl gen secrets` bundle, SOPS-encrypted. Import it from the live CP, never generate it.
+clusterName: cluster-1
+clusterEndpoint: https://192.168.1.131:6443
+kubernetesVersion: 1.34.2
+talosVersion: 1.11.1
+schematicId: "@schematic.yaml.tpl"
+
+# data.hw is the hardware type, independent of role:
+#   nuc    Intel NUC (amd64), OS on NVMe
+#   rk1    Turing RK1 (arm64), OS on eMMC, data on NVMe
+#   riscv  riscv64 board on the pl4nty/talos fork: no Image Factory, so set
+#          data.installer, data.installDisk and (optionally) data.kubeletImage
+nodes:
+  - host: talos-ivx-yqq
+    ip: 192.168.1.131
+    role: control-plane
+    data: {hw: nuc}
+  - host: talos-d04-4hs
+    ip: 192.168.1.133
+    role: worker
+    data: {hw: rk1}
+  - host: talos-uj3-t5w
+    ip: 192.168.1.134
+    role: worker
+    data: {hw: rk1}
+  # - host: <riscv-host>
+  #   ip: <ip>
+  #   role: worker
+  #   talosVersion: <fork version>
+  #   data:
+  #     hw: riscv
+  #     installer: ghcr.io/pl4nty/installer:<tag>
+  #     installDisk: /dev/mmcblk0
