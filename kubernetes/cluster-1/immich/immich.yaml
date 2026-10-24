@@ -1,0 +1,191 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: immich
+  namespace: default
+spec:
+  interval: 15m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    global:
+      createDefaultServiceAccount: false
+    defaultPodOptions:
+      # keep off the 8GiB amd64 control plane node
+      nodeSelector:
+        kubernetes.io/arch: arm64
+    controllers:
+      main:
+        # RWO library volume can't attach to two nodes during a rollout
+        strategy: Recreate
+        containers:
+          main:
+            image:
+              repository: ghcr.io/immich-app/immich-server
+              tag: v3.3.5@sha256:485d546a2e31d6a8b4db8423fcba5c109de8c218d93410af115fd1ccfc4352a6
+            env:
+              TZ: ${TIMEZONE}
+              IMMICH_CONFIG_FILE: /config/immich.yaml
+              # TODO set to "false" once the admin account exists, otherwise anyone can claim it
+              IMMICH_ALLOW_SETUP: "true"
+              DB_HOSTNAME: immich-cnpg-rw
+              DB_DATABASE_NAME: immich
+              DB_USERNAME:
+                secretKeyRef:
+                  name: immich-cnpg-superuser
+                  key: username
+              DB_PASSWORD:
+                secretKeyRef:
+                  name: immich-cnpg-superuser
+                  key: password
+              DB_VECTOR_EXTENSION: vectorchord
+              REDIS_HOSTNAME: immich-valkey
+            probes: &probes
+              liveness: &probe
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/server/ping
+                    port: &port 2283
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+              readiness: *probe
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/server/ping
+                    port: *port
+                  periodSeconds: 10
+                  failureThreshold: 30
+            resources:
+              requests:
+                cpu: 50m
+                memory: 256Mi
+              limits:
+                memory: 1Gi
+                ephemeral-storage: 500Mi
+      valkey:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: 0
+        containers:
+          main:
+            image:
+              repository: docker.io/valkey/valkey
+              tag: 9.1.2-alpine@sha256:48332870af354a799964c0012ae1194a0bf2bf894eb508f945810596dc2d8d11
+            # only used for the job queue
+            args:
+              - --save
+              - ""
+              - --appendonly
+              - "no"
+              - --maxmemory
+              - 48mb
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+            resources:
+              requests:
+                cpu: 10m
+                memory: 16Mi
+              limits:
+                memory: 64Mi
+    service:
+      main:
+        controller: main
+        primary: true
+        ports:
+          http:
+            port: *port
+      valkey:
+        controller: valkey
+        ports:
+          redis:
+            port: 6379
+    configMaps:
+      config:
+        data:
+          # setting IMMICH_CONFIG_FILE makes admin settings read-only in the UI
+          immich.yaml: |
+            server:
+              externalDomain: https://stickers.${PUBLIC_DOMAIN}
+              publicUsers: false
+            newVersionCheck:
+              enabled: false
+            passwordLogin:
+              enabled: true
+            oauth:
+              enabled: false
+            # no ML pod, saves ~1-2GiB
+            machineLearning:
+              enabled: false
+            # geodata import and map tiles aren't useful for stickers
+            reverseGeocoding:
+              enabled: false
+            map:
+              enabled: false
+            # pg_dumpall duplicates CNPG backups
+            backup:
+              database:
+                enabled: false
+            library:
+              scan:
+                enabled: false
+            image:
+              # keep transparency
+              preview:
+                format: webp
+            job:
+              thumbnailGeneration:
+                concurrency: 1
+              metadataExtraction:
+                concurrency: 2
+              backgroundTask:
+                concurrency: 2
+              search:
+                concurrency: 2
+              sidecar:
+                concurrency: 1
+              library:
+                concurrency: 1
+              migration:
+                concurrency: 1
+              notifications:
+                concurrency: 1
+              videoConversion:
+                concurrency: 1
+    persistence:
+      config:
+        type: configMap
+        identifier: config
+        advancedMounts:
+          main:
+            main:
+              - path: /config
+                readOnly: true
+      library:
+        accessMode: ReadWriteOnce
+        size: 10Gi
+        advancedMounts:
+          main:
+            main:
+              - path: /data
+    route:
+      main:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - stickers.${PUBLIC_DOMAIN}
+        rules:
+          - backendRefs:
+              - identifier: main
+                port: *port

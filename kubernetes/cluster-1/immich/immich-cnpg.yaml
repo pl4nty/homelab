@@ -1,0 +1,69 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: immich-cnpg
+  namespace: default
+spec:
+  instances: 1
+  storage:
+    size: 2Gi
+    storageClass: longhorn-local
+  # VectorChord is required since immich v3 dropped pgvecto.rs
+  imageName: ghcr.io/tensorchord/cloudnative-vectorchord:17.11-1.1.1@sha256:bb7eb8442f76b1e74911f28585019a77022911f8cfa2ddcfb166ea6af85abd09
+  affinity:
+    nodeSelector:
+      node.longhorn.io/create-default-disk: config
+
+  # immich expects superuser to manage extensions during migrations
+  enableSuperuserAccess: true
+  postgresql:
+    shared_preload_libraries:
+      - vchord.so
+
+  bootstrap:
+    initdb:
+      database: immich
+      owner: immich
+      postInitApplicationSQL:
+        - CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
+        - CREATE EXTENSION IF NOT EXISTS earthdistance CASCADE;
+
+  backup:
+    retentionPolicy: 30d
+    barmanObjectStore:
+      endpointURL: https://s3.us-west-004.backblazeb2.com
+      destinationPath: s3://tplant-homelab-postgres
+      # archive/immich used the default serverName (immich-cnpg), and barman refuses non-empty archives
+      serverName: immich-cnpg-v3
+      s3Credentials:
+        accessKeyId:
+          name: cloudnative-pg
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: cloudnative-pg
+          key: ACCESS_SECRET_KEY
+      wal:
+        compression: gzip
+      data:
+        compression: gzip
+
+  # otherwise postgres crashes with hugepages enabled
+  resources:
+    requests:
+      memory: 100Mi
+      hugepages-2Mi: 100Mi
+    limits:
+      memory: 512Mi
+      hugepages-2Mi: 100Mi
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: immich
+  namespace: default
+spec:
+  immediate: true
+  schedule: 0 0 0 * * *
+  backupOwnerReference: self
+  cluster:
+    name: immich-cnpg
