@@ -24,6 +24,18 @@ spec:
       retries: 3
   uninstall:
     keepHistory: false
+  # chart leaves minio on the default RollingUpdate, but its RWO volume can't attach to a second node
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: Deployment
+              name: local-minio
+            patch: |
+              - op: add
+                path: /spec/strategy
+                value:
+                  type: Recreate
   values:
     superuser:
       email: tom@tplant.com.au
