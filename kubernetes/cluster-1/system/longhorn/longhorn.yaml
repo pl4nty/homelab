@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: longhorn
-      version: 1.13.0
+      version: 1.12.0
       sourceRef:
         kind: HelmRepository
         name: longhorn
@@ -21,6 +21,7 @@ spec:
     timeout: 15m
   upgrade:
     cleanupOnFail: true
+    timeout: 15m
     remediation:
       retries: 3
   uninstall:
@@ -54,14 +55,6 @@ spec:
     #     node.longhorn.io/create-default-disk: config
     longhornUI:
       replicas: 1
-    image:
-      longhorn:
-        instanceManager:
-          tag: v1.11.0-hotfix-1
-        manager:
-          tag: v1.11.0-hotfix-1
-    preUpgradeChecker:
-      upgradeVersionCheck: false
 
 # k annotate storageclass longhorn storageclass.kubernetes.io/is-default-class=true
 

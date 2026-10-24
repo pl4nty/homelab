@@ -114,5 +114,13 @@
       ],
       automerge: true,
     },
+    {
+      description: 'Longhorn only supports upgrading one minor version at a time',
+      matchPackageNames: [
+        'longhorn',
+      ],
+      groupName: 'longhorn',
+      separateMultipleMinor: true,
+    },
   ],
 }
