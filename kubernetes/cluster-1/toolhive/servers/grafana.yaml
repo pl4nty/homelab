@@ -8,7 +8,7 @@ spec:
     name: toolhive
   telemetryConfigRef:
     name: toolhive
-  image: docker.io/grafana/mcp-grafana:1.6.3@sha256:0479c026fd40a95e6a176855b8570e06845790f8a45de2f9c1ec8ba3ba06a8bf
+  image: docker.io/grafana/mcp-grafana:2.0.2@sha256:78d208116ec52b09b44f0eca66892073b39aefcb64483c54d43255c8eab7e97a
   args:
     - -t
     - stdio
