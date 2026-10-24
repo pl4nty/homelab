@@ -3,9 +3,8 @@
 # without changing hardware config.
 {{- $hw := .Node.Data.hw }}
 {{- $cp := eq .Node.Role "control-plane" }}
-{{- /* kernel logs ship before cluster DNS is up, so non-CP nodes use the alloy NodePort on the cluster endpoint */ -}}
+{{- /* alloy-logs NodePort (k8s-monitoring-services.yaml): reachable before cluster DNS is up, unlike the service name */ -}}
 {{- $logs := printf "tcp://%s:30544" (urlParse .ClusterEndpoint).hostname }}
-{{- if $cp }}{{ $logs = "tcp://k8s-monitoring-alloy-logs.monitoring-system.svc:5044/" }}{{ end }}
 machine:
   install:
 {{- if eq $hw "nuc" }}
