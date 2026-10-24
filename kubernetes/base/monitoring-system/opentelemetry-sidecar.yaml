@@ -21,8 +21,8 @@ spec:
         send_batch_size: 100
         send_batch_max_size: 300
     exporters:
-      logging:
-        loglevel: debug
+      debug:
+        verbosity: detailed
       otlp:
         endpoint: ${TRACES_ENDPOINT}
         tls:
@@ -35,4 +35,4 @@ spec:
         traces:
           receivers: [ otlp ]
           processors: [ batch ]
-          exporters: [ otlp, logging ]
+          exporters: [ otlp, debug ]
