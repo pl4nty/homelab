@@ -18,6 +18,10 @@ spec:
       # keep off the 8GiB amd64 control plane node
       nodeSelector:
         kubernetes.io/arch: arm64
+      # PHOTOPRISM_UID/GID drop to 1000, which can't write to fresh volumes
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
     controllers:
       main:
         # RWO volumes can't attach to two nodes during a rollout
