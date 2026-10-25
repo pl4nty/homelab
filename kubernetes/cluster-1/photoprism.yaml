@@ -62,6 +62,9 @@ spec:
               PHOTOPRISM_NSFW_MODEL: none
               PHOTOPRISM_UPLOAD_NSFW: true
               PHOTOPRISM_DISABLE_FACES: true
+              # DISABLE_FACES alone still loads the ONNX face models at startup
+              PHOTOPRISM_FACE_DETECTOR: none
+              PHOTOPRISM_FACE_MODEL: none
               PHOTOPRISM_DISABLE_TENSORFLOW: true
               PHOTOPRISM_DISABLE_PLACES: true
               PHOTOPRISM_DISABLE_RAW: true
