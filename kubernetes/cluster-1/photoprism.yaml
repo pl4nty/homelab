@@ -18,6 +18,10 @@ spec:
       # keep off the 8GiB amd64 control plane node
       nodeSelector:
         kubernetes.io/arch: arm64
+      # PHOTOPRISM_UID/GID drop to 1000, which can't write to fresh volumes
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
     controllers:
       main:
         # RWO volumes can't attach to two nodes during a rollout
@@ -62,6 +66,9 @@ spec:
               PHOTOPRISM_NSFW_MODEL: none
               PHOTOPRISM_UPLOAD_NSFW: true
               PHOTOPRISM_DISABLE_FACES: true
+              # DISABLE_FACES alone still loads the ONNX face models at startup
+              PHOTOPRISM_FACE_DETECTOR: none
+              PHOTOPRISM_FACE_MODEL: none
               PHOTOPRISM_DISABLE_TENSORFLOW: true
               PHOTOPRISM_DISABLE_PLACES: true
               PHOTOPRISM_DISABLE_RAW: true
