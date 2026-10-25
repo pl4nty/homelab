@@ -6,6 +6,8 @@ metadata:
   namespace: default
 spec:
   interval: 15m
+  # first pull of the ~1GB image takes ~7m on an RK1, past the 5m default
+  timeout: 15m
   chartRef:
     kind: OCIRepository
     name: app-template
@@ -106,11 +108,14 @@ spec:
     persistence:
       # sqlite index, sidecars, thumbnail cache, and settings.yml
       storage:
+        # keep data if a failed install is remediated by uninstalling
+        retain: true
         accessMode: ReadWriteOnce
         size: 5Gi
         globalMounts:
           - path: /photoprism/storage
       originals:
+        retain: true
         accessMode: ReadWriteOnce
         size: 10Gi
         globalMounts:
