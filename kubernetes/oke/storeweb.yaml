@@ -20,14 +20,14 @@ spec:
         pod:
           annotations:
             instrumentation.opentelemetry.io/inject-dotnet: "true"
-            instrumentation.opentelemetry.io/otel-dotnet-auto-runtime: "linux-musl-x64" # TODO support musl-arm64
+            # operator maps linux-musl-x64 to the image's arch-agnostic linux-musl dir, so this also covers arm64
+            instrumentation.opentelemetry.io/otel-dotnet-auto-runtime: "linux-musl-x64"
         containers:
           main:
             image:
               repository: ghcr.io/pl4nty/storeweb
               tag: edge@sha256:8aebc8a65e4d22bbf5fa7f0e8b88ac162ce110808affc717ac3c7ded46e5afb9
             env:
-              CORECLR_PROFILER_PATH: /otel-auto-instrumentation-dotnet/linux-musl-arm64/OpenTelemetry.AutoInstrumentation.Native.so # TODO support musl-arm64
               OTEL_DOTNET_EXPERIMENTAL_HTTPCLIENT_DISABLE_URL_QUERY_REDACTION: "true"
             probes:
               liveness:
