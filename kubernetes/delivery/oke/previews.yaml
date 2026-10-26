@@ -1,0 +1,75 @@
+# One preview per PR. CI pushes ghcr.io/pl4nty/homelab/previews:pr-<n> only after
+# the PR's images are built and tested, so a tag existing means it's ready to deploy.
+# The artifact holds one folder per changed app. Closing the PR deletes the tag
+# (.github/workflows/previews.yaml), and the ResourceSet prunes everything below.
+apiVersion: fluxcd.controlplane.io/v1
+kind: ResourceSetInputProvider
+metadata:
+  name: app-previews
+  namespace: flux-system
+  annotations:
+    fluxcd.controlplane.io/reconcileEvery: 2m
+spec:
+  type: OCIArtifactTag
+  url: oci://ghcr.io/pl4nty/homelab/previews
+  filter:
+    includeTag: ^pr-[0-9]+$
+    limit: 10
+---
+apiVersion: fluxcd.controlplane.io/v1
+kind: ResourceSet
+metadata:
+  name: app-previews
+  namespace: flux-system
+spec:
+  inputsFrom:
+    - apiVersion: fluxcd.controlplane.io/v1
+      kind: ResourceSetInputProvider
+      name: app-previews
+  resources:
+    - apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: preview-<< inputs.tag >>
+        labels:
+          homelab.tplant.com.au/preview: "true"
+    - apiVersion: source.toolkit.fluxcd.io/v1
+      kind: OCIRepository
+      metadata:
+        name: preview-<< inputs.tag >>
+        namespace: flux-system
+      spec:
+        interval: 10m
+        url: oci://ghcr.io/pl4nty/homelab/previews
+        ref:
+          digest: "<< inputs.digest >>"
+        # only artifacts signed by this repo's PR workflow
+        verify:
+          provider: cosign
+          matchOIDCIdentity:
+            - issuer: ^https://token\.actions\.githubusercontent\.com$
+              subject: ^https://github\.com/pl4nty/homelab/\.github/workflows/apps\.yaml@refs/pull/[0-9]+/merge$
+    - apiVersion: kustomize.toolkit.fluxcd.io/v1
+      kind: Kustomization
+      metadata:
+        name: preview-<< inputs.tag >>
+        namespace: flux-system
+      spec:
+        interval: 30m
+        timeout: 5m
+        prune: true
+        wait: true
+        targetNamespace: preview-<< inputs.tag >>
+        sourceRef:
+          kind: OCIRepository
+          name: preview-<< inputs.tag >>
+        path: ./
+        # no decryption: CI strips *.sops.yaml from previews
+        postBuild:
+          substitute:
+            APP_HOST_SUFFIX: "-<< inputs.tag >>"
+          substituteFrom:
+            - kind: ConfigMap
+              name: cluster-settings
+            - kind: ConfigMap
+              name: instance-settings

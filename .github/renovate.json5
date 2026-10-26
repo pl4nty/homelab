@@ -22,16 +22,19 @@
   flux: {
     managerFilePatterns: [
       '/kubernetes/[^.]+\\.ya?ml$/',
+      '/apps/[^/]+/deploy/.+\\.ya?ml$/',
     ],
   },
   'helm-values': {
     managerFilePatterns: [
       '/kubernetes/[^.]+\\.ya?ml$/',
+      '/apps/[^/]+/deploy/.+\\.ya?ml$/',
     ],
   },
   kubernetes: {
     managerFilePatterns: [
       '/kubernetes/[^.]+\\.ya?ml$/',
+      '/apps/[^/]+/deploy/.+\\.ya?ml$/',
     ],
   },
   kustomize: {
