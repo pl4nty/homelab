@@ -1,4 +1,5 @@
 FROM --platform=$BUILDPLATFORM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS test
+ENV UV_PROJECT_ENVIRONMENT=/venv
 WORKDIR /app
 COPY . .
 RUN --mount=type=cache,target=/root/.cache/uv \
