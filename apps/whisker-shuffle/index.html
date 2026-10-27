@@ -1,0 +1,980 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Whisker Shuffle — a sliding cat puzzle</title>
+<style>
+  :root {
+    --milk: #F0F2ED;
+    --ink: #26302B;
+    --ink-soft: #5A6660;
+    --board: #2E4F46;
+    --board-deep: #24413A;
+    --board-lip: #3B5F55;
+    --marmalade: #E07A2F;
+    --marmalade-deep: #C4661F;
+    --bean: #D9A0A8;
+    --card: #FFFFFF;
+    --line: #DCE1DA;
+    --tile-edge: rgba(20, 30, 26, 0.28);
+    --shadow: 0 18px 40px -18px rgba(38, 48, 43, 0.45);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --milk: #141A17;
+      --ink: #E9EDE6;
+      --ink-soft: #9AA69F;
+      --board: #223B34;
+      --board-deep: #1A2F29;
+      --board-lip: #2E4A41;
+      --marmalade: #E88B45;
+      --marmalade-deep: #D0722C;
+      --bean: #C08A92;
+      --card: #1C2420;
+      --line: #2C362F;
+      --tile-edge: rgba(0, 0, 0, 0.45);
+      --shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.7);
+    }
+  }
+  :root[data-theme="light"] {
+    --milk: #F0F2ED; --ink: #26302B; --ink-soft: #5A6660;
+    --board: #2E4F46; --board-deep: #24413A; --board-lip: #3B5F55;
+    --marmalade: #E07A2F; --marmalade-deep: #C4661F; --bean: #D9A0A8;
+    --card: #FFFFFF; --line: #DCE1DA; --tile-edge: rgba(20, 30, 26, 0.28);
+    --shadow: 0 18px 40px -18px rgba(38, 48, 43, 0.45);
+  }
+  :root[data-theme="dark"] {
+    --milk: #141A17; --ink: #E9EDE6; --ink-soft: #9AA69F;
+    --board: #223B34; --board-deep: #1A2F29; --board-lip: #2E4A41;
+    --marmalade: #E88B45; --marmalade-deep: #D0722C; --bean: #C08A92;
+    --card: #1C2420; --line: #2C362F; --tile-edge: rgba(0, 0, 0, 0.45);
+    --shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.7);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--milk);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    min-height: 100vh;
+  }
+  .display {
+    font-family: "SF Pro Rounded", ui-rounded, "Nunito", "Varela Round", "Comfortaa", system-ui, sans-serif;
+  }
+  .mono { font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 20px 56px; }
+
+  header { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 26px; }
+  .wordmark {
+    font-size: clamp(1.7rem, 4vw, 2.3rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0;
+    color: var(--ink);
+    display: inline-flex; align-items: center; gap: 10px;
+  }
+  .wordmark .paw { color: var(--marmalade); flex: none; }
+  .tagline { color: var(--ink-soft); font-size: 0.95rem; margin: 0; }
+
+  .stage { display: grid; grid-template-columns: minmax(0, 1fr) 264px; gap: 28px; align-items: start; }
+  @media (max-width: 820px) { .stage { grid-template-columns: 1fr; } }
+
+  /* ---------- Board ---------- */
+  .board-well { display: flex; justify-content: center; }
+  .frame {
+    position: relative;
+    background: linear-gradient(160deg, var(--board-lip), var(--board) 30%, var(--board-deep));
+    border-radius: 22px;
+    padding: 14px;
+    box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.14);
+  }
+  #board {
+    position: relative;
+    border-radius: 12px;
+    background:
+      radial-gradient(120% 100% at 30% 0%, rgba(255,255,255,0.07), transparent 55%),
+      var(--board-deep);
+    box-shadow: inset 0 3px 10px rgba(0,0,0,0.35);
+    touch-action: manipulation;
+  }
+  .tile {
+    position: absolute;
+    top: 0; left: 0;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    border-radius: 9px;
+    cursor: pointer;
+    background-color: var(--board);
+    background-repeat: no-repeat;
+    box-shadow: 0 2px 0 var(--tile-edge), inset 0 1px 0 rgba(255,255,255,0.22);
+    transition: transform 140ms cubic-bezier(.3, 1.35, .5, 1);
+    will-change: transform;
+  }
+  .tile:active { filter: brightness(1.06); }
+  .tile:focus-visible { outline: 3px solid var(--marmalade); outline-offset: 2px; z-index: 3; }
+  .tile .num {
+    position: absolute; top: 5px; left: 5px;
+    min-width: 20px; height: 20px; padding: 0 5px;
+    display: none; align-items: center; justify-content: center;
+    background: rgba(20, 26, 23, 0.72); color: #fff;
+    font-size: 11px; font-weight: 700; border-radius: 10px;
+    pointer-events: none;
+  }
+  #board.show-nums .tile .num { display: inline-flex; }
+  #board.locked .tile { cursor: default; }
+
+  .reveal {
+    position: absolute; inset: 0;
+    border-radius: 12px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 700ms ease;
+    background-size: 100% 100%;
+  }
+  .reveal.on { opacity: 1; }
+
+  .win-chip {
+    position: absolute; left: 50%; bottom: -16px;
+    transform: translateX(-50%) translateY(20px) scale(0.9);
+    background: var(--marmalade); color: #fff;
+    font-weight: 800; letter-spacing: 0.01em;
+    padding: 10px 20px; border-radius: 999px;
+    box-shadow: 0 10px 24px -8px rgba(196, 102, 31, 0.6);
+    opacity: 0; transition: opacity 300ms ease, transform 420ms cubic-bezier(.3,1.5,.5,1);
+    white-space: nowrap; z-index: 5;
+  }
+  .win-chip.on { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+
+  .confetti-paw {
+    position: absolute; top: -30px; z-index: 4;
+    pointer-events: none;
+    animation: fall linear forwards;
+  }
+  @keyframes fall {
+    to { transform: translateY(var(--fall-h)) rotate(var(--spin)); opacity: 0; }
+  }
+
+  /* ---------- Rail ---------- */
+  .rail { display: flex; flex-direction: column; gap: 16px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px;
+  }
+  .card h2 {
+    margin: 0 0 10px;
+    font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.09em; text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .goal-row { display: flex; gap: 12px; align-items: center; }
+  #goalImg {
+    width: 96px; border-radius: 10px; display: block;
+    border: 1px solid var(--line);
+    background: var(--board-deep);
+  }
+  .goal-side { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .goal-side p { margin: 0; font-size: 0.85rem; color: var(--ink-soft); line-height: 1.35; }
+
+  .stepper-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .stepper-row + .stepper-row { margin-top: 10px; }
+  .stepper-row label { font-size: 0.9rem; font-weight: 600; }
+  .stepper { display: inline-flex; align-items: center; gap: 2px; background: var(--milk); border: 1px solid var(--line); border-radius: 999px; padding: 2px; }
+  .stepper button {
+    width: 30px; height: 30px; border: 0; border-radius: 999px;
+    background: transparent; color: var(--ink);
+    font-size: 1.05rem; font-weight: 700; cursor: pointer; line-height: 1;
+  }
+  .stepper button:hover { background: var(--line); }
+  .stepper button:focus-visible { outline: 2px solid var(--marmalade); outline-offset: 1px; }
+  .stepper button:disabled { opacity: 0.35; cursor: default; background: transparent; }
+  .stepper .val { min-width: 26px; text-align: center; font-weight: 700; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    border: 0; border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 0.95rem; font-weight: 800; letter-spacing: 0.01em;
+    cursor: pointer;
+    width: 100%;
+    transition: transform 120ms ease, filter 120ms ease;
+  }
+  .btn:focus-visible { outline: 3px solid var(--marmalade); outline-offset: 2px; }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--marmalade); color: #fff; box-shadow: 0 6px 16px -6px rgba(196,102,31,0.55); }
+  .btn-primary:hover { filter: brightness(1.05); }
+  .btn-quiet { background: var(--milk); color: var(--ink); border: 1px solid var(--line); }
+  .btn-quiet:hover { background: var(--line); }
+  .btn[disabled] { opacity: 0.55; cursor: default; transform: none; }
+  .btn-stack { display: flex; flex-direction: column; gap: 10px; }
+
+  .stats { display: flex; gap: 10px; }
+  .stat { flex: 1; background: var(--milk); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+  .stat .k { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
+  .stat .v { font-size: 1.25rem; font-weight: 700; margin-top: 2px; }
+
+  .toggle-row { display: flex; align-items: center; gap: 9px; font-size: 0.9rem; font-weight: 600; }
+  .toggle-row input { accent-color: var(--marmalade); width: 16px; height: 16px; }
+
+  .hint { font-size: 0.8rem; color: var(--ink-soft); line-height: 1.45; margin: 14px 0 0; }
+  .hint kbd {
+    font-family: inherit; font-size: 0.75rem;
+    border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 5px; padding: 1px 5px; background: var(--card);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tile { transition: none; }
+    .win-chip { transition: opacity 200ms ease; }
+    .confetti-paw { display: none; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1 class="wordmark display">
+      <svg class="paw" width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <ellipse cx="7" cy="7.2" rx="2.1" ry="2.7"/><ellipse cx="12" cy="5.6" rx="2.1" ry="2.7"/>
+        <ellipse cx="17" cy="7.2" rx="2.1" ry="2.7"/>
+        <path d="M12 10c3.6 0 6.5 2.6 6.5 5.6 0 2.3-1.8 3.9-4 3.9-1 0-1.8-.3-2.5-.8-.7.5-1.5.8-2.5.8-2.2 0-4-1.6-4-3.9C5.5 12.6 8.4 10 12 10z"/>
+      </svg>
+      Whisker Shuffle
+    </h1>
+    <p class="tagline">Slide the tiles. Reassemble the cat.</p>
+  </header>
+
+  <div class="stage">
+    <div class="board-well">
+      <div class="frame">
+        <div id="board" aria-label="sliding puzzle board"></div>
+        <div class="win-chip display" id="winChip">Purrfect! 🐾</div>
+      </div>
+    </div>
+
+    <aside class="rail">
+      <section class="card">
+        <h2>The cat you're building</h2>
+        <div class="goal-row">
+          <img id="goalImg" alt="Goal picture: the completed cat illustration" />
+          <div class="goal-side">
+            <p id="catName">…</p>
+            <button class="btn btn-quiet display" id="newCatBtn" style="padding:8px 12px; width:auto;">New cat</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Grid</h2>
+        <div class="stepper-row">
+          <label for="rowsMinus">Rows</label>
+          <div class="stepper">
+            <button id="rowsMinus" aria-label="fewer rows">−</button>
+            <span class="val mono" id="rowsVal">4</span>
+            <button id="rowsPlus" aria-label="more rows">+</button>
+          </div>
+        </div>
+        <div class="stepper-row">
+          <label for="colsMinus">Columns</label>
+          <div class="stepper">
+            <button id="colsMinus" aria-label="fewer columns">−</button>
+            <span class="val mono" id="colsVal">4</span>
+            <button id="colsPlus" aria-label="more columns">+</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="btn-stack">
+          <button class="btn btn-primary display" id="solveBtn">Solve it for me</button>
+          <button class="btn btn-quiet display" id="shuffleBtn">Shuffle</button>
+        </div>
+        <div class="stats" style="margin-top:12px;">
+          <div class="stat"><div class="k">Moves</div><div class="v mono" id="moveCount">0</div></div>
+          <div class="stat"><div class="k">Time</div><div class="v mono" id="timer">0:00</div></div>
+        </div>
+        <label class="toggle-row" style="margin-top:12px;">
+          <input type="checkbox" id="numToggle" /> Show tile numbers
+        </label>
+        <p class="hint">Click any tile in the blank's row or column to slide the whole run. Arrow keys work too — <kbd>←</kbd> slides a tile leftward into the gap.</p>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  /* ============================= Solver ============================= */
+  // Board: array length rows*cols; values 1..N-1 = tiles, 0 = blank.
+  // Solved: cell i holds i+1, blank in last cell. Strategy: reduce rows then
+  // columns, placing each tile (or end-of-line pair) with an exact BFS over an
+  // abstracted state space (tracked tiles + blank; other tiles interchangeable).
+  function makeGeom(rows, cols) {
+    const N = rows * cols;
+    const neighbors = [];
+    for (let i = 0; i < N; i++) {
+      const r = (i / cols) | 0, c = i % cols;
+      const ns = [];
+      if (r > 0) ns.push(i - cols);
+      if (r < rows - 1) ns.push(i + cols);
+      if (c > 0) ns.push(i - 1);
+      if (c < cols - 1) ns.push(i + 1);
+      neighbors.push(ns);
+    }
+    return { rows, cols, N, neighbors };
+  }
+
+  function placeTiles(G, board, locked, tiles, targets) {
+    const { N, neighbors } = G;
+    const k = tiles.length;
+    let done = true;
+    for (let i = 0; i < k; i++) if (board.indexOf(tiles[i]) !== targets[i]) { done = false; break; }
+    if (done) return [];
+
+    const blank = board.indexOf(0);
+    const startPos = tiles.map(t => board.indexOf(t));
+    const encode = (pos, b) => { let key = b; for (let i = 0; i < k; i++) key = key * N + pos[i]; return key; };
+    const atGoal = (pos) => { for (let i = 0; i < k; i++) if (pos[i] !== targets[i]) return false; return true; };
+
+    const prev = new Map();
+    const start = encode(startPos, blank);
+    prev.set(start, null);
+    let frontier = [[startPos, blank, start]];
+    while (frontier.length) {
+      const next = [];
+      for (const [pos, b, key] of frontier) {
+        for (const nb of neighbors[b]) {
+          if (locked[nb]) continue;
+          let npos = pos;
+          const ti = pos.indexOf(nb);
+          if (ti !== -1) { npos = pos.slice(); npos[ti] = b; }
+          const nkey = encode(npos, nb);
+          if (prev.has(nkey)) continue;
+          prev.set(nkey, [key, nb]);
+          if (atGoal(npos)) {
+            const path = [];
+            let cur = nkey;
+            while (prev.get(cur) !== null) { const [pk, dest] = prev.get(cur); path.push(dest); cur = pk; }
+            path.reverse();
+            return path;
+          }
+          next.push([npos, nb, nkey]);
+        }
+      }
+      frontier = next;
+    }
+    return null;
+  }
+
+  function solveBoard(rows, cols, boardIn) {
+    const G = makeGeom(rows, cols);
+    const { N } = G;
+    const board = boardIn.slice();
+    const locked = new Array(N).fill(false);
+    const all = [];
+    const run = (tiles, targets) => {
+      const mv = placeTiles(G, board, locked, tiles, targets);
+      if (mv === null) throw new Error('unsolvable segment');
+      for (const cell of mv) { const b = board.indexOf(0); board[b] = board[cell]; board[cell] = 0; }
+      all.push(...mv);
+      for (const t of targets) locked[t] = true;
+    };
+    const tileAt = (cell) => cell + 1;
+
+    let top = 0, left = 0, remRows = rows, remCols = cols;
+    while (remRows > 2) {
+      const r = top;
+      if (remCols === 2) {
+        run([tileAt(r * cols + left), tileAt(r * cols + left + 1)], [r * cols + left, r * cols + left + 1]);
+      } else {
+        for (let c = left; c <= cols - 3; c++) run([tileAt(r * cols + c)], [r * cols + c]);
+        run([tileAt(r * cols + cols - 2), tileAt(r * cols + cols - 1)], [r * cols + cols - 2, r * cols + cols - 1]);
+      }
+      top++; remRows--;
+    }
+    while (remCols > 2) {
+      const c = left;
+      run([tileAt(top * cols + c), tileAt((top + 1) * cols + c)], [top * cols + c, (top + 1) * cols + c]);
+      left++; remCols--;
+    }
+    {
+      const cells = [top * cols + left, top * cols + left + 1, (top + 1) * cols + left, (top + 1) * cols + left + 1];
+      const tiles = [], targets = [];
+      for (const cell of cells) {
+        if (cell === N - 1) continue;
+        tiles.push(tileAt(cell)); targets.push(cell);
+      }
+      run(tiles, targets);
+    }
+    return all;
+  }
+
+  /* ============================= Cat art ============================= */
+  const CAT_NAMES = ['Mochi', 'Biscuit', 'Clementine', 'Pumpkin', 'Nori', 'Waffles', 'Juniper', 'Pickle', 'Tofu', 'Marmalade', 'Sesame', 'Poppy', 'Noodle', 'Miso', 'Clover', 'Butters'];
+
+  function mulberry32(seed) {
+    let a = seed >>> 0;
+    return () => {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  const pick = (rng, arr) => arr[(rng() * arr.length) | 0];
+
+  const FURS = [
+    { base: '#E8963F', dark: '#C97728', name: 'marmalade' },
+    { base: '#9AA3AE', dark: '#7B8592', name: 'smoky grey' },
+    { base: '#EADCC1', dark: '#D2BC93', name: 'cream' },
+    { base: '#8A5A3B', dark: '#6E4529', name: 'cocoa tabby' },
+    { base: '#F1ECE2', dark: '#D8D0BF', name: 'snowy' },
+    { base: '#57515C', dark: '#433E4A', name: 'charcoal' },
+  ];
+  const BGS = ['#BFD8D2', '#F2DFB6', '#C3CFE0', '#EFC9C4', '#CFDCC0', '#D8CFE4', '#E7D2B8'];
+  const EYES = ['#5F9151', '#D9A13B', '#5E8FB8', '#B0653A'];
+
+  function drawCat(canvas, rows, cols, seed) {
+    const CELL = 150;
+    const W = cols * CELL, H = rows * CELL;
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+    const rng = mulberry32(seed);
+
+    const fur = pick(rng, FURS);
+    let bg = pick(rng, BGS);
+    // keep the ground distinct from cream/snowy fur
+    while ((fur.name === 'cream' || fur.name === 'snowy') && (bg === '#F2DFB6' || bg === '#E7D2B8')) bg = pick(rng, BGS);
+    const eye = pick(rng, EYES);
+    const pattern = pick(rng, ['solid', 'tabby', 'tabby', 'patches']);
+    const accessory = pick(rng, ['none', 'bow', 'collar', 'collar']);
+    const name = pick(rng, CAT_NAMES);
+
+    // ground
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, 'rgba(255,255,255,0.28)');
+    grad.addColorStop(1, 'rgba(60,50,40,0.12)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    // scattered motifs so every tile has a landmark
+    const motif = pick(rng, ['yarn', 'fish', 'stars', 'paws']);
+    ctx.save();
+    ctx.globalAlpha = 0.6;
+    const count = Math.max(10, ((W * H) / 17000) | 0);
+    for (let i = 0; i < count; i++) {
+      const x = rng() * W, y = rng() * H, s = 9 + rng() * 12;
+      ctx.strokeStyle = 'rgba(50,45,40,0.55)';
+      ctx.fillStyle = 'rgba(50,45,40,0.5)';
+      ctx.lineWidth = 2;
+      if (motif === 'yarn') {
+        ctx.beginPath(); ctx.arc(x, y, s, 0, 7); ctx.stroke();
+        ctx.beginPath(); ctx.arc(x, y, s * 0.55, -0.6, 2.4); ctx.stroke();
+        ctx.beginPath(); ctx.arc(x, y, s * 0.8, 2.2, 4.9); ctx.stroke();
+      } else if (motif === 'fish') {
+        ctx.save(); ctx.translate(x, y); ctx.rotate(rng() * 6.28);
+        ctx.beginPath(); ctx.ellipse(0, 0, s, s * 0.45, 0, 0, 7); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(s * 0.8, 0); ctx.lineTo(s * 1.5, -s * 0.5); ctx.lineTo(s * 1.5, s * 0.5); ctx.closePath(); ctx.fill();
+        ctx.restore();
+      } else if (motif === 'stars') {
+        ctx.save(); ctx.translate(x, y); ctx.rotate(rng() * 6.28);
+        ctx.beginPath();
+        for (let p = 0; p < 8; p++) {
+          const rr = p % 2 ? s * 0.4 : s;
+          ctx.lineTo(Math.cos(p * Math.PI / 4) * rr, Math.sin(p * Math.PI / 4) * rr);
+        }
+        ctx.closePath(); ctx.fill();
+        ctx.restore();
+      } else {
+        for (let t = 0; t < 4; t++) {
+          const a = t * 0.62 - 0.95;
+          ctx.beginPath(); ctx.ellipse(x + Math.sin(a) * s, y - Math.cos(a) * s * 0.9, s * 0.18, s * 0.24, a, 0, 7); ctx.fill();
+        }
+        ctx.beginPath(); ctx.ellipse(x, y + s * 0.25, s * 0.42, s * 0.36, 0, 0, 7); ctx.fill();
+      }
+    }
+    ctx.restore();
+
+    // ---- the cat, centered, scaled to the short side ----
+    const u = Math.min(W, H);
+    const cx = W / 2, cy = H / 2;
+    const s = u / 100; // cat units: roughly a 100x100 box
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+
+    // ground shadow
+    ctx.fillStyle = 'rgba(50, 40, 30, 0.18)';
+    ctx.beginPath();
+    ctx.ellipse(0, 45 * s, 30 * s, 5.5 * s, 0, 0, 7);
+    ctx.fill();
+
+    // tail (behind body): thick curl on the right
+    ctx.strokeStyle = fur.base;
+    ctx.lineWidth = 9 * s;
+    ctx.beginPath();
+    ctx.moveTo(20 * s, 34 * s);
+    ctx.bezierCurveTo(42 * s, 34 * s, 46 * s, 12 * s, 34 * s, 6 * s);
+    ctx.stroke();
+    ctx.strokeStyle = fur.dark;
+    ctx.lineWidth = 9 * s;
+    ctx.beginPath();
+    ctx.moveTo(37.5 * s, 8.5 * s);
+    ctx.bezierCurveTo(43 * s, 12 * s, 42 * s, 18 * s, 40.2 * s, 20.5 * s);
+    ctx.stroke();
+
+    // body
+    ctx.fillStyle = fur.base;
+    ctx.beginPath();
+    ctx.ellipse(0, 24 * s, 26 * s, 21 * s, 0, 0, 7);
+    ctx.fill();
+
+    // body markings
+    if (pattern === 'tabby') {
+      ctx.save();
+      ctx.beginPath(); ctx.ellipse(0, 24 * s, 26 * s, 21 * s, 0, 0, 7); ctx.clip();
+      ctx.strokeStyle = fur.dark; ctx.lineWidth = 3.4 * s;
+      for (let i = -1; i <= 1; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * 9 * s - 4 * s, 3 * s);
+        ctx.quadraticCurveTo(i * 9 * s + 3 * s, 16 * s, i * 9 * s - 2 * s, 30 * s);
+        ctx.stroke();
+      }
+      ctx.restore();
+    } else if (pattern === 'patches') {
+      ctx.save();
+      ctx.beginPath(); ctx.ellipse(0, 24 * s, 26 * s, 21 * s, 0, 0, 7); ctx.clip();
+      ctx.fillStyle = fur.dark;
+      ctx.beginPath(); ctx.ellipse(-14 * s, 16 * s, 10 * s, 8 * s, 0.5, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(16 * s, 32 * s, 11 * s, 9 * s, -0.4, 0, 7); ctx.fill();
+      ctx.restore();
+    }
+
+    // chest
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.beginPath();
+    ctx.ellipse(0, 30 * s, 12 * s, 13 * s, 0, 0, 7);
+    ctx.fill();
+
+    // front paws
+    ctx.fillStyle = fur.base;
+    ctx.beginPath(); ctx.ellipse(-8 * s, 43 * s, 6.5 * s, 4.5 * s, 0, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(8 * s, 43 * s, 6.5 * s, 4.5 * s, 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = fur.dark; ctx.lineWidth = 1.2 * s; ctx.globalAlpha = 0.6;
+    for (const px of [-8, 8]) {
+      ctx.beginPath(); ctx.moveTo((px - 2) * s, 41.5 * s); ctx.lineTo((px - 2) * s, 44.5 * s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo((px + 2) * s, 41.5 * s); ctx.lineTo((px + 2) * s, 44.5 * s); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    // ears
+    ctx.fillStyle = fur.base;
+    ctx.beginPath(); ctx.moveTo(-22 * s, -18 * s); ctx.lineTo(-17 * s, -38 * s); ctx.lineTo(-5 * s, -25 * s); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(22 * s, -18 * s); ctx.lineTo(17 * s, -38 * s); ctx.lineTo(5 * s, -25 * s); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#E8A9AE';
+    ctx.beginPath(); ctx.moveTo(-19 * s, -21 * s); ctx.lineTo(-16.5 * s, -33 * s); ctx.lineTo(-9 * s, -25 * s); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(19 * s, -21 * s); ctx.lineTo(16.5 * s, -33 * s); ctx.lineTo(9 * s, -25 * s); ctx.closePath(); ctx.fill();
+
+    // head
+    ctx.fillStyle = fur.base;
+    ctx.beginPath();
+    ctx.ellipse(0, -8 * s, 24 * s, 21 * s, 0, 0, 7);
+    ctx.fill();
+
+    if (pattern === 'tabby') {
+      ctx.save();
+      ctx.beginPath(); ctx.ellipse(0, -8 * s, 24 * s, 21 * s, 0, 0, 7); ctx.clip();
+      ctx.strokeStyle = fur.dark; ctx.lineWidth = 2.8 * s;
+      for (const i of [-1, 0, 1]) {
+        ctx.beginPath();
+        ctx.moveTo(i * 5.5 * s, -29 * s);
+        ctx.lineTo(i * 4 * s, -20 * s);
+        ctx.stroke();
+      }
+      ctx.restore();
+    } else if (pattern === 'patches') {
+      ctx.save();
+      ctx.beginPath(); ctx.ellipse(0, -8 * s, 24 * s, 21 * s, 0, 0, 7); ctx.clip();
+      ctx.fillStyle = fur.dark;
+      ctx.beginPath(); ctx.ellipse(14 * s, -20 * s, 12 * s, 10 * s, 0.4, 0, 7); ctx.fill();
+      ctx.restore();
+    }
+
+    // eyes
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath(); ctx.ellipse(-9.5 * s, -9 * s, 5.6 * s, 6 * s, 0, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(9.5 * s, -9 * s, 5.6 * s, 6 * s, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = eye;
+    ctx.beginPath(); ctx.ellipse(-9.5 * s, -8.4 * s, 4.1 * s, 4.6 * s, 0, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(9.5 * s, -8.4 * s, 4.1 * s, 4.6 * s, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#221E24';
+    ctx.beginPath(); ctx.ellipse(-9.5 * s, -8.2 * s, 2 * s, 2.9 * s, 0, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(9.5 * s, -8.2 * s, 2 * s, 2.9 * s, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.beginPath(); ctx.arc(-8.2 * s, -10.4 * s, 1.1 * s, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(10.8 * s, -10.4 * s, 1.1 * s, 0, 7); ctx.fill();
+
+    // blush
+    ctx.fillStyle = 'rgba(232,140,140,0.45)';
+    ctx.beginPath(); ctx.ellipse(-17 * s, -1 * s, 3.6 * s, 2.2 * s, 0, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(17 * s, -1 * s, 3.6 * s, 2.2 * s, 0, 0, 7); ctx.fill();
+
+    // nose + mouth
+    ctx.fillStyle = '#D97A88';
+    ctx.beginPath();
+    ctx.moveTo(-2.4 * s, -2.6 * s); ctx.lineTo(2.4 * s, -2.6 * s); ctx.lineTo(0, 0.4 * s); ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#3A3238'; ctx.lineWidth = 1.3 * s;
+    ctx.beginPath();
+    ctx.moveTo(0, 0.4 * s);
+    ctx.quadraticCurveTo(0, 3.4 * s, -3.6 * s, 3.8 * s);
+    ctx.moveTo(0, 0.4 * s);
+    ctx.quadraticCurveTo(0, 3.4 * s, 3.6 * s, 3.8 * s);
+    ctx.stroke();
+
+    // whiskers
+    ctx.strokeStyle = 'rgba(58,50,56,0.85)'; ctx.lineWidth = 1.1 * s;
+    for (const side of [-1, 1]) {
+      for (const [dx, dy] of [[0, -2], [0, 1], [-1, 4]]) {
+        ctx.beginPath();
+        ctx.moveTo(side * 12 * s, (dy - 1) * s);
+        ctx.quadraticCurveTo(side * 22 * s, (dy - 2) * s, side * 30 * s, (dy + dx - 2) * s);
+        ctx.stroke();
+      }
+    }
+
+    // accessory
+    if (accessory === 'collar') {
+      ctx.strokeStyle = '#B84A5E'; ctx.lineWidth = 3.4 * s;
+      ctx.beginPath(); ctx.arc(0, 3 * s, 13.5 * s, 0.55, Math.PI - 0.55); ctx.stroke();
+      ctx.fillStyle = '#E9C24C';
+      ctx.beginPath(); ctx.arc(0, 17.5 * s, 3 * s, 0, 7); ctx.fill();
+      ctx.strokeStyle = '#A8842B'; ctx.lineWidth = 0.9 * s;
+      ctx.beginPath(); ctx.moveTo(-3 * s, 17.5 * s); ctx.lineTo(3 * s, 17.5 * s); ctx.stroke();
+    } else if (accessory === 'bow') {
+      ctx.fillStyle = '#B84A5E';
+      ctx.beginPath();
+      ctx.moveTo(14 * s, -32 * s);
+      ctx.lineTo(7 * s, -37 * s); ctx.lineTo(9 * s, -29 * s); ctx.closePath(); ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(14 * s, -32 * s);
+      ctx.lineTo(21 * s, -37 * s); ctx.lineTo(19 * s, -28 * s); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.arc(14 * s, -32 * s, 2.2 * s, 0, 7); ctx.fill();
+    }
+    ctx.restore();
+
+    return { name, fur: fur.name };
+  }
+
+  /* ============================= Game state ============================= */
+  const boardEl = document.getElementById('board');
+  const goalImg = document.getElementById('goalImg');
+  const catNameEl = document.getElementById('catName');
+  const winChip = document.getElementById('winChip');
+  const moveEl = document.getElementById('moveCount');
+  const timerEl = document.getElementById('timer');
+  const solveBtn = document.getElementById('solveBtn');
+  const shuffleBtn = document.getElementById('shuffleBtn');
+  const newCatBtn = document.getElementById('newCatBtn');
+  const numToggle = document.getElementById('numToggle');
+  const rowsVal = document.getElementById('rowsVal');
+  const colsVal = document.getElementById('colsVal');
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const MIN = 2, MAX = 8;
+  let rows = 4, cols = 4;
+  let G = makeGeom(rows, cols);
+  let board = [];          // board[cell] = tile id (0 = blank)
+  let tileEls = {};        // tile id -> element
+  let cellPx = 96;
+  let imgURL = '';
+  let catSeed = (Math.random() * 0x7fffffff) | 0;
+  let moves = 0;
+  let startedAt = null;
+  let timerId = null;
+  let solving = false;
+  let solveTimer = null;
+  let solved = false;
+  let usedSolver = false;
+
+  const catCanvas = document.createElement('canvas');
+
+  function fmtTime(ms) {
+    const t = Math.floor(ms / 1000);
+    return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
+  }
+  function tickTimer() {
+    if (startedAt !== null) timerEl.textContent = fmtTime(Date.now() - startedAt);
+  }
+  function startClock() {
+    if (startedAt === null) {
+      startedAt = Date.now();
+      timerId = setInterval(tickTimer, 500);
+    }
+  }
+  function stopClock() {
+    if (timerId) { clearInterval(timerId); timerId = null; }
+    tickTimer();
+  }
+  function resetClock() {
+    stopClock();
+    startedAt = null;
+    timerEl.textContent = '0:00';
+  }
+
+  function layout() {
+    const rail = window.innerWidth > 820 ? 320 : 48;
+    const availW = Math.min(document.querySelector('.wrap').clientWidth, window.innerWidth) - rail;
+    const availH = window.innerHeight * 0.68;
+    cellPx = Math.max(40, Math.min(112, Math.floor(Math.min(availW / cols, availH / rows))));
+    boardEl.style.width = cols * cellPx + 'px';
+    boardEl.style.height = rows * cellPx + 'px';
+    for (let cell = 0; cell < G.N; cell++) {
+      const t = board[cell];
+      if (t === 0) continue;
+      positionTile(tileEls[t], cell);
+      sizeTile(tileEls[t], t);
+    }
+    const rev = boardEl.querySelector('.reveal');
+    if (rev) rev.style.backgroundImage = `url(${imgURL})`;
+  }
+
+  function positionTile(el, cell) {
+    const r = (cell / cols) | 0, c = cell % cols;
+    el.style.transform = `translate(${c * cellPx + 3}px, ${r * cellPx + 3}px)`;
+  }
+  function sizeTile(el, tile) {
+    const home = tile - 1;
+    const hr = (home / cols) | 0, hc = home % cols;
+    const w = cellPx - 6;
+    el.style.width = w + 'px';
+    el.style.height = w + 'px';
+    el.style.backgroundImage = `url(${imgURL})`;
+    // scale the image to the full board so each tile crops exactly its region
+    el.style.backgroundSize = `${cols * cellPx}px ${rows * cellPx}px`;
+    el.style.backgroundPosition = `${-(hc * cellPx + 3)}px ${-(hr * cellPx + 3)}px`;
+  }
+
+  function buildTiles() {
+    boardEl.innerHTML = '';
+    tileEls = {};
+    for (let t = 1; t < G.N; t++) {
+      const el = document.createElement('button');
+      el.className = 'tile';
+      el.style.transitionDuration = '0ms'; // no fly-in on deal; cleared after first layout
+      el.setAttribute('aria-label', 'tile ' + t);
+      const num = document.createElement('span');
+      num.className = 'num mono';
+      num.textContent = t;
+      el.appendChild(num);
+      el.addEventListener('click', () => onTileClick(t));
+      boardEl.appendChild(el);
+      tileEls[t] = el;
+    }
+    const rev = document.createElement('div');
+    rev.className = 'reveal';
+    boardEl.appendChild(rev);
+  }
+
+  function renderCat() {
+    const info = drawCat(catCanvas, rows, cols, catSeed);
+    imgURL = catCanvas.toDataURL('image/png');
+    goalImg.src = imgURL;
+    goalImg.style.aspectRatio = `${cols} / ${rows}`;
+    catNameEl.textContent = `${info.name}, a ${info.fur} cat. Put ${info.name} back together.`;
+  }
+
+  function deal({ newSeed = false } = {}) {
+    stopSolving();
+    G = makeGeom(rows, cols);
+    if (newSeed) catSeed = (Math.random() * 0x7fffffff) | 0;
+    board = Array.from({ length: G.N }, (_, i) => (i + 1) % G.N);
+    renderCat();
+    buildTiles();
+    shuffleInPlace();
+    layout();
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      for (let t = 1; t < G.N; t++) tileEls[t].style.transitionDuration = '';
+    }));
+    moves = 0; moveEl.textContent = '0';
+    resetClock();
+    setSolved(false);
+    usedSolver = false;
+  }
+
+  function shuffleInPlace() {
+    let blank = board.indexOf(0), prev = -1;
+    const steps = G.N * 22 + 30;
+    for (let i = 0; i < steps; i++) {
+      const opts = G.neighbors[blank].filter(n => n !== prev);
+      const p = opts[(Math.random() * opts.length) | 0];
+      board[blank] = board[p]; board[p] = 0;
+      prev = blank; blank = p;
+    }
+    if (isSolved()) shuffleInPlace();
+  }
+
+  function isSolved() {
+    for (let i = 0; i < G.N - 1; i++) if (board[i] !== i + 1) return false;
+    return true;
+  }
+
+  function slideCell(cell, { count = true } = {}) {
+    // slide tile at `cell` into adjacent blank
+    const b = board.indexOf(0);
+    if (!G.neighbors[b].includes(cell)) return false;
+    const t = board[cell];
+    board[b] = t; board[cell] = 0;
+    positionTile(tileEls[t], b);
+    if (count) { moves++; moveEl.textContent = String(moves); }
+    return true;
+  }
+
+  function onTileClick(tile) {
+    if (solving || solved) return;
+    const cell = board.indexOf(tile);
+    const b = board.indexOf(0);
+    const r = (cell / cols) | 0, c = cell % cols;
+    const br = (b / cols) | 0, bc = b % cols;
+    if (r !== br && c !== bc) return;
+    startClock();
+    // slide the whole run between the blank and the clicked tile, one step at a time
+    const dir = r === br ? (c > bc ? 1 : -1) : (r > br ? cols : -cols);
+    let cur = b;
+    while (cur !== cell) {
+      slideCell(cur + dir);
+      cur += dir;
+    }
+    checkWin();
+  }
+
+  function onKey(e) {
+    if (solving || solved) return;
+    const b = board.indexOf(0);
+    const br = (b / cols) | 0, bc = b % cols;
+    let cell = -1;
+    if (e.key === 'ArrowLeft' && bc < cols - 1) cell = b + 1;
+    else if (e.key === 'ArrowRight' && bc > 0) cell = b - 1;
+    else if (e.key === 'ArrowUp' && br < rows - 1) cell = b + cols;
+    else if (e.key === 'ArrowDown' && br > 0) cell = b - cols;
+    if (cell === -1) return;
+    e.preventDefault();
+    startClock();
+    slideCell(cell);
+    checkWin();
+  }
+
+  function setSolved(v) {
+    solved = v;
+    boardEl.classList.toggle('locked', v);
+    const rev = boardEl.querySelector('.reveal');
+    if (v) {
+      stopClock();
+      if (rev) { rev.style.backgroundImage = `url(${imgURL})`; rev.classList.add('on'); }
+      winChip.textContent = usedSolver ? 'Solved, with a helping paw 🐾' : 'Purrfect! 🐾';
+      winChip.classList.add('on');
+      if (!reduced) confetti();
+      solveBtn.disabled = true;
+    } else {
+      if (rev) rev.classList.remove('on');
+      winChip.classList.remove('on');
+      solveBtn.disabled = false;
+    }
+  }
+
+  function checkWin() {
+    if (isSolved()) setSolved(true);
+  }
+
+  function confetti() {
+    const frame = boardEl.parentElement;
+    const w = boardEl.clientWidth;
+    const h = boardEl.clientHeight + 60;
+    for (let i = 0; i < 26; i++) {
+      const p = document.createElement('div');
+      p.className = 'confetti-paw';
+      const size = 12 + Math.random() * 14;
+      p.innerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${Math.random() < 0.5 ? 'var(--marmalade)' : 'var(--bean)'}"><ellipse cx="7" cy="7.2" rx="2.1" ry="2.7"/><ellipse cx="12" cy="5.6" rx="2.1" ry="2.7"/><ellipse cx="17" cy="7.2" rx="2.1" ry="2.7"/><path d="M12 10c3.6 0 6.5 2.6 6.5 5.6 0 2.3-1.8 3.9-4 3.9-1 0-1.8-.3-2.5-.8-.7.5-1.5.8-2.5.8-2.2 0-4-1.6-4-3.9C5.5 12.6 8.4 10 12 10z"/></svg>`;
+      p.style.left = 14 + Math.random() * w + 'px';
+      p.style.setProperty('--fall-h', h + 40 + Math.random() * 60 + 'px');
+      p.style.setProperty('--spin', (Math.random() * 720 - 360) + 'deg');
+      p.style.animationDuration = 1.4 + Math.random() * 1.6 + 's';
+      p.style.animationDelay = Math.random() * 0.7 + 's';
+      frame.appendChild(p);
+      setTimeout(() => p.remove(), 4200);
+    }
+  }
+
+  /* ------------- auto-solve ------------- */
+  function stopSolving() {
+    if (solveTimer) { clearTimeout(solveTimer); solveTimer = null; }
+    solving = false;
+    solveBtn.textContent = 'Solve it for me';
+    solveBtn.disabled = solved;
+    boardEl.classList.toggle('locked', solved);
+  }
+
+  function startSolving() {
+    if (solved || solving) return;
+    solving = true;
+    usedSolver = true;
+    boardEl.classList.add('locked');
+    solveBtn.textContent = 'Thinking…';
+    startClock();
+    setTimeout(() => {
+      if (!solving) return;
+      let plan;
+      try { plan = solveBoard(rows, cols, board); }
+      catch (err) { stopSolving(); return; }
+      solveBtn.textContent = 'Stop';
+      const interval = Math.max(34, Math.min(150, Math.round(16000 / Math.max(plan.length, 1))));
+      const dur = Math.max(60, Math.round(interval * 0.92));
+      for (let t = 1; t < G.N; t++) tileEls[t].style.transitionDuration = reduced ? '0ms' : dur + 'ms';
+      let i = 0;
+      const step = () => {
+        if (!solving) return;
+        if (i >= plan.length) {
+          stopSolving();
+          for (let t = 1; t < G.N; t++) tileEls[t].style.transitionDuration = '';
+          checkWin();
+          return;
+        }
+        slideCell(plan[i++]);
+        solveTimer = setTimeout(step, interval);
+      };
+      step();
+    }, 30);
+  }
+
+  solveBtn.addEventListener('click', () => {
+    if (solving) {
+      stopSolving();
+      for (let t = 1; t < G.N; t++) tileEls[t].style.transitionDuration = '';
+    } else startSolving();
+  });
+  shuffleBtn.addEventListener('click', () => deal());
+  newCatBtn.addEventListener('click', () => deal({ newSeed: true }));
+  numToggle.addEventListener('change', () => boardEl.classList.toggle('show-nums', numToggle.checked));
+  document.addEventListener('keydown', onKey);
+  window.addEventListener('resize', layout);
+
+  function bindStepper(minusId, plusId, get, set) {
+    const minus = document.getElementById(minusId), plus = document.getElementById(plusId);
+    const refresh = () => { minus.disabled = get() <= MIN; plus.disabled = get() >= MAX; };
+    minus.addEventListener('click', () => { if (get() > MIN) { set(get() - 1); refresh(); } });
+    plus.addEventListener('click', () => { if (get() < MAX) { set(get() + 1); refresh(); } });
+    refresh();
+  }
+  bindStepper('rowsMinus', 'rowsPlus', () => rows, v => { rows = v; rowsVal.textContent = v; deal(); });
+  bindStepper('colsMinus', 'colsPlus', () => cols, v => { cols = v; colsVal.textContent = v; deal(); });
+
+  deal();
+})();
+</script>
+</html>
