@@ -19,8 +19,8 @@ spec:
         containers:
           main:
             image:
-              # filled in by CI with the image it just built
-              repository: ${APP_IMAGE_REPOSITORY}
+              repository: ghcr.io/pl4nty/hello
+              # CI sets this to the tag of the image it just built
               tag: ${APP_IMAGE_TAG}
             resources:
               requests:

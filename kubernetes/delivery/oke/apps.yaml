@@ -1,6 +1,6 @@
-# Production for apps/ on this cluster. Each app follows its deploy artifact's
-# `main` tag, which CI moves after the image is built, tested and signed.
-# Rollback: flux tag artifact oci://ghcr.io/pl4nty/homelab/deploy/<app>:sha-<old> --tag main
+# Apps from apps/ on this cluster. CI publishes each app's deploy/ folder to
+# ghcr.io/pl4nty/homelab/apps/<app>, tagged main for production and pr-<n> for
+# previews, signed by .github/workflows/apps.yaml. See docs/apps-monorepo.md.
 apiVersion: fluxcd.controlplane.io/v1
 kind: ResourceSet
 metadata:
@@ -17,7 +17,7 @@ spec:
         namespace: flux-system
       spec:
         interval: 5m
-        url: oci://ghcr.io/pl4nty/homelab/deploy/<< inputs.app >>
+        url: oci://ghcr.io/pl4nty/homelab/apps/<< inputs.app >>
         ref:
           tag: main
         verify:
@@ -33,7 +33,6 @@ spec:
       spec:
         interval: 30m
         prune: true
-        wait: false
         sourceRef:
           kind: OCIRepository
           name: app-<< inputs.app >>
@@ -48,5 +47,83 @@ spec:
               name: cluster-settings
             - kind: Secret
               name: cluster-secrets
+            - kind: ConfigMap
+              name: instance-settings
+    # the app's pr-<n> tags, read by the previews ResourceSet below
+    - apiVersion: fluxcd.controlplane.io/v1
+      kind: ResourceSetInputProvider
+      metadata:
+        name: app-<< inputs.app >>-previews
+        namespace: flux-system
+        labels:
+          homelab.tplant.com.au/previews: "true"
+        annotations:
+          fluxcd.controlplane.io/reconcileEvery: 2m
+      spec:
+        type: OCIArtifactTag
+        url: oci://ghcr.io/pl4nty/homelab/apps/<< inputs.app >>
+        filter:
+          includeTag: ^pr-[0-9]+$
+        defaultValues:
+          app: << inputs.app >>
+---
+# One preview per app per PR, at <app>-pr-<n>.${PUBLIC_DOMAIN}, in its own
+# namespace. A tag only exists once CI has built and tested the image, and closing
+# the PR deletes it, which prunes the preview.
+apiVersion: fluxcd.controlplane.io/v1
+kind: ResourceSet
+metadata:
+  name: app-previews
+  namespace: flux-system
+spec:
+  inputsFrom:
+    - apiVersion: fluxcd.controlplane.io/v1
+      kind: ResourceSetInputProvider
+      selector:
+        matchLabels:
+          homelab.tplant.com.au/previews: "true"
+  resources:
+    - apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: << inputs.app >>-<< inputs.tag >>
+        labels:
+          homelab.tplant.com.au/preview: "true"
+    - apiVersion: source.toolkit.fluxcd.io/v1
+      kind: OCIRepository
+      metadata:
+        name: << inputs.app >>-<< inputs.tag >>
+        namespace: flux-system
+      spec:
+        interval: 10m
+        url: oci://ghcr.io/pl4nty/homelab/apps/<< inputs.app >>
+        ref:
+          digest: "<< inputs.digest >>"
+        verify:
+          provider: cosign
+          matchOIDCIdentity:
+            - issuer: ^https://token\.actions\.githubusercontent\.com$
+              subject: ^https://github\.com/pl4nty/homelab/\.github/workflows/apps\.yaml@refs/pull/[0-9]+/merge$
+    - apiVersion: kustomize.toolkit.fluxcd.io/v1
+      kind: Kustomization
+      metadata:
+        name: << inputs.app >>-<< inputs.tag >>
+        namespace: flux-system
+      spec:
+        interval: 30m
+        timeout: 5m
+        prune: true
+        wait: true
+        targetNamespace: << inputs.app >>-<< inputs.tag >>
+        sourceRef:
+          kind: OCIRepository
+          name: << inputs.app >>-<< inputs.tag >>
+        path: ./
+        postBuild:
+          substitute:
+            APP_HOST_SUFFIX: "-<< inputs.tag >>"
+          substituteFrom:
+            - kind: ConfigMap
+              name: cluster-settings
             - kind: ConfigMap
               name: instance-settings
