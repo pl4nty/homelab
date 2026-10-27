@@ -1,7 +1,7 @@
 # Homelab
 My homelab's infrastructure-as-code. Built with ✨[Kubernetes](https://kubernetes.io/)✨ clusters on [Azure](https://learn.microsoft.com/en-us/azure/aks/), [Oracle Cloud](https://docs.oracle.com/en-us/iaas/Content/ContEng/Concepts/contengoverview.htm), and [bare metal](https://www.talos.dev/).
 
-My clusters use [Flux](https://fluxcd.io/) to pull their configuration from YAML files in the `kubernetes` folder. The `base` subfolder applies to all clusters, and other subfolders apply to individual clusters. `kubernetes/apps` holds manifests for the apps I build in `apps`: CI builds each changed app, then publishes its manifest to `ghcr.io/pl4nty/homelab/<app>` as an OCI artifact tagged `pr-<n>` or `main`. Flux deploys `main` to production and each `pr-<n>` as a preview at `<app>-pr-<n>.<domain>`. The files contain most configuration, but I also use some external services:
+My clusters use [Flux](https://fluxcd.io/) to pull their configuration from YAML files in the `kubernetes` folder. The `base` subfolder applies to all clusters, and other subfolders apply to individual clusters. To add an app I build, create `apps/<app>/` with a Dockerfile and `kubernetes/<cluster>/apps/<app>.yaml`. Flux doesn't sync those manifests from git: CI builds each changed app, then publishes its manifest to `ghcr.io/pl4nty/homelab/apps:<app>.<ref>`, where `<ref>` is `main` or `pr-<n>`. Flux deploys `main` to production and each `pr-<n>` as a preview at `<app>-pr-<n>.<domain>`. The files contain most configuration, but I also use some external services:
 
 Networking:
 * [Cloudflare authoritative DNS](https://www.cloudflare.com/dns/)

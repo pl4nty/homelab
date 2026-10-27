@@ -1,0 +1,70 @@
+apiVersion: fluxcd.controlplane.io/v1
+kind: ResourceSetInputProvider
+metadata:
+  name: apps
+  namespace: flux-system
+  annotations:
+    fluxcd.controlplane.io/reconcileEvery: 2m
+spec:
+  type: OCIArtifactTag
+  url: oci://ghcr.io/pl4nty/homelab/apps
+  filter:
+    includeTag: ^[a-z0-9-]+\.(main|pr-[0-9]+)$
+    limit: 1000
+---
+apiVersion: fluxcd.controlplane.io/v1
+kind: ResourceSet
+metadata:
+  name: apps
+  namespace: flux-system
+spec:
+  inputsFrom:
+    - apiVersion: fluxcd.controlplane.io/v1
+      kind: ResourceSetInputProvider
+      name: apps
+  resourcesTemplate: |
+    <<- $app := index (splitList "." inputs.tag) 0 >>
+    <<- $ref := index (splitList "." inputs.tag) 1 >>
+    <<- $name := printf "%s-%s" $app $ref >>
+    <<- $preview := ne $ref "main" >>
+    <<- if $preview >>
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: << $name >>
+    ---
+    <<- end >>
+    apiVersion: source.toolkit.fluxcd.io/v1
+    kind: OCIRepository
+    metadata:
+      name: << $name >>
+      namespace: flux-system
+    spec:
+      interval: 10m
+      url: oci://ghcr.io/pl4nty/homelab/apps
+      ref:
+        digest: << inputs.digest >>
+    ---
+    apiVersion: kustomize.toolkit.fluxcd.io/v1
+    kind: Kustomization
+    metadata:
+      name: << $name >>
+      namespace: flux-system
+    spec:
+      interval: 30m
+      timeout: 5m
+      prune: true
+      wait: true
+      targetNamespace: << if $preview >><< $name >><< else >>default<< end >>
+      sourceRef:
+        kind: OCIRepository
+        name: << $name >>
+      path: ./
+      postBuild:
+        substitute:
+          APP_HOST_SUFFIX: "<< if $preview >>-<< $ref >><< end >>"
+        substituteFrom:
+          - kind: ConfigMap
+            name: cluster-settings
+          - kind: ConfigMap
+            name: instance-settings

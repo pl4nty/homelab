@@ -33,7 +33,7 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: >-
           echo "apps=$(git diff --name-only "$BASE...$COMMIT"
-          | jq -Rnc '[inputs | capture("^(apps/(?=.+/)|kubernetes/apps/)(?<app>[^/.]+)").app] | unique')" >> "$GITHUB_OUTPUT"
+          | jq -Rnc '[inputs | capture("^(apps/(?=.+/)|kubernetes/[^/]+/apps/)(?<app>[^/.]+)").app] | unique')" >> "$GITHUB_OUTPUT"
 
   app:
     needs: changes
@@ -78,11 +78,11 @@ jobs:
             TAG=sha-${{ env.COMMIT }}
             CACHE_TO=${{ github.event_name == 'push' }}
       - uses: fluxcd/flux2/action@b9c17924adb533d3617ec7de97a7b0f4acc07b39 # v2.9.6
-        if: env.PUBLISH == 'true' && hashFiles(format('kubernetes/apps/{0}.yaml', matrix.app)) != ''
-      - if: env.PUBLISH == 'true' && hashFiles(format('kubernetes/apps/{0}.yaml', matrix.app)) != ''
+        if: env.PUBLISH == 'true' && hashFiles(format('kubernetes/*/apps/{0}.yaml', matrix.app)) != ''
+      - if: env.PUBLISH == 'true' && hashFiles(format('kubernetes/*/apps/{0}.yaml', matrix.app)) != ''
         run: |
-          sed -i "s/\${APP_IMAGE_TAG}/sha-$COMMIT/" "kubernetes/apps/$APP.yaml"
-          flux push artifact "oci://ghcr.io/$GITHUB_REPOSITORY/$APP:$TAG" --path="kubernetes/apps/$APP.yaml" \
+          sed -i "s/\${APP_IMAGE_TAG}/sha-$COMMIT/" kubernetes/*/apps/"$APP".yaml
+          flux push artifact "oci://ghcr.io/$GITHUB_REPOSITORY/apps:$APP.$TAG" --path kubernetes/*/apps/"$APP".yaml \
             --source="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" --revision="$TAG@sha1:$COMMIT"
 
   cleanup:
@@ -97,8 +97,8 @@ jobs:
     steps:
       - uses: dataaxiom/ghcr-cleanup-action@d52806a0dc70b430571a37da1fde39733ffd640f # v1.2.2
         with:
-          package: homelab/${{ matrix.app }}
-          delete-tags: ${{ env.TAG }}
+          package: homelab/apps
+          delete-tags: ${{ matrix.app }}.${{ env.TAG }}
 
   ci-ok:
     needs: [changes, app]
