@@ -19,7 +19,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/ipa-web
-              tag: latest
+              tag: latest@sha256:a4eaf2a1ffe53d152396b6ef9f056c5dbf6d2a1e5e8c3e3b8600e9d2d832fe8e
             env:
               GIN_MODE: release
               DATA_DIR: /data
