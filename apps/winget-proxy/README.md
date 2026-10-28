@@ -1,6 +1,6 @@
 # winget-proxy
 
-One service hosting three [WinGet REST sources](https://github.com/microsoft/winget-cli-restsource), each
+One service hosting four [WinGet REST sources](https://github.com/microsoft/winget-cli-restsource), each
 under its own path prefix, sharing the protocol implementation in `WinGet.RestSource.Shared`:
 
 | Prefix | Source | Serves | For |
@@ -8,18 +8,21 @@ under its own path prefix, sharing the protocol implementation in `WinGet.RestSo
 | `/xbox` | `XboxStore` | Xbox store games the built-in `msstore` source does not index | [winget-cli#5818](https://github.com/microsoft/winget-cli/issues/5818) |
 | `/features` | `WindowsFeatures` | Windows optional features and capabilities (Telnet, Hyper-V, WSL, RSAT, OpenSSH…) | [winget-cli#5986](https://github.com/microsoft/winget-cli/issues/5986) |
 | `/updatecatalog` | `WindowsUpdateCatalog` | Patches and drivers from the Microsoft Update Catalog | [winget-cli#5332](https://github.com/microsoft/winget-cli/issues/5332) |
+| `/msstore-versioned` | `StoreVersions` | Older versions of Store MSIX/APPX apps, which `msstore` cannot install | |
 
 Each prefix answers the full protocol — `GET /information`, `POST /manifestSearch`,
 `GET /packageManifests/{PackageIdentifier}` — so each is added to WinGet as its own source:
 
 ```powershell
-winget source add --name xbox          --arg https://your-host/xbox          --type Microsoft.Rest
-winget source add --name features      --arg https://your-host/features      --type Microsoft.Rest
-winget source add --name updatecatalog --arg https://your-host/updatecatalog --type Microsoft.Rest
+winget source add --name xbox              --arg https://your-host/xbox              --type Microsoft.Rest
+winget source add --name features          --arg https://your-host/features          --type Microsoft.Rest
+winget source add --name updatecatalog     --arg https://your-host/updatecatalog     --type Microsoft.Rest
+winget source add --name msstore-versioned --arg https://your-host/msstore-versioned --type Microsoft.Rest
 
 winget search roblox --source xbox
 winget install Microsoft.Windows.Feature.TelnetClient --source features
-winget install 84d8dd32-6250-435c-8884-133c1daa4464 --source updatecatalog   # a catalog update GUID
+winget install 84d8dd32-6250-435c-8884-133c1daa4464 --source updatecatalog  # a catalog update GUID
+winget install 9WZDNCRFHVN5 --source msstore-versioned --version 2021.2607.0.0  # a Store product ID
 ```
 
 The URL **must** be `https://` — WinGet's `RestSourceFactory` rejects plain HTTP (loopback with a trusted
@@ -46,6 +49,22 @@ uses: the search table, the download dialog (which carries direct file URLs *and
 and the details view. Package identifiers are the catalog's update GUIDs; the catalog resolves a GUID
 search to its single row, which is what serves `winget install --id`. One installer is emitted per file,
 with the architecture parsed from the file name.
+
+**Versions** (`src/WinGet.RestSource/Versions/`) — speaks FE3, the Windows Update delivery protocol the Store
+client uses (as do [StoreLib](https://github.com/StoreDev/StoreLib) and [StoreWeb](https://github.com/pl4nty/storeweb)).
+The display catalog gives a product's `WuCategoryId`; a `SyncUpdates` filtered to it returns every package in
+the product's live package set, older versions included; `GetExtendedUpdateInfo2` signs a download URL for each.
+Package identifiers are Store product IDs. Manifests carry one `msix`/`appx` installer per architecture, with the
+package's SHA-256 from the FE3 metadata. The signed URLs expire within minutes, so they are fetched for every
+manifest request; the package lists are cached. They are plain HTTP (the CDN host has no certificate for its
+name), which the SHA-256 check covers.
+
+What FE3 serves (tested 2026-10-28): the packages the publisher keeps in the current submission, for older OS
+builds and other device families — not a full release history. Calculator `9WZDNCRFHVN5` has 26 versions,
+Windows Terminal `9N0DX20HK701` 6, Spotify `9NCBCSZSJRSB` 4. Encrypted packages (`.eappx`, `.emsixbundle`, often
+Xbox builds) need a Store licence and are left out, as are Win32 listings, which have no `WuCategoryId`. FE3
+uses a certificate chained to *Microsoft Root Certificate Authority 2011*, which isn't in Mozilla-derived
+trust stores, so the FE3 client trusts that root alone.
 
 ## The shim installers
 

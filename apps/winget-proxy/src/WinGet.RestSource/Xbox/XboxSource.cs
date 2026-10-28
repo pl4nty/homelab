@@ -45,7 +45,7 @@ public sealed class XboxSource(StoreCatalog catalog, IOptions<XboxSourceOptions>
         var products = await GamesAsync(
             StoreCatalog.IsProductId(keyword.ToUpperInvariant())
                 ? [keyword.ToUpperInvariant()]
-                : await catalog.SuggestAsync(keyword, market, ct),
+                : await catalog.SuggestAsync(keyword, market, "Games", "Game", ct),
             market, limit, ct);
 
         return [.. products.Select(ToSearchResult).Where(result => Matches(result, request.Filters)).Take(limit)];
