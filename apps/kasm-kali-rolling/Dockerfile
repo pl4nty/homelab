@@ -1,13 +1,16 @@
 FROM kasmweb/kali-rolling-desktop:1.19.0-rolling-weekly AS base
 
 USER root
-WORKDIR /tmp                                   # keep root droppings out of $HOME
+# keep root droppings out of $HOME
+WORKDIR /tmp
+# sudoers.d, not appending to /etc/sudoers
 RUN echo 'kasm-user ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/kasm-user && \
-    chmod 0440 /etc/sudoers.d/kasm-user        # sudoers.d, not appending to /etc/sudoers
+    chmod 0440 /etc/sudoers.d/kasm-user
 
 FROM base AS linux-amd64
 
-RUN --mount=type=cache,target=/var/cache/apt \
+RUN --mount=type=cache,id=apt-cache-kali,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=apt-lists-kali,target=/var/lib/apt/lists,sharing=locked \
     apt-get update && apt-get install -y --no-install-recommends \
     sudo kali-linux-default \
     libgmp3-dev libmpc-dev \
@@ -25,8 +28,10 @@ RUN gem install zsteg
 # --- tooling into /opt, NOT $HOME ---
 # own venv: RsaCtfTool pins old cryptography/requests/psutil, and pip can't
 # replace Kali's dist-packages anyway (dpkg ships no RECORD to uninstall from)
-RUN python3 -m venv /opt/RsaCtfTool && \
-    /opt/RsaCtfTool/bin/pip install --no-cache-dir git+https://github.com/RsaCtfTool/RsaCtfTool.git
+RUN --mount=type=bind,from=rsactftool,target=/tmp/RsaCtfTool,rw \
+    --mount=type=cache,id=pip,target=/root/.cache/pip \
+    python3 -m venv /opt/RsaCtfTool && \
+    /opt/RsaCtfTool/bin/pip install /tmp/RsaCtfTool
 # caesum.com no longer serves Stegsolve, so pin a mirror of the original jar
 ADD --checksum=sha256:007b49606678f39962edadb875e5ae4ac588ea0588c51deefcde3c8dc4fae55a --chmod=0755 \
     https://raw.githubusercontent.com/eugenekolo/sec-tools/68e4c11cdfb69a54a34ae0918d85a2791a677c87/stego/stegsolve/stegsolve/stegsolve.jar /opt/stegsolve.jar
