@@ -2,7 +2,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: winget-restsource${APP_SUFFIX:=}
+  name: winget-proxy${APP_SUFFIX:=}
   namespace: default
   annotations:
     kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
@@ -20,10 +20,10 @@ spec:
         containers:
           main:
             image:
-              repository: ghcr.io/pl4nty/winget-restsource
+              repository: ghcr.io/pl4nty/winget-proxy
               tag: ${APP_IMAGE_TAG:=}
             env:
-              RestSource__PublicBaseUrl: https://winget-restsource${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
+              RestSource__PublicBaseUrl: https://winget-proxy${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
     service:
       main:
         controller: main
@@ -36,6 +36,8 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
+          - winget-proxy${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
+          # old name, kept so existing `winget source add` entries keep working
           - winget-restsource${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:

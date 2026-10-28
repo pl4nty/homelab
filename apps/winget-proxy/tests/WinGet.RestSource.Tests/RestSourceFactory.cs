@@ -23,7 +23,7 @@ public sealed class RestSourceFactory : WebApplicationFactory<Program>
 
     public static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
-    private readonly string _shimDirectory = Directory.CreateTempSubdirectory("winget-restsource-tests").FullName;
+    private readonly string _shimDirectory = Directory.CreateTempSubdirectory("winget-proxy-tests").FullName;
 
     public RestSourceFactory()
     {
