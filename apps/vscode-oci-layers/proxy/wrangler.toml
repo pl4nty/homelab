@@ -1,0 +1,8 @@
+# npx wrangler deploy --config proxy/wrangler.toml
+name = "oci-cors-proxy"
+main = "worker.js"
+compatibility_date = "2026-09-01"
+
+# [vars]
+# ALLOWED_ORIGINS = "https://([a-z0-9-]+\\.)*vscode-cdn\\.net,https://(insiders\\.)?vscode\\.dev"
+# ALLOWED_HOSTS = "ghcr\\.io,registry\\.example\\.com"

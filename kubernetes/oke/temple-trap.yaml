@@ -2,13 +2,16 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: temple-trap
+  name: temple-trap${APP_SUFFIX:=}
   namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chartRef:
     kind: OCIRepository
     name: app-template
+    namespace: default
   values:
     global:
       createDefaultServiceAccount: false
@@ -24,7 +27,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/temple-trap
-              tag: latest@sha256:00ecfda009bb8ca353dc08a971bff1191fdfd9e82bfbf5e1cda6cb5833d949dc
+              tag: ${APP_IMAGE_TAG:=}
     service:
       main:
         controller: main
@@ -37,8 +40,8 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - temple-trap.${PUBLIC_DOMAIN}
+          - temple-trap${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: temple-trap
+              - identifier: main
                 port: 8080

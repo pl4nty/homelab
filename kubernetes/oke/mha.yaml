@@ -2,13 +2,16 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: mha
+  name: mha${APP_SUFFIX:=}
   namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chartRef:
     kind: OCIRepository
     name: app-template
+    namespace: default
   values:
     global:
       createDefaultServiceAccount: false
@@ -21,7 +24,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/mha
-              tag: latest@sha256:54b9abde933399023e15bd2ad608631a201c2ccffc7b9a4ce39db69614a45650
+              tag: ${APP_IMAGE_TAG:=}
             env:
               SERVER_PORT: 8080
             probes:
@@ -43,8 +46,8 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - mha.${PUBLIC_DOMAIN}
+          - mha${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: mha
+              - identifier: main
                 port: 8080

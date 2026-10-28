@@ -1,0 +1,12 @@
+<dict>
+  <key>organization</key>
+  <string>[organization]</string>
+  <key>auth_client_id</key>
+  <string>[auth_client_id]</string>
+  <key>auth_client_secret</key>
+  <string>[auth_client_secret]</string>
+  <key>switch_locked</key>
+  <boolean>true</boolean>
+  <key>auto_connect</key>
+  <integer>0</integer>
+</dict>
