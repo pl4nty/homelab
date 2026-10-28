@@ -115,6 +115,27 @@
       rangeStrategy: 'pin',
     },
     {
+      description: 'The base image sets the Python version, and engines are compatibility ranges, so never pin them',
+      matchFileNames: [
+        'apps/**',
+      ],
+      matchDepTypes: [
+        'requires-python',
+        'engines',
+      ],
+      enabled: false,
+    },
+    {
+      description: 'A bare NuGet version already resolves to that exact version, so pinning only rewrites it as [x] and bumps it',
+      matchFileNames: [
+        'apps/**',
+      ],
+      matchManagers: [
+        'nuget',
+      ],
+      rangeStrategy: 'auto',
+    },
+    {
       matchFileNames: [
         'apps/**',
       ],
