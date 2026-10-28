@@ -10,7 +10,7 @@ spec:
     name: toolhive
   externalAuthConfigRef:
     name: entra-upstream
-  image: ghcr.io/obot-platform/microsoft-office-365-mcp/microsoft365-contact:latest@sha256:fca8305cc678a9f40359e8dadbc314d390a5239af80acfd15b81701316dc75d5
+  image: ghcr.io/obot-platform/microsoft-office-365-mcp/microsoft365-contact:latest@sha256:9702d7b9f07dfe4e16812022fe0e7322aa39a758b4d78352ab61acffab5a2c48
   transport: streamable-http
   mcpPort: 9000
   # Image uses a binary at /root
