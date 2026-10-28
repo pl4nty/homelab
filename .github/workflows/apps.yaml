@@ -1,0 +1,111 @@
+name: apps
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apps-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+  PUBLISH: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
+  TAG: ${{ github.event_name == 'push' && 'main' || format('pr-{0}', github.event.pull_request.number) }}
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      apps: ${{ steps.diff.outputs.apps }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.COMMIT }}
+          fetch-depth: 0
+      - id: diff
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        working-directory: apps
+        run: |
+          for app in */; do
+            git diff --quiet "$BASE...$COMMIT" -- "$app" "../kubernetes/*/${app%/}.yaml" || echo "${app%/}"
+          done | jq -Rnr '"apps=\([inputs])"' >> "$GITHUB_OUTPUT"
+
+  app:
+    needs: changes
+    if: github.event.action != 'closed' && needs.changes.outputs.apps != '[]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJson(needs.changes.outputs.apps) }}
+    env:
+      APP: ${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.COMMIT }}
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        if: env.PUBLISH == 'true'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: apps/docker-bake.hcl
+          call: check
+          vars: APP=${{ matrix.app }}
+      - uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: apps/docker-bake.hcl
+          push: ${{ env.PUBLISH }}
+          vars: |
+            APP=${{ matrix.app }}
+            TAG=sha-${{ env.COMMIT }}
+            CACHE_TO=${{ github.event_name == 'push' }}
+      - uses: fluxcd/flux2/action@b9c17924adb533d3617ec7de97a7b0f4acc07b39 # v2.9.6
+        if: env.PUBLISH == 'true'
+      - if: env.PUBLISH == 'true'
+        run: |
+          sed -i "s/\${APP_IMAGE_TAG}/sha-$COMMIT/" kubernetes/*/"$APP".yaml
+          flux push artifact "oci://ghcr.io/$GITHUB_REPOSITORY/apps:$APP.$TAG" --path kubernetes/*/"$APP".yaml \
+            --source="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" --revision="$TAG@sha1:$COMMIT"
+
+  cleanup:
+    needs: changes
+    if: github.event.action == 'closed' && needs.changes.outputs.apps != '[]' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    strategy:
+      matrix:
+        app: ${{ fromJson(needs.changes.outputs.apps) }}
+    steps:
+      - uses: dataaxiom/ghcr-cleanup-action@d52806a0dc70b430571a37da1fde39733ffd640f # v1.2.2
+        with:
+          package: homelab/apps
+          delete-tags: ${{ matrix.app }}.${{ env.TAG }}
+
+  ci-ok:
+    needs: [changes, app]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: re-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35 # v1.3.0
+        with:
+          jobs: ${{ toJSON(needs) }}
+          allowed-skips: app
