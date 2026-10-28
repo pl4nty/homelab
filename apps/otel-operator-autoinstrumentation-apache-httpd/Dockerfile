@@ -12,6 +12,7 @@ RUN apt-get install -qq -y --ignore-missing \
 	protobuf-compiler	                    \
 	libprotobuf-dev                         \
 	python3			                        \
+	python2.7		                        \
 	sudo			                        \
 	tar			                            \
 	zip			                            \
