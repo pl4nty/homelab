@@ -1,13 +1,8 @@
 apiVersion: source.toolkit.fluxcd.io/v1
-kind: OCIRepository
+kind: HelmRepository
 metadata:
   name: longhorn
   namespace: flux-system
 spec:
   interval: 1h
-  url: oci://ghcr.io/home-operations/charts-mirror/longhorn
-  layerSelector:
-    mediaType: 'application/vnd.cncf.helm.chart.content.v1.tar+gzip'
-    operation: copy
-  ref:
-    tag: 1.13.0
+  url: https://charts.longhorn.io
