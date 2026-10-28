@@ -41,7 +41,7 @@ spec:
     source: discovered
   config:
     operational:
-      logLevel: debug
+      logLevel: info
     aggregation:
       tools:
         # FlowSavvy tools: replaced by the official connector, server kept running
@@ -93,7 +93,7 @@ spec:
     source: discovered
   config:
     operational:
-      logLevel: debug
+      logLevel: info
     aggregation:
       # defaultToolVisibility: deny means any workload in the group with no
       # entry below contributes no tools, so unsafe workloads just stay
