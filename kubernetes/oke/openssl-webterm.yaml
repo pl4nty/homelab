@@ -2,13 +2,16 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: openssl-webterm
+  name: openssl-webterm${APP_SUFFIX:=}
   namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chartRef:
     kind: OCIRepository
     name: app-template
+    namespace: default
   values:
     global:
       createDefaultServiceAccount: false
@@ -21,7 +24,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/openssl-webterm
-              tag: latest@sha256:e1d3118b11cc828c7f1b9d519a9440ecb5454c783b24c44151da42c151cd2918
+              tag: ${APP_IMAGE_TAG:=}
             probes:
               liveness:
                 enabled: true
@@ -41,8 +44,8 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - openssl.${PUBLIC_DOMAIN}
+          - openssl${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: openssl-webterm
+              - identifier: main
                 port: 80
