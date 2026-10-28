@@ -161,6 +161,13 @@
       automerge: true,
     },
     {
+      description: 'it-tools tags end in a commit hash, which docker versioning reads as an incompatible suffix',
+      matchPackageNames: [
+        'ghcr.io/corentinth/it-tools',
+      ],
+      versioning: 'regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-[0-9a-f]+$',
+    },
+    {
       description: 'Longhorn only supports upgrading one minor version at a time',
       matchPackageNames: [
         'longhorn',
