@@ -1,8 +1,8 @@
-FROM node:24.12.0 AS build
+FROM --platform=$BUILDPLATFORM node:24.12.0 AS build
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci
+RUN --mount=type=cache,id=npm,target=/root/.npm npm ci
 
 COPY . .
 RUN npm run build
