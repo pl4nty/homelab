@@ -11,5 +11,11 @@
     ]
   },
   "formatter": { "indentStyle": "space", "lineWidth": 120 },
-  "javascript": { "formatter": { "quoteStyle": "single" } }
+  "javascript": { "formatter": { "quoteStyle": "single" } },
+  "linter": {
+    "rules": {
+      "performance": { "useDomNodeTextContent": "off" },
+      "style": { "noNonNullAssertion": "off" }
+    }
+  }
 }
