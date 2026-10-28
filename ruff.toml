@@ -1,0 +1,5 @@
+target-version = "py313"
+line-length = 100
+
+[lint]
+extend-select = ["I", "UP", "B"]

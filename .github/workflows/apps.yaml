@@ -37,6 +37,19 @@ jobs:
             git diff --quiet "$BASE...$COMMIT" -- "$app" "../kubernetes/*/${app%/}.yaml" || echo "${app%/}"
           done | jq -Rnr '"apps=\([inputs])"' >> "$GITHUB_OUTPUT"
 
+  lint:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.COMMIT }}
+          fetch-depth: 0
+      - uses: j178/prek-action@44924fe9ef4a6f88253c4b6b1bf11c689d3ce53d # v3.1.0
+        with:
+          # changed files only, so apps are formatted one PR at a time
+          extra-args: --from-ref ${{ github.event.pull_request.base.sha || github.event.before }} --to-ref ${{ env.COMMIT }}
+
   app:
     needs: changes
     if: github.event.action != 'closed' && needs.changes.outputs.apps != '[]'
@@ -127,11 +140,11 @@ jobs:
           delete-tags: ${{ matrix.app }}.${{ env.TAG }}
 
   ci-ok:
-    needs: [changes, app]
+    needs: [changes, lint, app]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - uses: re-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35 # v1.3.0
         with:
           jobs: ${{ toJSON(needs) }}
-          allowed-skips: app
+          allowed-skips: lint, app

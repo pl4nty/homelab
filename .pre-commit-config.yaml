@@ -1,0 +1,21 @@
+# own-code apps only; overlays and upstream contexts keep upstream's style
+files: ^(apps/(excel2latex|flux-helm-schema|miniflux-rewriter|stickers|tenant-lookup|vscode-oci-layers|winget-proxy)/|\.editorconfig$|\.pre-commit-config\.yaml$|biome\.json$|ruff\.toml$)
+exclude: (package-lock\.json|uv\.lock|/Fixtures/.*)$
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-merge-conflict
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.3
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+  - repo: https://github.com/biomejs/pre-commit
+    rev: v2.6.3
+    hooks:
+      - id: biome-check
