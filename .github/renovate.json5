@@ -89,15 +89,22 @@
   // ],
   packageRules: [
     {
+      description: 'GHCR has no release timestamps, so minimumReleaseAge holds these digests forever',
+      matchPackageNames: [
+        'ghcr.io/pl4nty/**',
+      ],
+      matchUpdateTypes: [
+        'digest',
+      ],
+      minimumReleaseAge: null,
+    },
+    {
       matchUpdateTypes: [
         'patch',
       ],
       matchPackageNames: [
-        'immich-app/immich',
         'opentelemetry-operator',
         'ghcr.io/home-assistant/home-assistant',
-        'ghcr.io/khoj-ai/khoj',
-        'moby/buildkit',
         'ghcr.io/stirling-tools/s-pdf',
       ],
       automerge: true,
