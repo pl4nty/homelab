@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM node:22.19.0 AS build
+FROM --platform=$BUILDPLATFORM node:22.19.0@sha256:afff6d8c97964a438d2e6a9c96509367e45d8bf93f790ad561a1eaea926303d9 AS build
 WORKDIR /app
 
 # puppeteer dependency can't install ARM chromium by default
@@ -18,7 +18,7 @@ RUN --mount=type=cache,id=npm,target=/root/.npm npm ci
 COPY --from=src . .
 RUN npm run build --if-present
 
-FROM joseluisq/static-web-server:2.38.0
+FROM joseluisq/static-web-server:2.38.0@sha256:acfb7d76452f9746c5d2f8d791c9b659ac277b2b63fcac3ad97276fcdc969ffc
 
 COPY --from=build /app/Pages /public/Pages
 COPY --from=build /app/Pages/mha.html /public/index.html
