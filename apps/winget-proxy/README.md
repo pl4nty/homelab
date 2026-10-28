@@ -1,4 +1,4 @@
-# winget-restsource
+# winget-proxy
 
 One service hosting three [WinGet REST sources](https://github.com/microsoft/winget-cli-restsource), each
 under its own path prefix, sharing the protocol implementation in `WinGet.RestSource.Shared`:
@@ -75,7 +75,7 @@ The feature shim also registers an Apps & Features entry matching the manifest's
 ## Run it
 
 ```console
-docker run --rm -p 8080:8080 ghcr.io/pl4nty/winget-restsource
+docker run --rm -p 8080:8080 ghcr.io/pl4nty/winget-proxy
 ```
 
 From source, first cross-compile the shims (works on any OS), then run:
