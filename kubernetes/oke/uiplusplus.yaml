@@ -2,13 +2,16 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: uiplusplus
+  name: uiplusplus${APP_SUFFIX:=}
   namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chartRef:
     kind: OCIRepository
     name: app-template
+    namespace: default
   values:
     global:
       createDefaultServiceAccount: false
@@ -21,7 +24,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/uiplusplus
-              tag: latest@sha256:5b44383300dd0e8822ee7cf15c0e6f8d813853611e2e90e694e78abb60f32b35
+              tag: ${APP_IMAGE_TAG:=}
             env:
               SERVER_PORT: 8080
             probes:
@@ -43,8 +46,8 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - uiplusplus.${PUBLIC_DOMAIN}
+          - uiplusplus${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: uiplusplus
+              - identifier: main
                 port: 8080
