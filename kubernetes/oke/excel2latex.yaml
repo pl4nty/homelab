@@ -2,13 +2,16 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: excel2latex
+  name: excel2latex${APP_SUFFIX:=}
   namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chartRef:
     kind: OCIRepository
     name: app-template
+    namespace: default
   values:
     global:
       createDefaultServiceAccount: false
@@ -21,7 +24,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/excel2latex
-              tag: latest@sha256:7d1b6f6c241e4e7acb80fceb1a5b2d047a099c8421c321c1afc2af3ee97b9551
+              tag: ${APP_IMAGE_TAG:=}
             env:
               SERVER_PORT: 8080
               SERVER_LOG_LEVEL: info
@@ -44,8 +47,8 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - excel2latex.${PUBLIC_DOMAIN}
+          - excel2latex${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: excel2latex
+              - identifier: main
                 port: 8080

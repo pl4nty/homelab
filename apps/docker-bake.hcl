@@ -12,6 +12,7 @@ variable "CACHE_TO" {
   default = false
 }
 
+# apps that ship files set output = ["type=image", "type=local,dest=dist,platform-split=false"], and CI releases dist/
 target "default" {
   context    = "apps/${APP}"
   platforms  = ["linux/amd64", "linux/arm64"]

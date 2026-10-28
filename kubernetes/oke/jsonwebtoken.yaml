@@ -2,13 +2,16 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: jsonwebtoken
+  name: jsonwebtoken${APP_SUFFIX:=}
   namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chartRef:
     kind: OCIRepository
     name: app-template
+    namespace: default
   values:
     global:
       createDefaultServiceAccount: false
@@ -25,7 +28,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/jsonwebtoken
-              tag: latest@sha256:d34f03d887a6b2e5b54f68c852e8a74d58ea4ed1b2507a5432eaa2ba9c318d84
+              tag: ${APP_IMAGE_TAG:=}
     service:
       main:
         controller: main
@@ -38,8 +41,8 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - jwt.${PUBLIC_DOMAIN}
+          - jwt${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: jsonwebtoken
+              - identifier: main
                 port: 80

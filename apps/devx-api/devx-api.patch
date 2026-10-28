@@ -1,0 +1,130 @@
+diff --git a/CodeSnippetsReflection.OpenAPI.Test/OpenApiSnippetGeneratorTestBase.cs b/CodeSnippetsReflection.OpenAPI.Test/OpenApiSnippetGeneratorTestBase.cs
+index 182430e..bd47ad0 100644
+--- a/CodeSnippetsReflection.OpenAPI.Test/OpenApiSnippetGeneratorTestBase.cs
++++ b/CodeSnippetsReflection.OpenAPI.Test/OpenApiSnippetGeneratorTestBase.cs
+@@ -50,6 +50,6 @@ public class OpenApiSnippetGeneratorTestBase
+     protected static async Task<IList<PowerShellCommandInfo>> GetMgCommandMetadataAsync()
+     {
+         return _commandMetadata ??= await HttpClient.GetFromJsonAsync<IList<PowerShellCommandInfo>>(
+-            "https://raw.githubusercontent.com/microsoftgraph/msgraph-sdk-powershell/dev/src/Authentication/Authentication/custom/common/MgCommandMetadata.json");
++            "https://raw.githubusercontent.com/microsoftgraph/msgraph-sdk-powershell/main/src/Authentication/Authentication/custom/common/MgCommandMetadata.json");
+     }
+ }
+diff --git a/CodeSnippetsReflection.OpenAPI.Test/PowerShellGeneratorTests.cs b/CodeSnippetsReflection.OpenAPI.Test/PowerShellGeneratorTests.cs
+index 698543f..4223900 100644
+--- a/CodeSnippetsReflection.OpenAPI.Test/PowerShellGeneratorTests.cs
++++ b/CodeSnippetsReflection.OpenAPI.Test/PowerShellGeneratorTests.cs
+@@ -610,13 +610,13 @@ namespace CodeSnippetsReflection.OpenAPI.Test
+                 $"grades = @({Environment.NewLine}\t\t\t\t" +
+                 $"@{{{Environment.NewLine}\t\t\t\t\t" +
+                 $"displayName = \"Pass\"{Environment.NewLine}\t\t\t\t\t" +
+-                $"minPercentage = {Environment.NewLine}\t\t\t\t\t" +
+-                $"defaultPercentage = {Environment.NewLine}\t\t\t\t" +
++                $"minPercentage = 60{Environment.NewLine}\t\t\t\t\t" +
++                $"defaultPercentage = 100{Environment.NewLine}\t\t\t\t" +
+                 $"}}{Environment.NewLine}\t\t\t\t" +
+                 $"@{{{Environment.NewLine}\t\t\t\t\t" +
+                 $"displayName = \"Fail\"{Environment.NewLine}\t\t\t\t\t" +
+-                $"minPercentage = {Environment.NewLine}\t\t\t\t\t" +
+-                $"defaultPercentage = {Environment.NewLine}\t\t\t\t" +
++                $"minPercentage = 0{Environment.NewLine}\t\t\t\t\t" +
++                $"defaultPercentage = 0{Environment.NewLine}\t\t\t\t" +
+                 $"}}{Environment.NewLine}\t\t\t" +
+                 $"){Environment.NewLine}\t\t" +
+                 $"}}{Environment.NewLine}\t\t" +
+@@ -625,23 +625,23 @@ namespace CodeSnippetsReflection.OpenAPI.Test
+                 $"grades = @({Environment.NewLine}\t\t\t\t" +
+                 $"@{{{Environment.NewLine}\t\t\t\t\t" +
+                 $"displayName = \"A\"{Environment.NewLine}\t\t\t\t\t" +
+-                $"minPercentage = {Environment.NewLine}\t\t\t\t" +
++                $"minPercentage = 90{Environment.NewLine}\t\t\t\t" +
+                 $"}}{Environment.NewLine}\t\t\t\t" +
+                 $"@{{{Environment.NewLine}\t\t\t\t\t" +
+                 $"displayName = \"B\"{Environment.NewLine}\t\t\t\t\t" +
+-                $"minPercentage = {Environment.NewLine}\t\t\t\t" +
++                $"minPercentage = 80{Environment.NewLine}\t\t\t\t" +
+                 $"}}{Environment.NewLine}\t\t\t\t" +
+                 $"@{{{Environment.NewLine}\t\t\t\t\t" +
+                 $"displayName = \"C\"{Environment.NewLine}\t\t\t\t\t" +
+-                $"minPercentage = {Environment.NewLine}\t\t\t\t" +
++                $"minPercentage = 70{Environment.NewLine}\t\t\t\t" +
+                 $"}}{Environment.NewLine}\t\t\t\t" +
+                 $"@{{{Environment.NewLine}\t\t\t\t\t" +
+                 $"displayName = \"D\"{Environment.NewLine}\t\t\t\t\t" +
+-                $"minPercentage = {Environment.NewLine}\t\t\t\t" +
++                $"minPercentage = 60{Environment.NewLine}\t\t\t\t" +
+                 $"}}{Environment.NewLine}\t\t\t\t" +
+                 $"@{{{Environment.NewLine}\t\t\t\t\t" +
+                 $"displayName = \"F\"{Environment.NewLine}\t\t\t\t\t" +
+-                $"minPercentage = {Environment.NewLine}\t\t\t\t" +
++                $"minPercentage = 0{Environment.NewLine}\t\t\t\t" +
+                 $"}}{Environment.NewLine}\t\t\t" +
+                 $"){Environment.NewLine}\t\t" +
+                 $"}}{Environment.NewLine}\t" +
+diff --git a/CodeSnippetsReflection.OpenAPI/LanguageGenerators/PowerShellGenerator.cs b/CodeSnippetsReflection.OpenAPI/LanguageGenerators/PowerShellGenerator.cs
+index b9795e6..e433cf1 100644
+--- a/CodeSnippetsReflection.OpenAPI/LanguageGenerators/PowerShellGenerator.cs
++++ b/CodeSnippetsReflection.OpenAPI/LanguageGenerators/PowerShellGenerator.cs
+@@ -413,13 +413,13 @@ namespace CodeSnippetsReflection.OpenAPI.LanguageGenerators
+ 
+         private static string GetNumberLiteral(OpenApiSchema schema, JsonElement value)
+         {
+-            if (schema == default) return default;
+-            return schema.Type switch
++            // schemas without a format (or without a schema at all) fall back to the JSON literal
++            return (schema?.Type, schema?.Format) switch
+             {
+-                "integer" when schema.Format.Equals("int64") => $"{value.GetInt64()}",
+-                _ when schema.Format.Equals("float") => $"{value.GetDecimal()}",
+-                _ when schema.Format.Equals("double") => $"{value.GetDouble()}",
+-                _ => value.GetInt32().ToString(),
++                ("integer", "int64") => $"{value.GetInt64()}",
++                (_, "float") => $"{value.GetDecimal()}",
++                (_, "double") => $"{value.GetDouble()}",
++                _ => value.GetRawText(),
+             };
+         }
+ 
+diff --git a/CodeSnippetsReflection.OpenAPI/OpenAPISnippetsGenerator.cs b/CodeSnippetsReflection.OpenAPI/OpenAPISnippetsGenerator.cs
+index 7b8e3e1..e36adba 100644
+--- a/CodeSnippetsReflection.OpenAPI/OpenAPISnippetsGenerator.cs
++++ b/CodeSnippetsReflection.OpenAPI/OpenAPISnippetsGenerator.cs
+@@ -18,7 +18,7 @@ namespace CodeSnippetsReflection.OpenAPI
+     public class OpenApiSnippetsGenerator : IOpenApiSnippetsGenerator
+     {
+         public const string treeNodeLabel = "default";
+-        private const string MgCommandMetadataUrl = "https://raw.githubusercontent.com/microsoftgraph/msgraph-sdk-powershell/dev/src/Authentication/Authentication/custom/common/MgCommandMetadata.json";
++        private const string MgCommandMetadataUrl = "https://raw.githubusercontent.com/microsoftgraph/msgraph-sdk-powershell/main/src/Authentication/Authentication/custom/common/MgCommandMetadata.json";
+         private readonly TelemetryClient _telemetryClient;
+         private readonly Dictionary<string, string> _snippetsTraceProperties =
+                     new() { { UtilityConstants.TelemetryPropertyKey_Snippets, nameof(OpenApiSnippetsGenerator) } };
+diff --git a/GraphWebApi/Startup.cs b/GraphWebApi/Startup.cs
+index 96d8b77..cef7d9b 100644
+--- a/GraphWebApi/Startup.cs
++++ b/GraphWebApi/Startup.cs
+@@ -60,6 +60,17 @@ namespace GraphWebApi
+ 
+             #endregion
+ 
++            // Graph Explorer and other browser clients call this API cross-origin
++            var allowedOrigins = Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
++            services.AddCors(options => options.AddDefaultPolicy(policy =>
++            {
++                if (allowedOrigins?.Length > 0)
++                    policy.WithOrigins(allowedOrigins);
++                else
++                    policy.AllowAnyOrigin();
++                policy.AllowAnyHeader().AllowAnyMethod();
++            }));
++
+             services.AddMemoryCache();
+             services.AddSingleton<IODataSnippetsGenerator, ODataSnippetsGenerator>();
+             services.AddSingleton<IOpenApiSnippetsGenerator, OpenApiSnippetsGenerator>();
+@@ -115,6 +126,7 @@ namespace GraphWebApi
+             app.UseSerilogRequestLogging();
+             app.UseHttpsRedirection();
+             app.UseRouting();
++            app.UseCors();
+ 
+             // Localization
+             var localizationOptions = app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>().Value;

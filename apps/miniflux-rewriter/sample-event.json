@@ -1,0 +1,38 @@
+{
+  "event_type": "new_entries",
+  "feed": {
+    "id": 853,
+    "user_id": 1,
+    "category_id": 1,
+    "category": {
+      "id": 1,
+      "title": "All"
+    },
+    "feed_url": "https://www.seangoedecke.com/atom.xml",
+    "site_url": "https://seangoedecke.com",
+    "title": "seangoedecke.com RSS feed",
+    "checked_at": "2025-04-27T10:53:55.050259355Z"
+  },
+  "entries": [
+    {
+      "id": 21549,
+      "user_id": 1,
+      "feed_id": 853,
+      "status": "unread",
+      "hash": "46ebe0a88784f138f07fb0a30a1227731144d62c825d06d9e83cbe1fd94c0b63",
+      "title": "Debugging, emotional resilience, and mental models",
+      "url": "https://seangoedecke.com/debugging/",
+      "comments_url": "",
+      "published_at": "2025-04-27T00:00:00Z",
+      "created_at": "2025-04-27T10:53:55.524566Z",
+      "changed_at": "2025-04-27T10:53:55.524566Z",
+      "content": "Being good at debugging is more useful than being good at writing code - you only write a piece of code once, but you may end up debugging…",
+      "author": "",
+      "share_code": "",
+      "starred": false,
+      "reading_time": 1,
+      "enclosures": [],
+      "tags": []
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+services:
+  ctfd:
+    build: .
+    user: root:root
+    ports:
+      - "8080:8000"
+    environment:
+      - DATABASE_URL=sqlite:////opt/CTFd/CTFd/db/ctfd.db
+    volumes:
+      - ctfd:/opt/CTFd/CTFd/db
+      # - type: bind
+      #   source: ${PWD}/challenge.html
+      #   target: /opt/CTFd/CTFd/themes/core-beta/templates/challenge.html
+      #   read_only: true
+volumes:
+  ctfd:
+    name: ctfd
+    external: true
