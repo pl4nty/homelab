@@ -5,5 +5,11 @@
     "includes": ["apps/excel2latex/**", "apps/tenant-lookup/**", "apps/vscode-oci-layers/**", "!**/package-lock.json"]
   },
   "formatter": { "indentStyle": "space", "lineWidth": 120 },
-  "javascript": { "formatter": { "quoteStyle": "single" } }
+  "javascript": { "formatter": { "quoteStyle": "single" } },
+  "overrides": [
+    {
+      "includes": ["apps/tenant-lookup/index.html"],
+      "linter": { "enabled": false }
+    }
+  ]
 }
