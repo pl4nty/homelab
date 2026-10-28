@@ -119,5 +119,13 @@
       groupName: 'longhorn',
       separateMultipleMinor: true,
     },
+    {
+      description: 'One PR per app, named after it, so each gets its own preview',
+      matchFileNames: [
+        'apps/**',
+      ],
+      additionalBranchPrefix: "{{lookup (split packageFileDir '/') 1}}-",
+      commitMessageSuffix: "({{lookup (split packageFileDir '/') 1}})",
+    },
   ],
 }
