@@ -1,0 +1,28 @@
+[project]
+name = "mcp-servers"
+version = "0.1.0"
+description = "Remote MCP servers for Microsoft 365 via Microsoft Graph"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    # Cap below 2.0: it removes mcp.server.fastmcp, which main.py imports.
+    # uvx --from git+... ignores uv.lock, so an unbounded range resolves to latest at every startup.
+    "mcp[cli]>=1.2.0,<2",
+    # "msgraph-beta-sdk>=1.0.0",
+    # "azure-identity>=1.19.0",
+    "pyjwt[crypto]>=2.10.1",
+    "httpx>=0.27.0",
+    "python-dotenv>=1.0.0",
+    "uvicorn>=0.30.0",
+    "google-maps-routing>=0.6.0",
+]
+
+[project.scripts]
+mcp-server = "main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+include = ["main.py", "tools/"]
