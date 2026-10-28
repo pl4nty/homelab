@@ -5,6 +5,7 @@ metadata:
   namespace: flux-system
   annotations:
     fluxcd.controlplane.io/reconcileEvery: 2m
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   type: OCIArtifactTag
   url: oci://ghcr.io/pl4nty/homelab/apps
@@ -17,6 +18,8 @@ kind: ResourceSet
 metadata:
   name: apps
   namespace: flux-system
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   inputsFrom:
     - apiVersion: fluxcd.controlplane.io/v1
