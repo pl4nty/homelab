@@ -4,6 +4,8 @@ kind: HelmRelease
 metadata:
   name: whisker-shuffle
   namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chartRef:

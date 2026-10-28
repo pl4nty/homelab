@@ -2,8 +2,10 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: winget-restsource
+  name: stickers
   namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chartRef:
@@ -18,24 +20,33 @@ spec:
         containers:
           main:
             image:
-              repository: ghcr.io/pl4nty/winget-restsource
+              repository: ghcr.io/pl4nty/stickers
               tag: ${APP_IMAGE_TAG}
             env:
-              RestSource__PublicBaseUrl: https://winget-restsource${APP_HOST_SUFFIX:=}.${PUBLIC_DOMAIN}
+              PUBLIC_URL: https://stickers${APP_HOST_SUFFIX:=}.${PUBLIC_DOMAIN}
+            envFrom:
+              - secretRef:
+                  name: stickers
+                  optional: true
     service:
       main:
         controller: main
         ports:
           http:
-            port: 8080
+            port: 8000
+    persistence:
+      data:
+        type: emptyDir
+        globalMounts:
+          - path: /data
     route:
       main:
         parentRefs:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - winget-restsource${APP_HOST_SUFFIX:=}.${PUBLIC_DOMAIN}
+          - stickers${APP_HOST_SUFFIX:=}.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: winget-restsource
-                port: 8080
+              - name: stickers
+                port: 8000

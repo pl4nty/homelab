@@ -150,7 +150,6 @@ spec:
   ignore: |
     /*
     !/kubernetes
-    /kubernetes/*/apps/
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization

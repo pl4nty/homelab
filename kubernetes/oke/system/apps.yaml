@@ -63,6 +63,7 @@ spec:
       path: ./
       postBuild:
         substitute:
+          APP_SSA: Override
           APP_HOST_SUFFIX: "<< if $preview >>-<< $ref >><< end >>"
         substituteFrom:
           - kind: ConfigMap
