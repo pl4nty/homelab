@@ -11,7 +11,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 WORKDIR /app
 ADD https://github.com/microsoft/WSL2-Linux-Kernel.git /app
 COPY config-wsl .
-RUN make KCONFIG_CONFIG=config-wsl
+RUN make -j"$(nproc)" KCONFIG_CONFIG=config-wsl
 
 # docker run -it --rm -v $(pwd)/config-wsl:/app/config-wsl kernel make menuconfig KCONFIG_CONFIG=config-wsl
 FROM scratch
