@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: vscode-oci-layers${APP_SUFFIX:=}
+  namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
+spec:
+  interval: 15m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: default
+  values:
+    global:
+      createDefaultServiceAccount: false
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              repository: ghcr.io/pl4nty/vscode-oci-layers
+              tag: ${APP_IMAGE_TAG}
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 8080
+    route:
+      main:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - vscode-oci-layers${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
+        rules:
+          - backendRefs:
+              - identifier: main
+                port: 8080
