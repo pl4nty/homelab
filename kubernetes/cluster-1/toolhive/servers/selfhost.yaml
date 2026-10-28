@@ -1,0 +1,40 @@
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: selfhost
+  namespace: toolhive-system
+spec:
+  groupRef:
+    name: toolhive
+  telemetryConfigRef:
+    name: toolhive
+  externalAuthConfigRef:
+    name: entra-upstream
+  image: ghcr.io/pl4nty/mcp:latest@sha256:66b0b75afba9e5df0708ed8019c6a81b0c963f80617465453e67144c2b18c093
+  transport: streamable-http
+  mcpPort: 8000
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          env:
+            - name: AZURE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: toolhive
+                  key: entra-client-id
+            - name: AZURE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: toolhive
+                  key: entra-client-secret
+      volumes:
+        - name: tmp
+          emptyDir: {}
+  secrets:
+    - name: toolhive
+      key: flowsavvy-cookie
+      targetEnvName: FLOWSAVVY_COOKIE

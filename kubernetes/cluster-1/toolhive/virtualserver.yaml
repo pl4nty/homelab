@@ -42,6 +42,11 @@ spec:
   config:
     operational:
       logLevel: debug
+    aggregation:
+      tools:
+        # FlowSavvy tools: replaced by the official connector, server kept running
+        - workload: selfhost
+          excludeAll: true
     codeMode:
       enabled: true
 ---

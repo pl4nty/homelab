@@ -18,7 +18,7 @@ apps/mcp/
 
 ## Tools
 
-Only the FlowSavvy tools are registered. `main.py` leaves the Graph and Google Maps imports commented out. Nothing deploys this app: the cluster-1 ToolHive `selfhost` server was removed in favour of the official FlowSavvy connector.
+Only the FlowSavvy tools are registered. `main.py` leaves the Graph and Google Maps imports commented out. The cluster-1 ToolHive `selfhost` server runs this image, but both VirtualMCPServers hide its tools in favour of the official FlowSavvy connector.
 
 |Tool|Description|
 |---|---|
