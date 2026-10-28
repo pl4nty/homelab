@@ -1,4 +1,4 @@
-# https://github.com/microsoft/WSL2-Linux-Kernel/tree/linux-msft-wsl-6.6.y#build-instructions
+# https://github.com/microsoft/WSL2-Linux-Kernel/tree/linux-msft-wsl-6.18.y#build-instructions
 # download bzImage from the latest wsl2-kernel/sha-* release
 FROM ubuntu:24.04 AS build
 
