@@ -25,6 +25,10 @@ spec:
             image:
               repository: ghcr.io/pl4nty/reg2ps
               tag: latest@sha256:164e137524912283ad9101f9b6b219be31ee4daa5495b5e5d249fd6348ca386d
+            env:
+              # temporary: surface .NET auto-instrumentation diagnostics in Loki (arm64 test)
+              OTEL_DOTNET_AUTO_LOGGER: console
+              OTEL_LOG_LEVEL: debug
             probes:
               liveness:
                 enabled: true
