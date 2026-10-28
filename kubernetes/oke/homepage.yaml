@@ -26,7 +26,7 @@ spec:
   values:
     image:
       repository: ghcr.io/gethomepage/homepage
-      tag: v1.13.2
+      tag: v1.13.2@sha256:a0b71c8e757298d02560186bab9fbe3fc2d375c523a62cc1019177b37e48aa28
     env:
     - name: HOMEPAGE_ALLOWED_HOSTS
       value: lab.${PUBLIC_DOMAIN}
