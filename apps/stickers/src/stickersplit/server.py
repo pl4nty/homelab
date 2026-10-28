@@ -65,10 +65,12 @@ class Worker:
             self.enqueue(json.loads(sidecar.read_text()))
         threading.Thread(target=self.run, daemon=True).start()
 
-    def enqueue(self, job: dict) -> None:
+    def enqueue(self, job: dict) -> dict:
         (self.dir / f"{job['id']}.json").write_text(json.dumps(job))
         self.jobs[job["id"]] = {**job, "status": "queued", "stickers": 0}
+        queued = dict(self.jobs[job["id"]])     # the worker thread mutates the live dict
         self.q.put(job["id"])
+        return queued
 
     def run(self) -> None:
         while True:
@@ -191,9 +193,8 @@ def create_app(data: Path, submit_token: str, admin_token: str, claude=None,
             dst.unlink()
             raise HTTPException(413, f"That scan is {mp:.0f} megapixels; the limit is {max_mp:.0f}. "
                                      "Scan at 600 dpi.")
-        worker.enqueue({"id": id, "ext": ext, "name": file.filename, "creator": creator.strip(),
-                        "comment": comment.strip()})
-        return worker.jobs[id]
+        return worker.enqueue({"id": id, "ext": ext, "name": file.filename, "creator": creator.strip(),
+                               "comment": comment.strip()})
 
     @app.get("/api/scans")
     def scans(r=Depends(role)):
