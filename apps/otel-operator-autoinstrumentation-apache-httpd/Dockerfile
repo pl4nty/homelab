@@ -129,6 +129,7 @@ RUN mkdir -p dependencies/googletest/${GTEST_VERSION}/ \
     && wget https://github.com/google/googletest/archive/refs/tags/release-${GTEST_VERSION}.tar.gz --no-check-certificate \
     && tar -xf release-${GTEST_VERSION}.tar.gz \
     && cd googletest-release-${GTEST_VERSION}/  \
+    && sed -i 's/ -Werror//' googletest/cmake/internal_utils.cmake \
     && mkdir build && cd build \
     && cmake .. -DCMAKE_INSTALL_PREFIX=/dependencies/googletest/${GTEST_VERSION}/ \
     && make \
