@@ -32,7 +32,7 @@ spec:
               repository: docker.io/photoprism/photoprism
               tag: 261007@sha256:0f85369636ad99ca9a1c33f2d04df6c590802d16b7c33b4a1ea026b595be06d1
             env:
-              PHOTOPRISM_SITE_URL: https://stickers.${PUBLIC_DOMAIN}/
+              PHOTOPRISM_SITE_URL: https://stickers-old.${PUBLIC_DOMAIN}/
               PHOTOPRISM_SITE_TITLE: Stickers
               PHOTOPRISM_DEFAULT_TIMEZONE: ${TIMEZONE}
               PHOTOPRISM_UID: 1000
@@ -133,7 +133,7 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - stickers.${PUBLIC_DOMAIN}
+          - stickers-old.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
               - identifier: main

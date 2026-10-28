@@ -10,7 +10,6 @@ spec:
   url: oci://ghcr.io/pl4nty/homelab/apps
   filter:
     includeTag: ^[a-z0-9-]+\.(main|pr-[0-9]+)$
-    excludeTag: ^stickers\.main$
     limit: 1000
 ---
 apiVersion: fluxcd.controlplane.io/v1
