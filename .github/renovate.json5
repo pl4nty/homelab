@@ -185,5 +185,14 @@
       ],
       commitMessagePrefix: "feat({{lookup (split packageFileDir '/') 1}})!: ",
     },
+    {
+      description: 'App CI and previews only run on PRs, so automerge app updates through a PR once checks pass',
+      matchFileNames: [
+        'apps/**',
+      ],
+      automergeType: 'pr',
+      platformAutomerge: false,
+      ignoreTests: false,
+    },
   ],
 }
