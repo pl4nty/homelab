@@ -11,11 +11,13 @@ RUN find . -name '*.csproj' -exec sed -i 's#<TargetFramework>net8.0<#<TargetFram
 
 # opt-in: docker build --target test
 FROM source AS test
-RUN dotnet test MSGraphWebApi.sln --filter "TestCategory!=CodeSnippetsPipeline"
+RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages,sharing=locked \
+    dotnet test MSGraphWebApi.sln --filter "TestCategory!=CodeSnippetsPipeline"
 
 FROM source AS build
 ARG TARGETARCH
-RUN dotnet publish GraphWebApi/GraphWebApi.csproj -c Release -a $TARGETARCH -o /app
+RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages,sharing=locked \
+    dotnet publish GraphWebApi/GraphWebApi.csproj -c Release -a $TARGETARCH -o /app
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 # config reload watches files with inotify, which crashes the app when the node's per-user limit is exhausted
