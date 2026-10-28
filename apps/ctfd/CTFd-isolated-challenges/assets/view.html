@@ -1,0 +1,11 @@
+{% extends "challenge.html" %}
+
+{% block connection_info %}
+  {% set conn = challenge.connection_info_isolated %}
+  {% if not conn %}
+  {% elif conn.startswith("http") %}
+    {{ conn | urlize(target="_blank") }}
+  {% else %}
+    <code>{{ conn }}</code>
+  {% endif %}
+{% endblock %}
