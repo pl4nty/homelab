@@ -1,10 +1,10 @@
-FROM node:24.21.0@sha256:64af3819f9275802414d7cdc38c27e9d82bd564dec4d4da87d008255d36c63b4 AS build-env
+FROM --platform=$BUILDPLATFORM node:24.21.0@sha256:64af3819f9275802414d7cdc38c27e9d82bd564dec4d4da87d008255d36c63b4 AS build-env
 WORKDIR /app
 
 COPY --from=src package.json ./
 COPY package-lock.json ./
 # lock wasn't updated so npm ci fails
-RUN npm install
+RUN --mount=type=cache,id=npm,target=/root/.npm npm install
 
 COPY --from=src . .
 COPY package-lock.json ./
