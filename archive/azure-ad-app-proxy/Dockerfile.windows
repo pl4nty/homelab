@@ -1,0 +1,13 @@
+FROM mcr.microsoft.com/dotnet/framework/runtime:4.8
+
+RUN powershell curl -o AADApplicationProxyConnectorInstaller.exe https://download.msappproxy.net/Subscription/d3c8b69d-6bf7-42be-a529-3fe9c2e70c90/Connector/DownloadConnectorInstaller; \
+  ./AADApplicationProxyConnectorInstaller.exe REGISTERCONNECTOR="false" /q
+  # rm .\AADApplicationProxyConnectorInstaller.exe permissions issue?
+
+COPY LogMonitorConfig.json /LogMonitor/
+RUN powershell curl -o C:\LogMonitor\LogMonitor.exe https://github.com/microsoft/windows-container-tools/releases/download/v1.2.1/LogMonitor.exe
+
+# <add key="TraceFilename" value="AadAppProxyConnector.log" />
+WORKDIR C:\\Program Files\\Microsoft AAD App Proxy Connector
+COPY entrypoint.ps1 .
+ENTRYPOINT "powershell ./entrypoint.ps1"
