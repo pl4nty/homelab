@@ -2,13 +2,16 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: az-vnet-planner
+  name: vnet-capacity-planner${APP_SUFFIX:=}
   namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chartRef:
     kind: OCIRepository
     name: app-template
+    namespace: default
   values:
     global:
       createDefaultServiceAccount: false
@@ -21,7 +24,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/vnet-capacity-planner
-              tag: latest@sha256:ff79a401382a29350c3a8899702aa895595851508b0e2824f1fc73506b3edd5c
+              tag: ${APP_IMAGE_TAG:=}
             probes:
               liveness:
                 enabled: true
@@ -41,8 +44,8 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - vnetplanner.${PUBLIC_DOMAIN}
+          - vnetplanner${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: az-vnet-planner
+              - identifier: main
                 port: 8080
