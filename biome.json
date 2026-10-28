@@ -1,21 +1,30 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.6.3/schema.json",
-  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
-  "files": {
-    "includes": [
-      "apps/excel2latex/**",
-      "apps/tenant-lookup/**",
-      "apps/vscode-oci-layers/**",
-      "!**/package-lock.json",
-      "!apps/vscode-oci-layers/src/types/vscode.proposed.*.d.ts"
-    ]
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
   },
-  "formatter": { "indentStyle": "space", "lineWidth": 120 },
-  "javascript": { "formatter": { "quoteStyle": "single" } },
+  "files": {
+    "includes": ["**", "!**/package-lock.json", "!apps/vscode-oci-layers/src/types/vscode.proposed.*.d.ts"]
+  },
+  "formatter": {
+    "indentStyle": "space",
+    "lineWidth": 120
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single"
+    }
+  },
   "linter": {
     "rules": {
-      "performance": { "useDomNodeTextContent": "off" },
-      "style": { "noNonNullAssertion": "off" }
+      "performance": {
+        "useDomNodeTextContent": "off"
+      },
+      "style": {
+        "noNonNullAssertion": "off"
+      }
     }
   }
 }
