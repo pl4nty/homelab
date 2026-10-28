@@ -154,6 +154,5 @@ spec:
             - list_mail_folders
             - read_attachment
             - search_emails
-        - workload: selfhost
         - workload: google-maps
         - workload: youtube-transcript
