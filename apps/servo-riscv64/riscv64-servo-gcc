@@ -1,0 +1,15 @@
+#!/bin/sh
+# Cross-compiler wrapper for Servo/riscv64: injects the Servo riscv64 sysroot
+# (X11, Wayland, Mesa, fontconfig, udev, ...) on top of the toolchain's own
+# libc/libstdc++ sysroot at /usr/riscv64-linux-gnu.
+#
+# The include dirs use -isystem, not -I, on purpose: gcc searches -isystem
+# directories *after* every -I directory, so a vendored copy of a system header
+# still wins. Bundled ANGLE (mozangle) ships its own EGL/eglext.h carrying the
+# EGL_*_ANGLE extension constants; with -I here, Mesa's eglext.h from the
+# sysroot would shadow it and ANGLE would fail to compile.
+S=/opt/riscv64-sysroot
+exec riscv64-linux-gnu-gcc \
+  -isystem "$S/usr/include" -isystem "$S/usr/include/riscv64-linux-gnu" \
+  -L"$S/usr/lib/riscv64-linux-gnu" -L"$S/lib/riscv64-linux-gnu" \
+  -Wl,-rpath-link,"$S/usr/lib/riscv64-linux-gnu" "$@"
