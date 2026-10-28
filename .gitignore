@@ -1,3 +1,4 @@
 .devcontainer/devcontainer.env
 .devcontainer/kubeconfig
 .decrypted~*
+dist/
