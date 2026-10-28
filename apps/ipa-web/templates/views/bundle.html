@@ -1,0 +1,78 @@
+{{ define "views/bundle.html" }}
+
+<!--Embed the header.html template at this location-->
+{{ template "layouts/header.html" .}}
+
+<h1>{{ .Bundle.App.Name }}</h1>
+<p class="text-muted"><code>{{ .Id }}</code> · <a class="link-primary" target="_blank" rel="noopener noreferrer"
+    href="https://apps.apple.com/app/id{{ .Bundle.App.ID }}">App Store</a></p>
+
+<form class="d-flex justify-content-center mb-4" method="get">
+  <select class="form-select w-auto" name="version" aria-label="Version" onchange="this.form.submit()">
+    {{ $current := .Version.App.Version }}
+    {{ range .Versions }}
+    <option value="{{ .App.Version }}" {{ if eq .App.Version $current }}selected{{ end }}>{{ .App.Version }} (seen {{ .Extracted.Format "2006-01-02" }})</option>
+    {{ end }}
+  </select>
+</form>
+
+<div>
+  <h4>
+    <a class="link-primary" href="/download/{{ .Id }}/Info.plist?version={{ .Version.App.Version }}">Info.plist</a>
+  </h4>
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+        <th scope="col">Role</th>
+        <th scope="col">Schemes</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ range .Bundle.Information.CFBundleURLTypes }}
+      <tr>
+        <th scope="row">{{ or .CFBundleURLName .CFBundleTypeRole }}</th>
+        <td>{{ .CFBundleTypeRole }}</td>
+        <td>{{ range .CFBundleURLSchemes }}{{ . }}<br>{{ end }}</td>
+      </tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+
+<br>
+
+<div>
+  <h4>
+    <a class="link-primary" href="/download/{{ .Id }}/entitlements.plist?version={{ .Version.App.Version }}">entitlements.plist</a>
+  </h4>
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">Entitlement</th>
+        <th scope="col">Values</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">associated-domains (Universal Links)</th>
+        <td>{{ range .Bundle.Entitlements.AssociatedDomains }}http://{{ . }}/*<br>https://{{ . }}/*<br>{{ end }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+{{ if .Privacy }}
+<br>
+
+<div>
+  <h4>
+    <a class="link-primary" href="/download/{{ .Id }}/PrivacyInfo.xcprivacy?version={{ .Version.App.Version }}">PrivacyInfo.xcprivacy</a>
+  </h4>
+</div>
+{{ end }}
+
+<!--Embed the footer.html template at this location-->
+{{ template "layouts/footer.html" .}}
+
+{{ end }}
