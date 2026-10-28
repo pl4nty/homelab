@@ -29,6 +29,9 @@ spec:
               tag: edge@sha256:8aebc8a65e4d22bbf5fa7f0e8b88ac162ce110808affc717ac3c7ded46e5afb9
             env:
               OTEL_DOTNET_EXPERIMENTAL_HTTPCLIENT_DISABLE_URL_QUERY_REDACTION: "true"
+              # temporary: surface .NET auto-instrumentation diagnostics in Loki (arm64 test)
+              OTEL_DOTNET_AUTO_LOGGER: console
+              OTEL_LOG_LEVEL: debug
             probes:
               liveness:
                 enabled: true
