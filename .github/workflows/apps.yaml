@@ -48,6 +48,9 @@ jobs:
       fail-fast: false
       matrix:
         app: ${{ fromJson(needs.changes.outputs.apps) }}
+    environment:
+      name: ${{ matrix.app }}${{ github.event.pull_request && '-preview' || '' }}
+      url: https://${{ matrix.app }}${{ github.event.pull_request && format('-pr-{0}', github.event.pull_request.number) || '' }}.tplant.com.au
     env:
       APP: ${{ matrix.app }}
     steps:
