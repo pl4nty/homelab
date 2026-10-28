@@ -125,7 +125,16 @@
         'apps/**',
       ],
       additionalBranchPrefix: "{{lookup (split packageFileDir '/') 1}}-",
-      commitMessageSuffix: "({{lookup (split packageFileDir '/') 1}})",
+      semanticCommitScope: "{{lookup (split packageFileDir '/') 1}}",
+    },
+    {
+      matchFileNames: [
+        'apps/**',
+      ],
+      matchUpdateTypes: [
+        'major',
+      ],
+      commitMessagePrefix: "feat({{lookup (split packageFileDir '/') 1}})!: ",
     },
   ],
 }
