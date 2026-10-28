@@ -1,0 +1,40 @@
+# https://miniflux.app/docs/docker.html#docker-compose
+services:
+  miniflux:
+    image: miniflux/miniflux:latest@sha256:49d7b60987616387c306a8023087b31f2c9b7b21288b523026cb04058e8b6dbb
+    ports:
+      - "80:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgres://miniflux:secret@db/miniflux?sslmode=disable
+      - RUN_MIGRATIONS=1
+      - CREATE_ADMIN=1
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=test123
+  db:
+    image: postgres:18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873
+    environment:
+      - POSTGRES_USER=miniflux
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=miniflux
+    volumes:
+      - miniflux-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "miniflux"]
+      interval: 10s
+      start_period: 30s
+  
+  rewriter:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - MINIFLUX_API_URL=http://miniflux:8080/v1
+    env_file: .env
+    volumes:
+      - ./rules.yaml:/app/data/rules.yaml
+
+volumes:
+  miniflux-db:
