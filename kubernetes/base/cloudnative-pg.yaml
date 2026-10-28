@@ -22,3 +22,25 @@ spec:
       retries: 3
   uninstall:
     keepHistory: false
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: cloudnative-pg
+  namespace: default
+spec:
+  selector:
+    matchExpressions:
+      - key: cnpg.io/cluster
+        operator: Exists
+      - key: cnpg.io/podRole
+        operator: In
+        values:
+          - instance
+  podMetricsEndpoints:
+    - port: metrics
+      # backup, WAL archiving and replication health only, to stay inside the Grafana Cloud series limit
+      metricRelabelings:
+        - sourceLabels: [__name__]
+          regex: cnpg_collector_(up|last_available_backup_timestamp|last_failed_backup_timestamp)|cnpg_pg_replication_(lag|streaming_replicas)|cnpg_pg_stat_archiver_(failed_count|seconds_since_last_archival)|cnpg_pg_database_size_bytes
+          action: keep
