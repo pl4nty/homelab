@@ -6,14 +6,10 @@ metadata:
   namespace: monitoring-system
 spec:
   interval: 15m
-  chart:
-    spec:
-      chart: k8s-monitoring
-      version: 4.5.3
-      sourceRef:
-        kind: HelmRepository
-        name: grafana
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: k8s-monitoring
+    namespace: flux-system
   maxHistory: 3
   install:
     createNamespace: true
