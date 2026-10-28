@@ -58,9 +58,7 @@ spec:
     persistence:
       # recyclarr clones the TRaSH guides in here on every run
       config:
-        accessMode: ReadWriteOnce
-        size: 2Gi
-        storageClass: longhorn-local
+        type: emptyDir
         globalMounts:
           - path: /config
       config-file:
