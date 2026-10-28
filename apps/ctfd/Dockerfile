@@ -1,4 +1,4 @@
-FROM quay.io/curl/curl:8.21.0@sha256:7c12af72ceb38b7432ab85e1a265cff6ae58e06f95539d539b654f2cfa64bb13 AS plugins
+FROM --platform=$BUILDPLATFORM quay.io/curl/curl:8.21.0@sha256:7c12af72ceb38b7432ab85e1a265cff6ae58e06f95539d539b654f2cfa64bb13 AS plugins
 
 RUN mkdir /tmp/plugins
 RUN curl -L https://github.com/CTFd/public_challenges/archive/36667c9f0dffc37e42a1cd3df874daf762425d1e.tar.gz | tar xz -C /tmp/plugins
@@ -10,9 +10,11 @@ RUN curl -L https://github.com/adb014/CTFd-solutions/archive/8a646c7f08175b271cf
 FROM ghcr.io/ctfd/ctfd:3.8.6@sha256:5b780b3628f2fe7bc0cdf9567d51244c2e8b5bb93f227fdac0532c94ae43f7c7
 
 COPY --from=plugins /tmp/plugins CTFd/plugins
-RUN for d in CTFd/plugins/*; do \
+# the base image runs pip as ctfd (1001), so its cache needs its own id and owner
+RUN --mount=type=cache,id=pip-ctfd,target=/home/ctfd/.cache/pip,uid=1001,gid=1001 \
+  for d in CTFd/plugins/*; do \
   if [ -f "$d/requirements.txt" ]; then \
-    pip install --no-cache-dir -r "$d/requirements.txt";\
+    pip install -r "$d/requirements.txt";\
   fi; \
 done;
 COPY CTFd-isolated-challenges CTFd/plugins/CTFd-isolated-challenges
