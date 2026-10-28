@@ -1,3 +1,5 @@
+FROM --platform=$BUILDPLATFORM ghcr.io/astral-sh/uv:0.13.6 AS uv
+
 FROM --platform=$BUILDPLATFORM ubuntu:24.04@sha256:561618e2c15bf2397621dd04f96926663a3b5616c189cf7e38db7e82f5c538ea AS build
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -12,7 +14,7 @@ RUN sed -i "/^Types: deb/a Architectures: $(dpkg --print-architecture)" /etc/apt
 COPY build-riscv64-sysroot.sh /tmp/
 RUN /tmp/build-riscv64-sysroot.sh
 COPY riscv64-servo-gcc riscv64-servo-g++ /usr/local/bin/
-COPY --from=ghcr.io/astral-sh/uv:0.13.6 /uv /usr/local/bin/
+COPY --from=uv /uv /usr/local/bin/
 
 ENV RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo PATH=/opt/cargo/bin:$PATH
 RUN curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain none
