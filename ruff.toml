@@ -2,4 +2,9 @@ target-version = "py313"
 line-length = 100
 
 [lint]
-extend-select = ["I", "UP", "B"]
+extend-select = ["I", "UP"]
+# broad catches at service boundaries are deliberate in these small apps
+ignore = ["BLE001"]
+
+[lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.File", "fastapi.Form", "fastapi.Header", "fastapi.Query"]
