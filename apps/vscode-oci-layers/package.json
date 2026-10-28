@@ -1,0 +1,274 @@
+{
+  "name": "oci-layers",
+  "displayName": "OCI Image Layers",
+  "description": "Open a container image from a registry, edit its filesystem, and commit the edits as a new layer. Works in VS Code for the Web.",
+  "version": "0.1.0",
+  "publisher": "pl4nty",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pl4nty/homelab",
+    "directory": "apps/vscode-oci-layers"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "SCM Providers",
+    "Other"
+  ],
+  "keywords": [
+    "docker",
+    "oci",
+    "container",
+    "image",
+    "layer",
+    "registry"
+  ],
+  "main": "./dist/node/extension.js",
+  "browser": "./dist/web/extension.js",
+  "activationEvents": [
+    "onFileSystem:oci-layer",
+    "onFileSystem:oci-layer-base",
+    "onStartupFinished"
+  ],
+  "capabilities": {
+    "virtualWorkspaces": true,
+    "untrustedWorkspaces": {
+      "supported": true
+    }
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "ociLayers.openImage",
+        "title": "Open Image\u2026",
+        "category": "OCI Layers",
+        "icon": "$(package)"
+      },
+      {
+        "command": "ociLayers.closeImage",
+        "title": "Close Image",
+        "category": "OCI Layers",
+        "icon": "$(close)"
+      },
+      {
+        "command": "ociLayers.commit",
+        "title": "Commit Layer and Push\u2026",
+        "category": "OCI Layers",
+        "icon": "$(check)"
+      },
+      {
+        "command": "ociLayers.discard",
+        "title": "Discard Changes",
+        "category": "OCI Layers",
+        "icon": "$(discard)"
+      },
+      {
+        "command": "ociLayers.discardAll",
+        "title": "Discard All Changes",
+        "category": "OCI Layers",
+        "icon": "$(discard)"
+      },
+      {
+        "command": "ociLayers.openChange",
+        "title": "Open Changes",
+        "category": "OCI Layers",
+        "icon": "$(compare-changes)"
+      },
+      {
+        "command": "ociLayers.findFile",
+        "title": "Find File in Image\u2026",
+        "category": "OCI Layers",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "ociLayers.findText",
+        "title": "Find Text in Image\u2026",
+        "category": "OCI Layers",
+        "icon": "$(search)"
+      },
+      {
+        "command": "ociLayers.signIn",
+        "title": "Sign In to Registry\u2026",
+        "category": "OCI Layers",
+        "icon": "$(key)"
+      },
+      {
+        "command": "ociLayers.signOut",
+        "title": "Sign Out of Registry\u2026",
+        "category": "OCI Layers"
+      },
+      {
+        "command": "ociLayers.copyReference",
+        "title": "Copy Image Reference",
+        "category": "OCI Layers"
+      },
+      {
+        "command": "ociLayers.refreshLayers",
+        "title": "Refresh",
+        "category": "OCI Layers",
+        "icon": "$(refresh)"
+      }
+    ],
+    "menus": {
+      "scm/title": [
+        {
+          "command": "ociLayers.commit",
+          "group": "navigation",
+          "when": "scmProvider == oci-layers"
+        },
+        {
+          "command": "ociLayers.findFile",
+          "group": "1_image",
+          "when": "scmProvider == oci-layers"
+        },
+        {
+          "command": "ociLayers.findText",
+          "group": "1_image",
+          "when": "scmProvider == oci-layers"
+        },
+        {
+          "command": "ociLayers.discardAll",
+          "group": "inline",
+          "when": "scmProvider == oci-layers"
+        },
+        {
+          "command": "ociLayers.closeImage",
+          "group": "1_image",
+          "when": "scmProvider == oci-layers"
+        },
+        {
+          "command": "ociLayers.signIn",
+          "group": "1_image",
+          "when": "scmProvider == oci-layers"
+        }
+      ],
+      "scm/resourceState/context": [
+        {
+          "command": "ociLayers.discard",
+          "group": "inline",
+          "when": "scmProvider == oci-layers"
+        },
+        {
+          "command": "ociLayers.openChange",
+          "group": "navigation",
+          "when": "scmProvider == oci-layers"
+        }
+      ],
+      "scm/resourceGroup/context": [
+        {
+          "command": "ociLayers.discardAll",
+          "group": "inline",
+          "when": "scmProvider == oci-layers"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "ociLayers.openImage",
+          "group": "navigation",
+          "when": "view == ociLayers.layers"
+        },
+        {
+          "command": "ociLayers.copyReference",
+          "title": "Copy Image Reference",
+          "category": "OCI Layers"
+        },
+        {
+          "command": "ociLayers.refreshLayers",
+          "group": "navigation",
+          "when": "view == ociLayers.layers"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "ociLayers.discard",
+          "when": "false"
+        },
+        {
+          "command": "ociLayers.openChange",
+          "when": "false"
+        },
+        {
+          "command": "ociLayers.copyReference",
+          "title": "Copy Image Reference",
+          "category": "OCI Layers"
+        },
+        {
+          "command": "ociLayers.refreshLayers",
+          "when": "false"
+        }
+      ]
+    },
+    "views": {
+      "scm": [
+        {
+          "id": "ociLayers.layers",
+          "name": "Image Layers",
+          "contextualTitle": "OCI Layers"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "ociLayers.layers",
+        "contents": "Open a container image from a registry to browse and edit its filesystem.\n[Open Image](command:ociLayers.openImage)"
+      }
+    ],
+    "configuration": {
+      "title": "OCI Layers",
+      "properties": {
+        "ociLayers.platform": {
+          "type": "string",
+          "default": "linux/amd64",
+          "description": "Platform to select when an image reference resolves to a multi-platform index (os/arch[/variant])."
+        },
+        "ociLayers.corsProxy": {
+          "type": "string",
+          "default": "",
+          "description": "URL prefix for all registry and token requests, e.g. `https://oci-cors-proxy.<you>.workers.dev/`. The full target URL is appended. Needed in VS Code for the Web, where public registries do not send CORS headers; deploy your own proxy from `proxy/worker.js` (it sees your credentials)."
+        },
+        "ociLayers.insecureRegistries": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "localhost",
+            "127.0.0.1"
+          ],
+          "description": "Registry hosts (with or without port) to reach over plain HTTP."
+        },
+        "ociLayers.maxImageSizeMB": {
+          "type": "number",
+          "default": 512,
+          "description": "Refuse to open images whose compressed layers exceed this size. Layers are held in memory."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --no-warnings --test test/*.test.ts",
+    "package": "npm run build && vsce package",
+    "serve:web": "npm run build && PUBLIC_DIR=. bun proxy/serve.mjs 8787",
+    "proxy": "bun proxy/serve.mjs 8787"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/vscode": "~1.90.0",
+    "@vscode/test-web": "^0.0.81",
+    "esbuild": "^0.25.0",
+    "playwright-core": "^1.64.1",
+    "typescript": "~5.9.0"
+  },
+  "dependencies": {
+    "fzstd": "^0.1.1"
+  },
+  "enabledApiProposals": [
+    "fileSearchProvider2",
+    "textSearchProvider2"
+  ]
+}

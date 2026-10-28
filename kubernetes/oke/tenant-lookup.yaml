@@ -2,13 +2,16 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: tenant-lookup
+  name: tenant-lookup${APP_SUFFIX:=}
   namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chartRef:
     kind: OCIRepository
     name: app-template
+    namespace: default
   values:
     global:
       createDefaultServiceAccount: false
@@ -24,7 +27,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/tenant-lookup
-              tag: latest@sha256:6e435952e2c703247e19dc698b55d05dda6330be4384410d1adff46cc0429d45
+              tag: ${APP_IMAGE_TAG:=}
             envFrom:
               - secretRef:
                   name: tenant-lookup
@@ -47,8 +50,8 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - tenant-lookup.${PUBLIC_DOMAIN}
+          - tenant-lookup${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: tenant-lookup
+              - identifier: main
                 port: 3000

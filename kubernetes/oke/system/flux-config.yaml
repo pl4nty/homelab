@@ -48,6 +48,23 @@ spec:
     - kind: ConfigMap
       name: instance-settings
 ---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: apps
+  namespace: flux-system
+spec:
+  interval: 30m
+  retryInterval: 2m
+  path: ./kubernetes/oke/system/apps
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: home-kubernetes
+  postBuild:
+    substitute:
+      APP_SSA: Override
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:

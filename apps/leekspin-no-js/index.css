@@ -1,0 +1,33 @@
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: black;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  body {
+    background-color: white;
+  }
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  animation-name: animation;
+  animation-duration: 0.4s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes animation {
+  0% {background-image: url(frame1.png)}
+  25% {background-image: url(frame2.png)}
+  50% {background-image: url(frame3.png)}
+  75% {background-image: url(frame4.png)}
+  100% {background-image: url(frame1.png)}
+}

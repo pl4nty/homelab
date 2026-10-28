@@ -1,0 +1,4 @@
+feed_rules:
+  # Feed ID: List of rule names to apply
+  "853":
+    - ai_summary

@@ -11,8 +11,8 @@ spec:
     - baggage
     - b3
   sampler:
-    type: parentbased_traceidratio
-    argument: "0.25"
+    # low traffic, so keep every trace
+    type: parentbased_always_on
   resource:
     # resourceAttributes:
     #   k8s.cluster.name: ${CLUSTER_NAME}
@@ -60,8 +60,8 @@ spec:
     - baggage
     - b3
   sampler:
-    type: parentbased_traceidratio
-    argument: "0.25"
+    # low traffic, so keep every trace
+    type: parentbased_always_on
   resource:
     # resourceAttributes:
     #   k8s.cluster.name: ${CLUSTER_NAME}

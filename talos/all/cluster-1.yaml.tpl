@@ -1,22 +1,16 @@
-# Only non-default settings. Hardware-specific blocks are keyed on .Node.Data.hw
-# (see topf.yaml), role-specific blocks on .Node.Role, so a node can change role
-# without changing hardware config.
 {{- $hw := .Node.Data.hw }}
 {{- $cp := eq .Node.Role "control-plane" }}
-{{- /* alloy-logs NodePort (k8s-monitoring-services.yaml): reachable before cluster DNS is up, unlike the service name */ -}}
 {{- $logs := printf "tcp://%s:30544" (urlParse .ClusterEndpoint).hostname }}
 machine:
   install:
-{{- if eq $hw "nuc" }}
-    disk: /dev/nvme0n1
-{{- else if eq $hw "rk1" }}
+{{- if eq $hw "rk1" }}
     diskSelector:
       size: <= 100GB
-{{- else if eq $hw "riscv" }}
-{{- if not (and (hasKey .Node.Data "installer") (hasKey .Node.Data "installDisk")) }}{{ fail "riscv nodes need data.installer and data.installDisk" }}{{ end }}
-    image: {{ .Node.Data.installer }}
-    disk: {{ .Node.Data.installDisk }}
-{{- else }}{{ fail (printf "%s: unknown data.hw %q" .Node.Host $hw) }}
+{{- else }}
+    disk: {{ index .Node.Data "disk" | default "/dev/nvme0n1" }}
+{{- end }}
+{{- with index .Node.Data "installer" }}
+    image: {{ . }}
 {{- end }}
     extraKernelArgs:
       - talos.logging.kernel={{ $logs }}
@@ -27,7 +21,6 @@ machine:
         - mountpoint: /var/mnt/nvme0n1
 {{- end }}
 {{- if eq $hw "riscv" }}
-  # most images have no riscv64 build
   nodeTaints:
     kubernetes.io/arch: riscv64:NoSchedule
 {{- end }}
@@ -36,8 +29,8 @@ machine:
       - endpoint: {{ $logs }}
         format: json_lines
   kubelet:
-{{- if hasKey .Node.Data "kubeletImage" }}
-    image: {{ .Node.Data.kubeletImage }}
+{{- with index .Node.Data "kubeletImage" }}
+    image: {{ . }}
 {{- end }}
     extraArgs:
       rotate-server-certificates: "true"
@@ -45,13 +38,9 @@ machine:
       - destination: /var/lib/longhorn
         type: bind
         source: /var/lib/longhorn
-        options:
-          - bind
-          - rshared
-          - rw
+        options: [bind, rshared, rw]
 {{- if $cp }}
-    # etcd runs outside kubelet accounting, so reserve more for it (talos default 512Mi).
-    # setting systemReserved replaces all of talos' defaults, so keep the other keys
+    # etcd isn't in kubelet accounting. systemReserved replaces all talos defaults, so keep the other keys
     extraConfig:
       systemReserved:
         cpu: 50m
@@ -60,13 +49,8 @@ machine:
         ephemeral-storage: 256Mi
 {{- end }}
   sysctls:
-{{- if eq $hw "rk1" }}
-    # 512Mi for cnpg pods (100Mi hugepages-2Mi each), previously 3Gi for mayastor (archived)
-    vm.nr_hugepages: "256"
-{{- else }}
-    # none on the 8GiB nuc (they're unswappable and starved etcd/apiserver) or riscv boards
-    vm.nr_hugepages: "0"
-{{- end }}
+    # rk1: 512Mi for cnpg. none on the 8GiB nuc, where they starved etcd
+    vm.nr_hugepages: "{{ if eq $hw "rk1" }}256{{ else }}0{{ end }}"
 {{- if $cp }}
 cluster:
   allowSchedulingOnControlPlanes: true

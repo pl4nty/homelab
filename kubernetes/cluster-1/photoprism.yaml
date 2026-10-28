@@ -1,0 +1,140 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: photoprism
+  namespace: default
+spec:
+  interval: 15m
+  # first pull of the ~1GB image takes ~7m on an RK1, past the 5m default
+  timeout: 15m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    global:
+      createDefaultServiceAccount: false
+    defaultPodOptions:
+      # keep off the 8GiB amd64 control plane node
+      nodeSelector:
+        kubernetes.io/arch: arm64
+      # PHOTOPRISM_UID/GID drop to 1000, which can't write to fresh volumes
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+    controllers:
+      main:
+        # RWO volumes can't attach to two nodes during a rollout
+        strategy: Recreate
+        containers:
+          main:
+            image:
+              repository: docker.io/photoprism/photoprism
+              tag: 261007@sha256:0f85369636ad99ca9a1c33f2d04df6c590802d16b7c33b4a1ea026b595be06d1
+            env:
+              PHOTOPRISM_SITE_URL: https://stickers-old.${PUBLIC_DOMAIN}/
+              PHOTOPRISM_SITE_TITLE: Stickers
+              PHOTOPRISM_DEFAULT_TIMEZONE: ${TIMEZONE}
+              PHOTOPRISM_UID: 1000
+              PHOTOPRISM_GID: 1000
+              PHOTOPRISM_INIT: ""
+              PHOTOPRISM_HTTP_PORT: &port 2342
+              PHOTOPRISM_DISABLE_TLS: true
+              PHOTOPRISM_TRUSTED_PROXY: 10.0.0.0/8
+              PHOTOPRISM_TRUSTED_PLATFORM: CF-Connecting-IP
+              # lets Cloudflare cache thumbnails, since every visitor shares the "public" preview token
+              PHOTOPRISM_HTTP_CACHE_PUBLIC: true
+              PHOTOPRISM_DATABASE_DRIVER: sqlite
+
+              # no login: every request is admin, so the Cloudflare WAF blocks non-GET methods
+              PHOTOPRISM_AUTH_MODE: public
+              PHOTOPRISM_DISABLE_SETTINGS: true
+              PHOTOPRISM_DISABLE_WEBDAV: true
+              PHOTOPRISM_DISABLE_MCP: true
+              PHOTOPRISM_DISABLE_RESTART: true
+              PHOTOPRISM_DISABLE_OIDC: true
+              # hides UI-only features from visitors. only read on first start, then persisted to settings.yml
+              # Upload, Import, Library, Edit, BatchEdit, and Delete stay on because the API enforces them for writes too
+              # Private stays on, otherwise private pictures become visible
+              # Review is off, otherwise small low-quality stickers get hidden in review
+              PHOTOPRISM_DISABLE_FEATURES: >-
+                Account,AppPasswords,Archive,Cameras,Estimates,Export,Favorites,Lenses,
+                Logs,People,Places,Ratings,Reactions,Review,Services,Settings,Share
+
+              # memory: no ML, faces, maps, or RAW converters
+              PHOTOPRISM_LABELS_MODEL: none
+              PHOTOPRISM_NSFW_MODEL: none
+              PHOTOPRISM_UPLOAD_NSFW: true
+              PHOTOPRISM_DISABLE_FACES: true
+              # DISABLE_FACES alone still loads the ONNX face models at startup
+              PHOTOPRISM_FACE_DETECTOR: none
+              PHOTOPRISM_FACE_MODEL: none
+              PHOTOPRISM_DISABLE_TENSORFLOW: true
+              PHOTOPRISM_DISABLE_PLACES: true
+              PHOTOPRISM_DISABLE_RAW: true
+              PHOTOPRISM_DISABLE_DARKTABLE: true
+              PHOTOPRISM_DISABLE_RAWTHERAPEE: true
+              PHOTOPRISM_INDEX_WORKERS: 1
+              PHOTOPRISM_ORIGINALS_LIMIT: 100
+              PHOTOPRISM_UPLOAD_LIMIT: 500
+            probes:
+              liveness: &probe
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/v1/status
+                    port: *port
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+              readiness: *probe
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/v1/status
+                    port: *port
+                  periodSeconds: 10
+                  failureThreshold: 30
+            resources:
+              requests:
+                cpu: 50m
+                memory: 256Mi
+              # indexing spikes, but stickers are small
+              limits:
+                memory: 1536Mi
+                ephemeral-storage: 500Mi
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: *port
+    persistence:
+      # sqlite index, sidecars, thumbnail cache, and settings.yml
+      storage:
+        # keep data if a failed install is remediated by uninstalling
+        retain: true
+        accessMode: ReadWriteOnce
+        size: 5Gi
+        globalMounts:
+          - path: /photoprism/storage
+      originals:
+        retain: true
+        accessMode: ReadWriteOnce
+        size: 10Gi
+        globalMounts:
+          - path: /photoprism/originals
+    route:
+      main:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - stickers-old.${PUBLIC_DOMAIN}
+        rules:
+          - backendRefs:
+              - identifier: main
+                port: *port

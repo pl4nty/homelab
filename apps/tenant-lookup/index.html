@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tenant Lookup</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="/css/site.css" />
+
+    <script type="text/javascript">
+        !(function (cfg){function e(){cfg.onInit&&cfg.onInit(n)}var x,w,D,t,E,n,C=window,O=document,b=C.location,q="script",I="ingestionendpoint",L="disableExceptionTracking",j="ai.device.";"instrumentationKey"[x="toLowerCase"](),w="crossOrigin",D="POST",t="appInsightsSDK",E=cfg.name||"appInsights",(cfg.name||C[t])&&(C[t]=E),n=C[E]||function(g){var f=!1,m=!1,h={initialize:!0,queue:[],sv:"8",version:2,config:g};function v(e,t){var n={},i="Browser";function a(e){e=""+e;return 1===e.length?"0"+e:e}return n[j+"id"]=i[x](),n[j+"type"]=i,n["ai.operation.name"]=b&&b.pathname||"_unknown_",n["ai.internal.sdkVersion"]="javascript:snippet_"+(h.sv||h.version),{time:(i=new Date).getUTCFullYear()+"-"+a(1+i.getUTCMonth())+"-"+a(i.getUTCDate())+"T"+a(i.getUTCHours())+":"+a(i.getUTCMinutes())+":"+a(i.getUTCSeconds())+"."+(i.getUTCMilliseconds()/1e3).toFixed(3).slice(2,5)+"Z",iKey:e,name:"Microsoft.ApplicationInsights."+e.replace(/-/g,"")+"."+t,sampleRate:100,tags:n,data:{baseData:{ver:2}},ver:undefined,seq:"1",aiDataContract:undefined}}var n,i,t,a,y=-1,T=0,S=["js.monitor.azure.com","js.cdn.applicationinsights.io","js.cdn.monitor.azure.com","js0.cdn.applicationinsights.io","js0.cdn.monitor.azure.com","js2.cdn.applicationinsights.io","js2.cdn.monitor.azure.com","az416426.vo.msecnd.net"],o=g.url||cfg.src,r=function(){return s(o,null)};function s(d,t){if((n=navigator)&&(~(n=(n.userAgent||"").toLowerCase()).indexOf("msie")||~n.indexOf("trident/"))&&~d.indexOf("ai.3")&&(d=d.replace(/(\/)(ai\.3\.)([^\d]*)$/,function(e,t,n){return t+"ai.2"+n})),!1!==cfg.cr)for(var e=0;e<S.length;e++)if(0<d.indexOf(S[e])){y=e;break}var n,i=function(e){var a,t,n,i,o,r,s,c,u,l;h.queue=[],m||(0<=y&&T+1<S.length?(a=(y+T+1)%S.length,p(d.replace(/^(.*\/\/)([\w\.]*)(\/.*)$/,function(e,t,n,i){return t+S[a]+i})),T+=1):(f=m=!0,s=d,!0!==cfg.dle&&(c=(t=function(){var e,t={},n=g.connectionString;if(n)for(var i=n.split(";"),a=0;a<i.length;a++){var o=i[a].split("=");2===o.length&&(t[o[0][x]()]=o[1])}return t[I]||(e=(n=t.endpointsuffix)?t.location:null,t[I]="https://"+(e?e+".":"")+"dc."+(n||"services.visualstudio.com")),t}()).instrumentationkey||g.instrumentationKey||"",t=(t=(t=t[I])&&"/"===t.slice(-1)?t.slice(0,-1):t)?t+"/v2/track":g.endpointUrl,t=g.userOverrideEndpointUrl||t,(n=[]).push((i="SDK LOAD Failure: Failed to load Application Insights SDK script (See stack for details)",o=s,u=t,(l=(r=v(c,"Exception")).data).baseType="ExceptionData",l.baseData.exceptions=[{typeName:"SDKLoadFailed",message:i.replace(/\./g,"-"),hasFullStack:!1,stack:i+"\nSnippet failed to load ["+o+"] -- Telemetry is disabled\nHelp Link: https://go.microsoft.com/fwlink/?linkid=2128109\nHost: "+(b&&b.pathname||"_unknown_")+"\nEndpoint: "+u,parsedStack:[]}],r)),n.push((l=s,i=t,(u=(o=v(c,"Message")).data).baseType="MessageData",(r=u.baseData).message='AI (Internal): 99 message:"'+("SDK LOAD Failure: Failed to load Application Insights SDK script (See stack for details) ("+l+")").replace(/\"/g,"")+'"',r.properties={endpoint:i},o)),s=n,c=t,JSON&&((u=C.fetch)&&!cfg.useXhr?u(c,{method:D,body:JSON.stringify(s),mode:"cors"}):XMLHttpRequest&&((l=new XMLHttpRequest).open(D,c),l.setRequestHeader("Content-type","application/json"),l.send(JSON.stringify(s)))))))},a=function(e,t){m||setTimeout(function(){!t&&h.core||i()},500),f=!1},p=function(e){var n=O.createElement(q),e=(n.src=e,t&&(n.integrity=t),n.setAttribute("data-ai-name",E),cfg[w]);return!e&&""!==e||"undefined"==n[w]||(n[w]=e),n.onload=a,n.onerror=i,n.onreadystatechange=function(e,t){"loaded"!==n.readyState&&"complete"!==n.readyState||a(0,t)},cfg.ld&&cfg.ld<0?O.getElementsByTagName("head")[0].appendChild(n):setTimeout(function(){O.getElementsByTagName(q)[0].parentNode.appendChild(n)},cfg.ld||0),n};p(d)}cfg.sri&&(n=o.match(/^((http[s]?:\/\/.*\/)\w+(\.\d+){1,5})\.(([\w]+\.){0,2}js)$/))&&6===n.length?(d="".concat(n[1],".integrity.json"),i="@".concat(n[4]),l=window.fetch,t=function(e){if(!e.ext||!e.ext[i]||!e.ext[i].file)throw Error("Error Loading JSON response");var t=e.ext[i].integrity||null;s(o=n[2]+e.ext[i].file,t)},l&&!cfg.useXhr?l(d,{method:"GET",mode:"cors"}).then(function(e){return e.json()["catch"](function(){return{}})}).then(t)["catch"](r):XMLHttpRequest&&((a=new XMLHttpRequest).open("GET",d),a.onreadystatechange=function(){if(a.readyState===XMLHttpRequest.DONE)if(200===a.status)try{t(JSON.parse(a.responseText))}catch(e){r()}else r()},a.send())):o&&r();try{h.cookie=O.cookie}catch(k){}function e(e){for(;e.length;)!function(t){h[t]=function(){var e=arguments;f||h.queue.push(function(){h[t].apply(h,e)})}}(e.pop())}var c,u,l="track",d="TrackPage",p="TrackEvent",l=(e([l+"Event",l+"PageView",l+"Exception",l+"Trace",l+"DependencyData",l+"Metric",l+"PageViewPerformance","start"+d,"stop"+d,"start"+p,"stop"+p,"addTelemetryInitializer","setAuthenticatedUserContext","clearAuthenticatedUserContext","flush"]),h.SeverityLevel={Verbose:0,Information:1,Warning:2,Error:3,Critical:4},(g.extensionConfig||{}).ApplicationInsightsAnalytics||{});return!0!==g[L]&&!0!==l[L]&&(e(["_"+(c="onerror")]),u=C[c],C[c]=function(e,t,n,i,a){var o=u&&u(e,t,n,i,a);return!0!==o&&h["_"+c]({message:e,url:t,lineNumber:n,columnNumber:i,error:a,evt:C.event}),o},g.autoExceptionInstrumented=!0),h}(cfg.cfg),(C[E]=n).queue&&0===n.queue.length?(n.queue.push(e),n.trackPageView({})):e();})({
+            src: "https://js.monitor.azure.com/scripts/b/ai.3.gbl.min.js",
+            crossOrigin: "anonymous", // When supplied this will add the provided value as the cross origin attribute on the script tag
+            cfg: { // Application Insights Configuration
+                connectionString: "InstrumentationKey=9c165428-46c6-4a50-8f2b-227336f7078e;IngestionEndpoint=https://australiaeast-1.in.applicationinsights.azure.com/;LiveEndpoint=https://australiaeast.livediagnostics.monitor.azure.com/;ApplicationId=725cdbfe-5bdb-4c25-a81c-2e60337678d2",
+                enableAutoRouteTracking: true,
+                enableAjaxErrorStatusText: true,
+                enableAjaxPerfTracking: true
+            }
+        });
+    </script>
+
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container">
+                <a class="navbar-brand" href="/">Where's My Tenant?</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            </div>
+        </nav>
+    </header>
+    <div class="container body-content">
+        <main role="main" class="pb-3">
+            
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <h4 class="card-header">Tenant Lookup</h4>
+            <div class="card-body">
+                <p class="card-text">You can use this web-based tool to query Azure AD for basic tenant information - this will show you:</p>
+                <ul>
+                    <li>if the tenant exists in Azure AD</li>
+                    <li>what the tenant's GUID is</li>
+                    <li>which Azure AD instance the tenant resides in</li>
+                </ul>
+                <p class="card-text">To search, simply enter in the tenant name OR the tenant's GUID in the search box below.</p>
+                <div class="alert text-bg-info" style="display: none" role="alert">
+                    <i class="fas fa-exclamation-triangle"></i>  The environment dropdown has changed.  Please check the region you want to search.
+                </div>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <button class="btn btn-outline-secondary dropdown-toggle bg-primary text-white" id="btnEnvironmentPick" type="button" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Worldwide</button>
+                        <div class="dropdown-menu dropdown-menu-end" id="environmentList">
+                            <a class="dropdown-item" href="#">Worldwide</a>
+                            <a class="dropdown-item" href="#">US Government</a>
+                            <!-- DEPRECATED <a class="dropdown-item" href="#">Germany</a> -->
+                            <a class="dropdown-item" href="#">China</a>
+                            <a class="dropdown-item" href="#">PreProduction</a>
+                        </div>
+                    </div>
+                    <input type="text" class="form-control" id="tenantToLookup" placeholder="contoso.onmicrosoft.com" onkeydown="if(event.keyCode == 13) lookupTenant();" autocorrect="off" autocapitalize="off" spellcheck="false" />
+                </div>
+                <button type="button" class="btn btn-outline-secondary bg-primary text-white" onclick="lookupTenant();">
+                    <span class="spinner-border spinner-border-sm" role="status" id="searchingSpinner" aria-hidden="true"></span>
+                    <i class="far fa-search"></i>  Lookup Tenant
+                </button>
+
+            </div>
+        </div>
+    </div>
+</div>
+<hr />
+
+<div class="alert text-bg-danger" role="alert" style="display: none" id="tenantLookupFail">
+    <h4 class="alert-heading"><i class="far fa-heart-broken"></i>  Tenant not found.</h4>
+    <p>Uh oh.  We couldn't find the tenant you were looking for.  Double check your search and try again.</p>
+    <p>(If you're trying to look up a tenant that's in Azure AD China, make sure you choose the right scope from the dropdown.)</p>
+</div>
+
+<div class="row">
+    <div class="col"> 
+        <div class="card" id="tenantLookupResults" style="display: none">
+
+            <!-- /.box-title -->
+            <h4 class="card-header">
+                <div class="float-end">
+                    <button type="button" class="btn btn-success btn-outline-secondary text-white float-end" onclick="copyResults();"><i class="far fa-clipboard"></i> Copy Results</button>
+                </div>
+                Lookup Results
+            </h4>
+            <div class="card-body">
+
+                <table class="table table-md">
+                    <tbody>
+                        <tr>
+                            <th scope="row">Tenant Name</th>
+                            <td><span id="tenantName"></span></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Tenant Domain</th>
+                            <td><span id="tenantDomain"></span></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Tenant ID</th>
+                            <td><span id="tenantId"></span></td>
+                        </tr>
+                        <tr id="azureADInstance">
+                            <th scope="row">Azure AD Instance</th>
+                            <td><span id="tenantPartition"></span></td>
+                        </tr>
+                        <tr id="tenantSubScope">
+                            <th scope="row">Tenant Scope</th>
+                            <td><span id="tenantClass"></span></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Tenant Federation</th>
+                            <td><span id="tenantFederation"></span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.box-content -->
+        </div>
+        <!-- /.col-xs-12 -->
+    </div>
+    <div class="col" id="infoBox" style="display:none">
+        <div class="card text-white bg-danger" role="alert" style="display: none" id="gccTenantInGov">
+            <h4 class="card-header">
+                <div class="float-end">
+                    <i class="far fa-dumpster-fire"></i>
+                </div>
+                UNSUPPORTED TENANT
+            </h4>
+            <div class="card-body">
+                <p class="card-text">This isn't good - you need to know that Microsoft 365 GCC services are NOT SUPPORTED in Azure AD Government.  This tenant <strong>cannot be used</strong> for production services.</p>
+                <p class="card-text">If this was unexpected, please open a support case in the Office 365 Admin Portal or the Azure Portal for assistance and next steps.</p>
+            </div>
+        </div>
+        <div class="card text-white bg-danger" role="alert" style="display: none" id="gccHTenantInGov">
+            <h4 class="card-header">
+                <div class="float-end">
+                    <i class="far fa-dumpster-fire"></i>
+                </div>
+                UNSUPPORTED TENANT
+            </h4>
+            <div class="card-body">
+                <p class="card-text">This isn't good - you should to know that Microsoft 365 GCC High or DOD services are NOT SUPPORTED in Azure AD Global.  This tenant is <strong>unusable.</strong></p>
+                <p class="card-text">If this was unexpected, please open a support case in the Office 365 Admin Portal or the Azure Portal for assistance and next steps.</p>
+            </div>
+        </div>
+        <div class="card bg-light" id="fairfaxMigrationBlurb" style="display: none">
+            <h4 class="card-header">
+                <div class="float-end"><i class="far fa-cloud-rainbow"></i></div> Azure AD Government:<br />Fairfax to Arlington Migration
+            </h4>
+            <div class="card-body">
+                <p class="card-text">In response to the growing needs of the U.S. Government and its contractors/suppliers, Microsoft has migrated the Azure AD identity platform from the original instance for U.S. Govermment (codenamed "Fairfax") to a new isolated Azure AD instance (codenamed "Arlington").</p>
+                <p class="card-text">This migration effort completed in December, 2020.  Azure Government / GCC High / DOD customers will be able to take advantage of new platform features, including:</p>
+                <ul>
+                    <li>Identity isolation and segmentation from Azure AD Global</li>
+                    <li>Improved B2B support between tenants in Azure Government</li>
+                    <li>Tenant integration with Microsoft Volume Licensing</li>
+                    <li>Customer self-service tenant creation/sign-up</li>
+                    <li>Cross-cloud B2B support</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/gettenantpartition.js"></script>
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            Made with ❤️ by <a href="https://github.com/pl4nty" target="_blank">Tom Plant</a>, based on <a href="https://gettenantpartitionweb.azurewebsites.net/" target="_blank">Get-TenantPartition Web</a>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
+
+
+    
+</body>
+</html>

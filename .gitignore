@@ -1,5 +1,5 @@
 .devcontainer/devcontainer.env
 .devcontainer/kubeconfig
 .decrypted~*
-# topf render output contains key material
+dist/
 talos/output/

@@ -1,0 +1,1 @@
+CREATE ROLE crtsh WITH LOGIN PASSWORD 'crtsh';

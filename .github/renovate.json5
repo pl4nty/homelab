@@ -16,6 +16,15 @@
     'helpers:pinGitHubActionDigests',
   ],
   ignoreTests: true,
+  ignorePaths: [
+    '**/node_modules/**',
+    'archive/**',
+  ],
+  dependencyDashboardOSVVulnerabilitySummary: 'all',
+  lockFileMaintenance: {
+    enabled: true,
+    automerge: true,
+  },
   suppressNotifications: [
     'prIgnoreNotification',
   ],
@@ -66,6 +75,17 @@
     },
     {
       customType: 'regex',
+      description: 'Process app source git contexts',
+      managerFilePatterns: [
+        '/apps/[^/]+/docker-bake\\.hcl$/',
+      ],
+      matchStrings: [
+        '# renovate: branch=(?<currentValue>\\S+)\n\\s*\\S+\\s*=\\s*"(?<depName>https://github\\.com/[^"#]+?)(\\.git)?#(?<currentDigest>[0-9a-f]{40})"',
+      ],
+      datasourceTemplate: 'git-refs',
+    },
+    {
+      customType: 'regex',
       description: 'Process raw GitHub URLs',
       managerFilePatterns: [
         '/kubernetes/[^.]+\\.ya?ml$/',
@@ -89,15 +109,41 @@
   // ],
   packageRules: [
     {
+      matchFileNames: [
+        'apps/**',
+      ],
+      rangeStrategy: 'pin',
+    },
+    {
+      matchFileNames: [
+        'apps/**',
+      ],
+      matchUpdateTypes: [
+        'minor',
+        'patch',
+      ],
+      matchCurrentVersion: '!/^0/',
+      automerge: true,
+    },
+    {
+      matchDatasources: [
+        'git-refs',
+      ],
+      matchPackageNames: [
+        'https://github.com/pl4nty/**',
+        'https://github.com/microsoft/MHA',
+        'https://github.com/microsoft/garnet',
+        'https://github.com/open-telemetry/opentelemetry-cpp-contrib',
+      ],
+      automerge: true,
+    },
+    {
       matchUpdateTypes: [
         'patch',
       ],
       matchPackageNames: [
-        'immich-app/immich',
         'opentelemetry-operator',
         'ghcr.io/home-assistant/home-assistant',
-        'ghcr.io/khoj-ai/khoj',
-        'moby/buildkit',
         'ghcr.io/stirling-tools/s-pdf',
       ],
       automerge: true,
@@ -121,6 +167,23 @@
       ],
       groupName: 'longhorn',
       separateMultipleMinor: true,
+    },
+    {
+      description: 'One PR per app, named after it, so each gets its own preview',
+      matchFileNames: [
+        'apps/**',
+      ],
+      additionalBranchPrefix: "{{lookup (split packageFileDir '/') 1}}-",
+      semanticCommitScope: "{{lookup (split packageFileDir '/') 1}}",
+    },
+    {
+      matchFileNames: [
+        'apps/**',
+      ],
+      matchUpdateTypes: [
+        'major',
+      ],
+      commitMessagePrefix: "feat({{lookup (split packageFileDir '/') 1}})!: ",
     },
   ],
 }
