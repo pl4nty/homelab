@@ -20,7 +20,10 @@ metadata:
 spec:
   interval: 10m
   path: ./manifests/install
-  prune: true
+  # the patches below delete every Deployment, so the cluster Kustomization (via bootstrap/)
+  # owns the controllers. prune is off so this Kustomization can be deleted without
+  # garbage-collecting the CRDs it shares with bootstrap/
+  prune: false
   wait: true
   sourceRef:
     kind: GitRepository
