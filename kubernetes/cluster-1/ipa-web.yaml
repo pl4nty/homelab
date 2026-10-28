@@ -2,7 +2,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: ipa-web
+  name: &app ipa-web
   namespace: default
 spec:
   interval: 15m
@@ -14,24 +14,22 @@ spec:
       createDefaultServiceAccount: false
     controllers:
       main:
-        strategy: RollingUpdate
-        rollingUpdate:
-          unavailable: 0
-        # pod:
-        #   annotations:
-        #     sidecar.opentelemetry.io/inject: "monitoring-system/opentelemetry-sidecar"
-        #     instrumentation.opentelemetry.io/inject-go: "monitoring-system/opentelemetry-sidecar"
-        #     instrumentation.opentelemetry.io/otel-go-auto-target-exe: "/usr/bin/ipa-web"
+        strategy: Recreate
         containers:
           main:
             image:
               repository: ghcr.io/pl4nty/ipa-web
-              tag: v0.4.8
+              tag: latest
             env:
               GIN_MODE: release
+              DATA_DIR: /data
+              XDG_CACHE_HOME: /data/.cache
+              # Store hardware identity the Apple account already knows
+              MAC_ADDRESS: "09:26:2E:B0:AF:06"
+              CACHE_TTL: 24h
             envFrom:
               - secretRef:
-                  name: ipa-web
+                  name: *app
             probes:
               liveness:
                 enabled: true
@@ -39,6 +37,10 @@ spec:
                 enabled: true
               startup:
                 enabled: true
+                spec:
+                  # first start downloads ~150MB of Apple and Unicorn runtime assets
+                  failureThreshold: 60
+                  periodSeconds: 10
     service:
       main:
         controller: main
@@ -54,5 +56,15 @@ spec:
           - ios-app-data.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: ipa-web
+              - name: *app
                 port: 8080
+    persistence:
+      data:
+        accessMode: ReadWriteOnce
+        size: 2Gi
+        globalMounts:
+          - path: /data
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
