@@ -40,7 +40,7 @@ ARG GTEST_VERSION="1.10.0"
 ARG PCRE_VERSION="8.44"
 ARG NGINX_VERSION="1.26.0"
 
-# Install GRPC with its bundled protobuf; the distro protobuf headers break linking its plugins
+# Install GRPC with its bundled protobuf. GCC 9 defaults to C++14, which mixes absl string_view ABIs and breaks linking its plugins
 RUN git clone --shallow-submodules --depth 1 --recurse-submodules -b v${GRPC_VERSION} \
   https://github.com/grpc/grpc \
   && cd grpc \
@@ -50,6 +50,7 @@ RUN git clone --shallow-submodules --depth 1 --recurse-submodules -b v${GRPC_VER
     -DgRPC_INSTALL=ON \
     -DgRPC_BUILD_TESTS=OFF \
     -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_CXX_STANDARD=17 \
     -DgRPC_BUILD_GRPC_NODE_PLUGIN=OFF \
     -DgRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN=OFF \
     -DgRPC_BUILD_GRPC_PHP_PLUGIN=OFF \
@@ -71,7 +72,7 @@ RUN mkdir -p dependencies/opentelemetry/${OPENTELEMETRY_VERSION}/lib \
     && git submodule update --init --recursive \
     && mkdir build \
     && cd build \
-    && cmake .. -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON -DWITH_OTLP_GRPC=ON -DCMAKE_INSTALL_PREFIX=/dependencies/opentelemetry/${OPENTELEMETRY_VERSION} \
+    && cmake .. -DCMAKE_CXX_STANDARD=17 -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON -DWITH_OTLP_GRPC=ON -DCMAKE_INSTALL_PREFIX=/dependencies/opentelemetry/${OPENTELEMETRY_VERSION} \
     && cmake --build . --target all \
     && cd .. \
     && find . -name "*.so" -type f -exec cp {} /dependencies/opentelemetry/${OPENTELEMETRY_VERSION}/lib/ \; \
