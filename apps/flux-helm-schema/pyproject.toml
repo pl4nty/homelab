@@ -1,0 +1,9 @@
+[project]
+name = "flux-helm-schema"
+version = "0.1.0"
+requires-python = ">=3.14"
+dependencies = [
+  "fastapi>=0.162.0",
+  "requests>=2.34.2",
+  "uvicorn>=0.54.0",
+]

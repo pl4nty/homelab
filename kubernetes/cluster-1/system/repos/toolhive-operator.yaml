@@ -1,0 +1,13 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: toolhive-operator
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: oci://ghcr.io/stacklok/toolhive/toolhive-operator
+  layerSelector:
+    mediaType: 'application/vnd.cncf.helm.chart.content.v1.tar+gzip'
+    operation: copy
+  ref:
+    tag: 0.42.1

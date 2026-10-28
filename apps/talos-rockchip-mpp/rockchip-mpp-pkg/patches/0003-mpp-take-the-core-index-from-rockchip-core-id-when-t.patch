@@ -1,0 +1,46 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 24 Oct 2026 01:34:13 +0000
+Subject: [PATCH] mpp: take the core index from rockchip,core-id when there's
+ no alias
+
+Aliases added by a device tree overlay aren't scanned.
+---
+ drivers/video/rockchip/mpp/mpp_rkvdec2.c | 6 ++++++
+ drivers/video/rockchip/mpp/mpp_rkvenc2.c | 6 ++++++
+ 2 files changed, 12 insertions(+)
+
+diff --git a/drivers/video/rockchip/mpp/mpp_rkvdec2.c b/drivers/video/rockchip/mpp/mpp_rkvdec2.c
+index 4c187a7..bb7c8e8 100644
+--- a/drivers/video/rockchip/mpp/mpp_rkvdec2.c
++++ b/drivers/video/rockchip/mpp/mpp_rkvdec2.c
+@@ -2003,6 +2003,12 @@ static int rkvdec2_core_probe(struct platform_device *pdev)
+ 		if (match)
+ 			mpp->var = (struct mpp_dev_var *)match->data;
+ 		mpp->core_id = of_alias_get_id(np, "rkvdec");
++		/*
++		 * Aliases added by a DT overlay aren't scanned, so the node can
++		 * carry its core index instead.
++		 */
++		if (mpp->core_id < 0)
++			of_property_read_s32(np, "rockchip,core-id", &mpp->core_id);
+ 	}
+ 
+ 	ret = mpp_dev_probe(mpp, pdev);
+diff --git a/drivers/video/rockchip/mpp/mpp_rkvenc2.c b/drivers/video/rockchip/mpp/mpp_rkvenc2.c
+index 17561f9..c2a81a9 100644
+--- a/drivers/video/rockchip/mpp/mpp_rkvenc2.c
++++ b/drivers/video/rockchip/mpp/mpp_rkvenc2.c
+@@ -3210,6 +3210,12 @@ static int rkvenc_core_probe(struct platform_device *pdev)
+ 			mpp->var = (struct mpp_dev_var *)match->data;
+ 
+ 		mpp->core_id = of_alias_get_id(np, "rkvenc");
++		/*
++		 * Aliases added by a DT overlay aren't scanned, so the node can
++		 * carry its core index instead.
++		 */
++		if (mpp->core_id < 0)
++			of_property_read_s32(np, "rockchip,core-id", &mpp->core_id);
+ 	}
+ 
+ 	ret = mpp_dev_probe(mpp, pdev);

@@ -1,13 +1,13 @@
 FROM python:3.14-slim@sha256:ce40764625a4ff50df3548277632e7f96c4e77fe75fa848aae9885476e7df5a4
-
-# Install necessary dependencies
-RUN pip install fastapi uvicorn requests
-
-# Copy the Python project files into the container
-COPY . /app
-
-# Set the working directory
+COPY --from=ghcr.io/astral-sh/uv:0.13.6 /uv /usr/local/bin/
+ENV UV_LINK_MODE=copy UV_COMPILE_BYTECODE=1 PATH=/app/.venv/bin:$PATH
 WORKDIR /app
 
-# Set the entry point to run the web API
+RUN --mount=type=cache,id=uv,target=/root/.cache/uv \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    uv sync --locked --no-install-project
+
+COPY main.py .
+
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
