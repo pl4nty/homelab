@@ -1,0 +1,13 @@
+# Default DB connection settings
+# conninfo to be supplied via the "-conninfo" command-line parameter.
+connopen = 2
+connidle = 2
+connlife = "10m"
+
+# Default workload settings
+interval = "30s"
+batch = 500
+concurrent = 50
+
+# Other default settings
+httptimeout = "30s"

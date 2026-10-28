@@ -1,0 +1,67 @@
+# rm -r ~/postgres
+# docker compose up -d
+# docker compose exec postgres sh
+# psql -h crt.sh -p 5432 -U guest -d certwatch -c "\COPY (SELECT * FROM ct_log) TO 'ct_log.csv' WITH CSV DELIMITER ',' HEADER;"
+# psql -U postgres -d certwatch -c "\COPY ct_log (id,operator,url,name,public_key,is_active,latest_update,latest_sth_timestamp,mmd_in_seconds,tree_size,batch_size,chunk_size,google_uptime,chrome_version_added,chrome_inclusion_status,chrome_issue_number,chrome_final_tree_size,chrome_disqualified_at,apple_inclusion_status,apple_last_status_change,requests_concurrent,requests_throttle) FROM 'ct_log.csv' CSV HEADER;"
+# rm ct_log.csv
+# exit
+# docker compose up -d
+services:
+  postgres:
+    build:
+      context: .
+    environment:
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /var/lib/postgresql/data/pgdata
+    # volumes:
+    #   - /postgres:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: pg_isready -U postgres
+  httpd:
+    build: ../crtsh-httpd
+    environment:
+      CONNINFO: host=postgres user=certwatch password=certwatch dbname=certwatch
+    ports:
+      - "8080:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+  caissuer-monitor:
+    build:
+      context: ../caissuer-monitor/caissuer-monitor
+      dockerfile: ../Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["-conninfo", "host=postgres port=5432 dbname=certwatch user=certwatch password=certwatch sslmode=disable"]
+    volumes:
+      - type: bind
+        source: ./default.toml
+        target: /default.toml
+  ct-monitor:
+    build:
+      context: ../ct-monitor/ct-monitor
+      dockerfile: ../Dockerfile
+    environment:
+      - CTMONITOR_CERTWATCHDB_HOST=postgres
+      - CTMONITOR_CERTWATCHDB_USER=certwatch
+      - CTMONITOR_CERTWATCHDB_PASSWORD=certwatch
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+  ocsp-monitor:
+    build:
+      context: ../ocsp-monitor/ocsp-monitor
+      dockerfile: ../Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["-conninfo", "host=postgres port=5432 dbname=certwatch user=certwatch password=certwatch sslmode=disable"]
+    volumes:
+      - type: bind
+        source: ./default.toml
+        target: /default.toml
