@@ -14,7 +14,7 @@
 #    OTEL_DOTNET_AUTO_HOME=%InstallationLocation%
 #  - For auto-instrumentation by container injection, the Linux command cp is
 #    used and must be availabe in the image.
-FROM busybox@sha256:dc2d74b28e4cf8984fa52af1f39bc7c3d9c73760b41a74d629f5d11b1ab28616 AS downloader
+FROM --platform=$BUILDPLATFORM busybox@sha256:dc2d74b28e4cf8984fa52af1f39bc7c3d9c73760b41a74d629f5d11b1ab28616 AS downloader
 
 ARG version=1.9.0
 

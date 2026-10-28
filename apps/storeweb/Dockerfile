@@ -1,21 +1,16 @@
-FROM mcr.microsoft.com/dotnet/sdk:7.0-alpine AS build-env
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build-env
 WORKDIR /app
-
-# Copy csproj and restore as distinct layers
-COPY --from=src app/*.csproj ./
-RUN dotnet restore
-
-# Copy everything else and build
 COPY --from=src ./app/ ./
 COPY app/ ./
-RUN dotnet publish -c Release -o out
+# upstream targets .NET 7, which reached end of support on 2024-05-14
+ARG TARGETARCH
+RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages,sharing=locked \
+    sed -i 's#<TargetFramework>net7.0<#<TargetFramework>net10.0<#' StoreWeb.csproj \
+ && dotnet publish -c Release -a $TARGETARCH -o out
 
-# Build runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:7.0-alpine
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine
 WORKDIR /app
 COPY --from=build-env /app/out .
-# ENTRYPOINT ["dotnet", "StoreWeb.dll"]
-# heroku uses the following
 ENV ASPNETCORE_URLS=http://*:80
 CMD ["dotnet", "StoreWeb.dll"]
 
