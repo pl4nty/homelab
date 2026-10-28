@@ -2,16 +2,13 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: shapes${APP_SUFFIX:=}
+  name: shapes
   namespace: default
-  annotations:
-    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chartRef:
     kind: OCIRepository
     name: app-template
-    namespace: default
   values:
     global:
       createDefaultServiceAccount: false
@@ -20,11 +17,15 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
+        # amd64-only: the arm64 Haskell build under QEMU exceeds the 6h CI limit
+        pod:
+          nodeSelector:
+            kubernetes.io/arch: amd64
         containers:
           main:
             image:
               repository: ghcr.io/pl4nty/shapes
-              tag: ${APP_IMAGE_TAG:=}
+              tag: latest@sha256:6bc8c00358394e312a32c518dc848718bc5aaef85cdba70964e7f5a2679d3c92
             probes:
               liveness:
                 enabled: true
@@ -44,8 +45,8 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - shapes${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
+          - shapes.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - identifier: main
+              - name: shapes
                 port: 3000
