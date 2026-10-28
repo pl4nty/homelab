@@ -66,6 +66,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ github.token }}
       - uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        # bldr frontends (Pkgfile) don't implement the check subrequest
+        if: ${{ !hashFiles(format('apps/{0}/Pkgfile', matrix.app)) }}
         env: &git-auth
           # BuildKit reads it to fetch private git contexts
           GIT_AUTH_TOKEN: ${{ secrets.GH_PAT || github.token }}
