@@ -5,7 +5,7 @@ namespace WinGet.RestSource.Tests;
 
 public sealed class VersionsSourceTests(RestSourceFactory factory) : IClassFixture<RestSourceFactory>
 {
-    private const string Prefix = "/versions";
+    private const string Prefix = "/msstore-versioned";
 
     private readonly HttpClient _client = factory.CreateClient();
 

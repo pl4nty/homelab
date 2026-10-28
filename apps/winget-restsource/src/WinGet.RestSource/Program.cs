@@ -62,7 +62,7 @@ var app = builder.Build();
 app.MapRestSource<XboxSource>("/xbox");
 app.MapRestSource<FeaturesSource>("/features").MapShim(FeaturesSource.ShimKey);
 app.MapRestSource<UpdatesSource>("/updates").MapShim(UpdatesSource.ShimKey);
-app.MapRestSource<VersionsSource>("/versions");
+app.MapRestSource<VersionsSource>("/msstore-versioned");
 
 app.Run();
 

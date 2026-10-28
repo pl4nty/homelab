@@ -8,7 +8,7 @@ under its own path prefix, sharing the protocol implementation in `WinGet.RestSo
 | `/xbox` | `XboxStore` | Xbox store games the built-in `msstore` source does not index | [winget-cli#5818](https://github.com/microsoft/winget-cli/issues/5818) |
 | `/features` | `WindowsFeatures` | Windows optional features and capabilities (Telnet, Hyper-V, WSL, RSAT, OpenSSH…) | [winget-cli#5986](https://github.com/microsoft/winget-cli/issues/5986) |
 | `/updates` | `WindowsUpdateCatalog` | Patches and drivers from the Microsoft Update Catalog | [winget-cli#5332](https://github.com/microsoft/winget-cli/issues/5332) |
-| `/versions` | `StoreVersions` | Older versions of Store MSIX/APPX apps, which `msstore` cannot install | |
+| `/msstore-versioned` | `StoreVersions` | Older versions of Store MSIX/APPX apps, which `msstore` cannot install | |
 
 Each prefix answers the full protocol — `GET /information`, `POST /manifestSearch`,
 `GET /packageManifests/{PackageIdentifier}` — so each is added to WinGet as its own source:
@@ -17,12 +17,12 @@ Each prefix answers the full protocol — `GET /information`, `POST /manifestSea
 winget source add --name xbox     --arg https://your-host/xbox     --type Microsoft.Rest
 winget source add --name features --arg https://your-host/features --type Microsoft.Rest
 winget source add --name updates  --arg https://your-host/updates  --type Microsoft.Rest
-winget source add --name versions --arg https://your-host/versions --type Microsoft.Rest
+winget source add --name msstore-versioned --arg https://your-host/msstore-versioned --type Microsoft.Rest
 
 winget search roblox --source xbox
 winget install Microsoft.Windows.Feature.TelnetClient --source features
 winget install 84d8dd32-6250-435c-8884-133c1daa4464 --source updates   # a catalog update GUID
-winget install 9WZDNCRFHVN5 --source versions --version 2021.2607.0.0    # a Store product ID
+winget install 9WZDNCRFHVN5 --source msstore-versioned --version 2021.2607.0.0    # a Store product ID
 ```
 
 The URL **must** be `https://` — WinGet's `RestSourceFactory` rejects plain HTTP (loopback with a trusted
