@@ -22,7 +22,10 @@ await run(async () => {
     step('Find Text in Image');
     await command('OCI Layers: Find Text in Image');
     await answer('Find text in', 'built with zstd');
-    await page.locator('.quick-input-list .monaco-list-row', { hasText: 'zstd-marker' }).first().waitFor({ timeout: 10_000 });
+    await page
+      .locator('.quick-input-list .monaco-list-row', { hasText: 'zstd-marker' })
+      .first()
+      .waitFor({ timeout: 10_000 });
     await shot('fallback-find-text');
     await page.keyboard.press('Enter');
     console.log('fallback commands OK');
@@ -48,7 +51,15 @@ await run(async () => {
   await result.waitFor({ timeout: 30_000 });
   await page.waitForTimeout(1000);
   await shot('search-view');
-  console.log((await page.locator('.search-view .result-messages, .search-view .message').first().innerText().catch(() => '')).trim());
+  console.log(
+    (
+      await page
+        .locator('.search-view .result-messages, .search-view .message')
+        .first()
+        .innerText()
+        .catch(() => '')
+    ).trim(),
+  );
   await page.locator('.search-view .monaco-list-row', { hasText: 'respawn' }).first().click();
   await page.locator('.monaco-editor .view-lines', { hasText: 'ttyS0' }).first().waitFor({ timeout: 10_000 });
   console.log('search OK');

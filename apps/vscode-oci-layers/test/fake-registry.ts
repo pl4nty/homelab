@@ -11,7 +11,7 @@ export interface FakeRegistry {
   close(): Promise<void>;
 }
 
-const digestOf = (b: Buffer) => 'sha256:' + createHash('sha256').update(b).digest('hex');
+const digestOf = (b: Buffer) => `sha256:${createHash('sha256').update(b).digest('hex')}`;
 
 async function body(req: IncomingMessage): Promise<Buffer> {
   const chunks: Buffer[] = [];
@@ -40,7 +40,10 @@ export async function startFakeRegistry(opts: { auth?: boolean } = {}): Promise<
     }
 
     const m = /^\/v2\/(.+?)\/(manifests|blobs)\/(.+)$/.exec(url.pathname);
-    if (!m) { res.statusCode = 404; return res.end(); }
+    if (!m) {
+      res.statusCode = 404;
+      return res.end();
+    }
     const [, repo, kind, ref] = m;
     const write = req.method !== 'GET' && req.method !== 'HEAD';
 
@@ -50,7 +53,10 @@ export async function startFakeRegistry(opts: { auth?: boolean } = {}): Promise<
       const ok = scopes.some((s) => s.startsWith(`repository:${repo}:`) && (!write || s.includes('push')));
       if (!ok) {
         res.statusCode = 401;
-        res.setHeader('www-authenticate', `Bearer realm="http://${host}/token",service="fake",scope="repository:${repo}:pull"`);
+        res.setHeader(
+          'www-authenticate',
+          `Bearer realm="http://${host}/token",service="fake",scope="repository:${repo}:pull"`,
+        );
         return res.end();
       }
     }
@@ -65,7 +71,10 @@ export async function startFakeRegistry(opts: { auth?: boolean } = {}): Promise<
         return res.end();
       }
       const mf = manifests.get(`${repo}@${ref}`);
-      if (!mf) { res.statusCode = 404; return res.end(); }
+      if (!mf) {
+        res.statusCode = 404;
+        return res.end();
+      }
       res.setHeader('content-type', mf.type);
       return res.end(req.method === 'HEAD' ? undefined : mf.body);
     }
@@ -88,19 +97,29 @@ export async function startFakeRegistry(opts: { auth?: boolean } = {}): Promise<
       }
       if (req.method === 'PUT' && uploads.has(id)) {
         const digest = url.searchParams.get('digest')!;
-        if (digestOf(data) !== digest) { res.statusCode = 400; return res.end('DIGEST_INVALID'); }
+        if (digestOf(data) !== digest) {
+          res.statusCode = 400;
+          return res.end('DIGEST_INVALID');
+        }
         blobs.set(`${repo}@${digest}`, data);
         uploads.delete(id);
         res.statusCode = 201;
         return res.end();
       }
-      if (req.method === 'DELETE') { uploads.delete(id); res.statusCode = 204; return res.end(); }
+      if (req.method === 'DELETE') {
+        uploads.delete(id);
+        res.statusCode = 204;
+        return res.end();
+      }
       res.statusCode = 404;
       return res.end();
     }
 
     const blob = blobs.get(`${repo}@${ref}`);
-    if (!blob) { res.statusCode = 404; return res.end(); }
+    if (!blob) {
+      res.statusCode = 404;
+      return res.end();
+    }
     res.setHeader('content-length', blob.length);
     return res.end(req.method === 'HEAD' ? undefined : blob);
   });
@@ -109,8 +128,16 @@ export async function startFakeRegistry(opts: { auth?: boolean } = {}): Promise<
   const addr = server.address() as { port: number };
   host = `127.0.0.1:${addr.port}`;
   return {
-    server, host, manifests, blobs, requests,
-    close: () => new Promise((r) => { server.closeAllConnections(); server.close(() => r()); }),
+    server,
+    host,
+    manifests,
+    blobs,
+    requests,
+    close: () =>
+      new Promise((r) => {
+        server.closeAllConnections();
+        server.close(() => r());
+      }),
   };
 }
 
@@ -120,27 +147,52 @@ export async function seedImage(reg: FakeRegistry, repo: string, tag: string, la
   const descs = layers.map((tar) => {
     const gz = gzipSync(tar);
     reg.blobs.set(`${repo}@${digestOf(gz)}`, gz);
-    return { mediaType: 'application/vnd.oci.image.layer.v1.tar+gzip', digest: digestOf(gz), size: gz.length, diffId: digestOf(tar) };
+    return {
+      mediaType: 'application/vnd.oci.image.layer.v1.tar+gzip',
+      digest: digestOf(gz),
+      size: gz.length,
+      diffId: digestOf(tar),
+    };
   });
-  const config = Buffer.from(JSON.stringify({
-    architecture: 'amd64', os: 'linux', config: { Cmd: ['/bin/sh'] },
-    rootfs: { type: 'layers', diff_ids: descs.map((d) => d.diffId) },
-    history: descs.map((_, i) => ({ created_by: `layer ${i}` })),
-  }));
+  const config = Buffer.from(
+    JSON.stringify({
+      architecture: 'amd64',
+      os: 'linux',
+      config: { Cmd: ['/bin/sh'] },
+      rootfs: { type: 'layers', diff_ids: descs.map((d) => d.diffId) },
+      history: descs.map((_, i) => ({ created_by: `layer ${i}` })),
+    }),
+  );
   reg.blobs.set(`${repo}@${digestOf(config)}`, config);
-  const manifest = Buffer.from(JSON.stringify({
-    schemaVersion: 2, mediaType: 'application/vnd.oci.image.manifest.v1+json',
-    config: { mediaType: 'application/vnd.oci.image.config.v1+json', digest: digestOf(config), size: config.length },
-    layers: descs.map(({ diffId: _, ...d }) => d),
-  }));
+  const manifest = Buffer.from(
+    JSON.stringify({
+      schemaVersion: 2,
+      mediaType: 'application/vnd.oci.image.manifest.v1+json',
+      config: { mediaType: 'application/vnd.oci.image.config.v1+json', digest: digestOf(config), size: config.length },
+      layers: descs.map(({ diffId: _, ...d }) => d),
+    }),
+  );
   const mtype = 'application/vnd.oci.image.manifest.v1+json';
   reg.manifests.set(`${repo}@${digestOf(manifest)}`, { body: manifest, type: mtype });
-  const index = Buffer.from(JSON.stringify({
-    schemaVersion: 2, mediaType: 'application/vnd.oci.image.index.v1+json',
-    manifests: [
-      { mediaType: mtype, digest: 'sha256:' + '0'.repeat(64), size: 1, platform: { os: 'linux', architecture: 'arm64' } },
-      { mediaType: mtype, digest: digestOf(manifest), size: manifest.length, platform: { os: 'linux', architecture: 'amd64' } },
-    ],
-  }));
+  const index = Buffer.from(
+    JSON.stringify({
+      schemaVersion: 2,
+      mediaType: 'application/vnd.oci.image.index.v1+json',
+      manifests: [
+        {
+          mediaType: mtype,
+          digest: `sha256:${'0'.repeat(64)}`,
+          size: 1,
+          platform: { os: 'linux', architecture: 'arm64' },
+        },
+        {
+          mediaType: mtype,
+          digest: digestOf(manifest),
+          size: manifest.length,
+          platform: { os: 'linux', architecture: 'amd64' },
+        },
+      ],
+    }),
+  );
   reg.manifests.set(`${repo}@${tag}`, { body: index, type: 'application/vnd.oci.image.index.v1+json' });
 }
