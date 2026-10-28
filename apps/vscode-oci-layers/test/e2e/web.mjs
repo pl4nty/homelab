@@ -6,7 +6,7 @@ import { launch, step } from './helpers.mjs';
 
 const SOURCE = process.env.SOURCE ?? 'localhost:5000/library/alpine:3.20';
 const TARGET = process.env.TARGET ?? 'localhost:5000/edited/alpine:web';
-const { page, shot, answer, command, openWorkbench, openImage, run } = await launch(process.argv[2]);
+const { page, shot, answer, openWorkbench, openImage, run } = await launch(process.argv[2]);
 
 await run(async () => {
   await openWorkbench();
@@ -38,7 +38,9 @@ await run(async () => {
   step('reload the page: pending edits must survive (they live in globalState)');
   await page.reload();
   // test-web does not persist untitled workspaces, so the folder is gone: the extension offers to reopen it.
-  const reopen = page.locator('.notifications-toasts', { hasText: 'uncommitted changes' }).getByRole('button', { name: 'Reopen' });
+  const reopen = page
+    .locator('.notifications-toasts', { hasText: 'uncommitted changes' })
+    .getByRole('button', { name: 'Reopen' });
   await reopen.click({ timeout: 60_000 });
   await page.locator('.statusbar', { hasText: SOURCE }).waitFor({ timeout: 90_000 });
 

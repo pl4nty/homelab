@@ -17,6 +17,10 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
+        # amd64-only: the arm64 Haskell build under QEMU exceeds the 6h CI limit
+        pod:
+          nodeSelector:
+            kubernetes.io/arch: amd64
         containers:
           main:
             image:

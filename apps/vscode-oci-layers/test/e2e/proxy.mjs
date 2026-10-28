@@ -20,7 +20,7 @@ await run(async () => {
   const err = page.locator('.notifications-toasts', { hasText: 'cannot reach' });
   await err.waitFor({ timeout: 30_000 });
   await shot('proxy-1-cors-error');
-  console.log('  ' + (await err.locator('.notification-list-item-message').first().innerText()));
+  console.log(`  ${await err.locator('.notification-list-item-message').first().innerText()}`);
 
   step(`set ociLayers.corsProxy = ${PROXY} via "Configure Proxy"`);
   await err.getByRole('button', { name: 'Configure Proxy' }).click();
@@ -54,6 +54,6 @@ await run(async () => {
   const done = page.locator('.notifications-toasts', { hasText: 'Pushed' });
   await done.waitFor({ timeout: 120_000 });
   await shot('proxy-2-pushed');
-  console.log('  ' + (await done.locator('.notification-list-item-message').first().innerText()));
+  console.log(`  ${await done.locator('.notification-list-item-message').first().innerText()}`);
   console.log(`TARGET=${TARGET}`);
 });
