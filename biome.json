@@ -6,7 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!**/package-lock.json", "!apps/vscode-oci-layers/src/types/vscode.proposed.*.d.ts"]
+    "includes": ["**", "!apps/vscode-oci-layers/src/types/vscode.proposed.*.d.ts"]
   },
   "formatter": {
     "indentStyle": "space",
@@ -25,6 +25,16 @@
       "style": {
         "noNonNullAssertion": "off"
       }
+    }
+  },
+  "yaml": {
+    "formatter": {
+      "enabled": false
+    }
+  },
+  "markdown": {
+    "formatter": {
+      "enabled": false
     }
   },
   "overrides": [

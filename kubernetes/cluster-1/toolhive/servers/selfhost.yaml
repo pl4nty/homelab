@@ -10,29 +10,17 @@ spec:
     name: toolhive
   externalAuthConfigRef:
     name: entra-upstream
-  image: ghcr.io/astral-sh/uv:python3.12-bookworm@sha256:85d4cb1afa769a7338e095b927bee941cf5ec92266c7424b3f6c0f2748567248
+  image: ghcr.io/pl4nty/mcp:latest@sha256:66b0b75afba9e5df0708ed8019c6a81b0c963f80617465453e67144c2b18c093
   transport: streamable-http
   mcpPort: 8000
   podTemplateSpec:
     spec:
       containers:
         - name: mcp
-          command:
-            - uvx
-          args:
-            - --from
-            - git+https://github.com/pl4nty/mcp@claude/funny-tesla-0qe9X
-            - mcp-server
           volumeMounts:
             - name: tmp
               mountPath: /tmp
           env:
-            - name: HOME
-              value: /tmp
-            - name: XDG_CACHE_HOME
-              value: /tmp/.cache
-            - name: UV_CACHE_DIR
-              value: /tmp/.cache/uv
             - name: AZURE_CLIENT_ID
               valueFrom:
                 secretKeyRef:
