@@ -2,13 +2,16 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: reg2ps
+  name: reg2ps${APP_SUFFIX:=}
   namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chartRef:
     kind: OCIRepository
     name: app-template
+    namespace: default
   values:
     global:
       createDefaultServiceAccount: false
@@ -24,7 +27,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/reg2ps
-              tag: latest@sha256:164e137524912283ad9101f9b6b219be31ee4daa5495b5e5d249fd6348ca386d
+              tag: ${APP_IMAGE_TAG:=}
             env:
               # temporary: surface .NET auto-instrumentation diagnostics in Loki (arm64 test)
               OTEL_DOTNET_AUTO_LOGGER: console
@@ -48,8 +51,8 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - reg2ps.${PUBLIC_DOMAIN}
+          - reg2ps${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: reg2ps
+              - identifier: main
                 port: 8080
