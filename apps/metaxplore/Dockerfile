@@ -1,7 +1,7 @@
 FROM ghcr.io/rocker-org/shiny-verse:4.6.1
 WORKDIR /srv/shiny-server
 
-RUN rm -r ./* 
+RUN rm -r ./*
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,target=/var/lib/apt,sharing=locked \
   apt update && apt-get --no-install-recommends install -y \
