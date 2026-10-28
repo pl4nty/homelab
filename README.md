@@ -2,7 +2,6 @@
 My homelab's infrastructure-as-code. Built with ✨[Kubernetes](https://kubernetes.io/)✨ clusters on [Azure](https://learn.microsoft.com/en-us/azure/aks/), [Oracle Cloud](https://docs.oracle.com/en-us/iaas/Content/ContEng/Concepts/contengoverview.htm), and [bare metal](https://www.talos.dev/).
 
 My clusters use [Flux](https://fluxcd.io/) to pull their configuration from YAML files in `kubernetes/`, and I sync [Talos](https://talos.dev) config from `talos/`. I also build some small apps from `apps/`.
-
 The files contain most configuration, but I also use some external services:
 
 Networking:
