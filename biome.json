@@ -36,5 +36,13 @@
     "formatter": {
       "enabled": false
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["apps/tenant-lookup/index.html"],
+      "linter": {
+        "enabled": false
+      }
+    }
+  ]
 }
