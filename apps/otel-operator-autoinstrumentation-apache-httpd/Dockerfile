@@ -1,5 +1,5 @@
 # https://github.com/open-telemetry/opentelemetry-cpp-contrib/blob/webserver/v1.1.0/instrumentation/otel-webserver-module/docker/ubuntu20.04/Dockerfile
-FROM ubuntu:24.04 AS build
+FROM ubuntu:20.04@sha256:8feb4d8ca5354def3d8fce243717141ce31e2c428701f6682bd2fafe15388214 AS build
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -y update && apt-get -y upgrade && apt-get -y dist-upgrade
