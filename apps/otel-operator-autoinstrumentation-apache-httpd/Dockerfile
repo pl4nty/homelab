@@ -9,8 +9,6 @@ RUN apt-get install -qq -y --ignore-missing \
 	git			                            \
 	make			                        \
 	pkg-config		                        \
-	protobuf-compiler	                    \
-	libprotobuf-dev                         \
 	python3			                        \
 	python2.7		                        \
 	sudo			                        \
@@ -42,7 +40,7 @@ ARG GTEST_VERSION="1.10.0"
 ARG PCRE_VERSION="8.44"
 ARG NGINX_VERSION="1.26.0"
 
-# Install GRPC
+# Install GRPC with its bundled protobuf; the distro protobuf headers break linking its plugins
 RUN git clone --shallow-submodules --depth 1 --recurse-submodules -b v${GRPC_VERSION} \
   https://github.com/grpc/grpc \
   && cd grpc \
