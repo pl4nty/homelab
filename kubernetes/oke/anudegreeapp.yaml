@@ -29,6 +29,19 @@ spec:
             image:
               repository: ghcr.io/pl4nty/anudegreeapp
               tag: ${APP_IMAGE_TAG:=}
+            # scraper output lives in the container, so fill it before the pod goes ready
+            lifecycle:
+              postStart:
+                exec:
+                  command:
+                    - curl
+                    - --silent
+                    - --retry-connrefused
+                    - --retry
+                    - "10"
+                    - localhost/scraper/plan_scraper.php
+                    - localhost/scraper/subplan_scraper.php
+                    - localhost/scraper/course_scraper.php
             probes:
               liveness:
                 enabled: true
@@ -47,13 +60,10 @@ spec:
               tag: 8.21.0
             command:
               - curl
-              - anudegreeapp/scraper/plan_scraper.php
-              - "&&"
-              - curl
-              - anudegreeapp/scraper/subplan_scraper.php
-              - "&&"
-              - curl
-              - anudegreeapp/scraper/course_scraper.php
+              - --fail-with-body
+              - anudegreeapp${APP_SUFFIX:=}/scraper/plan_scraper.php
+              - anudegreeapp${APP_SUFFIX:=}/scraper/subplan_scraper.php
+              - anudegreeapp${APP_SUFFIX:=}/scraper/course_scraper.php
     service:
       main:
         controller: main
