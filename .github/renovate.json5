@@ -93,11 +93,8 @@
         'patch',
       ],
       matchPackageNames: [
-        'immich-app/immich',
         'opentelemetry-operator',
         'ghcr.io/home-assistant/home-assistant',
-        'ghcr.io/khoj-ai/khoj',
-        'moby/buildkit',
         'ghcr.io/stirling-tools/s-pdf',
       ],
       automerge: true,
