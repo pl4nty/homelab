@@ -89,16 +89,6 @@
   // ],
   packageRules: [
     {
-      description: 'GHCR has no release timestamps, so minimumReleaseAge holds these digests forever',
-      matchPackageNames: [
-        'ghcr.io/pl4nty/**',
-      ],
-      matchUpdateTypes: [
-        'digest',
-      ],
-      minimumReleaseAge: null,
-    },
-    {
       matchUpdateTypes: [
         'patch',
       ],
