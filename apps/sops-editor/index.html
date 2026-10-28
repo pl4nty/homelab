@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://api.github.com; img-src 'self' data:; base-uri 'none'; form-action 'none'" />
+    <meta name="referrer" content="no-referrer" />
+    <title>sops editor</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>🔐</text></svg>" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>sops editor</h1>
+      <span id="status" role="status"></span>
+      <button id="settings-toggle" type="button">Settings</button>
+    </header>
+    <form id="settings" hidden>
+      <label>GitHub token <input id="token" type="password" autocomplete="off" placeholder="fine-grained PAT, contents: read and write" /></label>
+      <label>Repository <input id="repo" placeholder="owner/name" /></label>
+      <label>Branch <input id="branch" placeholder="main" /></label>
+      <label class="wide">age key <textarea id="key" rows="2" autocomplete="off" spellcheck="false" placeholder="AGE-SECRET-KEY-1…"></textarea></label>
+      <label class="check"><input id="remember-key" type="checkbox" /> Remember age key in this browser</label>
+      <button type="submit">Connect</button>
+    </form>
+    <main>
+      <nav>
+        <div class="row">
+          <input id="filter" type="search" placeholder="Filter files" />
+          <button id="new" type="button" title="New encrypted file">New</button>
+        </div>
+        <ul id="files"></ul>
+      </nav>
+      <section id="editor" hidden>
+        <div class="row">
+          <code id="path"></code>
+          <a id="commit-link" href="https://github.com/" target="_blank" rel="noopener" hidden>commit</a>
+        </div>
+        <textarea id="text" spellcheck="false" autocomplete="off"></textarea>
+        <div class="row">
+          <input id="message" placeholder="Commit message" />
+          <button id="revert" type="button">Revert</button>
+          <button id="save" type="button" class="primary">Encrypt and commit</button>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
