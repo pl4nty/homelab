@@ -32,9 +32,8 @@ spec:
               # temporary: surface .NET auto-instrumentation diagnostics in Loki (arm64 test)
               OTEL_DOTNET_AUTO_LOGGER: console
               OTEL_LOG_LEVEL: debug
-              # temporary: always_on exported spans, so test the ratio without parent-based sampling
-              OTEL_TRACES_SAMPLER: traceidratio
-              OTEL_TRACES_SAMPLER_ARG: "0.25"
+              # temporary: verify the SDK default sampler before dropping the 25% ratio everywhere
+              OTEL_TRACES_SAMPLER: parentbased_always_on
             probes:
               liveness:
                 enabled: true
