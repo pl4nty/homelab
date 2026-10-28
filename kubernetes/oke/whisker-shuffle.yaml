@@ -21,7 +21,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/whisker-shuffle
-              tag: ${APP_IMAGE_TAG}
+              tag: ${APP_IMAGE_TAG:=}
     service:
       main:
         controller: main

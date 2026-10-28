@@ -81,7 +81,7 @@ jobs:
         if: env.PUBLISH == 'true'
       - if: env.PUBLISH == 'true'
         run: |
-          sed -i "s/\${APP_IMAGE_TAG}/sha-$COMMIT/" kubernetes/*/"$APP".yaml
+          sed -i "s/\${APP_IMAGE_TAG:=}/sha-$COMMIT/" kubernetes/*/"$APP".yaml
           flux push artifact "oci://ghcr.io/$GITHUB_REPOSITORY/apps:$APP.$TAG" --path kubernetes/*/"$APP".yaml \
             --source="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" --revision="$TAG@sha1:$COMMIT"
 

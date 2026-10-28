@@ -21,7 +21,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/winget-restsource
-              tag: ${APP_IMAGE_TAG}
+              tag: ${APP_IMAGE_TAG:=}
             env:
               RestSource__PublicBaseUrl: https://winget-restsource${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
     service:

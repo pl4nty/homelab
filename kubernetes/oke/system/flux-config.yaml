@@ -35,6 +35,15 @@ spec:
     target:
       kind: HelmRelease
       namespace: default
+  # applied by the apps Kustomization, after flux-operator installs the CRDs
+  - patch: |-
+      $patch: delete
+      apiVersion: fluxcd.controlplane.io/v1
+      kind: not-used
+      metadata:
+        name: not-used
+    target:
+      group: fluxcd.controlplane.io
   decryption:
     provider: sops
     secretRef:
@@ -47,6 +56,20 @@ spec:
       name: cluster-secrets
     - kind: ConfigMap
       name: instance-settings
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: apps
+  namespace: flux-system
+spec:
+  interval: 30m
+  retryInterval: 2m
+  path: ./kubernetes/oke/system/apps
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: home-kubernetes
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
