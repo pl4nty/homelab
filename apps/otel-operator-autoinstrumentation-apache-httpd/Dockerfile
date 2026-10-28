@@ -118,9 +118,9 @@ RUN mkdir -p dependencies/apache-log4cxx/${LOG4CXX_VERSION} \
     && wget https://archive.apache.org/dist/logging/log4cxx/${LOG4CXX_VERSION}/apache-log4cxx-${LOG4CXX_VERSION}.tar.gz --no-check-certificate \
     && tar -xf apache-log4cxx-${LOG4CXX_VERSION}.tar.gz \
     && cd apache-log4cxx-${LOG4CXX_VERSION} \
+    && autoreconf -fi \
     && ./configure --prefix=/dependencies/apache-log4cxx/${LOG4CXX_VERSION}/ --enable-static=yes --enable-shared=no --with-pic --with-apr=/dependencies/apr/1.7.0/ --with-apr-util=/dependencies/apr-util/1.6.1/ && echo $? \
-    && make -j 6 ; echo 0 \
-    && automake --add-missing \
+    && make -j 6 \
     && make install \
     && cd .. && rm -rf apache-log4cxx-${LOG4CXX_VERSION}.tar.gz && rm -rf apache-log4cxx-${LOG4CXX_VERSION}
 
