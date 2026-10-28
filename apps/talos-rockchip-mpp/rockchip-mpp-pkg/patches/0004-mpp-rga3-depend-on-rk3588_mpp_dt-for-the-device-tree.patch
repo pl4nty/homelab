@@ -1,0 +1,59 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 24 Oct 2026 01:34:13 +0000
+Subject: [PATCH] mpp, rga3: depend on rk3588_mpp_dt for the device tree nodes
+
+It adds the nodes when it loads; calling it makes module dependency resolution load it first.
+---
+ drivers/video/rockchip/mpp/mpp_service.c | 16 +++++++++++++++-
+ drivers/video/rockchip/rga3/rga_drv.c    |  3 +++
+ 2 files changed, 18 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/video/rockchip/mpp/mpp_service.c b/drivers/video/rockchip/mpp/mpp_service.c
+index a5998b5..f42beac 100644
+--- a/drivers/video/rockchip/mpp/mpp_service.c
++++ b/drivers/video/rockchip/mpp/mpp_service.c
+@@ -22,6 +22,7 @@
+ 
+ #include "mpp_debug.h"
+ #include "mpp_common.h"
++#include "rk3588_mpp_dt.h"
+ #include "mpp_iommu.h"
+ 
+ #define MPP_CLASS_NAME		"mpp_class"
+@@ -539,7 +540,20 @@ static struct platform_driver mpp_service_driver = {
+ 	},
+ };
+ 
+-module_platform_driver(mpp_service_driver);
++static int __init mpp_service_init(void)
++{
++	/* the device tree nodes, and the IOMMU drivers they need */
++	rk3588_mpp_dt_ready();
++
++	return platform_driver_register(&mpp_service_driver);
++}
++module_init(mpp_service_init);
++
++static void __exit mpp_service_exit(void)
++{
++	platform_driver_unregister(&mpp_service_driver);
++}
++module_exit(mpp_service_exit);
+ 
+ MODULE_IMPORT_NS("DMA_BUF");
+ MODULE_LICENSE("Dual MIT/GPL");
+diff --git a/drivers/video/rockchip/rga3/rga_drv.c b/drivers/video/rockchip/rga3/rga_drv.c
+index 6a2e35e..715e9e8 100644
+--- a/drivers/video/rockchip/rga3/rga_drv.c
++++ b/drivers/video/rockchip/rga3/rga_drv.c
+@@ -1614,6 +1614,9 @@ static int __init rga_init(void)
+ 	int ret;
+ 	int i;
+ 
++	/* rk3588_mpp_dt adds the RGA device tree nodes on mainline */
++	rk3588_mpp_dt_ready();
++
+ 	rga_drvdata = kzalloc(sizeof(struct rga_drvdata_t), GFP_KERNEL);
+ 	if (rga_drvdata == NULL) {
+ 		pr_err("failed to allocate driver data.\n");
