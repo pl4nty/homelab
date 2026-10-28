@@ -9,6 +9,8 @@ RUN apt-get install -qq -y --ignore-missing \
 	git			                            \
 	make			                        \
 	pkg-config		                        \
+	protobuf-compiler	                    \
+	libprotobuf-dev                         \
 	python3			                        \
 	python2.7		                        \
 	sudo			                        \
@@ -27,7 +29,7 @@ RUN apt-get install -y \
     default-jre
 
 # The following arguments would be passed from docker-compose.yml
-ARG GRPC_VERSION="1.70.1"
+ARG GRPC_VERSION="1.36.4"
 ARG OPENTELEMETRY_VERSION="1.2.0"
 ARG BOOST_VERSION="1.75.0"
 ARG BOOST_FILENAME="boost_1_75_0"
@@ -40,7 +42,7 @@ ARG GTEST_VERSION="1.10.0"
 ARG PCRE_VERSION="8.44"
 ARG NGINX_VERSION="1.26.0"
 
-# Install GRPC with its bundled protobuf. GCC 9 defaults to C++14, which mixes absl string_view ABIs and breaks linking its plugins
+# Install GRPC
 RUN git clone --shallow-submodules --depth 1 --recurse-submodules -b v${GRPC_VERSION} \
   https://github.com/grpc/grpc \
   && cd grpc \
@@ -50,7 +52,6 @@ RUN git clone --shallow-submodules --depth 1 --recurse-submodules -b v${GRPC_VER
     -DgRPC_INSTALL=ON \
     -DgRPC_BUILD_TESTS=OFF \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_CXX_STANDARD=17 \
     -DgRPC_BUILD_GRPC_NODE_PLUGIN=OFF \
     -DgRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN=OFF \
     -DgRPC_BUILD_GRPC_PHP_PLUGIN=OFF \
@@ -63,7 +64,6 @@ RUN git clone --shallow-submodules --depth 1 --recurse-submodules -b v${GRPC_VER
   && cd ../../..
 
 # install opentelemetry
-ARG OPENTELEMETRY_VERSION="1.19.0"
 RUN mkdir -p dependencies/opentelemetry/${OPENTELEMETRY_VERSION}/lib \
     && mkdir -p dependencies/opentelemetry/${OPENTELEMETRY_VERSION}/include \
     && git clone https://github.com/open-telemetry/opentelemetry-cpp \
@@ -72,10 +72,11 @@ RUN mkdir -p dependencies/opentelemetry/${OPENTELEMETRY_VERSION}/lib \
     && git submodule update --init --recursive \
     && mkdir build \
     && cd build \
-    && cmake .. -DCMAKE_CXX_STANDARD=17 -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON -DWITH_OTLP_GRPC=ON -DCMAKE_INSTALL_PREFIX=/dependencies/opentelemetry/${OPENTELEMETRY_VERSION} \
+    && cmake .. -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON -DWITH_OTLP=ON -DCMAKE_INSTALL_PREFIX=/dependencies/opentelemetry/${OPENTELEMETRY_VERSION} \
     && cmake --build . --target all \
     && cd .. \
     && find . -name "*.so" -type f -exec cp {} /dependencies/opentelemetry/${OPENTELEMETRY_VERSION}/lib/ \; \
+    && cp build/libopentelemetry_proto.a /dependencies/opentelemetry/${OPENTELEMETRY_VERSION}/lib \
     && cp -r api/include/ /dependencies/opentelemetry/${OPENTELEMETRY_VERSION}/ \
     && for dir in exporters/*; do if [ -d "$dir" ]; then cp -rf "$dir/include" /dependencies/opentelemetry/${OPENTELEMETRY_VERSION}/; fi; done \
     && cp -r sdk/include/ /dependencies/opentelemetry/${OPENTELEMETRY_VERSION}/ \
