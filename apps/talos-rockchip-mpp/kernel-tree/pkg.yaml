@@ -1,0 +1,51 @@
+# The Talos kernel source tree, prepared for building out-of-tree modules
+# without building the kernel: the config and Module.symvers come from the
+# released kernel image ({{ .BUILD_ARG_PKGS_PREFIX }}/kernel:{{ .BUILD_ARG_PKGS }}),
+# and modules_prepare runs with the same LLVM toolchain as the Talos build.
+#
+# Talos' kernel patches aren't applied: the only header they change is
+# include/linux/ceph/ceph_fs.h, and the only config option they add is
+# CONFIG_LOCK_DOWN_IN_EFI_SECURE_BOOT.
+name: kernel-tree
+variant: scratch
+shell: /bin/bash
+dependencies:
+  - stage: base
+  - image: "{{ .BUILD_ARG_TOOLS_PREFIX }}/llvm:{{ .BUILD_ARG_TOOLS }}"
+  - image: "{{ .BUILD_ARG_PKGS_PREFIX }}/kernel:{{ .BUILD_ARG_PKGS }}"
+    platform: linux/arm64
+    to: /kernel
+steps:
+  - sources:
+      - url: https://cdn.kernel.org/pub/linux/kernel/v{{ regexReplaceAll "(\\d+)(.\\d+)(\\.\\d+)?$" .linux_version "${1}" }}.x/linux-{{ .linux_version }}.tar.xz
+        destination: linux.tar.xz
+        sha256: "{{ .linux_sha256 }}"
+        sha512: "{{ .linux_sha512 }}"
+    env:
+      ARCH: arm64
+      LLVM: 1
+    prepare:
+      - |
+        mkdir -p /src
+        tar -xJf linux.tar.xz --strip-components=1 -C /src
+        rm linux.tar.xz
+      - |
+        /pkg/extract.py /kernel/boot/vmlinuz /tmp/Image
+        /src/scripts/extract-ikconfig /tmp/Image > /src/.config
+        cp /src/.config /tmp/config
+    build:
+      - |
+        cd /src
+        make -j $(nproc) modules_prepare
+        /pkg/symvers.py /tmp/Image /kernel/boot/System.map /kernel/usr/lib/modules > Module.symvers
+    test:
+      - |
+        cd /src
+        test "$(cat include/config/kernel.release)" = "$(ls /kernel/usr/lib/modules)"
+        # the released kernel's config, not changed by olddefconfig, except the
+        # option Talos' unapplied lockdown patch adds
+        ignore='CONFIG_CC_VERSION_TEXT|CONFIG_LOCK_DOWN_IN_EFI_SECURE_BOOT'
+        diff <(grep -Ev "${ignore}" .config) <(grep -Ev "${ignore}" /tmp/config)
+finalize:
+  - from: /src
+    to: /src

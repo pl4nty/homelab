@@ -28,7 +28,7 @@
     "regenerator-runtime": "0.14.1"
   },
   "devDependencies": {
-    "@babel/core": "7.28.5",
+    "@babel/core": "7.29.6",
     "@babel/preset-typescript": "7.28.5",
     "@types/office-js": "1.0.565",
     "@types/office-runtime": "1.0.35",
@@ -49,7 +49,7 @@
     "typescript": "5.9.3",
     "webpack": "5.104.1",
     "webpack-cli": "6.0.1",
-    "webpack-dev-server": "5.2.2",
+    "webpack-dev-server": "5.2.6",
     "@types/mathjax": "0.0.40"
   },
   "browserslist": [
