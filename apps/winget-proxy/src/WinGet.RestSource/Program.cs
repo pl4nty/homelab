@@ -42,6 +42,8 @@ var app = builder.Build();
 // `winget source add --name xbox --arg https://host/xbox --type Microsoft.Rest`.
 app.MapRestSource<XboxSource>("/xbox");
 app.MapRestSource<FeaturesSource>("/features").MapShim(FeaturesSource.ShimKey);
+app.MapRestSource<UpdatesSource>("/updatecatalog").MapShim(UpdatesSource.ShimKey);
+// old prefix, kept so existing `winget source add` entries keep working
 app.MapRestSource<UpdatesSource>("/updates").MapShim(UpdatesSource.ShimKey);
 
 app.Run();

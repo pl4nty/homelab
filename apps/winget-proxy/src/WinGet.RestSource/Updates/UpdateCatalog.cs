@@ -7,7 +7,7 @@ namespace WinGet.RestSource.Updates;
 
 public sealed class UpdatesSourceOptions
 {
-    /// <summary>The install shim executable served at /updates/shim.exe, relative to the content root.</summary>
+    /// <summary>The install shim executable served at /updatecatalog/shim.exe, relative to the content root.</summary>
     public string ShimPath { get; set; } = "shim/winget-update-shim.exe";
 
     /// <summary>Upper bound on results returned from /manifestSearch.</summary>

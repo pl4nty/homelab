@@ -5,7 +5,7 @@ namespace WinGet.RestSource.Tests;
 
 public sealed class UpdatesSourceTests(RestSourceFactory factory) : IClassFixture<RestSourceFactory>
 {
-    private const string Prefix = "/updates";
+    private const string Prefix = "/updatecatalog";
 
     private readonly HttpClient _client = factory.CreateClient();
 
@@ -18,6 +18,15 @@ public sealed class UpdatesSourceTests(RestSourceFactory factory) : IClassFixtur
         Assert.Equal("WindowsUpdateCatalog", response!.Data.SourceIdentifier);
         Assert.Contains("1.6.0", response.Data.ServerSupportedVersions);
         Assert.Contains("Moniker", response.Data.UnsupportedPackageMatchFields);
+    }
+
+    [Fact]
+    public async Task Information_ServedAtTheOldPrefix()
+    {
+        var response = await _client.GetFromJsonAsync<Response<InformationResponse>>(
+            "/updates/information", RestSourceFactory.Json);
+
+        Assert.Equal("WindowsUpdateCatalog", response!.Data.SourceIdentifier);
     }
 
     [Fact]
@@ -112,7 +121,7 @@ public sealed class UpdatesSourceTests(RestSourceFactory factory) : IClassFixtur
         var installer = Assert.Single(version.Installers);
         Assert.Equal("exe", installer.InstallerType);
         Assert.Equal("x64", installer.Architecture);
-        Assert.Equal("http://localhost/updates/shim.exe", installer.InstallerUrl);
+        Assert.Equal("http://localhost/updatecatalog/shim.exe", installer.InstallerUrl);
         Assert.Equal(RestSourceFactory.ShimSha256, installer.InstallerSha256);
         Assert.Equal("machine", installer.Scope);
         Assert.Equal("elevationRequired", installer.ElevationRequirement);
