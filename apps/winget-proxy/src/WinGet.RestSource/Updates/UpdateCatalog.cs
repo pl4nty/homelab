@@ -57,7 +57,10 @@ public sealed partial class UpdateCatalog(HttpClient http, IMemoryCache cache, I
         ];
     }
 
-    /// <summary>The files behind an update, with the direct download URL and SHA-256 the catalog reports.</summary>
+    /// <summary>
+    /// The files behind an update, with the direct download URL and the digests the catalog reports. Large
+    /// cumulative updates often carry only the base64 SHA-1 <c>digest</c>, with an empty <c>sha256</c>.
+    /// </summary>
     public async Task<IReadOnlyList<UpdateFile>> GetFilesAsync(string updateId, CancellationToken ct)
     {
         var response = await GetCachedAsync($"download:{updateId}", async token =>
@@ -87,7 +90,8 @@ public sealed partial class UpdateCatalog(HttpClient http, IMemoryCache cache, I
                         FileName: values.GetValueOrDefault("fileName") is { Length: > 0 } name
                             ? name
                             : url.Split('/')[^1],
-                        Sha256: values.GetValueOrDefault("sha256"));
+                        Sha256: values.GetValueOrDefault("sha256"),
+                        Sha1: values.GetValueOrDefault("digest"));
                 })
                 .OfType<UpdateFile>()
         ];
@@ -120,7 +124,7 @@ public sealed partial class UpdateCatalog(HttpClient http, IMemoryCache cache, I
         RegexOptions.Singleline | RegexOptions.IgnoreCase)]
     private static partial Regex CellRegex();
 
-    [GeneratedRegex(@"files\[(?<index>\d+)\]\.(?<key>url|fileName|sha256) = '(?<value>[^']*)'")]
+    [GeneratedRegex(@"files\[(?<index>\d+)\]\.(?<key>url|fileName|sha256|digest) = '(?<value>[^']*)'")]
     private static partial Regex FileRegex();
 
     [GeneratedRegex("""<span id="ScopedViewHandler_desc"[^>]*>(?<text>.*?)</span>""", RegexOptions.Singleline)]
@@ -144,4 +148,4 @@ public sealed record CatalogUpdate(
     public bool IsDriver => Classification == "Drivers";
 }
 
-public sealed record UpdateFile(string Url, string FileName, string? Sha256);
+public sealed record UpdateFile(string Url, string FileName, string? Sha256, string? Sha1 = null);
