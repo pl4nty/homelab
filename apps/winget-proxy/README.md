@@ -7,19 +7,19 @@ under its own path prefix, sharing the protocol implementation in `WinGet.RestSo
 | --- | --- | --- | --- |
 | `/xbox` | `XboxStore` | Xbox store games the built-in `msstore` source does not index | [winget-cli#5818](https://github.com/microsoft/winget-cli/issues/5818) |
 | `/features` | `WindowsFeatures` | Windows optional features and capabilities (Telnet, Hyper-V, WSL, RSAT, OpenSSH…) | [winget-cli#5986](https://github.com/microsoft/winget-cli/issues/5986) |
-| `/updates` | `WindowsUpdateCatalog` | Patches and drivers from the Microsoft Update Catalog | [winget-cli#5332](https://github.com/microsoft/winget-cli/issues/5332) |
+| `/updatecatalog` | `WindowsUpdateCatalog` | Patches and drivers from the Microsoft Update Catalog | [winget-cli#5332](https://github.com/microsoft/winget-cli/issues/5332) |
 
 Each prefix answers the full protocol — `GET /information`, `POST /manifestSearch`,
 `GET /packageManifests/{PackageIdentifier}` — so each is added to WinGet as its own source:
 
 ```powershell
-winget source add --name xbox     --arg https://your-host/xbox     --type Microsoft.Rest
-winget source add --name features --arg https://your-host/features --type Microsoft.Rest
-winget source add --name updates  --arg https://your-host/updates  --type Microsoft.Rest
+winget source add --name xbox          --arg https://your-host/xbox          --type Microsoft.Rest
+winget source add --name features      --arg https://your-host/features      --type Microsoft.Rest
+winget source add --name updatecatalog --arg https://your-host/updatecatalog --type Microsoft.Rest
 
 winget search roblox --source xbox
 winget install Microsoft.Windows.Feature.TelnetClient --source features
-winget install 84d8dd32-6250-435c-8884-133c1daa4464 --source updates   # a catalog update GUID
+winget install 84d8dd32-6250-435c-8884-133c1daa4464 --source updatecatalog   # a catalog update GUID
 ```
 
 The URL **must** be `https://` — WinGet's `RestSourceFactory` rejects plain HTTP (loopback with a trusted
@@ -51,7 +51,7 @@ with the architecture parsed from the file name.
 
 WinGet has no `dism`, `msu` or `cab` installer type, so the features and updates manifests point at a small
 Windows executable the service hosts under the source's own prefix (`/features/shim.exe`,
-`/updates/shim.exe`), with the real work encoded in `InstallerSwitches.Custom`:
+`/updatecatalog/shim.exe`), with the real work encoded in `InstallerSwitches.Custom`:
 
 ```
 winget-feature-shim.exe /action:enable /kind:Feature /name:TelnetClient
