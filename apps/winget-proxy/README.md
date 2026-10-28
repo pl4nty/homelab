@@ -22,6 +22,7 @@ winget source add --name msstore-versioned --arg https://your-host/msstore-versi
 winget search roblox --source xbox
 winget install Microsoft.Windows.Feature.TelnetClient --source features
 winget install 84d8dd32-6250-435c-8884-133c1daa4464 --source updatecatalog  # a catalog update GUID
+winget install KB5078885 --source updatecatalog --architecture x64
 winget install 9WZDNCRFHVN5 --source msstore-versioned --version 2021.2607.0.0  # a Store product ID
 ```
 
@@ -45,10 +46,17 @@ Capability names keep their `~~~~` version suffix, which becomes the package ver
 `FetchAllManifests` returns the whole catalog, so `winget export` works.
 
 **Updates** (`src/WinGet.RestSource/Updates/`) — scrapes the same three pages the Update Catalog website
-uses: the search table, the download dialog (which carries direct file URLs *and their SHA-256 digests*),
-and the details view. Package identifiers are the catalog's update GUIDs; the catalog resolves a GUID
-search to its single row, which is what serves `winget install --id`. One installer is emitted per file,
-with the architecture parsed from the file name.
+uses: the search table, the download dialog (which carries direct file URLs and their digests: SHA-256, or
+for many cumulative updates only SHA-1), and the details view. Package identifiers are the catalog's update
+GUIDs; the catalog resolves a GUID search to its single row, which is what serves `winget install --id`. One
+installer is emitted per file, with the architecture parsed from the file name.
+
+A KB number is a package too. WinGet's search request carries no architecture, so with one package per row
+`winget install KB5078885 --architecture x64` is ambiguous before `--architecture` applies. A search for exactly
+`KB<number>` answers with that KB package alone, which has one installer per architecture across the KB's rows:
+releases sharing a file (Windows 10 21H2 and 22H2) collapse to it, and an architecture whose releases ship
+different files is left out rather than guessed. Dynamic updates service setup media, so they are left out of
+the KB package and keep their GUIDs.
 
 **Versions** (`src/WinGet.RestSource/Versions/`) — speaks FE3, the Windows Update delivery protocol the Store
 client uses (as do [StoreLib](https://github.com/StoreDev/StoreLib) and [StoreWeb](https://github.com/pl4nty/storeweb)).
@@ -83,7 +91,8 @@ winget-update-shim.exe /type:msu /url:https://catalog.s.download.windowsupdate.c
 The updates shim hands `.msu` to `wusa`, driver `.cab` to `expand` + `pnputil /add-driver`, and other
 `.cab` to `dism /online /add-package`. The chain stays verifiable end to end: WinGet checks the downloaded
 shim against the manifest's `InstallerSha256` (computed from the exact bytes the service serves), and the
-updates shim checks the payload against the catalog's published SHA-256 — refusing to install on mismatch,
+updates shim checks the payload against the catalog's published SHA-256, or its SHA-1 where that is all the
+catalog publishes — refusing to install on mismatch,
 and only accepting payload URLs on `*.windowsupdate.com` / `*.microsoft.com`. Manifests declare
 `elevationRequired` and map exit code 3010 to `rebootRequiredToFinish`.
 

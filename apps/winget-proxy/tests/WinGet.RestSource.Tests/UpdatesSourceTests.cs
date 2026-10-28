@@ -169,8 +169,47 @@ public sealed class UpdatesSourceTests(RestSourceFactory factory) : IClassFixtur
     {
         using var factory = new RestSourceFactory();
 
-        Assert.Null(await factory.CreateClient().GetManifestAsync(Prefix, "KB5063878"));
+        Assert.Null(await factory.CreateClient().GetManifestAsync(Prefix, "not-an-update"));
         Assert.Empty(factory.UpdateCatalogPages.Requests);
+    }
+
+    [Fact]
+    public async Task PackageManifests_UpdateWithOnlySha1_PassesTheSha1ToTheShim()
+    {
+        var manifest = await _client.GetManifestAsync(Prefix, UpdateCatalogFixture.Kb22H2X64);
+
+        var installer = Assert.Single(Assert.Single(manifest!.Versions).Installers);
+        Assert.Equal("x64", installer.Architecture);
+        Assert.Contains(
+            $"/url:{UpdateCatalogFixture.KbX64Url} /sha1:{UpdateCatalogFixture.KbX64Sha1}", installer.InstallerSwitches!.Custom);
+    }
+
+    [Fact]
+    public async Task Search_ByKbNumber_ReturnsOnlyTheKbPackage()
+    {
+        var results = await _client.SearchAsync(Prefix, new ManifestSearchRequest(
+            Query: new SearchRequestMatch("kb5078885", "Substring")));
+
+        var package = Assert.Single(results.Data);
+        Assert.Equal(UpdateCatalogFixture.Kb, package.PackageIdentifier);
+        Assert.Equal("2026-03 Cumulative Update for Windows 10 (KB5078885)", package.PackageName);
+        Assert.Equal("Unknown", Assert.Single(package.Versions).PackageVersion);
+    }
+
+    [Fact]
+    public async Task PackageManifests_Kb_HasOneInstallerPerArchitecture()
+    {
+        var manifest = await _client.GetManifestAsync(Prefix, UpdateCatalogFixture.Kb);
+
+        Assert.Equal(UpdateCatalogFixture.Kb, manifest!.PackageIdentifier);
+        var version = Assert.Single(manifest.Versions);
+        Assert.Equal("2026-03 Cumulative Update for Windows 10 (KB5078885)", version.DefaultLocale.PackageName);
+        Assert.DoesNotContain("Dynamic", version.DefaultLocale.Description);
+
+        // 21H2 and 22H2 share the x64 file; their x86 files differ, so x86 is left out rather than guessed.
+        Assert.Equal(["arm64", "x64"], version.Installers.Select(installer => installer.Architecture).Order());
+        var x64 = version.Installers.Single(installer => installer.Architecture == "x64");
+        Assert.Contains($"/url:{UpdateCatalogFixture.KbX64Url} /sha1:", x64.InstallerSwitches!.Custom);
     }
 
     [Fact]

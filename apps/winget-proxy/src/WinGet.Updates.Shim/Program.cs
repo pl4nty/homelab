@@ -3,6 +3,7 @@
 // InstallerSwitches.Custom, downloads it, verifies it, and hands it to the component that owns it:
 //
 //   winget-update-shim.exe /type:msu /url:https://catalog.s.download.windowsupdate.com/... /sha256:<base64|hex> /name:<file>
+//   (/sha1:<base64|hex> instead, for the cumulative updates the catalog publishes only a SHA-1 digest for)
 //   → wusa.exe <file> /quiet /norestart
 //   winget-update-shim.exe /type:cab ... /driver   → expand + pnputil.exe /add-driver <dir>\*.inf /subdirs /install
 //   winget-update-shim.exe /type:cab ...           → dism.exe /online /add-package /packagepath:<file> /quiet /norestart
@@ -16,23 +17,23 @@ using System.Security.Cryptography;
 const int InvalidParameter = 87;
 const int InvalidData = 13;
 
-string? type = null, url = null, sha256 = null, name = null;
+string? type = null, url = null, sha256 = null, sha1 = null, name = null;
 var driver = false;
 foreach (var arg in args)
 {
     // WinGet appends switches like /quiet; anything unknown is ignored.
     driver |= arg.Equals("/driver", StringComparison.OrdinalIgnoreCase);
     _ = Take(arg, "/type:", ref type) || Take(arg, "/url:", ref url)
-        || Take(arg, "/sha256:", ref sha256) || Take(arg, "/name:", ref name);
+        || Take(arg, "/sha256:", ref sha256) || Take(arg, "/sha1:", ref sha1) || Take(arg, "/name:", ref name);
 }
 
 if (type is not ("msu" or "cab")
     || !Uri.TryCreate(url, UriKind.Absolute, out var payloadUri) || payloadUri.Scheme != Uri.UriSchemeHttps
     || !TrustedHost(payloadUri.Host)
-    || Digest(sha256) is not { } expected)
+    || (Digest(sha256, SHA256.HashSizeInBytes) ?? Digest(sha1, SHA1.HashSizeInBytes)) is not { } expected)
 {
     Console.Error.WriteLine(
-        "usage: winget-update-shim.exe /type:msu|cab /url:<https-microsoft-url> /sha256:<base64|hex> [/name:<file>] [/driver]");
+        "usage: winget-update-shim.exe /type:msu|cab /url:<https-microsoft-url> /sha256:<base64|hex>|/sha1:<base64|hex> [/name:<file>] [/driver]");
     return InvalidParameter;
 }
 
@@ -54,7 +55,9 @@ try
     byte[] actual;
     await using (var file = File.OpenRead(payload))
     {
-        actual = await SHA256.HashDataAsync(file);
+        actual = expected.Length == SHA256.HashSizeInBytes
+            ? await SHA256.HashDataAsync(file)
+            : await SHA1.HashDataAsync(file);
     }
 
     if (!actual.SequenceEqual(expected))
@@ -111,18 +114,18 @@ static bool TrustedHost(string host) =>
     host.EndsWith(".windowsupdate.com", StringComparison.OrdinalIgnoreCase)
     || host.EndsWith(".microsoft.com", StringComparison.OrdinalIgnoreCase);
 
-// The catalog reports SHA-256 digests base64-encoded; accept hex too.
-static byte[]? Digest(string? value)
+// The catalog reports digests base64-encoded; accept hex too.
+static byte[]? Digest(string? value, int size)
 {
-    if (value is null)
+    if (string.IsNullOrEmpty(value))
     {
         return null;
     }
 
     try
     {
-        var digest = value.Length == 64 ? Convert.FromHexString(value) : Convert.FromBase64String(value);
-        return digest.Length == 32 ? digest : null;
+        var digest = value.Length == size * 2 ? Convert.FromHexString(value) : Convert.FromBase64String(value);
+        return digest.Length == size ? digest : null;
     }
     catch (FormatException)
     {

@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.Options;
 using static WinGet.RestSource.ManifestText;
 
@@ -9,7 +10,13 @@ namespace WinGet.RestSource.Updates;
 /// WinGet manifests installed on the client by the shim executable this host also serves (which downloads
 /// the .msu/.cab payload, verifies it, and hands it to wusa, DISM or pnputil).
 /// </summary>
-public sealed class UpdatesSource(
+/// <remarks>
+/// Each catalog row is its own package, identified by its update GUID. A KB number is also a package: the
+/// catalog lists one row per architecture and per Windows release, and WinGet's search request carries no
+/// architecture, so `winget install KB5078885 --architecture x64` only works if the rows are one package
+/// with an installer per architecture.
+/// </remarks>
+public sealed partial class UpdatesSource(
     UpdateCatalog catalog,
     [FromKeyedServices(UpdatesSource.ShimKey)] ShimFile shim,
     IOptions<UpdatesSourceOptions> options) : IWinGetSource
@@ -45,11 +52,24 @@ public sealed class UpdatesSource(
         var limit = Math.Clamp(request.MaximumResults ?? _options.MaximumResults, 1, _options.MaximumResults);
         var updates = await catalog.SearchAsync(keyword, ct);
 
+        // A bare KB number answers with the KB package alone, so it is not ambiguous with its own rows.
+        if (KbNumber().IsMatch(keyword) && KbRows(updates, keyword) is { Count: > 0 } rows)
+        {
+            return [.. new[] { new ManifestSearchResult(
+                keyword.ToUpperInvariant(), KbName(rows[0]), "Microsoft", [new ManifestSearchVersion(Version(rows[0]))]) }
+                .Where(result => Matches(result, request.Filters))];
+        }
+
         return [.. updates.Select(ToSearchResult).Where(result => Matches(result, request.Filters)).Take(limit)];
     }
 
     public async Task<Manifest?> GetManifestAsync(ManifestRequest request, CancellationToken ct)
     {
+        if (KbNumber().IsMatch(request.PackageIdentifier))
+        {
+            return await GetKbManifestAsync(request, ct);
+        }
+
         if (!UpdateCatalog.IsUpdateId(request.PackageIdentifier) || shim.Sha256 is null)
         {
             return null;
@@ -87,6 +107,67 @@ public sealed class UpdatesSource(
         return new Manifest(update.UpdateId, [new ManifestVersion(Version(update), locale, installers)]);
     }
 
+    /// <summary>
+    /// One installer per architecture across the KB's rows. Releases that share a file (21H2 and 22H2 of
+    /// Windows 10, say) collapse to it; an architecture whose releases ship different files is left out
+    /// rather than guessed.
+    /// </summary>
+    private async Task<Manifest?> GetKbManifestAsync(ManifestRequest request, CancellationToken ct)
+    {
+        var kb = request.PackageIdentifier.ToUpperInvariant();
+        var rows = KbRows(await catalog.SearchAsync(kb, ct), kb);
+        if (rows.Count == 0 || shim.Sha256 is null || (request.Version is not null && request.Version != Version(rows[0])))
+        {
+            return null;
+        }
+
+        var files = await Task.WhenAll(rows.Select(async row =>
+            (row, files: await catalog.GetFilesAsync(row.UpdateId, ct))));
+        Installer[] installers =
+        [
+            .. files
+                .SelectMany(update => update.files.Select(file =>
+                    (file.Url, installer: ToInstaller(file, update.row, request.BaseUrl))))
+                .Where(file => file.installer is not null)
+                .GroupBy(file => file.installer!.Architecture)
+                .Where(architecture => architecture.Select(file => file.Url).Distinct().Count() == 1)
+                .Select(architecture => architecture.First().installer!),
+        ];
+        if (installers.Length == 0)
+        {
+            return null;
+        }
+
+        var description = await catalog.GetDescriptionAsync(rows[0].UpdateId, ct);
+        var locale = new Locale(
+            PackageLocale: "en-us",
+            Publisher: "Microsoft",
+            PackageName: KbName(rows[0]),
+            License: "Proprietary",
+            ShortDescription: Truncate(description ?? KbName(rows[0]), 256),
+            PackageUrl: $"{UpdateCatalog.BaseUrl}Search.aspx?q={kb}",
+            Description: Truncate(
+                $"{description ?? KbName(rows[0])}\n\nUpdates:\n{string.Join('\n', rows.Select(row => row.Title))}", 10000));
+
+        return new Manifest(kb, [new ManifestVersion(Version(rows[0]), locale, installers)]);
+    }
+
+    /// <summary>
+    /// The rows a KB package installs from. Dynamic updates service setup media rather than a running
+    /// system, so they stay reachable only by their own GUIDs.
+    /// </summary>
+    private static List<CatalogUpdate> KbRows(IEnumerable<CatalogUpdate> updates, string kb) =>
+    [
+        .. updates.Where(update =>
+            update.Title.Contains($"({kb})", StringComparison.OrdinalIgnoreCase)
+            && !update.IsDriver
+            && !update.Title.Contains("Dynamic", StringComparison.OrdinalIgnoreCase)),
+    ];
+
+    /// <summary>The row's title without its release and architecture, which the KB package spans.</summary>
+    private static string KbName(CatalogUpdate update) =>
+        Truncate(KbNameParts().Replace(update.Title, string.Empty), 256);
+
     private static ManifestSearchResult ToSearchResult(CatalogUpdate update) => new(
         update.UpdateId,
         Truncate(update.Title, 256),
@@ -107,7 +188,12 @@ public sealed class UpdatesSource(
             _ => null,
         };
 
-        if (kind is null || string.IsNullOrEmpty(file.Sha256))
+        // The catalog publishes only a SHA-1 digest for many cumulative updates.
+        var digest = !string.IsNullOrEmpty(file.Sha256) ? $"/sha256:{file.Sha256}"
+            : !string.IsNullOrEmpty(file.Sha1) ? $"/sha1:{file.Sha1}"
+            : null;
+
+        if (kind is null || digest is null)
         {
             return null;
         }
@@ -120,7 +206,7 @@ public sealed class UpdatesSource(
             InstallerSwitches: new InstallerSwitches(
                 Silent: "/quiet",
                 SilentWithProgress: "/quiet",
-                Custom: $"/type:{kind} /url:{file.Url} /sha256:{file.Sha256} /name:{file.FileName}" +
+                Custom: $"/type:{kind} /url:{file.Url} {digest} /name:{file.FileName}" +
                         (update.IsDriver ? " /driver" : string.Empty)),
             Scope: "machine",
             ElevationRequirement: "elevationRequired",
@@ -160,4 +246,10 @@ public sealed class UpdatesSource(
                 // Market has no meaning for the catalog; the rest are declared unsupported.
                 _ => true,
             });
+
+    [GeneratedRegex(@"^KB\d{6,8}$", RegexOptions.IgnoreCase)]
+    private static partial Regex KbNumber();
+
+    [GeneratedRegex(@" Version \w+| for (x86|x64|ARM64|ARM)-based Systems", RegexOptions.IgnoreCase)]
+    private static partial Regex KbNameParts();
 }
