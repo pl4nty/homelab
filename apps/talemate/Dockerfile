@@ -9,7 +9,7 @@ WORKDIR /app
 COPY --from=src ./talemate_frontend /app
 
 # Install all dependencies and build
-RUN npm install && npm run build
+RUN --mount=type=cache,id=npm,target=/root/.npm npm install && npm run build
 
 # Stage 2: Backend build
 FROM python:3.11-slim@sha256:db3ff2e1800a8581e2c48a27c3995339d47bdf046da21c7627accd3d51053a93 AS backend-build
@@ -17,13 +17,13 @@ FROM python:3.11-slim@sha256:db3ff2e1800a8581e2c48a27c3995339d47bdf046da21c7627a
 WORKDIR /app
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
+RUN --mount=type=cache,id=apt-lists-py311,target=/var/lib/apt/lists,sharing=locked \
+    apt-get update && apt-get install -y \
     bash \
-    gcc \
-    && rm -rf /var/lib/apt/lists/*
+    gcc
 
 # Install poetry
-RUN pip install poetry
+RUN --mount=type=cache,id=pip,target=/root/.cache/pip pip install poetry
 
 # Copy poetry files
 COPY --from=src pyproject.toml poetry.lock* /app/
@@ -32,7 +32,8 @@ COPY --from=src pyproject.toml poetry.lock* /app/
 RUN python -m venv /app/talemate_env
 
 # Activate virtual environment and install dependencies
-RUN . /app/talemate_env/bin/activate && \
+RUN --mount=type=cache,id=poetry,target=/root/.cache/pypoetry \
+    . /app/talemate_env/bin/activate && \
     poetry config virtualenvs.create false && \
     poetry install  --only main --no-root
 

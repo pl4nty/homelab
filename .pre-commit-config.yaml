@@ -1,5 +1,3 @@
-# own-code apps only; overlays and upstream contexts keep upstream's style
-files: ^(apps/(excel2latex|flux-helm-schema|miniflux-rewriter|stickers|tenant-lookup|vscode-oci-layers|winget-proxy)/|\.editorconfig$|\.pre-commit-config\.yaml$|biome\.json$|ruff\.toml$)
 exclude: (package-lock\.json|uv\.lock|/Fixtures/.*)$
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
