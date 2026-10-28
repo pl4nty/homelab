@@ -6,10 +6,11 @@
 
 import * as vscode from 'vscode';
 import { findFiles, searchText, type TextMatch } from './core/search.ts';
-import { SCHEME, sessionUri, type SessionStore } from './session-store.ts';
+import { SCHEME, type SessionStore, sessionUri } from './session-store.ts';
 
 const globOf = (g: vscode.GlobPattern) => (typeof g === 'string' ? g : g.pattern);
-const range = (s: TextMatch['start'], e: TextMatch['end']) => new vscode.Range(s.line, s.character, e.line, e.character);
+const range = (s: TextMatch['start'], e: TextMatch['end']) =>
+  new vscode.Range(s.line, s.character, e.line, e.character);
 
 /** Returns true if the proposed providers were registered. */
 export function registerSearchProviders(ctx: vscode.ExtensionContext, store: SessionStore): boolean {
@@ -44,11 +45,14 @@ export function registerSearchProviders(ctx: vscode.ExtensionContext, store: Ses
               maxResults: options.maxResults ? options.maxResults - found : undefined,
               maxFileSize: options.maxFileSize,
               isCancelled: () => token.isCancellationRequested,
-              onMatch: (m) => progress.report(new vscode.TextSearchMatch2(
-                sessionUri(id, `/${m.path}`),
-                [{ sourceRange: range(m.start, m.end), previewRange: range(m.previewStart, m.previewEnd) }],
-                m.preview,
-              )),
+              onMatch: (m) =>
+                progress.report(
+                  new vscode.TextSearchMatch2(
+                    sessionUri(id, `/${m.path}`),
+                    [{ sourceRange: range(m.start, m.end), previewRange: range(m.previewStart, m.previewEnd) }],
+                    m.preview,
+                  ),
+                ),
             });
             found += res.matches;
             limitHit ||= res.limitHit;
@@ -60,7 +64,9 @@ export function registerSearchProviders(ctx: vscode.ExtensionContext, store: Ses
     return true;
   } catch (e) {
     // "Extension ... CANNOT use API proposal": fall back to the commands below.
-    console.info(`oci-layers: proposed search APIs unavailable (${(e as Error).message}); use the Find in Image commands`);
+    console.info(
+      `oci-layers: proposed search APIs unavailable (${(e as Error).message}); use the Find in Image commands`,
+    );
     return false;
   }
 }
@@ -68,6 +74,7 @@ export function registerSearchProviders(ctx: vscode.ExtensionContext, store: Ses
 const MAX_TEXT_RESULTS = 2000;
 
 export function registerSearchCommands(
+  // biome-ignore lint/suspicious/noExplicitAny: command arguments are untyped
   register: (name: string, fn: (...args: any[]) => unknown) => void,
   store: SessionStore,
   pickSession: (arg?: unknown) => Promise<string | undefined>,
@@ -80,7 +87,10 @@ export function registerSearchCommands(
       const slash = p.lastIndexOf('/');
       return { label: p.slice(slash + 1), description: `/${p.slice(0, slash)}`, path: p };
     });
-    const pick = await vscode.window.showQuickPick(items, { placeHolder: `Find file in ${store.info(id)?.display}`, matchOnDescription: true });
+    const pick = await vscode.window.showQuickPick(items, {
+      placeHolder: `Find file in ${store.info(id)?.display}`,
+      matchOnDescription: true,
+    });
     if (pick) await vscode.window.showTextDocument(sessionUri(id, `/${pick.path}`));
   });
 
@@ -95,15 +105,23 @@ export function registerSearchCommands(
     if (!pattern) return;
     const isRegExp = pattern.startsWith('re:');
     const items: (vscode.QuickPickItem & { m: TextMatch })[] = [];
-    const { limitHit } = searchText(session.overlay, { pattern: isRegExp ? pattern.slice(3) : pattern, isRegExp }, {
-      maxResults: MAX_TEXT_RESULTS,
-      onMatch: (m) => items.push({ label: m.preview.split('\n')[0].trim(), description: `/${m.path}:${m.start.line + 1}`, m }),
-    });
+    const { limitHit } = searchText(
+      session.overlay,
+      { pattern: isRegExp ? pattern.slice(3) : pattern, isRegExp },
+      {
+        maxResults: MAX_TEXT_RESULTS,
+        onMatch: (m) =>
+          items.push({ label: m.preview.split('\n')[0].trim(), description: `/${m.path}:${m.start.line + 1}`, m }),
+      },
+    );
     if (!items.length) return vscode.window.showInformationMessage(`No results for "${pattern}".`);
     const pick = await vscode.window.showQuickPick(items, {
       placeHolder: `${items.length}${limitHit ? '+' : ''} results for "${pattern}"`,
       matchOnDescription: true,
     });
-    if (pick) await vscode.window.showTextDocument(sessionUri(id, `/${pick.m.path}`), { selection: range(pick.m.start, pick.m.end) });
+    if (pick)
+      await vscode.window.showTextDocument(sessionUri(id, `/${pick.m.path}`), {
+        selection: range(pick.m.start, pick.m.end),
+      });
   });
 }

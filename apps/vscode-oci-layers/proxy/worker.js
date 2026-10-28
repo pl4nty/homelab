@@ -11,12 +11,30 @@
 // Override the allowlists with comma-separated regexes in env ALLOWED_ORIGINS / ALLOWED_HOSTS.
 
 const DEFAULT_HOSTS = [
-  'registry-1\\.docker\\.io', 'auth\\.docker\\.io', 'mirror\\.gcr\\.io', 'ghcr\\.io', 'quay\\.io', 'public\\.ecr\\.aws',
-  '(.+\\.)?gcr\\.io', '.+-docker\\.pkg\\.dev', 'registry\\.gitlab\\.com', 'gitlab\\.com', 'mcr\\.microsoft\\.com',
-  'registry\\.k8s\\.io', 'cgr\\.dev', 'nvcr\\.io', 'ttl\\.sh', '.+\\.azurecr\\.io',
+  'registry-1\\.docker\\.io',
+  'auth\\.docker\\.io',
+  'mirror\\.gcr\\.io',
+  'ghcr\\.io',
+  'quay\\.io',
+  'public\\.ecr\\.aws',
+  '(.+\\.)?gcr\\.io',
+  '.+-docker\\.pkg\\.dev',
+  'registry\\.gitlab\\.com',
+  'gitlab\\.com',
+  'mcr\\.microsoft\\.com',
+  'registry\\.k8s\\.io',
+  'cgr\\.dev',
+  'nvcr\\.io',
+  'ttl\\.sh',
+  '.+\\.azurecr\\.io',
 ];
-const DEFAULT_ORIGINS = ['https://([a-z0-9-]+\\.)*vscode-cdn\\.net', 'https://(insiders\\.)?vscode\\.dev', 'https://github\\.dev'];
-const EXPOSE = 'WWW-Authenticate, Location, Docker-Content-Digest, Docker-Upload-UUID, Docker-Distribution-API-Version, Range, Link, Content-Length, Content-Range, OCI-Subject';
+const DEFAULT_ORIGINS = [
+  'https://([a-z0-9-]+\\.)*vscode-cdn\\.net',
+  'https://(insiders\\.)?vscode\\.dev',
+  'https://github\\.dev',
+];
+const EXPOSE =
+  'WWW-Authenticate, Location, Docker-Content-Digest, Docker-Upload-UUID, Docker-Distribution-API-Version, Range, Link, Content-Length, Content-Range, OCI-Subject';
 const FORWARD = ['authorization', 'accept', 'content-type', 'content-range', 'range', 'docker-content-digest'];
 
 const compile = (list) => list.map((s) => new RegExp(`^${s.trim()}$`));
@@ -54,14 +72,23 @@ export default {
     } catch {
       return new Response('expected /<absolute registry URL>', { status: 400, headers: cors(origin) });
     }
-    if (target.protocol !== 'https:' || !allowlist(env, 'ALLOWED_HOSTS', DEFAULT_HOSTS).some((r) => r.test(target.hostname))) {
+    if (
+      target.protocol !== 'https:' ||
+      !allowlist(env, 'ALLOWED_HOSTS', DEFAULT_HOSTS).some((r) => r.test(target.hostname))
+    ) {
       return new Response(`host not allowed: ${target.hostname}`, { status: 403, headers: cors(origin) });
     }
 
     const headers = new Headers();
     for (const k of FORWARD) if (request.headers.has(k)) headers.set(k, request.headers.get(k));
     const hasBody = request.method !== 'GET' && request.method !== 'HEAD';
-    let res = await fetch(target, { method: request.method, headers, body: hasBody ? request.body : undefined, redirect: 'manual', duplex: 'half' });
+    let res = await fetch(target, {
+      method: request.method,
+      headers,
+      body: hasBody ? request.body : undefined,
+      redirect: 'manual',
+      duplex: 'half',
+    });
     for (let i = 0; i < 5 && !hasBody && [301, 302, 303, 307, 308].includes(res.status); i++) {
       const next = new URL(res.headers.get('Location'), target);
       const h = new Headers(headers);
