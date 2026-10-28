@@ -28,12 +28,6 @@ spec:
             image:
               repository: ghcr.io/pl4nty/reg2ps
               tag: ${APP_IMAGE_TAG:=}
-            env:
-              # temporary: surface .NET auto-instrumentation diagnostics in Loki (arm64 test)
-              OTEL_DOTNET_AUTO_LOGGER: console
-              OTEL_LOG_LEVEL: debug
-              # temporary: verify the SDK default sampler before dropping the 25% ratio everywhere
-              OTEL_TRACES_SAMPLER: parentbased_always_on
             probes:
               liveness:
                 enabled: true
