@@ -2,7 +2,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: winget-restsource
+  name: winget-restsource${APP_SUFFIX:=}
   namespace: default
   annotations:
     kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
@@ -23,7 +23,7 @@ spec:
               repository: ghcr.io/pl4nty/winget-restsource
               tag: ${APP_IMAGE_TAG}
             env:
-              RestSource__PublicBaseUrl: https://winget-restsource${APP_HOST_SUFFIX:=}.${PUBLIC_DOMAIN}
+              RestSource__PublicBaseUrl: https://winget-restsource${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
     service:
       main:
         controller: main
@@ -36,8 +36,8 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - winget-restsource${APP_HOST_SUFFIX:=}.${PUBLIC_DOMAIN}
+          - winget-restsource${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: winget-restsource
+              - identifier: main
                 port: 8080

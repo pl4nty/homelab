@@ -27,13 +27,6 @@ spec:
     <<- $ref := index (splitList "." inputs.tag) 1 >>
     <<- $name := printf "%s-%s" $app $ref >>
     <<- $preview := ne $ref "main" >>
-    <<- if $preview >>
-    apiVersion: v1
-    kind: Namespace
-    metadata:
-      name: << $name >>
-    ---
-    <<- end >>
     apiVersion: source.toolkit.fluxcd.io/v1
     kind: OCIRepository
     metadata:
@@ -55,7 +48,6 @@ spec:
       timeout: 5m
       prune: true
       wait: true
-      targetNamespace: << if $preview >><< $name >><< else >>default<< end >>
       sourceRef:
         kind: OCIRepository
         name: << $name >>
@@ -63,7 +55,7 @@ spec:
       postBuild:
         substitute:
           APP_SSA: Override
-          APP_HOST_SUFFIX: "<< if $preview >>-<< $ref >><< end >>"
+          APP_SUFFIX: "<< if $preview >>-<< $ref >><< end >>"
         substituteFrom:
           - kind: ConfigMap
             name: cluster-settings

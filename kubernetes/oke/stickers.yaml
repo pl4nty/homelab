@@ -2,7 +2,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: stickers
+  name: stickers${APP_SUFFIX:=}
   namespace: default
   annotations:
     kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
@@ -23,7 +23,7 @@ spec:
               repository: ghcr.io/pl4nty/stickers
               tag: ${APP_IMAGE_TAG}
             env:
-              PUBLIC_URL: https://stickers${APP_HOST_SUFFIX:=}.${PUBLIC_DOMAIN}
+              PUBLIC_URL: https://stickers${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
             envFrom:
               - secretRef:
                   name: stickers
@@ -45,8 +45,8 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - stickers${APP_HOST_SUFFIX:=}.${PUBLIC_DOMAIN}
+          - stickers${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: stickers
+              - identifier: main
                 port: 8000

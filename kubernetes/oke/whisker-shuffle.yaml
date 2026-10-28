@@ -2,7 +2,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: whisker-shuffle
+  name: whisker-shuffle${APP_SUFFIX:=}
   namespace: default
   annotations:
     kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
@@ -34,8 +34,8 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - whisker-shuffle${APP_HOST_SUFFIX:=}.${PUBLIC_DOMAIN}
+          - whisker-shuffle${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: whisker-shuffle
+              - identifier: main
                 port: 8080
