@@ -1,8 +1,10 @@
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
 using WinGet.RestSource;
 using WinGet.RestSource.Features;
 using WinGet.RestSource.Updates;
+using WinGet.RestSource.Versions;
 using WinGet.RestSource.Xbox;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +13,7 @@ builder.Services.Configure<RestSourceHostOptions>(builder.Configuration.GetSecti
 builder.Services.Configure<XboxSourceOptions>(builder.Configuration.GetSection("XboxSource"));
 builder.Services.Configure<FeaturesSourceOptions>(builder.Configuration.GetSection("FeaturesSource"));
 builder.Services.Configure<UpdatesSourceOptions>(builder.Configuration.GetSection("UpdatesSource"));
+builder.Services.Configure<VersionsSourceOptions>(builder.Configuration.GetSection("VersionsSource"));
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -36,6 +39,22 @@ builder.Services.AddHttpClient<UpdateCatalog>(client =>
         client.DefaultRequestHeaders.UserAgent.ParseAdd("winget-restsource/1.0"))
     .AddStandardResilienceHandler();
 
+builder.Services.AddScoped<VersionsSource>();
+builder.Services.AddHttpClient<StoreDelivery>(client =>
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("winget-restsource/1.0"))
+    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+    {
+        SslOptions =
+        {
+            CertificateChainPolicy = new X509ChainPolicy
+            {
+                TrustMode = X509ChainTrustMode.CustomRootTrust,
+                CustomTrustStore = { StoreDelivery.Root },
+            },
+        },
+    })
+    .AddStandardResilienceHandler();
+
 var app = builder.Build();
 
 // One WinGet REST source per path prefix; add each with e.g.
@@ -43,6 +62,7 @@ var app = builder.Build();
 app.MapRestSource<XboxSource>("/xbox");
 app.MapRestSource<FeaturesSource>("/features").MapShim(FeaturesSource.ShimKey);
 app.MapRestSource<UpdatesSource>("/updates").MapShim(UpdatesSource.ShimKey);
+app.MapRestSource<VersionsSource>("/versions");
 
 app.Run();
 

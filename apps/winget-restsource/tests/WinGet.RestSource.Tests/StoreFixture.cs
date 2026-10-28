@@ -26,7 +26,9 @@ public sealed class FakeStoreHandler : HttpMessageHandler
             ? StoreFixture.StorefrontResponse(
                 (await request.Content!.ReadFromJsonAsync<StorefrontRequest>(RestSourceFactory.Json, cancellationToken))!.ProductIds)
             : uri.AbsolutePath.EndsWith("autosuggest")
-                ? StoreFixture.SuggestResponse
+                ? HttpUtility.ParseQueryString(uri.Query)["productFamilyNames"] == "Apps"
+                    ? StoreFixture.AppSuggestResponse
+                    : StoreFixture.SuggestResponse
                 : StoreFixture.ProductsResponse(HttpUtility.ParseQueryString(uri.Query)["bigIds"]?.Split(',') ?? []);
 
         return new HttpResponseMessage(HttpStatusCode.OK)
@@ -46,6 +48,7 @@ public static class StoreFixture
     public const string ConsoleGameId = "BQ1TN1T79V9K";       // Xbox console only
     public const string ConsumableId = "C3S80L2NKZCZ";
     public const string ApplicationId = "9WZDNCRFJ3TJ";
+    public const string TerminalId = "9N0DX20HK701";        // an MSIX app FE3 delivers
 
     /// <summary>What the Store storefront reports as installable for deviceFamily=Windows.Desktop.</summary>
     private static readonly HashSet<string> Installable = [WindowsGameId, PlayAnywhereGameId, ApplicationId, ConsumableId];
@@ -61,8 +64,39 @@ public static class StoreFixture
         }
         """;
 
+    public const string AppSuggestResponse = """
+        {
+          "Results": [{ "Products": [
+            { "ProductId": "9N0DX20HK701", "Type": "Application" },
+            { "ProductId": "9PMF91N3LZ3M", "Type": "Game" }
+          ]}]
+        }
+        """;
+
     private static readonly Dictionary<string, string> Products = new()
     {
+        [TerminalId] = """
+            {
+              "ProductId": "9N0DX20HK701",
+              "ProductKind": "Application",
+              "LocalizedProperties": [{
+                "ProductTitle": "Windows Terminal",
+                "PublisherName": "Microsoft Corporation",
+                "ShortDescription": "The new Windows Terminal.",
+                "Language": "en-us"
+              }],
+              "Properties": { "PackageFamilyName": "Microsoft.WindowsTerminal_8wekyb3d8bbwe" },
+              "DisplaySkuAvailabilities": [{ "Sku": { "Properties": {
+                "Packages": [{
+                  "PlatformDependencies": [{ "PlatformName": "Windows.Desktop" }],
+                  "FulfillmentData": {
+                    "PackageFamilyName": "Microsoft.WindowsTerminal_8wekyb3d8bbwe",
+                    "WuCategoryId": "b5105a40-6423-4c74-9c74-49610e83bc05"
+                  }
+                }]
+              }}}]
+            }
+            """,
         [WindowsGameId] = """
             {
               "ProductId": "9PMF91N3LZ3M",

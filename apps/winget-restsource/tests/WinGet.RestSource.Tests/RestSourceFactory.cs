@@ -6,12 +6,13 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using WinGet.RestSource.Updates;
+using WinGet.RestSource.Versions;
 using WinGet.RestSource.Xbox;
 
 namespace WinGet.RestSource.Tests;
 
 /// <summary>
-/// Hosts all three sources with the Store and Update Catalog replaced by canned responses, and with
+/// Hosts all the sources with the Store, FE3 and the Update Catalog replaced by canned responses, and with
 /// stand-in shim executables whose hashes the tests can predict.
 /// </summary>
 public sealed class RestSourceFactory : WebApplicationFactory<Program>
@@ -34,6 +35,8 @@ public sealed class RestSourceFactory : WebApplicationFactory<Program>
 
     public FakeUpdateCatalogHandler UpdateCatalogPages { get; } = new();
 
+    public FakeDeliveryHandler Delivery { get; } = new();
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseSetting("FeaturesSource:ShimPath", Path.Combine(_shimDirectory, "winget-feature-shim.exe"));
@@ -42,6 +45,7 @@ public sealed class RestSourceFactory : WebApplicationFactory<Program>
         {
             services.AddHttpClient<StoreCatalog>().ConfigurePrimaryHttpMessageHandler(() => Store);
             services.AddHttpClient<UpdateCatalog>().ConfigurePrimaryHttpMessageHandler(() => UpdateCatalogPages);
+            services.AddHttpClient<StoreDelivery>().ConfigurePrimaryHttpMessageHandler(() => Delivery);
         });
     }
 

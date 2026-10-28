@@ -48,19 +48,22 @@ public sealed class StoreCatalog(HttpClient http, IMemoryCache cache, IOptions<X
     public static bool IsProductId(string? value) =>
         value is { Length: 12 } && !value.AsSpan().ContainsAnyExcept(IdChars);
 
-    /// <summary>Title search; returns the product IDs of matching games, best match first.</summary>
-    public async Task<IReadOnlyList<string>> SuggestAsync(string query, string market, CancellationToken ct)
+    /// <summary>
+    /// Title search within one product family; returns the product IDs of the given product type, best match first.
+    /// The Games family also carries add-ons and currency packs, so the type keeps base games only.
+    /// </summary>
+    public async Task<IReadOnlyList<string>> SuggestAsync(
+        string query, string market, string family, string type, CancellationToken ct)
     {
         var url = $"{Catalog}productFamilies/autosuggest?market={Uri.EscapeDataString(market)}" +
                   $"&languages={Uri.EscapeDataString(_options.Language)}" +
-                  $"&query={Uri.EscapeDataString(query)}&productFamilyNames=Games";
+                  $"&query={Uri.EscapeDataString(query)}&productFamilyNames={Uri.EscapeDataString(family)}";
 
         var response = await SendAsync<AutoSuggestResponse>(url, token => http.GetAsync(url, token), ct);
 
         return response?.Results?
             .SelectMany(group => group.Products ?? [])
-            // The Games family also carries add-ons and currency packs; keep base games only.
-            .Where(product => product.Type == "Game")
+            .Where(product => product.Type == type)
             .Select(product => product.ProductId)
             .Distinct()
             .ToArray() ?? [];
@@ -166,4 +169,4 @@ public sealed record SkuPackage(IReadOnlyList<PlatformDependency>? PlatformDepen
 
 public sealed record PlatformDependency(string? PlatformName);
 
-public sealed record FulfillmentData(string? PackageFamilyName);
+public sealed record FulfillmentData(string? PackageFamilyName, string? WuCategoryId = null);
