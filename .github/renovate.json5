@@ -210,16 +210,6 @@
       allowedVersions: '<17',
     },
     {
-      description: 'The 11.0 images are .NET 11 RC (go-live), and winget-proxy pins net10.0 in its csproj files. Remove once 11 is GA and the TFMs move',
-      matchFileNames: [
-        'apps/**',
-      ],
-      matchPackageNames: [
-        'mcr.microsoft.com/dotnet/**',
-      ],
-      allowedVersions: '<11',
-    },
-    {
       description: 'One PR per app, named after it, so each gets its own preview',
       matchFileNames: [
         'apps/**',
