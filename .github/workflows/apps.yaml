@@ -111,9 +111,9 @@ jobs:
           path: dist/
       - if: github.event_name == 'push' && hashFiles('dist/**')
         env:
-          # GITHUB_TOKEN can't tag a commit whose workflows differ from main's (no workflows permission)
-          GH_TOKEN: ${{ secrets.GH_PAT || github.token }}
-        run: gh release create "$APP/sha-$COMMIT" dist/* --target "$COMMIT" --title "$APP" --latest=false
+          GH_TOKEN: ${{ github.token }}
+        # tag main's head: GITHUB_TOKEN can't tag a commit whose workflows differ from it
+        run: gh release create "$APP/sha-$COMMIT" dist/* --target "$GITHUB_REF_NAME" --title "$APP" --latest=false
       # only cluster-oke runs the apps ResourceSet; other clusters git-sync their manifests
       - uses: fluxcd/flux2/action@b9c17924adb533d3617ec7de97a7b0f4acc07b39 # v2.9.6
         if: &manifest env.PUBLISH == 'true' && hashFiles(format('kubernetes/oke/{0}.yaml', matrix.app))
