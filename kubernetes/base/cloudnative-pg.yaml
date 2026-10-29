@@ -42,11 +42,15 @@ spec:
     - cnpg.io/cluster
   podMetricsEndpoints:
     - port: metrics
-      # backup, WAL archiving and replication health only, to stay inside the Grafana Cloud series limit
+      # only the series the alerts below read. KubePersistentVolumeFillingUp covers database size
       metricRelabelings:
         - sourceLabels: [__name__]
-          regex: cnpg_collector_(up|last_available_backup_timestamp|last_failed_backup_timestamp)|cnpg_pg_replication_(lag|streaming_replicas)|cnpg_pg_stat_archiver_(failed_count|seconds_since_last_archival)|cnpg_pg_database_size_bytes
+          regex: cnpg_collector_(up|last_available_backup_timestamp|last_failed_backup_timestamp)|cnpg_pg_replication_(lag|streaming_replicas)|cnpg_pg_stat_archiver_(failed_count|seconds_since_last_archival)
           action: keep
+        # cnpg_collector_up's own cluster label (the CNPG cluster, already in cnpg_io_cluster) would
+        # otherwise beat the Kubernetes cluster name, and the rules' cluster matcher would skip it
+        - regex: cluster
+          action: labeldrop
 ---
 # CNPG's own packs (the cluster chart's prometheus_rules and docs/src/samples/monitoring) have no
 # backup alerts, and most of their rules need series the PodMonitor drops. these use its keep list
