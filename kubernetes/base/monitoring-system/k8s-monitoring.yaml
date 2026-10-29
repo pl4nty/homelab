@@ -51,6 +51,16 @@ spec:
             target_label = "pod"
             replacement = "$1"
           }
+          // previews are tested over HTTP, and every push churns ~45 new series
+          write_relabel_config {
+            source_labels = ["namespace","pod","deployment","replicaset","owner_name"]
+            separator = "@"
+            regex = "default@.*-pr-[0-9]+.*"
+            action = "drop"
+          }
+        # an active series limit 429 rejects only the new series, and retrying it stalls every other series
+        queueConfig:
+          retryOnHttp429: false
       logs:
         type: loki
         url: https://logs-prod-004.grafana.net/loki/api/v1/push
@@ -73,27 +83,56 @@ spec:
 
     clusterMetrics:
       enabled: true
-      # TODO enable after cluster consolidation
+      # TODO enable after cluster consolidation, with includeMetrics since control plane sources have no default allowlist
       # controlPlane:
       #   enabled: true
       # kubeProxy:
       #   enabled: true
-      kube-state-metrics:
+      kubelet:
         metricsTuning:
           excludeMetrics:
+            - kubelet_cgroup_manager_duration_seconds_bucket
+            - kubelet_pleg_relist_interval_seconds_bucket
+            - kubelet_pod_start_duration_seconds_bucket
+      cadvisor:
+        metricsTuning:
+          # no swap on Talos or OKE
+          excludeMetrics:
+            - container_memory_swap
+      kube-state-metrics:
+        # Unknown pod phase is deprecated, and the "true" series already reads 0 for an unknown status
+        extraMetricProcessingRules: |-
+          rule {
+            source_labels = ["__name__","phase","condition","status"]
+            separator = "@"
+            regex = "kube_pod_status_phase@Unknown@.*|kube_pod_status_ready@.*@unknown@.*|kube_deployment_status_condition@.*@unknown"
+            action = "drop"
+          }
+        metricsTuning:
+          excludeMetrics:
+            - kube_configmap_.*
             - kube_pod_status_reason
             - kube_replicaset_created
             - kube_replicaset_metadata_generation
             - kube_replicaset_spec_replicas
             - kube_replicaset_status_.*
             - kube_secret_metadata_resource_version
-            - kube_pod_container_status_restarts_total
       collector: alloy-metrics
     hostMetrics:
       linuxHosts:
         enabled: true
+        # one veth per pod, renamed on every restart, and cAdvisor's container_network_* already covers pods
+        extraMetricProcessingRules: |-
+          rule {
+            source_labels = ["__name__","device"]
+            separator = "@"
+            regex = "node_network_.+@veth.+"
+            action = "drop"
+          }
         metricsTuning:
           excludeMetrics:
+            - node_cpu_guest_seconds_total
+            - node_cpu_scaling_governor
             - node_filesystem_device_error
             - node_filesystem_readonly
       enabled: true
@@ -118,6 +157,14 @@ spec:
     podLogsViaLoki:
       enabled: true
       collector: alloy-logs
+      # stdio MCP servers write JSON-RPC responses to stdout, eg a 22KB tools/list every
+      # health check. ~225MB/day, most of the log volume
+      extraLogProcessingStages: |-
+        stage.match {
+          selector            = `{namespace="toolhive-system", container="mcp", stream="stdout"} |~ "^[{]\"(jsonrpc|result)\""`
+          action              = "drop"
+          drop_counter_reason = "mcp_jsonrpc"
+        }
     applicationObservability:
       enabled: true
       receivers:
@@ -126,6 +173,13 @@ spec:
             enabled: true
           http:
             enabled: true
+      traces:
+        filters:
+          span:
+            # toolhive vMCP polls every backend for health and capabilities, ~300k spans/day.
+            # real sessions still keep their tools/call spans
+            - resource.attributes["k8s.namespace.name"] == "toolhive-system" and IsMatch(attributes["mcp.method.name"], "^(initialize|server/discover|notifications/.*|(tools|prompts|resources|resources/templates)/list)$")
+            - resource.attributes["k8s.namespace.name"] == "toolhive-system" and attributes["http.request.method"] == "DELETE" and attributes["url.path"] == "/mcp"
       collector: alloy-receiver
     # eBPF, but we already have OTel
     # autoInstrumentation:

@@ -1,5 +1,5 @@
 # Use the official Ruby image as the base image
-FROM --platform=$BUILDPLATFORM ruby:3.4.10@sha256:ce3b7a999d9e430e59e1a12456c631fbea3dd18948c89cf8a913c3566c77b2ae AS build
+FROM --platform=$BUILDPLATFORM ruby:4.0.7@sha256:cb7e8ade83823d88a8ed9d56da1df9fffe76bc1f5d2edaada3c79f84db92fcbc AS build
 
 # Set the working directory
 WORKDIR /usr/src/app
