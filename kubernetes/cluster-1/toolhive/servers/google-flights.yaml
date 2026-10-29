@@ -1,0 +1,37 @@
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: google-flights
+  namespace: toolhive-system
+spec:
+  groupRef:
+    name: toolhive
+  telemetryConfigRef:
+    name: toolhive
+  image: ghcr.io/astral-sh/uv:python3.12-bookworm@sha256:85d4cb1afa769a7338e095b927bee941cf5ec92266c7424b3f6c0f2748567248
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          command:
+            - uvx
+          args:
+            - --from
+            - flights[mcp]==$(FLI_VERSION)
+            - fli-mcp
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          env:
+            - name: FLI_VERSION
+              # renovate: datasource=pypi depName=flights versioning=pep440
+              value: "0.9.0"
+            - name: HOME
+              value: /tmp
+            - name: XDG_CACHE_HOME
+              value: /tmp/.cache
+            - name: UV_CACHE_DIR
+              value: /tmp/.cache/uv
+      volumes:
+        - name: tmp
+          emptyDir: {}

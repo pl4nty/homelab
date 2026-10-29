@@ -159,5 +159,6 @@ spec:
             - list_mail_folders
             - read_attachment
             - search_emails
+        - workload: google-flights
         - workload: google-maps
         - workload: youtube-transcript
