@@ -1,6 +1,6 @@
 # vite 2 loads postcss through the "./": "./" exports mapping node dropped in 17:
 # Package subpath './lib/node' is not defined by "exports"
-FROM --platform=$BUILDPLATFORM node:16.20.2@sha256:f77a1aef2da8d83e45ec990f45df50f1a286c5fe8bbfb8c6e4246c6389705c0b AS build
+FROM --platform=$BUILDPLATFORM node:26.12.0@sha256:45a2bf9d9300e9cf47ecb375e38447c140c45ef5fbae869c430475b05b98d86e AS build
 WORKDIR /app
 
 COPY --from=src package.json yarn.lock ./
