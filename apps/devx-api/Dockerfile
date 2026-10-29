@@ -6,8 +6,8 @@ COPY devx-api.patch .
 # Windows checkouts have CRLF (upstream .gitattributes is text=auto), so normalise patched files first
 RUN git apply --numstat devx-api.patch | cut -f3 | xargs sed -i 's/\r$//' \
   && git apply devx-api.patch
-# upstream targets .NET 8, which reaches end of support on 2026-11-10
-RUN find . -name '*.csproj' -exec sed -i 's#<TargetFramework>net8.0<#<TargetFramework>net10.0<#' {} +
+# upstream targets .NET 8, which reaches end of support on 2026-11-10, so target the SDK's major to match the runtime image
+RUN find . -name '*.csproj' -exec sed -i "s#<TargetFramework>net8.0<#<TargetFramework>net$(dotnet --version | cut -d. -f1).0<#" {} +
 
 # opt-in: docker build --target test
 FROM source AS test

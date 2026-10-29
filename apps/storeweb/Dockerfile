@@ -2,10 +2,10 @@ FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0-alpine@sha256:c
 WORKDIR /app
 COPY --from=src ./app/ ./
 COPY app/ ./
-# upstream targets .NET 7, which reached end of support on 2024-05-14
+# upstream targets .NET 7, which reached end of support on 2024-05-14, so target the SDK's major to match the runtime image
 ARG TARGETARCH
 RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages,sharing=locked \
-    sed -i 's#<TargetFramework>net7.0<#<TargetFramework>net10.0<#' StoreWeb.csproj \
+    sed -i "s#<TargetFramework>net7.0<#<TargetFramework>net$(dotnet --version | cut -d. -f1).0<#" StoreWeb.csproj \
  && dotnet publish -c Release -a $TARGETARCH -o out
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine@sha256:254fe017495996d3abcc487ffacdcce2b73affb380d3af87af12c8dff41fe0b0
