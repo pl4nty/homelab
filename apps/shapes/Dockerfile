@@ -11,7 +11,7 @@ RUN --mount=type=cache,id=cabal-$TARGETARCH,target=/root/.cabal \
 COPY *.cabal .
 RUN --mount=type=cache,id=cabal-$TARGETARCH,target=/root/.cabal \
     cabal v2-build --only-dependencies
-    
+
 COPY --from=src . .
 COPY *.cabal .
 RUN --mount=type=cache,id=cabal-$TARGETARCH,target=/root/.cabal \
