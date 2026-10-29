@@ -136,6 +136,16 @@
       rangeStrategy: 'auto',
     },
     {
+      description: 'Renovate pins cabal deps without ==, which cabal rejects, and base is tied to the GHC in the base image',
+      matchFileNames: [
+        'apps/**',
+      ],
+      matchManagers: [
+        'haskell-cabal',
+      ],
+      rangeStrategy: 'auto',
+    },
+    {
       matchFileNames: [
         'apps/**',
       ],
