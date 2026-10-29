@@ -76,11 +76,20 @@ jpro {
   port = 8080
 }
 
-// javafxplugin 0.1.0 only sets platform attributes on its own configurations, so jpro's
-// boot classpath can't pick a variant of the javafx modules. Reuse runtimeClasspath's
+// jpro's javafx modules publish one variant per platform, and javafxplugin 0.1.0 only picks one for
+// its own configurations. jproboot runs here, so it gets runtimeClasspath's; the bundles get their own
 configurations.named('jproboot') {
   attributes { attrs ->
     def runtime = configurations.runtimeClasspath.attributes
     runtime.keySet().each { key -> attrs.attributeProvider(key, provider { runtime.getAttribute(key) }) }
+  }
+}
+[jprojavafxlinux: 'linux', jprojavafxmac: 'macos', jprojavafxwindow: 'windows'].each { name, os ->
+  configurations.named(name) {
+    attributes {
+      attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+      attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named(OperatingSystemFamily, os))
+      attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(MachineArchitecture, MachineArchitecture.X86_64))
+    }
   }
 }
