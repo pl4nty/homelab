@@ -84,12 +84,19 @@ configurations.named('jproboot') {
     runtime.keySet().each { key -> attrs.attributeProvider(key, provider { runtime.getAttribute(key) }) }
   }
 }
-[jprojavafxlinux: 'linux', jprojavafxmac: 'macos', jprojavafxwindow: 'windows'].each { name, os ->
+[
+  jprojavafxlinux: ['linux', MachineArchitecture.X86_64],
+  jprojavafxlinuxarm: ['linux', MachineArchitecture.ARM64],
+  jprojavafxmac: ['macos', MachineArchitecture.X86_64],
+  jprojavafxmacarm: ['macos', MachineArchitecture.ARM64],
+  jprojavafxwindow: ['windows', MachineArchitecture.X86_64],
+].each { name, platform ->
+  def (os, arch) = platform
   configurations.named(name) {
     attributes {
       attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
       attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named(OperatingSystemFamily, os))
-      attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(MachineArchitecture, MachineArchitecture.X86_64))
+      attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(MachineArchitecture, arch))
     }
   }
 }
