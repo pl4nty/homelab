@@ -75,3 +75,12 @@ jpro {
   // jpro server port
   port = 8080
 }
+
+// javafxplugin 0.1.0 only sets platform attributes on its own configurations, so jpro's
+// boot classpath can't pick a variant of the javafx modules. Reuse runtimeClasspath's
+configurations.named('jproboot') {
+  attributes { attrs ->
+    def runtime = configurations.runtimeClasspath.attributes
+    runtime.keySet().each { key -> attrs.attributeProvider(key, provider { runtime.getAttribute(key) }) }
+  }
+}
