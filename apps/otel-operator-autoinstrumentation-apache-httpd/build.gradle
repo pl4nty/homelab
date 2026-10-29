@@ -50,7 +50,7 @@ project.ext {
 
     scriptExt = 'sh'
     sharedLibraryExt = 'so'
-    
+
     apache22Version = "2.2.31"
     apache24Version = "2.4.23"
     nginxSupportedVersions=props.get("nginxSupportedVersions").split(',')
@@ -225,7 +225,7 @@ task assembleLibrary(type: Tar) {
 // Apache
 
 task extractApache(type: Copy) {
-    from "build-dependencies" 
+    from "build-dependencies"
     into buildDir
 }
 
