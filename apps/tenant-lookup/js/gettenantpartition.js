@@ -151,13 +151,13 @@ function lookupTenant() {
             tenantRegion = 'Azure AD Government: Arlington';
             infoBox.show();
             fairfaxMigrationBlurb.show();
-            $('#azureADInstance').addClass('bg-light');
+            $('#azureADInstance').addClass('table-active');
             break;
           case 'USG':
             tenantRegion = 'Azure AD Government: Fairfax';
             infoBox.show();
             fairfaxMigrationBlurb.show();
-            $('#azureADInstance').addClass('bg-light');
+            $('#azureADInstance').addClass('table-active');
             break;
           case 'WW':
             tenantRegion = 'Azure AD Global';
