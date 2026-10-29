@@ -15,9 +15,11 @@ COPY --from=src website/Gemfile website/Gemfile.lock /usr/src/gems/
 # Install the dependencies
 # the lockfile pins bundler 2.2.9, which crashes on Ruby 3.4, and Ruby 3.4 no longer ships csv, base64 and bigdecimal as default gems
 # posix-spawn 0.3.15 (the latest) passes a mistyped callback to rb_hash_foreach, which GCC 14 rejects by default
+# liquid 4.0.3 calls String#tainted?, which Ruby 3.2 removed; 4.0.4 drops it
 RUN bundle config set --global build.posix-spawn --with-cflags=-Wno-error=incompatible-pointer-types \
  && sed -i '/^BUNDLED WITH/,$d' /usr/src/gems/Gemfile.lock \
  && printf 'gem "csv"\ngem "base64"\ngem "bigdecimal"\n' >> /usr/src/gems/Gemfile \
+ && bundle lock --update liquid \
  && bundle install
 
 # Copy the rest of the application code
