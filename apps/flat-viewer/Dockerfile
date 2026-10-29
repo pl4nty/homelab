@@ -1,5 +1,6 @@
 # vite 2 loads postcss through the "./": "./" exports mapping node dropped in 17:
 # Package subpath './lib/node' is not defined by "exports"
+# held on node 16, which also keeps yarn (Renovate's node 26 PR #1395 is closed unmerged, so it skips that major; close later majors too)
 FROM --platform=$BUILDPLATFORM node:16.20.2@sha256:f77a1aef2da8d83e45ec990f45df50f1a286c5fe8bbfb8c6e4246c6389705c0b AS build
 WORKDIR /app
 
