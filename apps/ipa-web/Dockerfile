@@ -12,7 +12,7 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=1 go test ./... && CGO_ENABLED=1 xx-go build -o /ipa-web . && xx-verify /ipa-web
 
-FROM alpine:latest@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b
+FROM alpine:latest@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a
 RUN apk add --no-cache ca-certificates
 COPY --from=builder /ipa-web /usr/local/bin/ipa-web
 ENTRYPOINT ["ipa-web"]
