@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0 AS source
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0.403@sha256:de4fe90a98845d75910b9769662465c84de1a934665c431279d1382b2bddc02b AS source
 WORKDIR /src
 COPY --from=src . .
 COPY devx-api.patch .
@@ -19,7 +19,7 @@ ARG TARGETARCH
 RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages,sharing=locked \
     dotnet publish GraphWebApi/GraphWebApi.csproj -c Release -a $TARGETARCH -o /app
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0
+FROM mcr.microsoft.com/dotnet/aspnet:10.0.14@sha256:de0ee358cdd672f7017a003bed21e9ac9ed48a27c922a59b18175b6e82fa7fee
 # config reload watches files with inotify, which crashes the app when the node's per-user limit is exhausted
 ENV DOTNET_hostBuilder__reloadConfigOnChange=false
 USER $APP_UID

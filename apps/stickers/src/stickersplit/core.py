@@ -32,16 +32,16 @@ MIN_COLOUR_THRESHOLD = 25.0
 
 @dataclass
 class Options:
-    dpi: float | None = None              # override; else read from file, else 600
+    dpi: float | None = None  # override; else read from file, else 600
     bg_color: tuple[int, int, int] | None = None  # RGB; None = estimate from border
-    threshold: float | None = None        # Lab distance; None = from background noise
-    work_dpi: float | None = 300.0        # segmentation resolution; None = full res
-    edges: bool = True                    # also fill closed edge outlines (black-on-black)
-    min_size_mm: float = 8.0              # discard regions smaller than this (shorter side)
-    pad_mm: float = 1.0                   # padding around each crop
-    deskew_min_fill: float = 0.85         # area / minAreaRect area needed to rotate
-    keep_edge: bool = False               # keep regions touching the image border
-    alpha: bool = True                    # write RGBA with transparent background
+    threshold: float | None = None  # Lab distance; None = from background noise
+    work_dpi: float | None = 300.0  # segmentation resolution; None = full res
+    edges: bool = True  # also fill closed edge outlines (black-on-black)
+    min_size_mm: float = 8.0  # discard regions smaller than this (shorter side)
+    pad_mm: float = 1.0  # padding around each crop
+    deskew_min_fill: float = 0.85  # area / minAreaRect area needed to rotate
+    keep_edge: bool = False  # keep regions touching the image border
+    alpha: bool = True  # write RGBA with transparent background
 
 
 @dataclass
@@ -50,9 +50,9 @@ class Sticker:
     file: str
     source: str
     center_px: tuple[float, float]
-    angle_deg: float          # rotation applied (0 if not deskewed)
+    angle_deg: float  # rotation applied (0 if not deskewed)
     deskewed: bool
-    fill_ratio: float         # contour area / min-area-rect area
+    fill_ratio: float  # contour area / min-area-rect area
     width_px: int
     height_px: int
     width_mm: float
@@ -92,8 +92,14 @@ def _border(a: np.ndarray, frac: float = 0.02) -> np.ndarray:
     h, w = a.shape[:2]
     b = max(2, int(min(h, w) * frac))
     tail = a.shape[2:]
-    return np.concatenate([a[:b].reshape(-1, *tail), a[-b:].reshape(-1, *tail),
-                           a[:, :b].reshape(-1, *tail), a[:, -b:].reshape(-1, *tail)])
+    return np.concatenate(
+        [
+            a[:b].reshape(-1, *tail),
+            a[-b:].reshape(-1, *tail),
+            a[:, :b].reshape(-1, *tail),
+            a[:, -b:].reshape(-1, *tail),
+        ]
+    )
 
 
 def _clipped_stats(v: np.ndarray, k: float = 3.0, iters: int = 5) -> tuple[float, float]:
@@ -125,8 +131,7 @@ def estimate_background(img: np.ndarray) -> np.ndarray:
     return strip[d <= np.median(d)].mean(axis=0).round().astype(np.uint8)
 
 
-def _outline_mask(img: np.ndarray, dpi: float,
-                  edge_boxes: list | None = None) -> np.ndarray:
+def _outline_mask(img: np.ndarray, dpi: float, edge_boxes: list | None = None) -> np.ndarray:
     """Filled closed outlines from edge detection.
 
     Catches stickers the same colour as the mat (black on black): their cut edge
@@ -137,13 +142,14 @@ def _outline_mask(img: np.ndarray, dpi: float,
     """
     L = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)[..., 0]
     L = cv2.GaussianBlur(L, (0, 0), sigmaX=max(0.7, 0.08 / MM_PER_INCH * dpi))
-    g = (np.abs(cv2.Sobel(L, cv2.CV_32F, 1, 0)) + np.abs(cv2.Sobel(L, cv2.CV_32F, 0, 1)))
+    g = np.abs(cv2.Sobel(L, cv2.CV_32F, 1, 0)) + np.abs(cv2.Sobel(L, cv2.CV_32F, 0, 1))
     med, sd = _clipped_stats(_border(g))
     del g
     edges = cv2.Canny(L, med + 4 * sd, med + 8 * sd)
-    k = max(3, int(round(0.4 / MM_PER_INCH * dpi)) | 1)
-    edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE,
-                             cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k)))
+    k = max(3, round(0.4 / MM_PER_INCH * dpi) | 1)
+    edges = cv2.morphologyEx(
+        edges, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k))
+    )
     cnts, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     filled = np.zeros_like(edges)
     cv2.drawContours(filled, cnts, -1, 255, thickness=cv2.FILLED)
@@ -155,15 +161,19 @@ def _outline_mask(img: np.ndarray, dpi: float,
         h, w = edges.shape
         for c in cnts:
             x, y, bw, bh = cv2.boundingRect(c)
-            if (x <= 1 or y <= 1 or x + bw >= w - 1 or y + bh >= h - 1) \
-                    and bw * bh <= 0.25 * w * h:
+            if (x <= 1 or y <= 1 or x + bw >= w - 1 or y + bh >= h - 1) and bw * bh <= 0.25 * w * h:
                 edge_boxes.append((x, y, bw, bh))
     return filled
 
 
-def foreground_mask(img: np.ndarray, bg_bgr: np.ndarray, dpi: float,
-                    threshold: float | None, edges: bool = True,
-                    edge_boxes: list | None = None) -> tuple[np.ndarray, float]:
+def foreground_mask(
+    img: np.ndarray,
+    bg_bgr: np.ndarray,
+    dpi: float,
+    threshold: float | None,
+    edges: bool = True,
+    edge_boxes: list | None = None,
+) -> tuple[np.ndarray, float]:
     """Binary mask of sticker pixels: colour mask OR filled edge outlines.
 
     The colour threshold defaults to the background's own noise level
@@ -190,7 +200,7 @@ def foreground_mask(img: np.ndarray, bg_bgr: np.ndarray, dpi: float,
     # Clean-up kernels sized in mm so behaviour is DPI-independent.
     # CLOSE before OPEN: fill speckle holes inside stickers first, otherwise
     # OPEN (erosion) deletes any region whose interior is speckled.
-    k = max(3, int(round(0.5 / MM_PER_INCH * dpi)) | 1)
+    k = max(3, round(0.5 / MM_PER_INCH * dpi) | 1)
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k))
     # One iteration bridges gaps up to ~0.5 mm. More merges stickers placed
     # 1-2 mm apart (seen on a real scan); halftone is already handled by the blur.
@@ -201,8 +211,9 @@ def foreground_mask(img: np.ndarray, bg_bgr: np.ndarray, dpi: float,
     return mask, float(threshold)
 
 
-def _split_by_outlines(mask: np.ndarray, outline: np.ndarray, min_px: float,
-                       min_cover: float = 0.8) -> np.ndarray:
+def _split_by_outlines(
+    mask: np.ndarray, outline: np.ndarray, min_px: float, min_cover: float = 0.8
+) -> np.ndarray:
     """Separate stickers that the colour mask joined but edges keep apart.
 
     Glow between two bright stickers ~1.3 mm apart lifts the gap above the
@@ -231,8 +242,9 @@ def _split_by_outlines(mask: np.ndarray, outline: np.ndarray, min_px: float,
         return mask
     marker = np.where(keep[olbl], olbl, 0)
     src = np.where(marker > 0, 0, 255).astype(np.uint8)
-    _, near_pix = cv2.distanceTransformWithLabels(src, cv2.DIST_L2, 5,
-                                                  labelType=cv2.DIST_LABEL_PIXEL)
+    _, near_pix = cv2.distanceTransformWithLabels(
+        src, cv2.DIST_L2, 5, labelType=cv2.DIST_LABEL_PIXEL
+    )
     pix_to_o = np.zeros(int(near_pix.max()) + 1, np.int32)
     pix_to_o[near_pix[marker > 0]] = marker[marker > 0]
     owner = pix_to_o[near_pix]
@@ -274,8 +286,9 @@ def _inside(inner, outer, frac=0.8) -> bool:
     return w * h >= frac * iw * ih
 
 
-def split_scan(path: Path, out_dir: Path, opts: Options,
-               report: dict | None = None) -> tuple[list[Sticker], np.ndarray]:
+def split_scan(
+    path: Path, out_dir: Path, opts: Options, report: dict | None = None
+) -> tuple[list[Sticker], np.ndarray]:
     """Process one scan. Returns sticker records and a debug overlay (BGR).
 
     If `report` is given it is filled with counts of skipped regions.
@@ -289,21 +302,28 @@ def split_scan(path: Path, out_dir: Path, opts: Options,
     # the float Lab pipeline costs ~12 bytes/pixel (a 1200 dpi A3 scan would
     # need >10 GB). Crops are still cut from the full-resolution image.
     scale = min(1.0, opts.work_dpi / dpi) if opts.work_dpi else 1.0
-    small = img if scale == 1.0 else cv2.resize(
-        img, (round(w_img * scale), round(h_img * scale)), interpolation=cv2.INTER_AREA)
+    small = (
+        img
+        if scale == 1.0
+        else cv2.resize(
+            img, (round(w_img * scale), round(h_img * scale)), interpolation=cv2.INTER_AREA
+        )
+    )
     work_px_mm = px_per_mm * scale
     hs, ws = small.shape[:2]
 
-    bg = (np.array(opts.bg_color[::-1], dtype=np.uint8) if opts.bg_color
-          else estimate_background(small))
+    bg = (
+        np.array(opts.bg_color[::-1], dtype=np.uint8)
+        if opts.bg_color
+        else estimate_background(small)
+    )
     open_outlines: list = []  # open edge contours cut by the scan edge
-    mask, _ = foreground_mask(small, bg, dpi * scale, opts.threshold, opts.edges,
-                              open_outlines)
+    mask, _ = foreground_mask(small, bg, dpi * scale, opts.threshold, opts.edges, open_outlines)
 
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     del mask
     min_side_px = opts.min_size_mm * px_per_mm
-    pad = int(round(opts.pad_mm * px_per_mm))
+    pad = round(opts.pad_mm * px_per_mm)
 
     regions = []
     edge_boxes = []  # bboxes (working coords) of skipped edge-touching stickers
@@ -333,8 +353,9 @@ def split_scan(path: Path, out_dir: Path, opts: Options,
     # Also reject inside open outlines of cut-off stickers too dark to show in
     # the mask at all.
     min_work = opts.min_size_mm * work_px_mm
-    reject = edge_boxes + ([] if opts.keep_edge else
-                           [b for b in open_outlines if min(b[2], b[3]) >= min_work])
+    reject = edge_boxes + (
+        [] if opts.keep_edge else [b for b in open_outlines if min(b[2], b[3]) >= min_work]
+    )
     n_before = len(regions)
     regions = [r for r in regions if not any(_inside(r[3], eb) for eb in reject)]
     if report is not None:
@@ -385,14 +406,26 @@ def split_scan(path: Path, out_dir: Path, opts: Options,
         region_mask = np.zeros((y1 - y0, x1 - x0), np.uint8)
         cv2.drawContours(region_mask, [outline - [x0, y0]], -1, 255, thickness=cv2.FILLED)
 
-        ow, oh = int(round(out_w)) + 2 * pad, int(round(out_h)) + 2 * pad
+        ow, oh = round(out_w) + 2 * pad, round(out_h) + 2 * pad
         M = cv2.getRotationMatrix2D((cx - x0, cy - y0), angle, 1.0)
         M[0, 2] += ow / 2 - (cx - x0)
         M[1, 2] += oh / 2 - (cy - y0)
-        crop = cv2.warpAffine(win, M, (ow, oh), flags=cv2.INTER_CUBIC,
-                              borderMode=cv2.BORDER_CONSTANT, borderValue=bg_fill)
-        alpha = cv2.warpAffine(region_mask, M, (ow, oh), flags=cv2.INTER_LINEAR,
-                               borderMode=cv2.BORDER_CONSTANT, borderValue=0)
+        crop = cv2.warpAffine(
+            win,
+            M,
+            (ow, oh),
+            flags=cv2.INTER_CUBIC,
+            borderMode=cv2.BORDER_CONSTANT,
+            borderValue=bg_fill,
+        )
+        alpha = cv2.warpAffine(
+            region_mask,
+            M,
+            (ow, oh),
+            flags=cv2.INTER_LINEAR,
+            borderMode=cv2.BORDER_CONSTANT,
+            borderValue=0,
+        )
 
         name = f"{path.stem}_{i:03d}.png"
         rgb = cv2.cvtColor(crop, cv2.COLOR_BGR2RGB)
@@ -402,22 +435,37 @@ def split_scan(path: Path, out_dir: Path, opts: Options,
             pil = Image.fromarray(rgb, "RGB")
         pil.save(out_dir / name, dpi=(dpi, dpi))
 
-        stickers.append(Sticker(
-            index=i, file=name, source=path.name,
-            center_px=(round(float(cx), 1), round(float(cy), 1)),
-            angle_deg=round(float(angle), 2), deskewed=deskew,
-            fill_ratio=round(fill, 3),
-            width_px=int(round(out_w)), height_px=int(round(out_h)),
-            width_mm=round(out_w / px_per_mm, 1), height_mm=round(out_h / px_per_mm, 1),
-            dpi=dpi, warnings=warnings,
-        ))
+        stickers.append(
+            Sticker(
+                index=i,
+                file=name,
+                source=path.name,
+                center_px=(round(float(cx), 1), round(float(cy), 1)),
+                angle_deg=round(float(angle), 2),
+                deskewed=deskew,
+                fill_ratio=round(fill, 3),
+                width_px=round(out_w),
+                height_px=round(out_h),
+                width_mm=round(out_w / px_per_mm, 1),
+                height_mm=round(out_h / px_per_mm, 1),
+                dpi=dpi,
+                warnings=warnings,
+            )
+        )
 
         box = (cv2.boxPoints(rect) * scale).astype(np.int32)
         colour = (0, 200, 0) if deskew else (0, 160, 255)
         lw = max(2, int(work_px_mm / 3))
         cv2.drawContours(overlay, [box], -1, colour, lw)
-        cv2.putText(overlay, str(i), (int(cx * scale), int(cy * scale)),
-                    cv2.FONT_HERSHEY_SIMPLEX, work_px_mm * 0.3, (0, 0, 255), lw * 2,
-                    cv2.LINE_AA)
+        cv2.putText(
+            overlay,
+            str(i),
+            (int(cx * scale), int(cy * scale)),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            work_px_mm * 0.3,
+            (0, 0, 255),
+            lw * 2,
+            cv2.LINE_AA,
+        )
 
     return stickers, overlay

@@ -257,15 +257,15 @@
     "proxy": "bun proxy/serve.mjs 8787"
   },
   "devDependencies": {
-    "@types/node": "^22.10.0",
-    "@types/vscode": "~1.90.0",
-    "@vscode/test-web": "^0.0.81",
-    "esbuild": "^0.25.0",
-    "playwright-core": "^1.64.1",
-    "typescript": "~5.9.0"
+    "@types/node": "26.6.5",
+    "@types/vscode": "1.140.0",
+    "@vscode/test-web": "0.0.81",
+    "esbuild": "0.28.2",
+    "playwright-core": "1.64.1",
+    "typescript": "7.0.2"
   },
   "dependencies": {
-    "fzstd": "^0.1.1"
+    "fzstd": "0.1.1"
   },
   "enabledApiProposals": [
     "fileSearchProvider2",

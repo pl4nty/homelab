@@ -19,7 +19,7 @@ from __future__ import annotations
 import dataclasses
 import secrets
 import threading
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from xml.etree import ElementTree as ET
 from xml.sax.saxutils import escape
@@ -31,11 +31,13 @@ from .colour import balance
 from .tag import rotate_image
 
 STATES = ("pending", "approved")
-SIZES = (256, 512, 1024, 2048)          # thumbnail long edges
-NS = {"rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-      "dc": "http://purl.org/dc/elements/1.1/",
-      "exif": "http://ns.adobe.com/exif/1.0/",
-      "xmp": "http://ns.adobe.com/xap/1.0/"}
+SIZES = (256, 512, 1024, 2048)  # thumbnail long edges
+NS = {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "dc": "http://purl.org/dc/elements/1.1/",
+    "exif": "http://ns.adobe.com/exif/1.0/",
+    "xmp": "http://ns.adobe.com/xap/1.0/",
+}
 XMP_KEY = "XML:com.adobe.xmp"
 
 
@@ -48,38 +50,44 @@ class Meta:
     comment: str = ""
     creator: str = ""
     added: str = ""
-    w: int = 0                  # pixels
+    w: int = 0  # pixels
     h: int = 0
-    w_mm: float = 0.0           # sticker outline, not the padded image
+    w_mm: float = 0.0  # sticker outline, not the padded image
     h_mm: float = 0.0
-    v: int = 0                  # changes on every write; busts caches
+    v: int = 0  # changes on every write; busts caches
 
 
 EDITABLE = ("title", "tags", "comment", "creator")
 
 
 def to_xmp(m: Meta) -> str:
-    alt = lambda s: f'<rdf:Alt><rdf:li xml:lang="x-default">{escape(s)}</rdf:li></rdf:Alt>'  # noqa: E731
+    alt = lambda s: f'<rdf:Alt><rdf:li xml:lang="x-default">{escape(s)}</rdf:li></rdf:Alt>'
     tags = "".join(f"<rdf:li>{escape(t)}</rdf:li>" for t in m.tags)
-    return (f'<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="{NS["rdf"]}">'
-            f'<rdf:Description rdf:about="" xmlns:dc="{NS["dc"]}" xmlns:exif="{NS["exif"]}" '
-            f'xmlns:xmp="{NS["xmp"]}">'
-            f"<dc:title>{alt(m.title)}</dc:title>"
-            f"<dc:subject><rdf:Bag>{tags}</rdf:Bag></dc:subject>"
-            f"<exif:UserComment>{alt(m.comment)}</exif:UserComment>"
-            f"<dc:creator><rdf:Seq><rdf:li>{escape(m.creator)}</rdf:li></rdf:Seq></dc:creator>"
-            f"<xmp:CreateDate>{escape(m.added)}</xmp:CreateDate>"
-            "</rdf:Description></rdf:RDF></x:xmpmeta>")
+    return (
+        f'<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="{NS["rdf"]}">'
+        f'<rdf:Description rdf:about="" xmlns:dc="{NS["dc"]}" xmlns:exif="{NS["exif"]}" '
+        f'xmlns:xmp="{NS["xmp"]}">'
+        f"<dc:title>{alt(m.title)}</dc:title>"
+        f"<dc:subject><rdf:Bag>{tags}</rdf:Bag></dc:subject>"
+        f"<exif:UserComment>{alt(m.comment)}</exif:UserComment>"
+        f"<dc:creator><rdf:Seq><rdf:li>{escape(m.creator)}</rdf:li></rdf:Seq></dc:creator>"
+        f"<xmp:CreateDate>{escape(m.added)}</xmp:CreateDate>"
+        "</rdf:Description></rdf:RDF></x:xmpmeta>"
+    )
 
 
 def from_xmp(raw: str) -> dict:
     d = ET.fromstring(raw).find(".//rdf:Description", NS)
     if d is None:
         return {}
-    li = lambda tag: d.findtext(f"{tag}//rdf:li", "", NS)  # noqa: E731
-    return dict(title=li("dc:title"), comment=li("exif:UserComment"),
-                creator=li("dc:creator"), added=d.findtext("xmp:CreateDate", "", NS),
-                tags=[e.text or "" for e in d.findall("dc:subject//rdf:li", NS)])
+    li = lambda tag: d.findtext(f"{tag}//rdf:li", "", NS)
+    return {
+        "title": li("dc:title"),
+        "comment": li("exif:UserComment"),
+        "creator": li("dc:creator"),
+        "added": d.findtext("xmp:CreateDate", "", NS),
+        "tags": [e.text or "" for e in d.findall("dc:subject//rdf:li", NS)],
+    }
 
 
 def clean_tags(tags) -> list[str]:
@@ -91,14 +99,14 @@ def dpi_of(im: Image.Image) -> float:
 
 
 def now() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+    return datetime.now(UTC).isoformat(timespec="seconds")
 
 
 class Store:
     def __init__(self, root: Path):
         self.root, self.lock = root, threading.RLock()
         self.items: dict[str, Meta] = {}
-        self.thumbing = threading.Semaphore(2)      # bounds memory under a burst of requests
+        self.thumbing = threading.Semaphore(2)  # bounds memory under a burst of requests
         for d in (*STATES, "cache"):
             (root / d).mkdir(parents=True, exist_ok=True)
         for s in STATES:
@@ -112,12 +120,22 @@ class Store:
         with Image.open(p) as im:
             raw = im.info.get(XMP_KEY)
             alpha = im.getchannel("A") if "A" in im.getbands() else None
-            box = (alpha.point(lambda v: 255 if v > 127 else 0).getbbox() if alpha else None) \
-                or (0, 0, *im.size)
-            mm = lambda px: round(px / dpi_of(im) * 25.4, 1)  # noqa: E731
-            m = Meta(id=p.stem, state=state, **(from_xmp(raw) if raw else {}),
-                     w=im.width, h=im.height, w_mm=mm(box[2] - box[0]), h_mm=mm(box[3] - box[1]),
-                     v=p.stat().st_mtime_ns // 1000 % 10**9)
+            box = (alpha.point(lambda v: 255 if v > 127 else 0).getbbox() if alpha else None) or (
+                0,
+                0,
+                *im.size,
+            )
+            mm = lambda px: round(px / dpi_of(im) * 25.4, 1)
+            m = Meta(
+                id=p.stem,
+                state=state,
+                **(from_xmp(raw) if raw else {}),
+                w=im.width,
+                h=im.height,
+                w_mm=mm(box[2] - box[0]),
+                h_mm=mm(box[3] - box[1]),
+                v=p.stat().st_mtime_ns // 1000 % 10**9,
+            )
         self.items[m.id] = m
         return m
 
@@ -134,13 +152,24 @@ class Store:
 
     def add(self, im: Image.Image, state: str = "pending", id: str | None = None, **fields) -> Meta:
         fields["tags"] = clean_tags(fields.get("tags") or [])
-        m = Meta(id=id or secrets.token_urlsafe(9), state=state, added=fields.pop("added", None) or now(),
-                 **{k: v for k, v in fields.items() if k in EDITABLE})
+        m = Meta(
+            id=id or secrets.token_urlsafe(9),
+            state=state,
+            added=fields.pop("added", None) or now(),
+            **{k: v for k, v in fields.items() if k in EDITABLE},
+        )
         with self.lock:
             return self._write(m, im, dpi_of(im))
 
-    def update(self, id: str, rotate: float = 0.0, warmth: float = 0.0, tint: float = 0.0,
-               state: str | None = None, **fields) -> Meta:
+    def update(
+        self,
+        id: str,
+        rotate: float = 0.0,
+        warmth: float = 0.0,
+        tint: float = 0.0,
+        state: str | None = None,
+        **fields,
+    ) -> Meta:
         """Edit metadata, white-balance, rotate clockwise by `rotate` degrees, and/or change state."""
         with self.lock:
             old = self.items[id]

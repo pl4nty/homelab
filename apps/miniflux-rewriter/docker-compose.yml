@@ -1,7 +1,7 @@
 # https://miniflux.app/docs/docker.html#docker-compose
 services:
   miniflux:
-    image: miniflux/miniflux:latest@sha256:49d7b60987616387c306a8023087b31f2c9b7b21288b523026cb04058e8b6dbb
+    image: miniflux/miniflux:latest@sha256:72e49f513a63104506aab98ba8cfc3a409d4fde23550a583dec07ec941f1e94e
     ports:
       - "80:8080"
     depends_on:
