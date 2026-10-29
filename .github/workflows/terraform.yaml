@@ -1,23 +1,23 @@
-name: opentofu
+name: terraform
 
 on:
   pull_request:
-    paths: [opentofu/**, .github/workflows/opentofu.yaml]
+    paths: [terraform/**, .github/workflows/terraform.yaml]
   push:
     branches: [main]
-    paths: [opentofu/**, .github/workflows/opentofu.yaml]
+    paths: [terraform/**, .github/workflows/terraform.yaml]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: opentofu-${{ github.event.pull_request.number || 'main' }}
+  group: terraform-${{ github.event.pull_request.number || 'main' }}
 
 env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.TOFU_STATE_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.TOFU_STATE_SECRET_ACCESS_KEY }}
-  AWS_ENDPOINT_URL_S3: ${{ vars.TOFU_STATE_ENDPOINT }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.TERRAFORM_STATE_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.TERRAFORM_STATE_SECRET_ACCESS_KEY }}
+  AWS_ENDPOINT_URL_S3: ${{ vars.TERRAFORM_STATE_ENDPOINT }}
   TERRAFORM_ACTIONS_GITHUB_TOKEN: ${{ github.token }}
 
 jobs:
@@ -28,23 +28,23 @@ jobs:
       contents: read
       pull-requests: write
     env:
-      GITHUB_TOKEN: ${{ secrets.TOFU_GITHUB_READ_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.TERRAFORM_GITHUB_READ_TOKEN }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: dflook/tofu-plan@53b5b01b6eef56cd678401dbe92a0f6ca6b863ff # v3.1.2
         with:
-          path: opentofu/github
+          path: terraform/github
 
   apply:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
-    environment: opentofu
+    environment: terraform
     env:
-      GITHUB_TOKEN: ${{ secrets.TOFU_GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.TERRAFORM_GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: dflook/tofu-apply@1de081df5087fb9ba2acf4866e9bc9b95f79676c # v3.1.2
         with:
-          path: opentofu/github
+          path: terraform/github
           # main is the source of truth, like Flux
           auto_approve: true
