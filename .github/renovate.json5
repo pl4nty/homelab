@@ -200,6 +200,13 @@
       separateMultipleMinor: true,
     },
     {
+      description: 'Sonarr v5 is still a prerelease, and home-operations tags it like a stable release',
+      matchPackageNames: [
+        'ghcr.io/home-operations/sonarr',
+      ],
+      allowedVersions: '<5',
+    },
+    {
       description: 'flat-viewer uses vite 2, which breaks on node 17+, and node 26 also drops yarn',
       matchFileNames: [
         'apps/flat-viewer/**',
