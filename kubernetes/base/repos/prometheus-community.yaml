@@ -11,3 +11,4 @@ spec:
     operation: copy
   ref:
     tag: 30.0.1
+    digest: sha256:4644ce07a63e35f0d4ebcb3146908451f091e1ba521599f2bde1c6b63192b836
