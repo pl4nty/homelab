@@ -200,6 +200,16 @@
       separateMultipleMinor: true,
     },
     {
+      description: 'flat-viewer uses vite 2, which breaks on node 17+, and node 26 also drops yarn',
+      matchFileNames: [
+        'apps/flat-viewer/**',
+      ],
+      matchPackageNames: [
+        'node',
+      ],
+      allowedVersions: '<17',
+    },
+    {
       description: 'One PR per app, named after it, so each gets its own preview',
       matchFileNames: [
         'apps/**',
