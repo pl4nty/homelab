@@ -18,7 +18,7 @@ RUN apt-get install -qq -y --ignore-missing \
 	zip			                            \
 	unzip			                        \
 	wget			                        \
-    cmake                                   
+    cmake
 
 RUN apt-get install -y \
     lcov    \
