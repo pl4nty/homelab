@@ -4,17 +4,15 @@ COPY cabal.config /etc/cabal/config
 ENV CABAL_CONFIG=/etc/cabal/config
 # per-arch cache: the store holds compiled code and both platforms build concurrently
 ARG TARGETARCH
-
-RUN --mount=type=cache,id=cabal-$TARGETARCH,target=/root/.cabal \
-    cabal v2-update
+# each step updates the index itself: a remote layer-cache hit skips the RUN, so the mount can be empty
 
 COPY --from=src *.cabal .
 RUN --mount=type=cache,id=cabal-$TARGETARCH,target=/root/.cabal \
-    cabal v2-build --only-dependencies
+    cabal v2-update && cabal v2-build --only-dependencies
 
 COPY --from=src . .
 RUN --mount=type=cache,id=cabal-$TARGETARCH,target=/root/.cabal \
-    cabal v2-build && \
+    cabal v2-update && cabal v2-build && \
     cp -r /root/.cabal /tmp
 RUN mv /tmp/.cabal /root
 
