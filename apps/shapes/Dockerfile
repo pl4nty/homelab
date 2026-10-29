@@ -7,7 +7,7 @@ ARG TARGETARCH
 
 RUN --mount=type=cache,id=cabal-$TARGETARCH,target=/root/.cabal \
     cabal v2-update
-  
+
 COPY *.cabal .
 RUN --mount=type=cache,id=cabal-$TARGETARCH,target=/root/.cabal \
     cabal v2-build --only-dependencies
