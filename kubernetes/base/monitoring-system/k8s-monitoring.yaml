@@ -51,6 +51,31 @@ spec:
             target_label = "pod"
             replacement = "$1"
           }
+        # load PrometheusRule objects into the Grafana Cloud ruler. the sync deletes rule groups
+        # under its prefix that it didn't create, so each cluster needs its own prefix. the matcher
+        # scopes each cluster's copy of a base rule to that cluster's series.
+        # alloy-metrics, since the chart only renders this destination's secret on collectors that
+        # write to it. clustered instances elect one leader to sync
+        rules:
+          enabled: true
+          collector: alloy-metrics
+          address: https://prometheus-prod-09-prod-au-southeast-0.grafana.net
+          mimirNamespacePrefix: ${CLUSTER_NAME:=bootstrap}
+          # LogQL rules, loaded by loki.rules.kubernetes below
+          labelExpressions:
+            - key: ruler
+              operator: NotIn
+              values:
+                - loki
+          extraArguments: |-
+            external_labels = {"cluster" = "${CLUSTER_NAME:=bootstrap}"}
+            extra_query_matchers {
+              matcher {
+                name       = "cluster"
+                match_type = "="
+                value      = "${CLUSTER_NAME:=bootstrap}"
+              }
+            }
       logs:
         type: loki
         url: https://logs-prod-004.grafana.net/loki/api/v1/push
@@ -162,6 +187,29 @@ spec:
       alloy-singleton:
         presets:
           - singleton
+        # the chart only syncs rules to prometheus destinations. LogQL rules need the cluster
+        # matcher written in, since loki.rules.kubernetes can't add one
+        extraConfig: |-
+          remote.kubernetes.secret "loki_rules" {
+            namespace = "monitoring-system"
+            name      = "k8s-monitoring-logs"
+          }
+
+          loki.rules.kubernetes "logs" {
+            address               = "https://logs-prod-004.grafana.net"
+            loki_namespace_prefix = "${CLUSTER_NAME:=bootstrap}"
+
+            rule_selector {
+              match_labels = {
+                ruler = "loki",
+              }
+            }
+
+            basic_auth {
+              username = convert.nonsensitive(remote.kubernetes.secret.loki_rules.data["username"])
+              password = remote.kubernetes.secret.loki_rules.data["password"]
+            }
+          }
       alloy-logs:
         presets:
           - daemonset
