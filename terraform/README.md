@@ -8,4 +8,4 @@ Settings for every repo I own that isn't a fork or archived: features, merge opt
 
 * New repo: add it to `public` or `private`. Plans warn about unlisted repos.
 * Removing a repo from the list archives it (`archive_on_destroy`), it never deletes it.
-* State is in the Cloudflare R2 bucket `homelab-terraform`.
+* State is in the Cloudflare R2 bucket `terraform`.

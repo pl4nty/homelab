@@ -2,7 +2,7 @@ terraform {
   required_version = ">= 1.10"
 
   backend "s3" {
-    bucket                      = "homelab-terraform"
+    bucket                      = "terraform"
     key                         = "github.tfstate"
     region                      = "auto"
     use_lockfile                = true
