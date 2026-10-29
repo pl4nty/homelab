@@ -8,7 +8,7 @@ spec:
     name: toolhive
   telemetryConfigRef:
     name: toolhive
-  image: docker.io/library/node:24.22.0-bookworm@sha256:925de64a85319052d6971ae81ef2417da956e8a3a2c4a0fac732327970f017f5
+  image: docker.io/library/node:26.12.0-bookworm@sha256:bfb78a64f53d36c691f27dceecc9d4e73b3526411e1cee6fdf8d981d06fb2eb7
   podTemplateSpec:
     spec:
       containers:
@@ -24,7 +24,7 @@ spec:
             - name: vault
               mountPath: /vault
         - name: sync
-          image: docker.io/library/node:24.22.0-bookworm@sha256:925de64a85319052d6971ae81ef2417da956e8a3a2c4a0fac732327970f017f5
+          image: docker.io/library/node:26.12.0-bookworm@sha256:bfb78a64f53d36c691f27dceecc9d4e73b3526411e1cee6fdf8d981d06fb2eb7
           command:
             - /bin/sh
             - -lc
