@@ -26,7 +26,9 @@ buildscript {
  ******************  Java Configuration ******************
  */
 plugins {
-  id 'org.openjfx.javafxplugin' version '0.0.13'
+  // javafxplugin 0.1.0 no longer applies the java plugin, and sourceSets below needs it first
+  id 'java'
+  id 'org.openjfx.javafxplugin' version '0.1.0'
 }
 
 sourceSets {
