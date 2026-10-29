@@ -31,15 +31,11 @@ module.exports = async (env, options) => {
           exclude: /node_modules/,
           use: {
             loader: 'babel-loader',
+            // preset-env takes over ts-loader's ES5 downlevel, using the browserslist in package.json
             options: {
-              presets: ['@babel/preset-typescript'],
+              presets: ['@babel/preset-env', '@babel/preset-typescript'],
             },
           },
-        },
-        {
-          test: /\.tsx?$/,
-          exclude: /node_modules/,
-          use: 'ts-loader',
         },
         {
           test: /\.html$/,
