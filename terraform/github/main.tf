@@ -1,18 +1,6 @@
 terraform {
-  required_version = ">= 1.10"
-
-  backend "s3" {
-    bucket                      = "terraform"
-    key                         = "github.tfstate"
-    region                      = "auto"
-    use_lockfile                = true
-    use_path_style              = true
-    skip_credentials_validation = true
-    skip_metadata_api_check     = true
-    skip_region_validation      = true
-    skip_requesting_account_id  = true
-    skip_s3_checksum            = true
-  }
+  # lifecycle { destroy = false }
+  required_version = ">= 1.13"
 
   required_providers {
     github = {
@@ -30,7 +18,7 @@ resource "github_repository" "this" {
   for_each = local.repos
 
   name                   = each.key
-  visibility             = each.value.visibility
+  archived               = each.value.archived
   is_template            = each.value.is_template
   has_issues             = each.value.has_issues
   has_projects           = each.value.has_projects
@@ -42,7 +30,6 @@ resource "github_repository" "this" {
   allow_auto_merge       = each.value.allow_auto_merge
   allow_update_branch    = each.value.allow_update_branch
   delete_branch_on_merge = each.value.delete_branch_on_merge
-  archive_on_destroy     = true
 
   security_and_analysis {
     secret_scanning {
@@ -54,7 +41,22 @@ resource "github_repository" "this" {
   }
 
   lifecycle {
-    ignore_changes = [description, homepage_url, has_downloads]
+    # repos that leave the search results are forgotten, never deleted or archived
+    destroy        = false
+    ignore_changes = [description, homepage_url, has_downloads, ignore_vulnerability_alerts_during_read]
+  }
+}
+
+# GitHub rejects every change to an archived repo, so only track that it exists
+resource "github_repository" "archived" {
+  for_each = local.archived
+
+  name     = each.key
+  archived = true
+
+  lifecycle {
+    destroy        = false
+    ignore_changes = all
   }
 }
 
@@ -63,6 +65,10 @@ resource "github_repository_vulnerability_alerts" "this" {
 
   repository = github_repository.this[each.key].name
   enabled    = each.value.vulnerability_alerts
+
+  lifecycle {
+    destroy = false
+  }
 }
 
 resource "github_actions_repository_permissions" "this" {
@@ -71,6 +77,10 @@ resource "github_actions_repository_permissions" "this" {
   repository      = github_repository.this[each.key].name
   enabled         = each.value.actions_enabled
   allowed_actions = "all"
+
+  lifecycle {
+    destroy = false
+  }
 }
 
 resource "github_workflow_repository_permissions" "this" {
@@ -79,11 +89,21 @@ resource "github_workflow_repository_permissions" "this" {
   repository                       = github_repository.this[each.key].name
   default_workflow_permissions     = each.value.default_workflow_permissions
   can_approve_pull_request_reviews = false
+
+  lifecycle {
+    destroy = false
+  }
 }
 
 import {
   for_each = local.repos
   to       = github_repository.this[each.key]
+  id       = each.key
+}
+
+import {
+  for_each = local.archived
+  to       = github_repository.archived[each.key]
   id       = each.key
 }
 
@@ -103,15 +123,4 @@ import {
   for_each = local.repos
   to       = github_workflow_repository_permissions.this[each.key]
   id       = each.key
-}
-
-check "unmanaged_repos" {
-  data "github_repositories" "owned" {
-    query = "user:pl4nty fork:false archived:false"
-  }
-
-  assert {
-    condition     = length(setsubtract(data.github_repositories.owned.names, keys(local.repos))) == 0
-    error_message = "Not in repos.tf yet: ${join(", ", setsubtract(data.github_repositories.owned.names, keys(local.repos)))}"
-  }
 }

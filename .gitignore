@@ -3,3 +3,4 @@
 .decrypted~*
 dist/
 .terraform/
+terraform.tfstate*
