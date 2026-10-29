@@ -1,4 +1,4 @@
 target "default" {
   # renovate: branch=main
-  context = "https://github.com/microsoft/garnet.git#52aef6e6b0840d0e7cde030a660e6e15953b801f"
+  context = "https://github.com/microsoft/garnet.git#8d007138208ce030eb10a50c80e636b1678b83e4"
 }
