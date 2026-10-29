@@ -58,6 +58,9 @@ spec:
             regex = "default@.*-pr-[0-9]+.*"
             action = "drop"
           }
+        # an active series limit 429 rejects only the new series, and retrying it stalls every other series
+        queueConfig:
+          retryOnHttp429: false
       logs:
         type: loki
         url: https://logs-prod-004.grafana.net/loki/api/v1/push
