@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM node:22.23.3@sha256:69a5713e7f4997e96d579aafd78734810e0dac0dd5ee4621d72c27a2891a4088 AS build
+FROM --platform=$BUILDPLATFORM node:26.12.0@sha256:45a2bf9d9300e9cf47ecb375e38447c140c45ef5fbae869c430475b05b98d86e AS build
 WORKDIR /app
 
 # puppeteer dependency can't install ARM chromium by default
