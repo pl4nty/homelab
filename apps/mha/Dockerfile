@@ -16,6 +16,7 @@ COPY --from=src package*.json ./
 RUN --mount=type=cache,id=npm,target=/root/.npm npm ci
 
 COPY --from=src . .
+ARG SCM_COMMIT_ID
 RUN npm run build --if-present
 
 FROM joseluisq/static-web-server:2.44.1@sha256:94618e3d17802265a21926217e6f9e7832b311b6fbf5933684001739fafed06a
