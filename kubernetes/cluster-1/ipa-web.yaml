@@ -27,6 +27,12 @@ spec:
               # Store hardware identity the Apple account already knows
               MAC_ADDRESS: "09:26:2E:B0:AF:06"
               CACHE_TTL: 24h
+            # downloads whole IPAs to /tmp, past the namespace's 100Mi LimitRange default
+            resources:
+              requests:
+                ephemeral-storage: 100Mi
+              limits:
+                ephemeral-storage: 4Gi
             envFrom:
               - secretRef:
                   name: *app
