@@ -1,0 +1,187 @@
+# Alerts that the Grafana Cloud Kubernetes integration's kubernetes-mixin rules don't cover.
+# Every rule uses series we already collect. Alloy adds a cluster matcher to each selector when it
+# loads the rules, see destinations.metrics.rules in k8s-monitoring.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: node-exporter
+  namespace: monitoring-system
+spec:
+  groups:
+    # node-mixin filesystem and memory alerts from
+    # https://github.com/prometheus-operator/kube-prometheus/blob/main/manifests/nodeExporter-prometheusRule.yaml
+    # without the node_filesystem_readonly == 0 clause, since hostMetrics drops that metric.
+    # the rest of node-mixin needs metrics outside the k8s-monitoring allow list
+    - name: node-exporter
+      rules:
+        - alert: NodeFilesystemSpaceFillingUp
+          expr: |
+            node_filesystem_avail_bytes{job="integrations/node_exporter",fstype!="",mountpoint!=""} / node_filesystem_size_bytes{job="integrations/node_exporter",fstype!="",mountpoint!=""} * 100 < 15
+            and
+            predict_linear(node_filesystem_avail_bytes{job="integrations/node_exporter",fstype!="",mountpoint!=""}[6h], 24*60*60) < 0
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: Filesystem is predicted to run out of space within the next 24 hours.
+            description: Filesystem on {{ $labels.device }}, mounted on {{ $labels.mountpoint }}, at {{ $labels.instance }} has only {{ printf "%.2f" $value }}% available space left and is filling up.
+            runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemspacefillingup
+        - alert: NodeFilesystemSpaceFillingUp
+          expr: |
+            node_filesystem_avail_bytes{job="integrations/node_exporter",fstype!="",mountpoint!=""} / node_filesystem_size_bytes{job="integrations/node_exporter",fstype!="",mountpoint!=""} * 100 < 10
+            and
+            predict_linear(node_filesystem_avail_bytes{job="integrations/node_exporter",fstype!="",mountpoint!=""}[6h], 4*60*60) < 0
+          for: 1h
+          labels:
+            severity: critical
+          annotations:
+            summary: Filesystem is predicted to run out of space within the next 4 hours.
+            description: Filesystem on {{ $labels.device }}, mounted on {{ $labels.mountpoint }}, at {{ $labels.instance }} has only {{ printf "%.2f" $value }}% available space left and is filling up fast.
+            runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemspacefillingup
+        - alert: NodeFilesystemAlmostOutOfSpace
+          expr: |
+            node_filesystem_avail_bytes{job="integrations/node_exporter",fstype!="",mountpoint!=""} / node_filesystem_size_bytes{job="integrations/node_exporter",fstype!="",mountpoint!=""} * 100 < 5
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: Filesystem has less than 5% space left.
+            description: Filesystem on {{ $labels.device }}, mounted on {{ $labels.mountpoint }}, at {{ $labels.instance }} has only {{ printf "%.2f" $value }}% available space left.
+            runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemalmostoutofspace
+        - alert: NodeFilesystemAlmostOutOfSpace
+          expr: |
+            node_filesystem_avail_bytes{job="integrations/node_exporter",fstype!="",mountpoint!=""} / node_filesystem_size_bytes{job="integrations/node_exporter",fstype!="",mountpoint!=""} * 100 < 3
+          for: 30m
+          labels:
+            severity: critical
+          annotations:
+            summary: Filesystem has less than 3% space left.
+            description: Filesystem on {{ $labels.device }}, mounted on {{ $labels.mountpoint }}, at {{ $labels.instance }} has only {{ printf "%.2f" $value }}% available space left.
+            runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemalmostoutofspace
+        - alert: NodeFilesystemFilesFillingUp
+          expr: |
+            node_filesystem_files_free{job="integrations/node_exporter",fstype!="",mountpoint!=""} / node_filesystem_files{job="integrations/node_exporter",fstype!="",mountpoint!=""} * 100 < 40
+            and
+            predict_linear(node_filesystem_files_free{job="integrations/node_exporter",fstype!="",mountpoint!=""}[6h], 24*60*60) < 0
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: Filesystem is predicted to run out of inodes within the next 24 hours.
+            description: Filesystem on {{ $labels.device }}, mounted on {{ $labels.mountpoint }}, at {{ $labels.instance }} has only {{ printf "%.2f" $value }}% available inodes left and is filling up.
+            runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemfilesfillingup
+        - alert: NodeFilesystemAlmostOutOfFiles
+          expr: |
+            node_filesystem_files_free{job="integrations/node_exporter",fstype!="",mountpoint!=""} / node_filesystem_files{job="integrations/node_exporter",fstype!="",mountpoint!=""} * 100 < 5
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: Filesystem has less than 5% inodes left.
+            description: Filesystem on {{ $labels.device }}, mounted on {{ $labels.mountpoint }}, at {{ $labels.instance }} has only {{ printf "%.2f" $value }}% available inodes left.
+            runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodefilesystemalmostoutoffiles
+        - alert: NodeMemoryHighUtilization
+          expr: |
+            100 - (node_memory_MemAvailable_bytes{job="integrations/node_exporter"} / node_memory_MemTotal_bytes{job="integrations/node_exporter"} * 100) > 90
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Host is running out of memory.
+            description: Memory is filling up at {{ $labels.instance }}, has been above 90% for the last 15 minutes, is currently at {{ printf "%.2f" $value }}%.
+            runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/nodememoryhighutilization
+        # the node alerts above go quiet when node-exporter can't be scraped
+        - alert: NodeExporterDown
+          expr: up{job="integrations/node_exporter"} == 0
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: node-exporter can't be scraped.
+            description: node-exporter on {{ $labels.instance }} has been down for 15 minutes, so its filesystem and memory alerts can't fire.
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: kubernetes
+  namespace: monitoring-system
+spec:
+  groups:
+    - name: kubernetes-jobs
+      rules:
+        # KubeJobFailed resolves once the failed Job is cleaned up, so a CronJob can fail every
+        # night without a lasting alert. the expected period is the gap between its last and next
+        # schedule. the second branch covers CronJobs that have never succeeded
+        - alert: KubeCronJobNotSucceeded
+          expr: |
+            (
+              max by (cluster, namespace, cronjob) (time() - kube_cronjob_status_last_successful_time)
+              or
+              (
+                max by (cluster, namespace, cronjob) (time() - kube_cronjob_created)
+                unless on (cluster, namespace, cronjob) kube_cronjob_status_last_successful_time
+              )
+            )
+            > max by (cluster, namespace, cronjob) (2 * (kube_cronjob_next_schedule_time - kube_cronjob_status_last_schedule_time) + 3600)
+            unless on (cluster, namespace, cronjob) kube_cronjob_spec_suspend == 1
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: CronJob has missed two runs.
+            description: CronJob {{ $labels.namespace }}/{{ $labels.cronjob }} has not succeeded for {{ $value | humanizeDuration }}, which is more than two schedule periods.
+        - alert: KubeContainerOOMKilled
+          expr: |
+            max by (cluster, namespace, pod, container) (kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}) == 1
+            and on (cluster, namespace, pod, container)
+            max by (cluster, namespace, pod, container) (increase(kube_pod_container_status_restarts_total[15m])) > 0
+          labels:
+            severity: warning
+          annotations:
+            summary: Container was OOM killed.
+            description: Container {{ $labels.container }} in {{ $labels.namespace }}/{{ $labels.pod }} restarted after it ran out of memory.
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: telemetry
+  namespace: monitoring-system
+spec:
+  groups:
+    - name: telemetry
+      rules:
+        # kubernetes-mixin's KubeletDown only fires when every cluster stops sending. this fires
+        # per cluster, eg when Grafana Cloud rejects remote writes over the active series limit
+        - alert: ClusterMetricsMissing
+          expr: absent_over_time(up{job="integrations/kubernetes/kubelet"}[15m])
+          labels:
+            severity: critical
+          annotations:
+            summary: Grafana Cloud has no metrics from a cluster.
+            description: No kubelet metrics from {{ $labels.cluster }} for 15 minutes. Check the alloy-metrics logs for remote write errors, or whether the cluster is down.
+---
+# LogQL rules for the Loki ruler. they need the cluster matcher written in, see alloy-singleton
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: telemetry-logs
+  namespace: monitoring-system
+  labels:
+    ruler: loki
+spec:
+  groups:
+    - name: telemetry-logs
+      rules:
+        # Alloy retries the whole batch on a 429, so a rejected write stalls all metrics. log
+        # based, so it still fires when metrics can't be written
+        - alert: AlloyRemoteWriteFailing
+          expr: |
+            sum by (cluster, service_name) (
+              count_over_time({cluster="${CLUSTER_NAME:=bootstrap}", namespace="monitoring-system", service_name=~"alloy-.+"} |~ "Failed to send batch|non-recoverable error|error sending batch" [15m])
+            ) > 0
+          for: 15m
+          labels:
+            severity: critical
+          annotations:
+            summary: Alloy can't write telemetry to Grafana Cloud.
+            description: '{{ $labels.service_name }} on {{ $labels.cluster }} has logged {{ $value }} write errors in 15 minutes. Search its logs for err-mimir-max-active-series and other 4xx responses.'
