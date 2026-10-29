@@ -129,20 +129,17 @@ jobs:
             --source="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" --revision="$TAG@sha1:$COMMIT"
           yq '.. | select(tag == "!!map") | select(has("hostnames")) | "url=https://" + (.hostnames[0] | envsubst)' kubernetes/oke/"$APP".yaml >> "$GITHUB_OUTPUT"
 
+  # every app any push published, since the final diff can drop an app that still has a preview
   cleanup:
-    needs: changes
-    if: github.event.action == 'closed' && needs.changes.outputs.apps != '[]' && github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
       packages: write
-    strategy:
-      matrix:
-        app: ${{ fromJson(needs.changes.outputs.apps) }}
     steps:
       - uses: dataaxiom/ghcr-cleanup-action@d52806a0dc70b430571a37da1fde39733ffd640f # v1.2.2
         with:
           package: homelab/apps
-          delete-tags: ${{ matrix.app }}.${{ env.TAG }}
+          delete-tags: '*.${{ env.TAG }}'
 
   ci-ok:
     needs: [changes, lint, app]

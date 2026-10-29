@@ -20,7 +20,10 @@ metadata:
 spec:
   interval: 10m
   path: ./manifests/install
-  prune: true
+  # the patches below delete every Deployment, so the cluster Kustomization (via bootstrap/)
+  # owns the controllers. prune is off so this Kustomization can be deleted without
+  # garbage-collecting the CRDs it shares with bootstrap/
+  prune: false
   wait: true
   sourceRef:
     kind: GitRepository
@@ -81,7 +84,7 @@ spec:
         value: --helm-cache-ttl=60m
       - op: add
         path: /spec/template/spec/containers/0/args/-
-        value: --helm-cache-purge-interval=5m      
+        value: --helm-cache-purge-interval=5m
     target:
       kind: Deployment
       name: source-controller
@@ -98,7 +101,7 @@ spec:
                 resources:
                   requests:
                     memory: 256Mi
-                    cpu: 150m    
+                    cpu: 150m
     target:
       kind: Deployment
       name: "(kustomize-controller|source-controller)"
@@ -114,7 +117,7 @@ spec:
               - name: manager
                 resources:
                   requests:
-                    memory: 128Mi      
+                    memory: 128Mi
     target:
       kind: Deployment
       name: "helm-controller"
@@ -124,7 +127,7 @@ spec:
       metadata:
         name: all
       spec:
-        replicas: 0     
+        replicas: 0
     target:
       kind: Deployment
       name: "(image-automation-controller|image-reflector-controller)"
