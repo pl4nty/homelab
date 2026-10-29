@@ -51,6 +51,13 @@ spec:
             target_label = "pod"
             replacement = "$1"
           }
+          // previews are tested over HTTP, and every push churns ~45 new series
+          write_relabel_config {
+            source_labels = ["namespace","pod","deployment","replicaset","owner_name"]
+            separator = "@"
+            regex = "default@.*-pr-[0-9]+.*"
+            action = "drop"
+          }
       logs:
         type: loki
         url: https://logs-prod-004.grafana.net/loki/api/v1/push
