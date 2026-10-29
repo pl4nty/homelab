@@ -16,9 +16,11 @@ spec:
       sonarr:
         containers:
           app:
+            # linuxserver ships v5 prereleases under develop-* tags, which renovate's docker versioning
+            # never offers, so only stable releases get PRs (home-operations tags prereleases as plain semver)
             image: &image
-              repository: ghcr.io/home-operations/sonarr
-              tag: 4.0.20@sha256:1f19eb5e0f421418c1a956bbe01310a0141423afe28bd9a4b1dcb8629ff2bce2
+              repository: ghcr.io/linuxserver/sonarr
+              tag: 4.0.20@sha256:48e36b608b461273b9dae857725cd0561a127f2c694b687318f6d0c5ce63e5c9
             env:
               TZ: ${TIMEZONE}
               SONARR__APP__INSTANCENAME: Sonarr
@@ -70,6 +72,8 @@ spec:
               readOnlyRootFilesystem: true
               capabilities: { drop: ["ALL"] }
         pod:
+          # linuxserver supports running non-root via the pod user, and then ignores PUID/PGID.
+          # /config was created under fsGroup 568, so it is already owned by this user and needs no chown
           securityContext:
             runAsNonRoot: true
             runAsUser: 568
@@ -117,6 +121,13 @@ spec:
         sizeLimit: 256Mi
         globalMounts:
           - path: /tmp
+      # s6-overlay writes its service tree here, and the root filesystem is read-only
+      run:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 16Mi
+        globalMounts:
+          - path: /run
       media:
         existingClaim: media
         globalMounts:
