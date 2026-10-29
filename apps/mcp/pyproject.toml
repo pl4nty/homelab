@@ -7,7 +7,7 @@ requires-python = ">=3.11"
 dependencies = [
     # Cap below 2.0: it removes mcp.server.fastmcp, which main.py imports.
     # uvx --from git+... ignores uv.lock, so an unbounded range resolves to latest at every startup.
-    "mcp[cli]==1.30.0",
+    "mcp[cli]==2.3.0",
     # "msgraph-beta-sdk>=1.0.0",
     # "azure-identity>=1.19.0",
     "pyjwt[crypto]==2.15.1",
