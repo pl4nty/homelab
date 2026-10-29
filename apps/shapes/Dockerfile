@@ -1,4 +1,4 @@
-FROM haskell:8.10.7@sha256:5c365dc081a22550cb4ca62f99a574f8583e8405689aa6a9d89fb21fa13724e9 AS build
+FROM haskell:9.12.2@sha256:0dabe39ff7116832afd8219ce4ef9e7b35f5ba7bb779c83da83fa0195ee9c73f AS build
 
 COPY cabal.config /etc/cabal/config
 ENV CABAL_CONFIG=/etc/cabal/config
