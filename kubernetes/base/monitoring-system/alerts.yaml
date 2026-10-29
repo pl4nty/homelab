@@ -151,7 +151,7 @@ spec:
     - name: telemetry
       rules:
         # kubernetes-mixin's KubeletDown only fires when every cluster stops sending. this fires
-        # per cluster, eg when Grafana Cloud rejects remote writes over the active series limit
+        # per cluster, eg when it's down or its token stops working
         - alert: ClusterMetricsMissing
           expr: absent_over_time(up{job="integrations/kubernetes/kubelet"}[15m])
           labels:
@@ -172,8 +172,8 @@ spec:
   groups:
     - name: telemetry-logs
       rules:
-        # Alloy retries the whole batch on a 429, so a rejected write stalls all metrics. log
-        # based, so it still fires when metrics can't be written
+        # with retryOnHttp429 off, a write over the active series limit drops the new series and
+        # logs a non-recoverable error. log based, so it still fires when metrics can't be written
         - alert: AlloyRemoteWriteFailing
           expr: |
             sum by (cluster, service_name) (
