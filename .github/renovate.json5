@@ -210,28 +210,6 @@
       allowedVersions: '<17',
     },
     {
-      description: 'jpro 2022.1.5-2023.1.0 breaks the start button, see build.gradle',
-      matchFileNames: [
-        'apps/temple-trap/**',
-        'apps/tsuro/**',
-      ],
-      matchPackageNames: [
-        'com.sandec.jpro:jpro-plugin-gradle',
-      ],
-      enabled: false,
-    },
-    {
-      description: 'jpro 2022.1.4 cannot pick between its JavaFX linux variants on gradle 9',
-      matchFileNames: [
-        'apps/temple-trap/**',
-        'apps/tsuro/**',
-      ],
-      matchPackageNames: [
-        'gradle',
-      ],
-      allowedVersions: '<9',
-    },
-    {
       description: 'One PR per app, named after it, so each gets its own preview',
       matchFileNames: [
         'apps/**',

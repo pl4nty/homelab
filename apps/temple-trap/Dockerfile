@@ -1,3 +1,4 @@
+# held below gradle 9 (Renovate's #1405 closed unmerged): jpro 2022.1.4 can't resolve its javafx variants there, and 9 drops mainClassName
 FROM gradle:8.14.5-jdk17@sha256:38cc14c6936a74fba051090399b592fec24a618174719a6a94b8b7e0e8c2632e AS build
 WORKDIR /app
 
