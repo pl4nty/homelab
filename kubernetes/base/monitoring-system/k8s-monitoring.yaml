@@ -87,7 +87,6 @@ spec:
             - kube_replicaset_spec_replicas
             - kube_replicaset_status_.*
             - kube_secret_metadata_resource_version
-            - kube_pod_container_status_restarts_total
       collector: alloy-metrics
     hostMetrics:
       linuxHosts:
@@ -118,6 +117,14 @@ spec:
     podLogsViaLoki:
       enabled: true
       collector: alloy-logs
+      # stdio MCP servers write JSON-RPC responses to stdout, eg a 22KB tools/list every
+      # health check. ~225MB/day, most of the log volume
+      extraLogProcessingStages: |-
+        stage.match {
+          selector            = `{namespace="toolhive-system", container="mcp", stream="stdout"} |~ "^[{]\"(jsonrpc|result)\""`
+          action              = "drop"
+          drop_counter_reason = "mcp_jsonrpc"
+        }
     applicationObservability:
       enabled: true
       receivers:
@@ -126,6 +133,13 @@ spec:
             enabled: true
           http:
             enabled: true
+      traces:
+        filters:
+          span:
+            # toolhive vMCP polls every backend for health and capabilities, ~300k spans/day.
+            # real sessions still keep their tools/call spans
+            - resource.attributes["k8s.namespace.name"] == "toolhive-system" and IsMatch(attributes["mcp.method.name"], "^(initialize|server/discover|notifications/.*|(tools|prompts|resources|resources/templates)/list)$")
+            - resource.attributes["k8s.namespace.name"] == "toolhive-system" and attributes["http.request.method"] == "DELETE" and attributes["url.path"] == "/mcp"
       collector: alloy-receiver
     # eBPF, but we already have OTel
     # autoInstrumentation:
