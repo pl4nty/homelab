@@ -2,7 +2,7 @@
 # - the frontend builds once on the native platform, and the runtime takes node from its own stage
 # - FFmpeg comes from the BtbN build for the target architecture, not always linux64
 # - LD_LIBRARY_PATH and PYTHONPATH are set outright instead of appending to unset variables
-# - arm64 takes torchcodec's cu128 build, because PyPI's aarch64 wheels need CUDA 13
+# - arm64 takes torchcodec's CPU build, because PyPI's aarch64 wheels need CUDA 13
 # - uv and pnpm downloads use cache mounts
 
 # The backend-build stage creates the virtual environment and the final stage
@@ -53,12 +53,12 @@ ENV UV_LINK_MODE=copy
 RUN --mount=type=cache,id=uv,target=/root/.cache/uv uv sync --frozen
 
 # PyPI's aarch64 torchcodec wheels are CUDA 13 builds, which can't load next to cu128 torch,
-# so arm64 takes the cu128 build for the locked torch 2.11 from the pytorch index instead
+# so arm64 takes the CPU build of the same version, which is what PyPI ships for x86_64
 ARG TARGETARCH
-ARG TORCHCODEC_CU128_VERSION=0.11.1+cu128
 RUN --mount=type=cache,id=uv,target=/root/.cache/uv \
     if [ "$TARGETARCH" = arm64 ]; then \
-      uv pip install --python /app/.venv --index-url https://download.pytorch.org/whl/cu128 --no-deps "torchcodec==${TORCHCODEC_CU128_VERSION}"; \
+      version=$(uv pip show --python /app/.venv torchcodec | sed -n 's/^Version: //p') && \
+      uv pip install --python /app/.venv --index-url https://download.pytorch.org/whl/cpu --no-deps --reinstall "torchcodec==${version}+cpu"; \
     fi
 
 # The help agent reads the bundled documentation from TALEMATE_ROOT/docs, and it
