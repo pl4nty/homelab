@@ -210,17 +210,6 @@
       allowedVersions: '<17',
     },
     {
-      description: 'codeworld-api 0.8.1, the last release, needs template-haskell <2.20 and bytestring <0.12, so GHC 9.4 is the newest that builds',
-      matchFileNames: [
-        'apps/ataxx/**',
-        'apps/shapes/**',
-      ],
-      matchPackageNames: [
-        'haskell',
-      ],
-      allowedVersions: '<9.6',
-    },
-    {
       description: 'One PR per app, named after it, so each gets its own preview',
       matchFileNames: [
         'apps/**',
