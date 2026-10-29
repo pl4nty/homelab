@@ -1,6 +1,6 @@
 // https://github.com/Fydon/opentelemetry-cpp-contrib/blob/feature/webserver-arm64/instrumentation/otel-webserver-module/build.gradle
 plugins {
-    id "de.undercouch.download" version "3.4.3"
+    id "de.undercouch.download" version "5.7.0"
 }
 
 apply plugin: 'cpp'
