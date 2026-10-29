@@ -1,6 +1,12 @@
+variable "SRC" {
+  # renovate: branch=main
+  default = "https://github.com/vegu-ai/talemate.git#7db12b042b6200d6a91145ae7c833af1b7e9fc9e"
+}
+
+# upstream moved to uv with CUDA torch and keeps its own Dockerfile, so build that instead of a fork of it
 target "default" {
-  contexts = {
-    # renovate: branch=main
-    src = "https://github.com/vegu-ai/talemate.git#9e8e9da5ae191899d5ac8ad09e8d51fe585bfb48"
-  }
+  context    = SRC
+  dockerfile = "Dockerfile"
+  # the final stage downloads an x86_64-only FFmpeg build
+  platforms = ["linux/amd64"]
 }
