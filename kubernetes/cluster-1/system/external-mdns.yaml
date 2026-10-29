@@ -55,7 +55,7 @@ spec:
       serviceAccountName: external-mdns
       containers:
       - name: external-mdns
-        image: ghcr.io/pl4nty/external-mdns:latest@sha256:57644533092d1119a26602af6b4f3f612ce37b43109395ac9f9119e2850d5044
+        image: ghcr.io/pl4nty/external-mdns:latest@sha256:161ce67301ce00fe0c4518c91a7bfb43473b3755ec42ca3205cb0a583351ec6f
         args:
         # - -source=ingress
         - -source=service
