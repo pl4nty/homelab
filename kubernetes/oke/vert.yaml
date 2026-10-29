@@ -2,7 +2,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: hrconvert2
+  name: vert
   namespace: default
 spec:
   interval: 15m
@@ -14,19 +14,14 @@ spec:
       createDefaultServiceAccount: false
     controllers:
       main:
-        # pending replacement
-        replicas: 0
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
-        pod:
-          nodeSelector:
-            kubernetes.io/arch: amd64
         containers:
           main:
             image:
-              repository: dwaaan/hrconvert2-docker
-              tag: latest@sha256:b893624e4b4dad46469b30a1d094557670db1af3374394b4a4a60324df570652
+              repository: ghcr.io/vert-sh/vert
+              tag: latest@sha256:51edb89e7c57197b0281ba8427fb27eea63730a3683b10d422061afab2708a49
             securityContext:
               capabilities:
                 add:
@@ -46,7 +41,6 @@ spec:
             port: 80
     route:
       main:
-        enabled: true
         parentRefs:
           - namespace: default
             name: ${CLUSTER_NAME}
@@ -54,5 +48,5 @@ spec:
           - convert.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: hrconvert2
+              - name: vert
                 port: 80
