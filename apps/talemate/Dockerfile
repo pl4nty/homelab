@@ -69,11 +69,13 @@ RUN apt-get update && apt-get install -y \
     xz-utils \
     gettext-base \
     libstdc++6 \
+    libatomic1 \
     && rm -rf /var/lib/apt/lists/*
 
 ARG UV_VERSION
 RUN pip install uv==${UV_VERSION}
 
+# node 26 links libatomic, which python-slim doesn't ship
 COPY --from=node /usr/local/bin/node /usr/local/bin/node
 COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
 RUN ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && \
