@@ -262,7 +262,7 @@
     "@vscode/test-web": "0.0.81",
     "esbuild": "0.25.12",
     "playwright-core": "1.64.1",
-    "typescript": "5.9.3"
+    "typescript": "7.0.2"
   },
   "dependencies": {
     "fzstd": "0.1.1"
