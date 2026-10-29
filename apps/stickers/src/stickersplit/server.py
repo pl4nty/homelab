@@ -37,7 +37,7 @@ log = logging.getLogger("stickers")
 STATIC = Path(__file__).with_name("static")
 SCAN_EXTS = {".png", ".tif", ".tiff", ".jpg", ".jpeg", ".bmp", ".webp"}
 RANK = {None: 0, "submit": 1, "admin": 2}
-Image.MAX_IMAGE_PIXELS = None           # scans are big; uploads are capped by max_mp instead
+Image.MAX_IMAGE_PIXELS = None  # scans are big; uploads are capped by max_mp instead
 
 
 class Edit(BaseModel):
@@ -68,7 +68,7 @@ class Worker:
     def enqueue(self, job: dict) -> dict:
         (self.dir / f"{job['id']}.json").write_text(json.dumps(job))
         self.jobs[job["id"]] = {**job, "status": "queued", "stickers": 0}
-        queued = dict(self.jobs[job["id"]])     # the worker thread mutates the live dict
+        queued = dict(self.jobs[job["id"]])  # the worker thread mutates the live dict
         self.q.put(job["id"])
         return queued
 
@@ -78,7 +78,7 @@ class Worker:
             try:
                 self.process(job)
                 job["status"] = "done"
-            except Exception as e:      # one bad scan must not stop the queue
+            except Exception as e:  # one bad scan must not stop the queue
                 log.exception("scan %s failed", job["name"])
                 job["status"] = f"failed: {type(e).__name__}: {e}"[:300]
             for f in self.dir.glob(f"{job['id']}.*"):
@@ -89,7 +89,12 @@ class Worker:
         with tempfile.TemporaryDirectory(dir=self.store.root) as tmp:
             job["status"] = "finding stickers"
             stickers, _ = split_scan(scan, Path(tmp), Options())
-            vocab = [t for t, _ in Counter(t for m in list(self.store.items.values()) for t in m.tags).most_common(60)]
+            vocab = [
+                t
+                for t, _ in Counter(
+                    t for m in list(self.store.items.values()) for t in m.tags
+                ).most_common(60)
+            ]
             for k, s in enumerate(stickers, 1):
                 rec = s.to_dict()
                 if self.claude:
@@ -102,13 +107,25 @@ class Worker:
                     im.load()
                 if "holo" in rec.get("tags", []):
                     im = colour.balance(im, *colour.auto(im))
-                self.store.add(im, "pending", title=rec.get("title", ""), tags=rec.get("tags", []),
-                               creator=job["creator"], comment=job["comment"])
+                self.store.add(
+                    im,
+                    "pending",
+                    title=rec.get("title", ""),
+                    tags=rec.get("tags", []),
+                    creator=job["creator"],
+                    comment=job["comment"],
+                )
                 job["stickers"] = k
 
 
-def create_app(data: Path, submit_token: str, admin_token: str, claude=None,
-               model: str = DEFAULT_MODEL, max_mp: float = 150.0) -> FastAPI:
+def create_app(
+    data: Path,
+    submit_token: str,
+    admin_token: str,
+    claude=None,
+    model: str = DEFAULT_MODEL,
+    max_mp: float = 150.0,
+) -> FastAPI:
     store = Store(data)
     worker = Worker(store, claude, model)
     app = FastAPI(title="stickers", docs_url=None, redoc_url=None)
@@ -191,10 +208,19 @@ def create_app(data: Path, submit_token: str, admin_token: str, claude=None,
             raise HTTPException(400, "That file isn't an image this app can read.")
         if mp > max_mp:
             dst.unlink()
-            raise HTTPException(413, f"That scan is {mp:.0f} megapixels; the limit is {max_mp:.0f}. "
-                                     "Scan at 600 dpi.")
-        return worker.enqueue({"id": id, "ext": ext, "name": file.filename, "creator": creator.strip(),
-                               "comment": comment.strip()})
+            raise HTTPException(
+                413,
+                f"That scan is {mp:.0f} megapixels; the limit is {max_mp:.0f}. Scan at 600 dpi.",
+            )
+        return worker.enqueue(
+            {
+                "id": id,
+                "ext": ext,
+                "name": file.filename,
+                "creator": creator.strip(),
+                "comment": comment.strip(),
+            }
+        )
 
     @app.get("/api/scans")
     def scans(r=Depends(role)):
@@ -202,7 +228,9 @@ def create_app(data: Path, submit_token: str, admin_token: str, claude=None,
         return list(worker.jobs.values())
 
     @app.get("/api/scans/{id}")
-    def scan(id: str, r=Depends(role)):   # submitters see only the scans they uploaded (ids are random)
+    def scan(
+        id: str, r=Depends(role)
+    ):  # submitters see only the scans they uploaded (ids are random)
         need(r, "submit")
         if id not in worker.jobs:
             raise HTTPException(404, "No such scan")
@@ -213,8 +241,12 @@ def create_app(data: Path, submit_token: str, admin_token: str, claude=None,
     @app.get("/i/{id}.png")
     def original(id: str):
         m = get(id)
-        return FileResponse(store.path(m), media_type="image/png",
-                            filename=f"{m.title or m.id}.png", content_disposition_type="inline")
+        return FileResponse(
+            store.path(m),
+            media_type="image/png",
+            filename=f"{m.title or m.id}.png",
+            content_disposition_type="inline",
+        )
 
     @app.get("/i/{id}/preview.webp")
     def preview(id: str, warmth: float = 0.0, tint: float = 0.0):
@@ -222,23 +254,28 @@ def create_app(data: Path, submit_token: str, admin_token: str, claude=None,
         get(id)
         with Image.open(store.thumb(id, 1024)) as im:
             out = BytesIO()
-            colour.balance(im, max(-2.0, min(2.0, warmth)), max(-2.0, min(2.0, tint))).save(out, "WEBP", quality=85)
+            colour.balance(im, max(-2.0, min(2.0, warmth)), max(-2.0, min(2.0, tint))).save(
+                out, "WEBP", quality=85
+            )
         return Response(out.getvalue(), media_type="image/webp")
 
     @app.get("/i/{id}/{px}.webp")
     def thumb(id: str, px: int):
         get(id)
         # Bytes, not FileResponse: an edit can purge the cached file before it would be streamed.
-        return Response(store.thumb(id, px).read_bytes(), media_type="image/webp",
-                        headers={"Cache-Control": "public, max-age=31536000, immutable"})
+        return Response(
+            store.thumb(id, px).read_bytes(),
+            media_type="image/webp",
+            headers={"Cache-Control": "public, max-age=31536000, immutable"},
+        )
 
     @app.exception_handler(FileNotFoundError)
-    def gone(request, exc):   # deleted or moved between the lookup and the read
+    def gone(request, exc):  # deleted or moved between the lookup and the read
         return JSONResponse({"detail": "No such sticker"}, 404)
 
     app.include_router(migrate.router(store, lambda r=Depends(role): need(r, "admin")))
 
-    index = lambda: FileResponse(STATIC / "index.html", headers={"Cache-Control": "no-cache"})  # noqa: E731
+    index = lambda: FileResponse(STATIC / "index.html", headers={"Cache-Control": "no-cache"})
     for path in ("/", "/submit", "/admin"):
         app.get(path, include_in_schema=False)(index)
     app.mount("/static", StaticFiles(directory=STATIC), name="static")
@@ -247,20 +284,30 @@ def create_app(data: Path, submit_token: str, admin_token: str, claude=None,
 
 def main() -> None:
     import uvicorn
+
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     data = Path(os.environ.get("STICKERS_DATA", "data"))
-    tokens = {k: os.environ.get(k) or secrets.token_urlsafe(18) for k in ("SUBMIT_TOKEN", "ADMIN_TOKEN")}
+    tokens = {
+        k: os.environ.get(k) or secrets.token_urlsafe(18) for k in ("SUBMIT_TOKEN", "ADMIN_TOKEN")
+    }
     claude = None
     if os.environ.get("ANTHROPIC_API_KEY"):
         import anthropic
+
         claude = anthropic.Anthropic(max_retries=5)
-    port = int(os.environ.get("PORT", 8000))
+    port = int(os.environ.get("PORT", "8000"))
     base = os.environ.get("PUBLIC_URL", f"http://localhost:{port}").rstrip("/")
     for k, v in tokens.items():
-        print(f"{k.split('_')[0].lower():>6} link: {base}/{k.split('_')[0].lower()}#{v}"
-              + ("" if os.environ.get(k) else "   (random; set " + k + " to keep it)"))
+        print(
+            f"{k.split('_')[0].lower():>6} link: {base}/{k.split('_')[0].lower()}#{v}"
+            + ("" if os.environ.get(k) else "   (random; set " + k + " to keep it)")
+        )
     print(f"tagging: {'Claude ' + DEFAULT_MODEL if claude else 'off (set ANTHROPIC_API_KEY)'}")
-    app = create_app(data, tokens["SUBMIT_TOKEN"], tokens["ADMIN_TOKEN"], claude,
-                     max_mp=float(os.environ.get("MAX_MEGAPIXELS", 150)))
-    uvicorn.run(app, host=os.environ.get("HOST", "0.0.0.0"), port=port,
-                proxy_headers=True)
+    app = create_app(
+        data,
+        tokens["SUBMIT_TOKEN"],
+        tokens["ADMIN_TOKEN"],
+        claude,
+        max_mp=float(os.environ.get("MAX_MEGAPIXELS", "150")),
+    )
+    uvicorn.run(app, host=os.environ.get("HOST", "0.0.0.0"), port=port, proxy_headers=True)

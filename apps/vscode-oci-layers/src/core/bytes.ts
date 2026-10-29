@@ -10,7 +10,7 @@ export const gunzip = (data: Uint8Array) => pipe(data, new DecompressionStream('
 
 export async function sha256(data: Uint8Array): Promise<string> {
   const hash = new Uint8Array(await crypto.subtle.digest('SHA-256', data as BufferSource));
-  return 'sha256:' + Array.from(hash, (b) => b.toString(16).padStart(2, '0')).join('');
+  return `sha256:${Array.from(hash, (b) => b.toString(16).padStart(2, '0')).join('')}`;
 }
 
 function nativeZstd(): boolean {
@@ -38,7 +38,8 @@ export async function unzstd(data: Uint8Array): Promise<Uint8Array> {
 export async function decompressLayer(mediaType: string, blob: Uint8Array): Promise<Uint8Array> {
   if (isGzip(blob)) return gunzip(blob);
   if (isZstd(blob)) return unzstd(blob);
-  if (mediaType.endsWith('+gzip') || mediaType.endsWith('+zstd')) throw new Error(`layer is not ${mediaType.split('+').pop()}-compressed`);
+  if (mediaType.endsWith('+gzip') || mediaType.endsWith('+zstd'))
+    throw new Error(`layer is not ${mediaType.split('+').pop()}-compressed`);
   return blob;
 }
 

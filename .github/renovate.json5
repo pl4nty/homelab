@@ -80,7 +80,7 @@
         '/apps/[^/]+/docker-bake\\.hcl$/',
       ],
       matchStrings: [
-        '# renovate: branch=(?<currentValue>\\S+)\n\\s*\\S+\\s*=\\s*"(?<depName>https://github\\.com/[^"#]+?)(\\.git)?#(?<currentDigest>[0-9a-f]{40})"',
+        '# renovate: branch=(?<currentValue>\\S+)\n\\s*\\S+\\s*=\\s*"(?<depName>https://github\\.com/[^"#?]+?)(\\.git)?(\\?[^"#]*)?#(?<currentDigest>[0-9a-f]{40})"',
       ],
       datasourceTemplate: 'git-refs',
     },
@@ -113,6 +113,37 @@
         'apps/**',
       ],
       rangeStrategy: 'pin',
+    },
+    {
+      description: 'The base image sets the Python version, and engines are compatibility ranges, so never pin them',
+      matchFileNames: [
+        'apps/**',
+      ],
+      matchDepTypes: [
+        'requires-python',
+        'engines',
+      ],
+      enabled: false,
+    },
+    {
+      description: 'A bare NuGet version already resolves to that exact version, so pinning only rewrites it as [x] and bumps it',
+      matchFileNames: [
+        'apps/**',
+      ],
+      matchManagers: [
+        'nuget',
+      ],
+      rangeStrategy: 'auto',
+    },
+    {
+      description: 'Renovate pins cabal deps without ==, which cabal rejects, and base is tied to the GHC in the base image',
+      matchFileNames: [
+        'apps/**',
+      ],
+      matchManagers: [
+        'haskell-cabal',
+      ],
+      rangeStrategy: 'auto',
     },
     {
       matchFileNames: [
@@ -191,6 +222,15 @@
         'major',
       ],
       commitMessagePrefix: "feat({{lookup (split packageFileDir '/') 1}})!: ",
+    },
+    {
+      description: 'App CI and previews only run on PRs, so automerge app updates through a PR once checks pass',
+      matchFileNames: [
+        'apps/**',
+      ],
+      automergeType: 'pr',
+      platformAutomerge: false,
+      ignoreTests: false,
     },
   ],
 }

@@ -44,7 +44,9 @@ export class SessionStore implements vscode.Disposable {
     const insecure = (host: string) => (config().get<string[]>('insecureRegistries') ?? []).includes(host);
     this.client = new RegistryClient({
       // Getter so configuration changes apply without recreating the client.
-      get corsProxy() { return config().get<string>('corsProxy') || undefined; },
+      get corsProxy() {
+        return config().get<string>('corsProxy') || undefined;
+      },
       insecure,
       getCredentials: (registry) => this.getCredentials(registry),
     });
@@ -81,9 +83,13 @@ export class SessionStore implements vscode.Disposable {
     await this.ctx.globalState.update(SESSIONS_KEY, all);
   }
 
-  info(id: string): StoredSession | undefined { return this.stored()[id]; }
+  info(id: string): StoredSession | undefined {
+    return this.stored()[id];
+  }
 
-  ids(): string[] { return Object.keys(this.stored()); }
+  ids(): string[] {
+    return Object.keys(this.stored());
+  }
 
   /** Whether a (possibly not loaded) session has persisted uncommitted edits. */
   hasPending(id: string): boolean {
@@ -91,9 +97,13 @@ export class SessionStore implements vscode.Disposable {
     return Array.isArray(upper) && upper.length > 0;
   }
 
-  get(id: string): ImageSession | undefined { return this.loaded.get(id); }
+  get(id: string): ImageSession | undefined {
+    return this.loaded.get(id);
+  }
 
-  all(): [string, ImageSession][] { return [...this.loaded]; }
+  all(): [string, ImageSession][] {
+    return [...this.loaded];
+  }
 
   async create(reference: string): Promise<string> {
     const id = Array.from(crypto.getRandomValues(new Uint8Array(4)), (b) => b.toString(16).padStart(2, '0')).join('');
@@ -116,23 +126,25 @@ export class SessionStore implements vscode.Disposable {
     if (p) return p;
     const s = this.info(id);
     if (!s) return Promise.reject(vscode.FileSystemError.FileNotFound(`unknown image session ${id}`));
-    p = Promise.resolve(vscode.window.withProgress(
-      { location: vscode.ProgressLocation.Notification, title: `Opening ${s.display}`, cancellable: false },
-      async (progress) => {
-        const session = await ImageSession.open(this.client, s.pinned ?? s.display, {
-          platform: config().get<string>('platform') ?? 'linux/amd64',
-          maxBytes: (config().get<number>('maxImageSizeMB') ?? 512) * 2 ** 20,
-          progress: (message) => progress.report({ message }),
-        });
-        // Opened by digest after a reload: keep the tag the user works against.
-        if (s.pinned) session.ref = { ...parseRef(s.display), digest: undefined };
-        session.overlay.restore(this.ctx.globalState.get(upperKey(id)));
-        await this.setStored(id, { display: s.display, pinned: session.pinned });
-        this.loaded.set(id, session);
-        this._onDidLoad.fire({ id, session });
-        return session;
-      },
-    ));
+    p = Promise.resolve(
+      vscode.window.withProgress(
+        { location: vscode.ProgressLocation.Notification, title: `Opening ${s.display}`, cancellable: false },
+        async (progress) => {
+          const session = await ImageSession.open(this.client, s.pinned ?? s.display, {
+            platform: config().get<string>('platform') ?? 'linux/amd64',
+            maxBytes: (config().get<number>('maxImageSizeMB') ?? 512) * 2 ** 20,
+            progress: (message) => progress.report({ message }),
+          });
+          // Opened by digest after a reload: keep the tag the user works against.
+          if (s.pinned) session.ref = { ...parseRef(s.display), digest: undefined };
+          session.overlay.restore(this.ctx.globalState.get(upperKey(id)));
+          await this.setStored(id, { display: s.display, pinned: session.pinned });
+          this.loaded.set(id, session);
+          this._onDidLoad.fire({ id, session });
+          return session;
+        },
+      ),
+    );
     p.catch(() => this.loading.delete(id));
     this.loading.set(id, p);
     return p;
@@ -141,7 +153,10 @@ export class SessionStore implements vscode.Disposable {
   /** Record pending edits (debounced) and notify listeners. */
   changed(id: string): void {
     clearTimeout(this.persistTimers.get(id));
-    this.persistTimers.set(id, setTimeout(() => this.flush(id), 300));
+    this.persistTimers.set(
+      id,
+      setTimeout(() => this.flush(id), 300),
+    );
     this._onDidChange.fire(id);
   }
 

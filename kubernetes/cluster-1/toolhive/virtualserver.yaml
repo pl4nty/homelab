@@ -40,8 +40,6 @@ spec:
   outgoingAuth:
     source: discovered
   config:
-    operational:
-      logLevel: debug
     aggregation:
       tools:
         # FlowSavvy tools: replaced by the official connector, server kept running
@@ -92,8 +90,6 @@ spec:
   outgoingAuth:
     source: discovered
   config:
-    operational:
-      logLevel: debug
     aggregation:
       # defaultToolVisibility: deny means any workload in the group with no
       # entry below contributes no tools, so unsafe workloads just stay

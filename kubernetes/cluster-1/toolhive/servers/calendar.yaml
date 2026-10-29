@@ -10,7 +10,7 @@ spec:
     name: toolhive
   externalAuthConfigRef:
     name: entra-upstream
-  image: ghcr.io/obot-platform/microsoft-office-365-mcp/microsoft365-calendar:latest@sha256:ce55b522d86ad2149d5147672579d79dc2741240226aff9a9366534c87928fdb
+  image: ghcr.io/obot-platform/microsoft-office-365-mcp/microsoft365-calendar:latest@sha256:4d843ada290fb679e08d7dd7b0b04c4093ade78028b39c382b2bc2efa1bbba32
   transport: streamable-http
   mcpPort: 9000
   # Image uses a binary at /root

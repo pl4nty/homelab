@@ -27,7 +27,7 @@ spec:
           main:
             image:
               repository: ghcr.io/josegonzalez/python-github-backup
-              tag: 0.64.1
+              tag: 0.66.0@sha256:25892bd6901244145d61fee9ae52c0ea39c48e544070fca17db02341cab372f8
             args:
               - pl4nty
               - --token-fine

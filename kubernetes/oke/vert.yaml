@@ -2,7 +2,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: ataxx
+  name: vert
   namespace: default
 spec:
   interval: 15m
@@ -20,26 +20,15 @@ spec:
         containers:
           main:
             image:
-              repository: ghcr.io/pl4nty/ataxx
-              tag: latest@sha256:605e46d168434da6222431f9d833cd42c21972613b49ca85d3efe1b04e213774
-            args:
-              - --p1
-              - human
-              - --p2
-              - ai
+              repository: ghcr.io/vert-sh/vert
+              tag: latest@sha256:51edb89e7c57197b0281ba8427fb27eea63730a3683b10d422061afab2708a49
+            securityContext:
+              capabilities:
+                add:
+                  - NET_BIND_SERVICE
             probes:
               liveness:
                 enabled: true
-                custom: true
-                # ataxx doesn't have a "new game" button, so we just restart it regularly
-                spec:
-                  failureThreshold: 1
-                  periodSeconds: 300
-                  exec:
-                    command:
-                      - bash
-                      - -c
-                      - "exit 1"
               readiness:
                 enabled: true
               startup:
@@ -49,15 +38,15 @@ spec:
         controller: main
         ports:
           http:
-            port: 3000
+            port: 80
     route:
       main:
         parentRefs:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - ataxx.${PUBLIC_DOMAIN}
+          - convert.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: ataxx
-                port: 3000
+              - name: vert
+                port: 80

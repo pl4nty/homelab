@@ -55,7 +55,10 @@ export interface ResolvedImage {
   indexDigest?: string;
 }
 
-export interface Credentials { username: string; password: string }
+export interface Credentials {
+  username: string;
+  password: string;
+}
 
 export interface RegistryOptions {
   /** Prefix prepended to every request URL (CORS proxy for browsers). */
@@ -76,21 +79,26 @@ export class RegistryError extends Error {
   }
 }
 
-interface Challenge { scheme: string; params: Record<string, string> }
+interface Challenge {
+  scheme: string;
+  params: Record<string, string>;
+}
 
 function parseChallenge(header: string): Challenge {
   const sp = header.indexOf(' ');
   const scheme = (sp < 0 ? header : header.slice(0, sp)).toLowerCase();
   const params: Record<string, string> = {};
   const re = /(\w+)=(?:"([^"]*)"|([^,\s]*))/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(header.slice(sp + 1)))) params[m[1].toLowerCase()] = m[2] ?? m[3];
+  for (const m of header.slice(sp + 1).matchAll(re)) params[m[1].toLowerCase()] = m[2] ?? m[3];
   return { scheme, params };
 }
 
 // Used when a browser cannot read WWW-Authenticate (registry did not expose it via CORS).
 const KNOWN_REALMS: Record<string, Challenge> = {
-  'registry-1.docker.io': { scheme: 'bearer', params: { realm: 'https://auth.docker.io/token', service: 'registry.docker.io' } },
+  'registry-1.docker.io': {
+    scheme: 'bearer',
+    params: { realm: 'https://auth.docker.io/token', service: 'registry.docker.io' },
+  },
   'ghcr.io': { scheme: 'bearer', params: { realm: 'https://ghcr.io/token', service: 'ghcr.io' } },
   'quay.io': { scheme: 'bearer', params: { realm: 'https://quay.io/v2/auth', service: 'quay.io' } },
 };
@@ -159,7 +167,8 @@ export class RegistryClient {
 
     const header = res.headers.get('www-authenticate');
     const challenge = header ? parseChallenge(header) : KNOWN_REALMS[ref.apiHost];
-    if (!challenge) throw new RegistryError(`401 from ${ref.apiHost} without a readable WWW-Authenticate header (CORS?)`, 401);
+    if (!challenge)
+      throw new RegistryError(`401 from ${ref.apiHost} without a readable WWW-Authenticate header (CORS?)`, 401);
     const creds = await this.opts.getCredentials?.(ref.registry);
     let auth: string;
     if (challenge.scheme === 'basic') {
@@ -197,18 +206,23 @@ export class RegistryClient {
   }
 
   private async check(res: Response, what: string): Promise<Response> {
-    if (!res.ok) throw new RegistryError(`${what}: ${res.status} ${await res.text().catch(() => '')}`.trim(), res.status);
+    if (!res.ok)
+      throw new RegistryError(`${what}: ${res.status} ${await res.text().catch(() => '')}`.trim(), res.status);
     return res;
   }
 
   async getManifest(ref: ImageRef, reference = refReference(ref)) {
     const url = `${this.baseUrl(ref)}/v2/${ref.repository}/manifests/${reference}`;
-    const res = await this.check(await this.request(ref, 'GET', url, { headers: { Accept: MANIFEST_ACCEPT } }), `GET manifest ${reference}`);
+    const res = await this.check(
+      await this.request(ref, 'GET', url, { headers: { Accept: MANIFEST_ACCEPT } }),
+      `GET manifest ${reference}`,
+    );
     const bytes = new Uint8Array(await res.arrayBuffer());
     const json = JSON.parse(new TextDecoder().decode(bytes));
     const mediaType: string = json.mediaType ?? res.headers.get('content-type')?.split(';')[0] ?? MT.ociManifest;
     const digest = await sha256(bytes);
-    if (reference.startsWith('sha256:') && reference !== digest) throw new RegistryError(`manifest digest mismatch for ${reference}`);
+    if (reference.startsWith('sha256:') && reference !== digest)
+      throw new RegistryError(`manifest digest mismatch for ${reference}`);
     return { bytes, json, mediaType, digest };
   }
 
@@ -220,7 +234,11 @@ export class RegistryClient {
       const manifests = m.json.manifests as Descriptor[];
       const pick = manifests.find((d) => platformMatches(d, platform));
       if (!pick) {
-        const avail = manifests.map((d) => d.platform && [d.platform.os, d.platform.architecture, d.platform.variant].filter(Boolean).join('/')).filter(Boolean);
+        const avail = manifests
+          .map(
+            (d) => d.platform && [d.platform.os, d.platform.architecture, d.platform.variant].filter(Boolean).join('/'),
+          )
+          .filter(Boolean);
         throw new RegistryError(`no manifest for platform ${platform}; available: ${avail.join(', ')}`);
       }
       indexDigest = m.digest;
@@ -238,7 +256,8 @@ export class RegistryClient {
     const url = `${this.baseUrl(ref)}/v2/${ref.repository}/blobs/${digest}`;
     const res = await this.check(await this.request(ref, 'GET', url), `GET blob ${digest}`);
     const data = new Uint8Array(await res.arrayBuffer());
-    if (digest.startsWith('sha256:') && (await sha256(data)) !== digest) throw new RegistryError(`blob digest mismatch for ${digest}`);
+    if (digest.startsWith('sha256:') && (await sha256(data)) !== digest)
+      throw new RegistryError(`blob digest mismatch for ${digest}`);
     return data;
   }
 
@@ -251,12 +270,19 @@ export class RegistryClient {
   /** Try a cross-repository mount. Returns true if the blob now exists in `ref`. */
   async mountBlob(ref: ImageRef, digest: string, fromRepo: string): Promise<boolean> {
     const url = `${this.baseUrl(ref)}/v2/${ref.repository}/blobs/uploads/?mount=${encodeURIComponent(digest)}&from=${encodeURIComponent(fromRepo)}`;
-    const res = await this.request(ref, 'POST', url, { repos: [[ref.repository, 'pull,push'], [fromRepo, 'pull']] });
+    const res = await this.request(ref, 'POST', url, {
+      repos: [
+        [ref.repository, 'pull,push'],
+        [fromRepo, 'pull'],
+      ],
+    });
     if (res.status === 201) return true;
     // 202 means the registry started a regular upload session instead; abandon it.
     const loc = res.headers.get('location');
     if (res.status === 202 && loc) {
-      await this.request(ref, 'DELETE', new URL(loc, this.baseUrl(ref)).toString(), { repos: [[ref.repository, 'pull,push']] }).catch(() => undefined);
+      await this.request(ref, 'DELETE', new URL(loc, this.baseUrl(ref)).toString(), {
+        repos: [[ref.repository, 'pull,push']],
+      }).catch(() => undefined);
     }
     return false;
   }
@@ -283,7 +309,11 @@ export class RegistryClient {
   async putManifest(ref: ImageRef, reference: string, bytes: Uint8Array, mediaType: string): Promise<string> {
     const url = `${this.baseUrl(ref)}/v2/${ref.repository}/manifests/${reference}`;
     await this.check(
-      await this.request(ref, 'PUT', url, { repos: [[ref.repository, 'pull,push']], body: bytes, headers: { 'Content-Type': mediaType } }),
+      await this.request(ref, 'PUT', url, {
+        repos: [[ref.repository, 'pull,push']],
+        body: bytes,
+        headers: { 'Content-Type': mediaType },
+      }),
       `PUT manifest ${reference}`,
     );
     return sha256(bytes);

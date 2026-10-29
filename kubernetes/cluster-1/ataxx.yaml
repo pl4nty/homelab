@@ -2,7 +2,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: hrconvert2
+  name: ataxx
   namespace: default
 spec:
   interval: 15m
@@ -14,26 +14,36 @@ spec:
       createDefaultServiceAccount: false
     controllers:
       main:
-        # pending replacement
-        replicas: 0
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
+        # amd64-only: the arm64 Haskell build under QEMU exceeds the 6h CI limit
         pod:
           nodeSelector:
             kubernetes.io/arch: amd64
         containers:
           main:
             image:
-              repository: dwaaan/hrconvert2-docker
-              tag: latest@sha256:b893624e4b4dad46469b30a1d094557670db1af3374394b4a4a60324df570652
-            securityContext:
-              capabilities:
-                add:
-                  - NET_BIND_SERVICE
+              repository: ghcr.io/pl4nty/ataxx
+              tag: latest@sha256:59ddcdd49daa7a893bd68a4620d9b9e0d2243485a5188a8a525c645a724ebb2e
+            args:
+              - --p1
+              - human
+              - --p2
+              - ai
             probes:
               liveness:
                 enabled: true
+                custom: true
+                # ataxx doesn't have a "new game" button, so we just restart it regularly
+                spec:
+                  failureThreshold: 1
+                  periodSeconds: 300
+                  exec:
+                    command:
+                      - bash
+                      - -c
+                      - "exit 1"
               readiness:
                 enabled: true
               startup:
@@ -43,16 +53,15 @@ spec:
         controller: main
         ports:
           http:
-            port: 80
+            port: 3000
     route:
       main:
-        enabled: true
         parentRefs:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - convert.${PUBLIC_DOMAIN}
+          - ataxx.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: hrconvert2
-                port: 80
+              - name: ataxx
+                port: 3000
