@@ -33,8 +33,9 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         working-directory: apps
         run: |
+          # only the OKE manifest ships with the app; cluster-1 manifests take Renovate digest bumps of our own images, so rebuilding on them loops
           for app in */; do
-            git diff --quiet "$BASE...$COMMIT" -- "$app" "../kubernetes/*/${app%/}.yaml" || echo "${app%/}"
+            git diff --quiet "$BASE...$COMMIT" -- "$app" "../kubernetes/oke/${app%/}.yaml" || echo "${app%/}"
           done | jq -Rnr '"apps=\([inputs])"' >> "$GITHUB_OUTPUT"
 
   lint:

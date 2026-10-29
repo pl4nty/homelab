@@ -39,9 +39,9 @@ spec:
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
         value: http://k8s-monitoring-alloy-receiver.monitoring-system:4318
   apacheHttpd:
-    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:7223dba3aa6a607e3071617149f72a69b01574c772a52efda592159ff79c1a27
+    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:ac833efaf7fc6296f0de05fbdf38574a610681be719b67f24f8c5e3aea40e5cb
   nginx:
-    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:7223dba3aa6a607e3071617149f72a69b01574c772a52efda592159ff79c1a27
+    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:ac833efaf7fc6296f0de05fbdf38574a610681be719b67f24f8c5e3aea40e5cb
     attrs:
       - name: NginxModuleTraceAsError
         value: "OFF"
@@ -72,7 +72,7 @@ spec:
     - name: OTEL_METRICS_EXPORTER
       value: none
   go:
-    image: ghcr.io/open-telemetry/opentelemetry-go-instrumentation/autoinstrumentation-go:v0.19.0-alpha
+    image: ghcr.io/open-telemetry/opentelemetry-go-instrumentation/autoinstrumentation-go:v0.19.0-alpha@sha256:f43db045cf021ac4a520a5ee9789d0147a63954775d71949264b0e5b34155935
     resourceRequirements:
       limits:
         memory: 320Mi

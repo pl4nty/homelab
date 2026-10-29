@@ -2,7 +2,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: shapes
+  name: ataxx
   namespace: default
 spec:
   interval: 15m
@@ -17,14 +17,33 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
+        # amd64-only: the arm64 Haskell build under QEMU exceeds the 6h CI limit
+        pod:
+          nodeSelector:
+            kubernetes.io/arch: amd64
         containers:
           main:
             image:
-              repository: ghcr.io/pl4nty/shapes
-              tag: latest@sha256:6bc8c00358394e312a32c518dc848718bc5aaef85cdba70964e7f5a2679d3c92
+              repository: ghcr.io/pl4nty/ataxx
+              tag: latest@sha256:59ddcdd49daa7a893bd68a4620d9b9e0d2243485a5188a8a525c645a724ebb2e
+            args:
+              - --p1
+              - human
+              - --p2
+              - ai
             probes:
               liveness:
                 enabled: true
+                custom: true
+                # ataxx doesn't have a "new game" button, so we just restart it regularly
+                spec:
+                  failureThreshold: 1
+                  periodSeconds: 300
+                  exec:
+                    command:
+                      - bash
+                      - -c
+                      - "exit 1"
               readiness:
                 enabled: true
               startup:
@@ -41,8 +60,8 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - shapes.${PUBLIC_DOMAIN}
+          - ataxx.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: shapes
+              - name: ataxx
                 port: 3000

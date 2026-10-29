@@ -22,11 +22,24 @@ const enc = new TextEncoder();
 const dec = new TextDecoder();
 
 const typeByFlag: Record<string, TarType> = {
-  '0': 'file', '\0': 'file', '7': 'file',
-  '1': 'hardlink', '2': 'symlink', '3': 'char', '4': 'block', '5': 'dir', '6': 'fifo',
+  '0': 'file',
+  '\0': 'file',
+  '7': 'file',
+  '1': 'hardlink',
+  '2': 'symlink',
+  '3': 'char',
+  '4': 'block',
+  '5': 'dir',
+  '6': 'fifo',
 };
 const flagByType: Record<TarType, string> = {
-  file: '0', hardlink: '1', symlink: '2', char: '3', block: '4', dir: '5', fifo: '6',
+  file: '0',
+  hardlink: '1',
+  symlink: '2',
+  char: '3',
+  block: '4',
+  dir: '5',
+  fifo: '6',
 };
 
 export function normalizePath(p: string): string {
@@ -94,10 +107,19 @@ export function parseTar(buf: Uint8Array): TarEntry[] {
     const data = buf.subarray(dataStart, dataStart + size);
     off = dataStart + Math.ceil(size / 512) * 512;
 
-    if (flag === 'x') { pax = { ...pax, ...parsePax(data) }; continue; }
+    if (flag === 'x') {
+      pax = { ...pax, ...parsePax(data) };
+      continue;
+    }
     if (flag === 'g') continue; // global headers carry nothing we need
-    if (flag === 'L') { longName = readString(data, 0, data.length); continue; }
-    if (flag === 'K') { longLink = readString(data, 0, data.length); continue; }
+    if (flag === 'L') {
+      longName = readString(data, 0, data.length);
+      continue;
+    }
+    if (flag === 'K') {
+      longLink = readString(data, 0, data.length);
+      continue;
+    }
 
     const magic = readString(h, 257, 6);
     let name = readString(h, 0, 100);
@@ -137,7 +159,7 @@ function writeString(h: Uint8Array, off: number, len: number, s: string): void {
 }
 
 function writeOctal(h: Uint8Array, off: number, len: number, n: number): void {
-  writeString(h, off, len, n.toString(8).padStart(len - 1, '0') + '\0');
+  writeString(h, off, len, `${n.toString(8).padStart(len - 1, '0')}\0`);
 }
 
 function paxRecord(key: string, value: string): string {
@@ -168,7 +190,7 @@ function header(name: string, flag: string, size: number, e: Partial<TarEntry>):
   writeOctal(h, 337, 8, e.devminor ?? 0);
   let sum = 0;
   for (const b of h) sum += b;
-  writeString(h, 148, 8, sum.toString(8).padStart(6, '0') + '\0 ');
+  writeString(h, 148, 8, `${sum.toString(8).padStart(6, '0')}\0 `);
   return h;
 }
 
@@ -190,14 +212,21 @@ export function writeTar(entries: TarEntry[]): Uint8Array {
       chunks.push(header('PaxHeader', 'x', body.length, { mode: 0o644, mtime: e.mtime }), body, pad(body.length));
       name = name.slice(0, 100);
     }
-    const data = e.type === 'file' ? e.data ?? new Uint8Array() : new Uint8Array();
-    chunks.push(header(name, flagByType[e.type], data.length, { ...e, linkname: link.slice(0, 100) }), data, pad(data.length));
+    const data = e.type === 'file' ? (e.data ?? new Uint8Array()) : new Uint8Array();
+    chunks.push(
+      header(name, flagByType[e.type], data.length, { ...e, linkname: link.slice(0, 100) }),
+      data,
+      pad(data.length),
+    );
   }
   chunks.push(new Uint8Array(1024));
   let total = 0;
   for (const c of chunks) total += c.length;
   const out = new Uint8Array(total);
   let off = 0;
-  for (const c of chunks) { out.set(c, off); off += c.length; }
+  for (const c of chunks) {
+    out.set(c, off);
+    off += c.length;
+  }
   return out;
 }

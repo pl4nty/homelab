@@ -35,7 +35,7 @@ def fetch(url: str) -> bytes:
 
 def run(store, src: Source, status: dict) -> None:
     api = src.url.rstrip("/") + "/api/v1"
-    get = lambda path: json.loads(fetch(api + path))  # noqa: E731
+    get = lambda path: json.loads(fetch(api + path))
     try:
         token = get("/session")["config"]["downloadToken"]
         photos: list[dict] = []
@@ -43,7 +43,7 @@ def run(store, src: Source, status: dict) -> None:
             photos += batch
         status["total"] = len(photos)
         for p in photos:
-            id = "pp" + p["UID"]                    # rerunning skips what is already here
+            id = "pp" + p["UID"]  # rerunning skips what is already here
             if id in store.items:
                 status["skipped"] += 1
                 continue
@@ -51,9 +51,15 @@ def run(store, src: Source, status: dict) -> None:
                 labels = get(f"/photos/{p['UID']}").get("Labels") or []
                 with Image.open(BytesIO(fetch(f"{api}/dl/{p['Hash']}?t={token}"))) as im:
                     im.load()
-                store.add(im, "approved", id=id, title=p.get("Title") or "", creator=src.creator,
-                          tags=[x["Label"]["Name"] for x in labels if x.get("LabelSrc") == "manual"],
-                          added=p.get("TakenAt"))
+                store.add(
+                    im,
+                    "approved",
+                    id=id,
+                    title=p.get("Title") or "",
+                    creator=src.creator,
+                    tags=[x["Label"]["Name"] for x in labels if x.get("LabelSrc") == "manual"],
+                    added=p.get("TakenAt"),
+                )
                 status["imported"] += 1
             except Exception as e:
                 status["errors"].append(f"{p.get('Title') or p['UID']}: {e}")

@@ -2,7 +2,10 @@ import * as vscode from 'vscode';
 import type { LayerInfo } from './core/session.ts';
 import { displayName, type SessionStore } from './session-store.ts';
 
-type Node = { kind: 'image'; id: string } | { kind: 'layer'; id: string; index: number; layer: LayerInfo } | { kind: 'pending'; id: string; count: number };
+type Node =
+  | { kind: 'image'; id: string }
+  | { kind: 'layer'; id: string; index: number; layer: LayerInfo }
+  | { kind: 'pending'; id: string; count: number };
 
 const size = (n: number) => (n < 2 ** 20 ? `${(n / 1024).toFixed(1)} KiB` : `${(n / 2 ** 20).toFixed(1)} MiB`);
 
@@ -11,9 +14,13 @@ export class LayersView implements vscode.TreeDataProvider<Node> {
   readonly onDidChangeTreeData = this._onDidChange.event;
   private readonly store: SessionStore;
 
-  constructor(store: SessionStore) { this.store = store; }
+  constructor(store: SessionStore) {
+    this.store = store;
+  }
 
-  refresh(): void { this._onDidChange.fire(); }
+  refresh(): void {
+    this._onDidChange.fire();
+  }
 
   getChildren(node?: Node): Node[] {
     if (!node) return this.store.all().map(([id]) => ({ kind: 'image', id }));
@@ -47,8 +54,14 @@ export class LayersView implements vscode.TreeDataProvider<Node> {
     const item = new vscode.TreeItem(`${index + 1}  ${label}`);
     item.description = size(layer.descriptor.size);
     item.tooltip = new vscode.MarkdownString(
-      [`**${layer.descriptor.digest}**`, layer.descriptor.mediaType, layer.created, layer.createdBy && '```\n' + layer.createdBy + '\n```']
-        .filter(Boolean).join('\n\n'),
+      [
+        `**${layer.descriptor.digest}**`,
+        layer.descriptor.mediaType,
+        layer.created,
+        layer.createdBy && `\`\`\`\n${layer.createdBy}\n\`\`\``,
+      ]
+        .filter(Boolean)
+        .join('\n\n'),
     );
     item.iconPath = new vscode.ThemeIcon('layers');
     return item;

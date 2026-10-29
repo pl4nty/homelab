@@ -1,17 +1,44 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { Overlay, Tree, join, type FsNode } from '../src/core/overlay.ts';
-import { parseTar, writeTar, type TarEntry } from '../src/core/tar.ts';
+import { type FsNode, join, Overlay, Tree } from '../src/core/overlay.ts';
+import { parseTar, type TarEntry, writeTar } from '../src/core/tar.ts';
 
 const enc = new TextEncoder();
 const dec = new TextDecoder();
-const f = (path: string, text: string, mode = 0o644): TarEntry => ({ path, type: 'file', mode, uid: 0, gid: 0, mtime: 0, data: enc.encode(text) });
+const f = (path: string, text: string, mode = 0o644): TarEntry => ({
+  path,
+  type: 'file',
+  mode,
+  uid: 0,
+  gid: 0,
+  mtime: 0,
+  data: enc.encode(text),
+});
 const d = (path: string): TarEntry => ({ path, type: 'dir', mode: 0o755, uid: 0, gid: 0, mtime: 0 });
-const l = (path: string, linkname: string): TarEntry => ({ path, type: 'symlink', mode: 0o777, uid: 0, gid: 0, mtime: 0, linkname });
+const l = (path: string, linkname: string): TarEntry => ({
+  path,
+  type: 'symlink',
+  mode: 0o777,
+  uid: 0,
+  gid: 0,
+  mtime: 0,
+  linkname,
+});
 
 function baseTree(): Tree {
   const t = new Tree();
-  t.applyLayer([d('usr'), d('usr/bin'), f('usr/bin/sh', '#!sh', 0o755), l('bin', 'usr/bin'), d('etc'), f('etc/os-release', 'v1'), f('etc/motd', 'hi'), d('var/cache'), f('var/cache/a', 'a'), f('var/cache/b', 'b')]);
+  t.applyLayer([
+    d('usr'),
+    d('usr/bin'),
+    f('usr/bin/sh', '#!sh', 0o755),
+    l('bin', 'usr/bin'),
+    d('etc'),
+    f('etc/os-release', 'v1'),
+    f('etc/motd', 'hi'),
+    d('var/cache'),
+    f('var/cache/a', 'a'),
+    f('var/cache/b', 'b'),
+  ]);
   t.applyLayer([
     f('etc/.wh.motd', ''), // whiteout from lower layer
     f('var/cache/.wh..wh..opq', ''),
@@ -26,7 +53,12 @@ function baseTree(): Tree {
 function snapshot(o: Overlay, dir = '', out: Record<string, string> = {}): Record<string, string> {
   for (const [name, node] of o.readdir(dir).sort()) {
     const p = join(dir, name);
-    out[p] = node.type === 'file' ? `file:${node.mode.toString(8)}:${dec.decode(node.data)}` : node.type === 'symlink' ? `link:${node.linkname}` : 'dir';
+    out[p] =
+      node.type === 'file'
+        ? `file:${node.mode.toString(8)}:${dec.decode(node.data)}`
+        : node.type === 'symlink'
+          ? `link:${node.linkname}`
+          : 'dir';
     if (node.type === 'dir') snapshot(o, p, out);
   }
   return out;
@@ -43,7 +75,10 @@ test('applies whiteouts, opaque dirs and hardlinks per the OCI layer spec', () =
 test('resolves symlinks in intermediate and final components', () => {
   const o = new Overlay(baseTree());
   assert.equal(dec.decode(o.readFile('bin/sh')), '#!sh');
-  assert.deepEqual(o.readdir('bin').map(([n]) => n), ['sh']);
+  assert.deepEqual(
+    o.readdir('bin').map(([n]) => n),
+    ['sh'],
+  );
   assert.equal(o.stat('bin').isLink, true);
   assert.equal(o.stat('bin').node.type, 'dir');
   // Writing through the symlink lands in the real directory.
@@ -61,14 +96,17 @@ test('tracks changes and produces a layer equivalent to the overlay view', () =>
   o.mkdir('opt');
   o.rename('etc/hard', 'opt/hard', false);
 
-  assert.deepEqual(o.changes().map((c) => `${c.status} ${c.path}`), [
-    'deleted etc/hard',
-    'added etc/new.conf',
-    'modified etc/os-release',
-    'added opt/hard',
-    'deleted usr/bin/sh',
-    'added var/cache/z',
-  ]);
+  assert.deepEqual(
+    o.changes().map((c) => `${c.status} ${c.path}`),
+    [
+      'deleted etc/hard',
+      'added etc/new.conf',
+      'modified etc/os-release',
+      'added opt/hard',
+      'deleted usr/bin/sh',
+      'added var/cache/z',
+    ],
+  );
   assert.equal(o.stat('etc/os-release').node.mode, 0o644, 'mode preserved on edit');
 
   const expected = snapshot(o);
