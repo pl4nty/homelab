@@ -29,7 +29,7 @@ from fastapi.staticfiles import StaticFiles
 from PIL import Image
 from pydantic import BaseModel
 
-from . import colour, migrate
+from . import colour
 from .core import Options, split_scan
 from .store import STATES, Store
 from .tag import DEFAULT_MODEL, symmetry_angle, tag_one
@@ -292,8 +292,6 @@ def create_app(
     @app.exception_handler(FileNotFoundError)
     def gone(request, exc):  # deleted or moved between the lookup and the read
         return JSONResponse({"detail": "No such sticker"}, 404)
-
-    app.include_router(migrate.router(store, lambda r=Depends(role): need(r, "admin")))
 
     index = lambda: FileResponse(STATIC / "index.html", headers={"Cache-Control": "no-cache"})
     for path in ("/", "/submit", "/admin"):

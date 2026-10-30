@@ -530,7 +530,7 @@ async function adminPage() {
   const tabs = $(".tabs"), body = h(`<div></div>`);
   const lists = { pending: "To review", approved: "Published" };
   const empty = { pending: "Nothing to review. Stickers from uploaded scans appear here.", approved: "Nothing published yet." };
-  const extra = { upload: "Add scans", import: "Import" };
+  const extra = { upload: "Add scans" };
   const counts = {};
   store("admin", token);   // lets the public viewer offer an Edit link on this browser
   tabs.hidden = false;
@@ -558,35 +558,11 @@ async function adminPage() {
     body.replaceChildren();
     const t = tab();
     if (t === "upload") body.append(uploadPanel(refresh));
-    if (t === "import") body.append(importPanel());
     return refresh();
   }
   await open();
   const k = active?.items.findIndex((m) => m.id === params.get("s")) ?? -1;   // a link to one sticker opens it
   if (k >= 0) editor(active.items, k, refresh);
-}
-
-// One-off PhotoPrism import; delete with migrate.py.
-function importPanel() {
-  const p = h(`<section class="panel"><h2>Import from PhotoPrism</h2>
-    <p>Copies every photo from a PhotoPrism site in public mode straight into Published, with its title and its manual labels as tags.
-      Running it again skips stickers already imported.</p>
-    <form class="upload">
-      <label class="field wide"><span>PhotoPrism address</span><input name="url" type="url" value="https://stickers.tplant.com.au" required></label>
-      <label class="field"><span>Added by</span><input name="creator" autocomplete="name"></label>
-      <div class="wide"><button class="btn primary">Import</button></div>
-    </form><p class="status" role="status"></p><ul class="jobs"></ul></section>`);
-  const form = $("form", p);
-  const draw = (s) => {
-    $(".status", p).textContent = s.source ? `${s.running ? "Importing" : "Finished"}: ${s.imported} imported, ${s.skipped} already here, ${s.errors.length} failed, of ${s.total || "?"}.` : "";
-    $(".jobs", p).replaceChildren(...(s.errors ?? []).map((e) => h(`<li><span class="st failed">${esc(e)}</span></li>`)));
-    $("button", form).disabled = s.running;
-    if (s.running) setTimeout(() => api("/api/migrate").then(draw), 1500);
-    else if (s.source) refresh();
-  };
-  form.onsubmit = (e) => { e.preventDefault(); api("/api/migrate", { body: { url: form.url.value, creator: form.creator.value } }).then(draw, (err) => toast(err.message, 6000)); };
-  api("/api/migrate").then(draw);
-  return p;
 }
 
 (async () => {
