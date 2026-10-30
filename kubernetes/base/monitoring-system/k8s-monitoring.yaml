@@ -58,8 +58,10 @@ spec:
             regex = "default@.*-pr-[0-9]+.*"
             action = "drop"
           }
-        # an active series limit 429 rejects only the new series, and retrying it stalls every other series
         queueConfig:
+          # Grafana Cloud rejects older samples, but still bills them as DPM
+          sampleAgeLimit: 1h
+          # an active series limit 429 rejects only the new series, and retrying it stalls every other series
           retryOnHttp429: false
       logs:
         type: loki
@@ -94,18 +96,28 @@ spec:
             - kubelet_cgroup_manager_duration_seconds_bucket
             - kubelet_pleg_relist_interval_seconds_bucket
             - kubelet_pod_start_duration_seconds_bucket
+            # kubelet dashboard only
+            - kubelet_runtime_operations_(errors_)?total
+            - storage_operation_duration_seconds_count
+            - volume_manager_total_volumes
       cadvisor:
         metricsTuning:
-          # no swap on Talos or OKE
           excludeMetrics:
+            # no swap on Talos or OKE
             - container_memory_swap
+            # only feeds a recording rule for the mixin dashboards
+            - container_memory_cache
+            # byte counters already cover pod IO and traffic, and node_network_*_drop_total keeps drops
+            - container_fs_(reads|writes)_total
+            - container_network_(receive|transmit)_packets(_dropped)?_total
       kube-state-metrics:
-        # Unknown pod phase is deprecated, and the "true" series already reads 0 for an unknown status
+        # Unknown pod phase is deprecated, and the "true" series already reads 0 for an unknown status.
+        # KubePersistentVolumeErrors only reads Failed and Pending volumes
         extraMetricProcessingRules: |-
           rule {
             source_labels = ["__name__","phase","condition","status"]
             separator = "@"
-            regex = "kube_pod_status_phase@Unknown@.*|kube_pod_status_ready@.*@unknown@.*|kube_deployment_status_condition@.*@unknown"
+            regex = "kube_pod_status_phase@Unknown@.*|kube_pod_status_ready@.*@unknown@.*|kube_deployment_status_condition@.*@unknown|kube_persistentvolume_status_phase@(Available|Released)@.*|kube_persistentvolumeclaim_status_phase@Lost@.*"
             action = "drop"
           }
         metricsTuning:
@@ -121,19 +133,24 @@ spec:
     hostMetrics:
       linuxHosts:
         enabled: true
-        # one veth per pod, renamed on every restart, and cAdvisor's container_network_* already covers pods
+        # one veth per pod, renamed on every restart, and cAdvisor's container_network_* already covers pods.
+        # loopback never leaves the node, and the kernel's tunnel and dummy devices sit idle
         extraMetricProcessingRules: |-
           rule {
             source_labels = ["__name__","device"]
             separator = "@"
-            regex = "node_network_.+@veth.+"
+            regex = "node_network_.+@(veth.+|lo|dummy0|ip6tnl0|sit0|teql0|tunl0)"
             action = "drop"
           }
         metricsTuning:
           excludeMetrics:
+            - node_cpu_(scaling_)?frequency_.*
             - node_cpu_guest_seconds_total
+            - node_cpu_online
             - node_cpu_scaling_governor
             - node_filesystem_device_error
+            - node_filesystem_mount_info
+            - node_filesystem_purgeable_bytes
             - node_filesystem_readonly
       enabled: true
       collector: alloy-metrics
@@ -188,6 +205,19 @@ spec:
     prometheusOperatorObjects:
       enabled: true
       collector: alloy-metrics
+      # Go runtime and process metrics, which every exporter repeats
+      podMonitors:
+        metricsTuning:
+          excludeMetrics:
+            - go_.*
+            - process_.*
+            - promhttp_.*
+      serviceMonitors:
+        metricsTuning:
+          excludeMetrics:
+            - go_.*
+            - process_.*
+            - promhttp_.*
     # 4GB/day but only 50GB/month limit
     # profiling:
     # likely high metrics
