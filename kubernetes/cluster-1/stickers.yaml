@@ -1,0 +1,70 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app stickers
+  namespace: default
+spec:
+  interval: 15m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    global:
+      createDefaultServiceAccount: false
+    defaultPodOptions:
+      # keep off the 8GiB amd64 control plane node
+      nodeSelector:
+        kubernetes.io/arch: arm64
+      # the image runs as uid 1000, which can't write to fresh volumes
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+    controllers:
+      main:
+        # RWO volumes can't attach to two nodes during a rollout
+        strategy: Recreate
+        containers:
+          main:
+            image:
+              repository: ghcr.io/pl4nty/stickers
+              tag: latest@sha256:55784d98a1299d07483e0c014fd63a59919caedc7cb413608382f22c03ec3088
+            env:
+              PUBLIC_URL: https://stickers.${PUBLIC_DOMAIN}
+            # SUBMIT_TOKEN and ADMIN_TOKEN, so the links survive restarts
+            envFrom:
+              - secretRef:
+                  name: *app
+            resources:
+              requests:
+                cpu: 50m
+                memory: 256Mi
+              # an A3 scan at 600 dpi takes ~1.3GB to split; uploads spool to /tmp
+              limits:
+                memory: 2Gi
+                ephemeral-storage: 1Gi
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 8000
+    persistence:
+      data:
+        # keep data if a failed install is remediated by uninstalling
+        retain: true
+        accessMode: ReadWriteOnce
+        size: 5Gi
+        globalMounts:
+          - path: /data
+    route:
+      main:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - stickers.${PUBLIC_DOMAIN}
+        rules:
+          - backendRefs:
+              - identifier: main
+                port: 8000
