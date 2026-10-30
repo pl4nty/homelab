@@ -1,0 +1,26 @@
+# kubelets with rotate-server-certificates serve no TLS until their serving CSR is approved,
+# so Alloy can't scrape their kubelet or cAdvisor metrics
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kubelet-csr-approver
+  namespace: kube-system
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: kubelet-csr-approver
+    namespace: flux-system
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    providerRegex: ^talos-[a-z0-9]{3}-[a-z0-9]{3}$
+    providerIpPrefixes:
+      - 192.168.1.0/24
+    # node hostnames aren't in DNS
+    bypassDnsResolution: true
+    replicas: 1
