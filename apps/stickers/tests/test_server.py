@@ -1,14 +1,11 @@
 """The web app over HTTP (FastAPI TestClient): store and XMP, permissions, the scan
-queue, editing, and the PhotoPrism import against an in-process mock."""
+queue, and editing."""
 
 import io
 import json
 import shutil
 import subprocess
-import threading
 import time
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from typing import ClassVar
 
 import pytest
 from fastapi.testclient import TestClient
@@ -131,7 +128,6 @@ def test_permissions(client, app):
     assert (
         client.get("/api/scans", headers=SUB).status_code == 403
     )  # submitters see only their own scans
-    assert client.post("/api/migrate", json={}).status_code == 403
     assert client.get("/i/nope/256.webp").status_code == 404
 
 
@@ -245,77 +241,6 @@ def test_queued_scan_survives_restart(tmp_path):
     assert len(app.state.store.list("pending")) == len(SHAPES)
 
 
-class MockPhotoPrism(BaseHTTPRequestHandler):
-    PNG = io.BytesIO()
-    sticker().save(PNG, "PNG", dpi=(600, 600))
-    PHOTOS: ClassVar = [
-        {
-            "UID": f"p{i}",
-            "Title": f"Photo {i}",
-            "Hash": f"h{i}",
-            "TakenAt": f"2026-10-2{i}T00:00:00Z",
-            "Caption": "LINE 1 / LINE 2\nSize: 40 × 20 mm",
-        }
-        for i in range(3)
-    ]
-
-    def log_message(self, *a):
-        pass
-
-    def do_GET(self):
-        path = self.path.split("?")[0]
-        if self.headers["User-Agent"].startswith("Python-urllib"):  # like Cloudflare
-            return self.send_error(403)
-        if path == "/api/v1/session":
-            body = {"config": {"downloadToken": "dl"}}
-        elif path == "/api/v1/photos":
-            body = self.PHOTOS if "offset=0" in self.path else []
-        elif path.startswith("/api/v1/photos/"):
-            body = {
-                "Labels": [
-                    {"Label": {"Name": "Holo"}, "LabelSrc": "manual"},
-                    {"Label": {"Name": "Blue"}, "LabelSrc": "keyword"},
-                ]
-            }
-        elif path == "/api/v1/dl/h1" and self.path.endswith("t=dl"):
-            return self.send_error(500)
-        elif path.startswith("/api/v1/dl/") and self.path.endswith("t=dl"):
-            data = self.PNG.getvalue()
-            self.send_response(200)
-            self.send_header("Content-Length", str(len(data)))
-            self.end_headers()
-            return self.wfile.write(data)
-        else:
-            return self.send_error(404)
-        data = json.dumps(body).encode()
-        self.send_response(200)
-        self.send_header("Content-Length", str(len(data)))
-        self.end_headers()
-        self.wfile.write(data)
-
-
-def test_migrate_from_photoprism(client, app):
-    srv = ThreadingHTTPServer(("127.0.0.1", 0), MockPhotoPrism)
-    threading.Thread(target=srv.serve_forever, daemon=True).start()
-    url = f"http://127.0.0.1:{srv.server_address[1]}"
-    try:
-        run = lambda: client.post("/api/migrate", headers=ADM, json={"url": url, "creator": "Tom"})
-        run()
-        wait(lambda: not client.get("/api/migrate", headers=ADM).json()["running"])
-        s = client.get("/api/migrate", headers=ADM).json()
-        assert (s["total"], s["imported"], s["skipped"], len(s["errors"])) == (3, 2, 0, 1)
-        got = {m["id"]: m for m in client.get("/api/stickers").json()}
-        assert set(got) == {"ppp0", "ppp2"}
-        m = got["ppp0"]
-        assert (m["title"], m["tags"], m["creator"]) == ("Photo 0", ["holo"], "Tom")
-        assert (m["w_mm"], m["h_mm"], m["added"]) == (40.0, 20.0, "2026-10-20T00:00:00Z")
-        run()  # rerun skips what's there
-        wait(lambda: not client.get("/api/migrate", headers=ADM).json()["running"])
-        assert client.get("/api/migrate", headers=ADM).json()["skipped"] == 2
-    finally:
-        srv.shutdown()
-
-
 def test_pages_are_served(client):
     for path in ("/", "/submit", "/admin"):
         r = client.get(path)
@@ -325,7 +250,7 @@ def test_pages_are_served(client):
 
 def test_only_public_responses_are_cacheable(client):
     """Cloudflare caches by URL alone, so token-dependent answers must never be stored."""
-    for path in ("/api/me", "/api/stickers?state=pending", "/api/scans", "/api/migrate"):
+    for path in ("/api/me", "/api/stickers?state=pending", "/api/scans"):
         assert client.get(path, headers=ADM).headers["cache-control"] == "private, no-store"
     assert client.get("/static/app.js").headers["cache-control"] == "no-cache"
     r = client.get("/api/stickers")

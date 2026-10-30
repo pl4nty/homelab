@@ -7,7 +7,7 @@ One web app for a sticker collection:
 - **Admin** (`/admin#<ADMIN_TOKEN>`):
   - **To review:** each sticker from an uploaded scan. Rotate, zoom, level, fix the colour, and edit the title, tags and comment. Possible duplicates are shown alongside. Then publish or reject.
   - **Published:** edit the title, tags, comment, name, rotation or colour, unpublish, or delete. On a browser that has opened the admin link, the public viewer also has an **Edit** button.
-  - **Add scans** and a one-off **Import** from PhotoPrism.
+  - **Add scans**.
 
 ```sh
 export SUBMIT_TOKEN=$(openssl rand -base64 18) ADMIN_TOKEN=$(openssl rand -base64 18)
@@ -112,18 +112,7 @@ docker build -t stickers .        # runs the tests; the image runs as uid 1000
 
 - Mount one persistent volume at `/data`.
 - Put `SUBMIT_TOKEN`, `ADMIN_TOKEN` and `ANTHROPIC_API_KEY` in a Secret.
-- Serve the app through the Cloudflare tunnel / HTTPRoute that PhotoPrism uses now. The app enforces read-only access itself, so it needs no method allow-list in front of it.
-
-## Moving off PhotoPrism
-
-Open **Admin → Import** and enter the PhotoPrism address. The import copies every photo straight into Published:
-- the original PNG, with its alpha and DPI;
-- the title;
-- the manual labels, lowercased, as tags (PhotoPrism's own `keyword` labels, such as "Blue", are skipped).
-
-Running it again skips stickers already imported: each id is `pp<PhotoPrism UID>`. Against stickers.tplant.com.au, all 114 photos imported, and the sizes matched the old captions. Afterwards, delete `migrate.py`, its `include_router` line in `server.py`, and `importPanel` and the Import tab in `static/app.js`.
-
-Cloudflare answers 403 to Python's default `User-Agent`, so the import sends its own.
+- `kubernetes/cluster-1/stickers.yaml` does all three and serves it through the cluster's Cloudflare tunnel. The app enforces read-only access itself, so it needs no method allow-list in front of it. The zone caches every URL, so API responses are `no-store` and the public list revalidates by ETag.
 
 ## Scanning
 
@@ -141,7 +130,7 @@ Measured on 32 real stickers with Sonnet 5.5, effort `low`:
 ## Development
 
 ```sh
-uv run --extra dev pytest                                   # 39 tests: splitter, tagger, store, API
+uv run --extra dev pytest                                   # 38 tests: splitter, tagger, store, API
 pip install -e '.[dev]' playwright && playwright install chromium
 pytest tests/test_ui.py                                     # 10 browser tests, desktop and phone
 ```
@@ -152,7 +141,7 @@ pytest tests/test_ui.py                                     # 10 browser tests, 
   - the scan queue with a fake Claude, including one failure and a resume after a restart;
   - uploading the same scan twice flags each rescanned sticker as a duplicate;
   - the colour correction fixes blue foil but leaves green designs and dark ink alone;
-  - the PhotoPrism import against a mock that rejects urllib's User-Agent the way Cloudflare does.
+  - that only public responses are cacheable.
 - `test_ui.py` runs Chromium at 1440×900 and at 390×844 (touch). It checks:
   - that rows fill the width;
   - search, tag AND-filtering and URL state;
