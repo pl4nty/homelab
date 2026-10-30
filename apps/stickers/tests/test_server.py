@@ -323,6 +323,17 @@ def test_pages_are_served(client):
     assert client.get("/static/app.js").status_code == 200
 
 
+def test_only_public_responses_are_cacheable(client):
+    """Cloudflare caches by URL alone, so token-dependent answers must never be stored."""
+    for path in ("/api/me", "/api/stickers?state=pending", "/api/scans", "/api/migrate"):
+        assert client.get(path, headers=ADM).headers["cache-control"] == "private, no-store"
+    assert client.get("/static/app.js").headers["cache-control"] == "no-cache"
+    r = client.get("/api/stickers")
+    assert r.headers["cache-control"] == "no-cache" and r.json() == []
+    again = client.get("/api/stickers", headers={"If-None-Match": r.headers["etag"]})
+    assert again.status_code == 304
+
+
 def test_auto_colour_fixes_blue_foil_only():
     from stickersplit.colour import auto, balance
 
