@@ -22,3 +22,100 @@ spec:
       retries: 3
   uninstall:
     keepHistory: false
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: cloudnative-pg
+  namespace: default
+spec:
+  selector:
+    matchExpressions:
+      - key: cnpg.io/cluster
+        operator: Exists
+      - key: cnpg.io/podRole
+        operator: In
+        values:
+          - instance
+  # cnpg_io_cluster, to group instances in the alerts below
+  podTargetLabels:
+    - cnpg.io/cluster
+  podMetricsEndpoints:
+    - port: metrics
+      # only the series the alerts below read. KubePersistentVolumeFillingUp covers database size
+      metricRelabelings:
+        - sourceLabels: [__name__]
+          regex: cnpg_collector_(up|last_available_backup_timestamp|last_failed_backup_timestamp)|cnpg_pg_replication_(lag|streaming_replicas)|cnpg_pg_stat_archiver_(failed_count|seconds_since_last_archival)
+          action: keep
+        # cnpg_collector_up's own cluster label (the CNPG cluster, already in cnpg_io_cluster) would
+        # otherwise beat the Kubernetes cluster name, and the rules' cluster matcher would skip it
+        - regex: cluster
+          action: labeldrop
+---
+# CNPG's own packs (the cluster chart's prometheus_rules and docs/src/samples/monitoring) have no
+# backup alerts, and most of their rules need series the PodMonitor drops. these use its keep list
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: cloudnative-pg
+  namespace: default
+spec:
+  groups:
+    - name: cloudnative-pg
+      rules:
+        - alert: CNPGInstanceDown
+          expr: up{cnpg_io_cluster!=""} == 0 or cnpg_collector_up == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: Postgres instance is down.
+            description: Instance {{ $labels.pod }} of {{ $labels.namespace }}/{{ $labels.cnpg_io_cluster }} has been down or unscrapeable for 5 minutes.
+        # ScheduledBackups run daily. the collector reports 0 when a cluster has no backup
+        - alert: CNPGBackupStale
+          expr: time() - max by (cluster, namespace, cnpg_io_cluster) (cnpg_collector_last_available_backup_timestamp) > 30 * 3600
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Postgres backup is more than 30 hours old.
+            description: The last available backup of {{ $labels.namespace }}/{{ $labels.cnpg_io_cluster }} is {{ $value | humanizeDuration }} old.
+        - alert: CNPGBackupFailed
+          expr: |
+            max by (cluster, namespace, cnpg_io_cluster) (cnpg_collector_last_failed_backup_timestamp)
+            > max by (cluster, namespace, cnpg_io_cluster) (cnpg_collector_last_available_backup_timestamp)
+          labels:
+            severity: warning
+          annotations:
+            summary: Latest Postgres backup failed.
+            description: The most recent backup of {{ $labels.namespace }}/{{ $labels.cnpg_io_cluster }} failed. Check `kubectl get backups -n {{ $labels.namespace }}`.
+        # archive_timeout is 5m, so an hour without an archived WAL file means archiving is broken.
+        # the archiver metrics only come from the primary
+        - alert: CNPGWALArchivingFailing
+          expr: |
+            max by (cluster, namespace, cnpg_io_cluster) (cnpg_pg_stat_archiver_seconds_since_last_archival) > 3600
+            or
+            sum by (cluster, namespace, cnpg_io_cluster) (increase(cnpg_pg_stat_archiver_failed_count[15m])) > 0
+          for: 15m
+          labels:
+            severity: critical
+          annotations:
+            summary: Postgres WAL archiving is failing.
+            description: WAL files from {{ $labels.namespace }}/{{ $labels.cnpg_io_cluster }} aren't reaching the object store, so point-in-time recovery is broken and WAL is piling up on disk.
+        # both clusters run 2 instances, so the primary should always stream to one standby
+        - alert: CNPGNoStandby
+          expr: max by (cluster, namespace, cnpg_io_cluster) (cnpg_pg_replication_streaming_replicas) < 1
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Postgres cluster has no streaming standby.
+            description: '{{ $labels.namespace }}/{{ $labels.cnpg_io_cluster }} has had no streaming replica for 15 minutes, so a primary failure would lose data.'
+        - alert: CNPGReplicationLag
+          expr: max by (cluster, namespace, cnpg_io_cluster) (cnpg_pg_replication_lag) > 300
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: Postgres standby is lagging.
+            description: A standby of {{ $labels.namespace }}/{{ $labels.cnpg_io_cluster }} is {{ $value | humanizeDuration }} behind the primary.

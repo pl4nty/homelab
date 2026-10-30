@@ -46,3 +46,22 @@ spec:
         cpu: 25m
       limits:
         memory: 250Mi
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: external-dns
+  namespace: default
+spec:
+  groups:
+    - name: external-dns
+      rules:
+        # syncs every 2m, and the timestamp only moves after a successful sync
+        - alert: ExternalDNSSyncStale
+          expr: time() - max by (cluster, namespace) (external_dns_controller_last_sync_timestamp_seconds) > 900
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: external-dns has stopped syncing.
+            description: external-dns on {{ $labels.cluster }} last synced with Cloudflare {{ $value | humanizeDuration }} ago.
