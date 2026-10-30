@@ -9,6 +9,7 @@ reach server logs or Referer headers; the page sends them as an X-Token header.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import os
@@ -22,7 +23,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import Literal
 
-from fastapi import Depends, FastAPI, Form, Header, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, Form, Header, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
@@ -146,16 +147,35 @@ def create_app(
             raise HTTPException(404, "No such sticker")
         return store.items[id]
 
+    # Cloudflare caches every URL by path alone, whatever X-Token says. So only the public
+    # sticker list may be stored, and it is revalidated by ETag; static files revalidate too.
+    @app.middleware("http")
+    async def cache_control(request, call_next):
+        r = await call_next(request)
+        if "cache-control" not in r.headers:
+            api = request.url.path.startswith("/api/")
+            r.headers["Cache-Control"] = "private, no-store" if api else "no-cache"
+        return r
+
     @app.get("/api/me")
     def me(r=Depends(role)):
         return {"role": r, "tagging": claude is not None}
 
     @app.get("/api/stickers")
-    def stickers(state: str = "approved", r=Depends(role)):
+    def stickers(request: Request, state: str = "approved", r=Depends(role)):
         if state not in STATES:
             raise HTTPException(400, "Unknown state")
         need(r, None if state == "approved" else "admin")
-        return store.list(state)
+        if state != "approved":
+            return store.list(state)
+        body = json.dumps(store.list(state)).encode()
+        headers = {
+            "ETag": f'"{hashlib.sha256(body).hexdigest()[:32]}"',
+            "Cache-Control": "no-cache",
+        }
+        if request.headers.get("if-none-match") == headers["ETag"]:
+            return Response(status_code=304, headers=headers)
+        return Response(body, media_type="application/json", headers=headers)
 
     @app.post("/api/stickers/{id}")
     def edit(id: str, e: Edit, r=Depends(role)):

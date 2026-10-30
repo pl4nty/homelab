@@ -141,7 +141,7 @@ Measured on 32 real stickers with Sonnet 5.5, effort `low`:
 ## Development
 
 ```sh
-uv run --extra dev pytest                                   # 38 tests: splitter, tagger, store, API
+uv run --extra dev pytest                                   # 39 tests: splitter, tagger, store, API
 pip install -e '.[dev]' playwright && playwright install chromium
 pytest tests/test_ui.py                                     # 10 browser tests, desktop and phone
 ```
