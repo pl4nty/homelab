@@ -18,7 +18,7 @@ buildscript {
     // >=2022.1 requires gradle 7
     // >=2022.1.2 supports ARM
     // 2022.1.5-2023.1.0 breaks start click button: Group@6ccef66[styleClass=root]is already set as root of another scene
-    classpath 'com.sandec.jpro:jpro-plugin-gradle:2022.1.4'
+    classpath 'com.sandec.jpro:jpro-plugin-gradle:2022.1.9'
   }
 }
 
