@@ -6,7 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!apps/vscode-oci-layers/src/types/vscode.proposed.*.d.ts"]
+    "includes": ["**", "!apps/vscode-oci-layers/src/types/vscode.proposed.*.d.ts", "!apps/ipa-web/templates"]
   },
   "formatter": {
     "indentStyle": "space",

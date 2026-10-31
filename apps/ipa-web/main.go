@@ -373,6 +373,10 @@ func main() {
 		c.FileFromFS("static/favicon.ico", http.FS(content))
 	})
 
+	r.GET("tplant.css", func(c *gin.Context) {
+		c.FileFromFS("static/tplant.css", http.FS(content))
+	})
+
 	r.GET("/search", func(c *gin.Context) {
 		query := strings.TrimSpace(c.Query("q"))
 		if query == "" {
