@@ -1,0 +1,37 @@
+diff --git a/python/servo/platform/build_target.py b/python/servo/platform/build_target.py
+index 622e299d2..c7dda47cc 100644
+--- a/python/servo/platform/build_target.py
++++ b/python/servo/platform/build_target.py
+@@ -60,6 +60,14 @@ class BuildTarget(object):
+                 return AndroidTarget(target_triple)
+             elif "ohos" in target_triple:
+                 return OpenHarmonyTarget(target_triple)
++            elif target_triple.endswith(("-unknown-linux-gnu", "-unknown-linux-musl")):
++                # Plain Linux-to-Linux cross build (e.g. riscv64gc-unknown-linux-gnu
++                # from x86_64). The cross toolchain, sysroot and pkg-config are
++                # supplied through the environment, so there is nothing for the
++                # build target itself to configure.
++                if target_triple == host_triple:
++                    return BuildTarget(host_triple)
++                return LinuxCrossTarget(target_triple)
+             elif target_triple != host_triple:
+                 raise Exception(f"Unknown build target {target_triple}")
+         return BuildTarget(host_triple)
+@@ -85,6 +93,17 @@ class CrossBuildTarget(BuildTarget):
+         return True
+ 
+ 
++class LinuxCrossTarget(CrossBuildTarget):
++    """A Linux target built from a Linux host of a different architecture.
++
++    Everything needed for the cross build (compilers, sysroot, pkg-config,
++    bindgen flags) comes from the environment, so this only exists to mark the
++    build as a cross build.
++    """
++
++    pass
++
++
+ class AndroidTarget(CrossBuildTarget):
+     DEFAULT_TRIPLE = "aarch64-linux-android"
+ 
