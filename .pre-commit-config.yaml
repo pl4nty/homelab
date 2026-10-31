@@ -1,4 +1,4 @@
-exclude: (package-lock\.json|uv\.lock|/Fixtures/.*)$
+exclude: (package-lock\.json|uv\.lock|/Fixtures/.*|^apps/ice-code-editor/public/.*)$
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
