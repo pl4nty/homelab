@@ -257,7 +257,7 @@
     "proxy": "bun proxy/serve.mjs 8787"
   },
   "devDependencies": {
-    "@types/node": "26.6.5",
+    "@types/node": "26.6.6",
     "@types/vscode": "1.140.0",
     "@vscode/test-web": "0.0.81",
     "esbuild": "0.28.2",
