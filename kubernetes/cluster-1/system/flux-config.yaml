@@ -13,7 +13,7 @@ spec:
     name: home-kubernetes
   patches:
   # release defaults, hoisted out of every HelmRelease. scoped to the default
-  # namespace so longhorn, toolhive and kube-arch-scheduler keep their own.
+  # namespace so longhorn and toolhive keep their own.
   # spec.interval stays per-release: it is a required field, so a HelmRelease
   # without one fails the API dry-run before any patch is applied
   - patch: |-
