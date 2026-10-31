@@ -20,12 +20,8 @@ spec:
         containers:
           main:
             image:
-              repository: ghcr.io/corentinth/it-tools
-              tag: 2023.4.23-92bd835@sha256:eb3685c2d1867b728d7be78a95d1902c6fcf52c001989b5f6f66b951df3dcf72
-            securityContext:
-              capabilities:
-                add:
-                  - NET_BIND_SERVICE
+              repository: ghcr.io/sharevb/it-tools
+              tag: 2026.10.25@sha256:c6e68a94af10c73cb4e53eaa78726d8abbbb4ad1a89a3f127a69f85a9ae029ab
             probes:
               liveness:
                 enabled: true
@@ -38,7 +34,7 @@ spec:
         controller: main
         ports:
           http:
-            port: 80
+            port: 8080
     route:
       main:
         parentRefs:
@@ -49,4 +45,4 @@ spec:
         rules:
           - backendRefs:
               - name: it-tools
-                port: 80
+                port: 8080
