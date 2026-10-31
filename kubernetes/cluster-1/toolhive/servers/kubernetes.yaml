@@ -27,7 +27,7 @@ spec:
     name: toolhive
   telemetryConfigRef:
     name: toolhive
-  image: quay.io/containers/kubernetes_mcp_server:v0.0.69@sha256:1da9d62ad0c008a6cadcf2718c86c2e2d18753ca1d9f1f3313068980794b24f2
+  image: quay.io/containers/kubernetes_mcp_server:v0.1.1@sha256:d616331a99184d42f7471eac5ae257192e7065bb684ad115cc95c2e76cfbc2d1
   serviceAccount: kubernetes-mcp
   transport: streamable-http
   mcpPort: 8080
