@@ -11,9 +11,9 @@ dependencies = [
     # "azure-identity>=1.19.0",
     "pyjwt[crypto]==2.15.1",
     "httpx==0.28.1",
-    "python-dotenv==1.2.2",
-    "uvicorn==0.42.0",
-    "google-maps-routing==0.9.0",
+    "python-dotenv==1.2.4",
+    "uvicorn==0.54.0",
+    "google-maps-routing==0.11.2",
 ]
 
 [project.scripts]
