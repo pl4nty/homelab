@@ -3,7 +3,7 @@
 One web app for a sticker collection:
 
 - **Browse** (`/`, public, read-only): justified rows that fill the width, as in Immich and Google Photos, in the colours and type of tplant.com.au. Search across title, tags, comment and name. Filter by tags; several tags must all match. Open a sticker to see its size in mm, its details, a PNG download and reverse image search. The search, the tags and the open sticker are kept in the URL, so you can share a link.
-- **Submit** (`/submit#<SUBMIT_TOKEN>`): upload a scan of many stickers, with your name and how you got them. The server splits it into stickers, straightens them, and has Claude title and tag them. Submitters see only the progress of their own scans.
+- **Submit** (`/submit#<SUBMIT_TOKEN>`): upload a scan of many stickers, with your name. How each sticker was acquired is added per sticker in review. The server splits it into stickers, straightens them, and has Claude title and tag them. Submitters see only the progress of their own scans.
 - **Admin** (`/admin#<ADMIN_TOKEN>`):
   - **To review:** each sticker from an uploaded scan. Rotate, zoom, level, fix the colour, and edit the title, tags and comment. Possible duplicates are shown alongside. Then publish or reject.
   - **Published:** edit the title, tags, comment, name, rotation or colour, unpublish, or delete. On a browser that has opened the admin link, the public viewer also has an **Edit** button.
@@ -98,7 +98,7 @@ A holo rescanned at another angle may differ more in colour, and then shows as "
 | Zoom and move | Scroll or pinch to zoom. Use **Move**, or two fingers, to pan. `+` `−` `0` |
 | Level | Choose **Level** and drag along an edge that should be horizontal or vertical. |
 | Symmetry | Finds the angle at which the outline best matches its mirror image. |
-| Find online | Google Lens, Bing, TinEye or Yandex. They fetch the image by URL, so this only works on a publicly reachable server. |
+| Find online | Google Lens. It fetches the image by URL, so this only works on a publicly reachable server. |
 | Colour | **Warmth** and **Tint** sliders, **Auto**, **Reset** |
 | Publish, save | `Enter` |
 

@@ -169,7 +169,7 @@ def test_scan_is_split_tagged_and_queued_for_review(client, app, tmp_path):
     r = client.post(
         "/api/scans",
         headers=SUB,
-        data={"creator": " Ana ", "comment": "Swap table"},
+        data={"creator": " Ana "},
         files={"file": ("my scan.png", scan.read_bytes(), "image/png")},
     )
     assert r.status_code == 200 and r.json()["status"] == "queued"
@@ -179,7 +179,7 @@ def test_scan_is_split_tagged_and_queued_for_review(client, app, tmp_path):
     assert [j["name"] for j in client.get("/api/scans", headers=ADM).json()] == ["my scan.png"]
     queued = client.get("/api/stickers?state=pending", headers=ADM).json()
     assert len(queued) == len(SHAPES)
-    assert all(d["creator"] == "Ana" and d["comment"] == "Swap table" for d in queued)
+    assert all(d["creator"] == "Ana" and d["comment"] == "" for d in queued)
     titled = [d for d in queued if d["title"]]
     assert len(titled) == len(SHAPES) - 1  # one tagging failure, still queued
     assert all(d["tags"] == ["holo", "ctf"] for d in titled)
@@ -234,7 +234,7 @@ def test_queued_scan_survives_restart(tmp_path):
     (data / "scans").mkdir(parents=True)
     shutil.copy(make_scan(tmp_path / "s.png"), data / "scans" / "abc.png")
     (data / "scans" / "abc.json").write_text(
-        json.dumps({"id": "abc", "ext": ".png", "name": "s.png", "creator": "", "comment": ""})
+        json.dumps({"id": "abc", "ext": ".png", "name": "s.png", "creator": ""})
     )
     app = create_app(data, "s", "a")
     wait(lambda: app.state.worker.jobs["abc"]["status"] == "done")
