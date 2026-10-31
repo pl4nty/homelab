@@ -21,7 +21,7 @@ spec:
           main:
             image:
               repository: ghcr.io/corentinth/it-tools
-              tag: 2023.4.23-92bd835@sha256:eb3685c2d1867b728d7be78a95d1902c6fcf52c001989b5f6f66b951df3dcf72
+              tag: 2024.10.22-7ca5933@sha256:8b8128748339583ca951af03dfe02a9a4d7363f61a216226fc28030731a5a61f
             securityContext:
               capabilities:
                 add:
