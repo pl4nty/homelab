@@ -28,7 +28,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/stickers
-              tag: latest@sha256:406f6eea928eec3dea1013589a55931f1e1b47b189e0c28083e259dcd31f61a9
+              tag: latest@sha256:b8b252027c6d8d14dd6a0d4086f1090f07a5610ec50acf3ca10af9aa3168f5d4
             env:
               PUBLIC_URL: https://stickers.${PUBLIC_DOMAIN}
             # SUBMIT_TOKEN and ADMIN_TOKEN, so the links survive restarts
