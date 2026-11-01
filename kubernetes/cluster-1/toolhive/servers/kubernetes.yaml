@@ -17,6 +17,18 @@ subjects:
     name: kubernetes-mcp
     namespace: toolhive-system
 ---
+# v0.0.69 dropped CLI flags for TOML config. The image sets
+# MCP_CONFIG_PATH=/etc/kubernetes-mcp-server/config.toml, so this replaces its default.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kubernetes-mcp
+  namespace: toolhive-system
+data:
+  config.toml: |
+    port = "8080"
+    stateless = true
+---
 apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPServer
 metadata:
@@ -31,7 +43,15 @@ spec:
   serviceAccount: kubernetes-mcp
   transport: streamable-http
   mcpPort: 8080
-  args:
-    - --port
-    - "8080"
-    - --stateless
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          volumeMounts:
+            - name: config
+              mountPath: /etc/kubernetes-mcp-server
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: kubernetes-mcp
