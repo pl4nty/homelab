@@ -28,8 +28,6 @@ spec:
               runAsUser: 977
               runAsGroup: 977
               runAsNonRoot: true
-            env:
-              SEARXNG_BASE_URL: https://search.${PRIVATE_DOMAIN}/
             probes:
               liveness: &probe
                 enabled: true
@@ -56,6 +54,39 @@ spec:
         ports:
           http:
             port: 8080
+    persistence:
+      config:
+        type: configMap
+        identifier: config
+        advancedMounts:
+          main:
+            main:
+              # the entrypoint copies the template to /etc/searxng/settings.yml and
+              # swaps ultrasecretkey for a random key on every start
+              - path: /usr/local/searxng/settings.template.yml
+                subPath: settings.yml
+                readOnly: true
+    configMaps:
+      config:
+        data:
+          settings.yml: |
+            use_default_settings: true
+            server:
+              base_url: https://search.${PRIVATE_DOMAIN}/
+              # only signs image proxy links and hashes cache keys, which live as long as the pod
+              secret_key: ultrasecretkey
+              image_proxy: true
+            engines:
+              - name: hister
+                engine: json_engine
+                shortcut: hi
+                categories: [general]
+                # query={"highlight":"text","limit":20}, so results carry a text snippet
+                search_url: http://hister.default.svc:4433/search?format=json&query=%7B%22highlight%22%3A%22text%22%2C%22limit%22%3A20%7D&q={query}
+                results_query: documents
+                url_query: url
+                title_query: title
+                content_query: text
     route:
       main:
         parentRefs:
