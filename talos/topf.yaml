@@ -1,0 +1,11 @@
+# https://github.com/postfinance/topf. Import secrets.yaml from the live CP, never generate it.
+# data.hw: nuc, rk1 or riscv. riscv nodes also set data.installer, data.disk and data.kubeletImage.
+clusterName: cluster-1
+clusterEndpoint: https://192.168.1.131:6443
+kubernetesVersion: 1.34.2
+talosVersion: 1.11.1
+schematicId: "@schematic.yaml.tpl"
+nodes:
+  - {host: talos-ivx-yqq, ip: 192.168.1.131, role: control-plane, data: {hw: nuc}}
+  - {host: talos-d04-4hs, ip: 192.168.1.133, role: worker, data: {hw: rk1}}
+  - {host: talos-uj3-t5w, ip: 192.168.1.134, role: worker, data: {hw: rk1}}
