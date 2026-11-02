@@ -55,6 +55,16 @@ spec:
     #     node.longhorn.io/create-default-disk: config
     longhornUI:
       replicas: 1
+    # SMART health of each Longhorn disk. longhorn-manager runs smartctl every 10 minutes and
+    # stores the result in nodes.longhorn.io status.diskStatus.<disk>.healthData.
+    # keep only the health series, ~18 per NVMe disk, see alerts.yaml
+    metrics:
+      serviceMonitor:
+        enabled: true
+        metricRelabelings:
+          - sourceLabels: [__name__]
+            regex: longhorn_disk_health(_attribute_raw)?
+            action: keep
 
 # k annotate storageclass longhorn storageclass.kubernetes.io/is-default-class=true
 
