@@ -18,29 +18,6 @@ spec:
         kubernetes.io/arch: arm64
     controllers:
       main:
-        # a native sidecar starts first, so the limiter finds Valkey at startup
-        # instead of switching itself off
-        initContainers:
-          valkey:
-            image:
-              repository: docker.io/valkey/valkey
-              tag: 9.1.3-alpine@sha256:bf09d58e96d6b4524a15396b65b242bbe18beebbcc15a04d8ee75ddac62fae0b
-            restartPolicy: Always
-            # limiter counters only, so nothing to persist
-            args: [--save, "", --appendonly, "no", --maxmemory, 32mb, --maxmemory-policy, allkeys-lru]
-            probes:
-              startup:
-                enabled: true
-                command: [valkey-cli, ping]
-                spec:
-                  periodSeconds: 1
-                  failureThreshold: 30
-            resources:
-              requests:
-                cpu: 5m
-                memory: 16Mi
-              limits:
-                memory: 64Mi
         containers:
           main:
             image:
@@ -51,6 +28,8 @@ spec:
               runAsUser: 977
               runAsGroup: 977
               runAsNonRoot: true
+            env:
+              SEARXNG_BASE_URL: https://search.${PRIVATE_DOMAIN}/
             probes:
               liveness: &probe
                 enabled: true
@@ -77,49 +56,13 @@ spec:
         ports:
           http:
             port: 8080
-    persistence:
-      config:
-        type: configMap
-        identifier: config
-        advancedMounts:
-          main:
-            main:
-              # the entrypoint copies the template to /etc/searxng/settings.yml and
-              # swaps ultrasecretkey for a random key on every start
-              - path: /usr/local/searxng/settings.template.yml
-                subPath: settings.yml
-                readOnly: true
-              - path: /etc/searxng/limiter.toml
-                subPath: limiter.toml
-                readOnly: true
-    configMaps:
-      config:
-        data:
-          settings.yml: |
-            use_default_settings: true
-            server:
-              base_url: https://search.${PUBLIC_DOMAIN}/
-              # the key only signs image proxy links and hashes cache and Valkey keys,
-              # which all live as long as the pod
-              secret_key: ultrasecretkey
-              limiter: true
-              default_http_headers:
-                # the zone caches everything at the edge, results included
-                Cloudflare-CDN-Cache-Control: no-store
-            valkey:
-              url: valkey://localhost:6379/0
-          limiter.toml: |
-            [botdetection]
-            # requests arrive from cloudflared pods, and Cloudflare appends the client
-            # IP to X-Forwarded-For
-            trusted_proxies = ['10.244.0.0/16']
     route:
       main:
         parentRefs:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - search.${PUBLIC_DOMAIN}
+          - search.${PRIVATE_DOMAIN}
         rules:
           - backendRefs:
               - identifier: main
