@@ -47,14 +47,7 @@ spec:
               tag: 1.20.1@sha256:0640f5adafd7acfcd8a3c79bb3bd0162d5df9108ebcde8734785f8925d2a01a4
             # the image entrypoint is only `bundle exec`. this one also migrates and seeds
             command: [web-entrypoint.sh]
-            # db/seeds.rb hardcodes the first admin's email. rename it after seeding, which is
-            # a no-op once renamed because the seed only runs with no users
-            args:
-              - sh
-              - -c
-              - >-
-                bin/rails runner 'User.where(email: "demo@dawarich.app").update_all(email: "tom@tplant.com.au")'
-                && exec bin/rails server -p 3000 -b ::
+            args: [bin/rails, server, -p, "3000", -b, "::"]
             env:
               RAILS_ENV: production
               SELF_HOSTED: "true"
