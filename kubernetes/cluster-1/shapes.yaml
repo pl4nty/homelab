@@ -25,7 +25,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/shapes
-              tag: latest@sha256:6bc8c00358394e312a32c518dc848718bc5aaef85cdba70964e7f5a2679d3c92
+              tag: latest@sha256:22edd585835f4ec1656832a1f9e8c2d24b9baf9384ac8263e29aa8176c9375a7
             probes:
               liveness:
                 enabled: true

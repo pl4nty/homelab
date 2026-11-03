@@ -24,9 +24,11 @@ spec:
           main:
             image:
               repository: ghcr.io/stirling-tools/s-pdf
-              tag: 0.46.2
+              tag: 3.2.2@sha256:c6872dd056b0046a14c5de1e9970283e7f1e1ff685bb08090c6b37a231127d31
             env:
               SYSTEM_ENABLEANALYTICS: false
+              # upstream settings.yml defaults security.enableLogin to true; this is a public tool
+              SECURITY_ENABLELOGIN: false
     service:
       main:
         controller: main
