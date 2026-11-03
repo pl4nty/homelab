@@ -1,7 +1,7 @@
+# alloy-logs NodePort, see kubernetes/base/monitoring-system/k8s-monitoring-services.yaml
 machine:
   logging:
     destinations:
-      # alloy-logs NodePort, see kubernetes/base/monitoring-system/k8s-monitoring-services.yaml
       - endpoint: tcp://192.168.1.131:30544
         format: json_lines
   kubelet:
@@ -14,3 +14,8 @@ machine:
         options: [bind, rshared, rw]
   sysctls:
     vm.nr_hugepages: "0"
+---
+apiVersion: v1alpha1
+kind: KmsgLogConfig
+name: alloy
+url: tcp://192.168.1.131:30544/
