@@ -1,35 +1,26 @@
 // https://github.com/JPro-one/HelloJPro/blob/main/build.gradle
-/**
- ******************  Script Configuration ******************
- */
 buildscript {
   repositories {
-    mavenCentral()
     gradlePluginPortal()
 
     maven {
-      url "https://sandec.jfrog.io/artifactory/repo"
+      url = "https://sandec.jfrog.io/artifactory/repo"
     }
   }
 
   dependencies {
-    // restart button is very broken
-    // >=2020.1.5 dragging elements fails in Firefox
-    // >=2022.1 requires gradle 7
-    // >=2022.1.2 supports ARM
-    // 2022.1.5-2023.1.0 breaks start click button: Group@6ccef66[styleClass=root]is already set as root of another scene
-    classpath 'com.sandec.jpro:jpro-plugin-gradle:2022.1.4'
+    classpath 'one.jpro:jpro-gradle-plugin:2026.4.0'
   }
 }
 
-/**
- ******************  Java Configuration ******************
- */
 plugins {
   // javafxplugin 0.1.0 no longer applies the java plugin, and sourceSets below needs it first
   id 'java'
+  id 'application'
   id 'org.openjfx.javafxplugin' version '0.1.0'
 }
+
+apply plugin: 'jpro-gradle-plugin'
 
 sourceSets {
   main {
@@ -42,61 +33,28 @@ sourceSets {
   }
 }
 
-compileJava {
-  sourceCompatibility = 17
-  targetCompatibility = 17
+java {
+  sourceCompatibility = JavaVersion.VERSION_17
+  targetCompatibility = JavaVersion.VERSION_17
 }
 
 repositories {
   mavenCentral()
 }
 
+// compile only: jpro bundles its own JavaFX build (27-jpro), which needs Java 25 at runtime
 javafx {
   version = '17.0.7'
   modules = [ 'javafx.base', 'javafx.controls', 'javafx.fxml', 'javafx.graphics', 'javafx.media', 'javafx.swing', 'javafx.web' ]
 }
 
-/**
- ******************  jpro Configuration ******************
- */
-apply plugin: 'com.sandec.jpro'
+application {
+  mainClass = 'comp1110.ass1.gui.Game'
+}
 
-/**
- * App Main Class
- */
-mainClassName = 'comp1110.ass1.gui.Game'
-
-/**
- * jpro settings
- */
 jpro {
   JVMArgs << '-Xmx1000m'
 
   // jpro server port
   port = 8080
-}
-
-// jpro's javafx modules publish one variant per platform, and javafxplugin 0.1.0 only picks one for
-// its own configurations. jproboot runs here, so it gets runtimeClasspath's; the bundles get their own
-configurations.named('jproboot') {
-  attributes { attrs ->
-    def runtime = configurations.runtimeClasspath.attributes
-    runtime.keySet().each { key -> attrs.attributeProvider(key, provider { runtime.getAttribute(key) }) }
-  }
-}
-[
-  jprojavafxlinux: ['linux', MachineArchitecture.X86_64],
-  jprojavafxlinuxarm: ['linux', MachineArchitecture.ARM64],
-  jprojavafxmac: ['macos', MachineArchitecture.X86_64],
-  jprojavafxmacarm: ['macos', MachineArchitecture.ARM64],
-  jprojavafxwindow: ['windows', MachineArchitecture.X86_64],
-].each { name, platform ->
-  def (os, arch) = platform
-  configurations.named(name) {
-    attributes {
-      attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-      attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named(OperatingSystemFamily, os))
-      attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(MachineArchitecture, arch))
-    }
-  }
 }
