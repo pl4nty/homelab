@@ -7,6 +7,12 @@ machine:
         memory: 1Gi
         pid: "100"
         ephemeral-storage: 256Mi
+  features:
+    # for kubernetes/cluster-1/backups/etcd.yaml
+    kubernetesTalosAPIAccess:
+      enabled: true
+      allowedRoles: [os:etcd:backup]
+      allowedKubernetesNamespaces: [default]
 cluster:
   proxy:
     # multi-arch build that includes riscv64; bump with kubernetesVersion

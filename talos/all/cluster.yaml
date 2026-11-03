@@ -7,11 +7,6 @@ machine:
   kubelet:
     extraArgs:
       rotate-server-certificates: "true"
-    extraMounts:
-      - destination: /var/lib/longhorn
-        type: bind
-        source: /var/lib/longhorn
-        options: [bind, rshared, rw]
   sysctls:
     vm.nr_hugepages: "0"
 ---
