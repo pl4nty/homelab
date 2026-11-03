@@ -1,0 +1,233 @@
+/* tplant.com.au tokens (pl4nty/garden Quartz theme) */
+:root {
+  --light: #ffffff;
+  --lightgray: #f2f2f2;
+  --gray: #b0b0b0;
+  --darkgray: #666666;
+  --dark: #303030;
+  --secondary: #2e7d32;
+  --tertiary: #388e3c;
+  --highlight: #2e7d3226;
+  --danger: #b3261e;
+  --on-accent: #ffffff;
+  --radius: 5px;
+  --body: "Titillium Web", system-ui, sans-serif;
+  --code: "Fira Code", ui-monospace, monospace;
+  --diffs-font-family: var(--code);
+  --diffs-header-font-family: var(--body);
+  --diffs-font-size: 13px;
+  /* ligatures would draw text like 0x0 or != as other glyphs */
+  --diffs-font-features: "calt" 0, "liga" 0;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --light: #141414;
+    --lightgray: #1f1f1f;
+    --gray: #7a8882;
+    --darkgray: #a9a9a9;
+    --dark: #e0f0e9;
+    --secondary: #66bb6a;
+    --tertiary: #81c784;
+    --highlight: #66bb6a26;
+    --danger: #ff8a80;
+    --on-accent: #0f1f10;
+    color-scheme: dark;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+[hidden] {
+  /* biome-ignore lint/complexity/noImportantStyles: hidden has to beat the display rules below */
+  display: none !important;
+}
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  background: var(--light);
+  color: var(--darkgray);
+  font: 400 16px / 1.5 var(--body);
+}
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--lightgray);
+}
+.brand {
+  color: var(--dark);
+  font-weight: 700;
+  font-size: 1.4rem;
+  text-decoration: none;
+}
+.brand::before {
+  content: "±";
+  color: var(--secondary);
+  margin-right: 0.15em;
+}
+.stats {
+  font-family: var(--code);
+  font-size: 0.85rem;
+}
+.stats .add {
+  color: var(--secondary);
+}
+.stats .del {
+  color: var(--danger);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: var(--dark);
+}
+button {
+  padding: 0.3rem 0.8rem;
+  border: 1px solid var(--gray);
+  border-radius: var(--radius);
+  background: var(--light);
+  font-weight: 600;
+  cursor: pointer;
+}
+button:hover {
+  border-color: var(--secondary);
+  color: var(--secondary);
+}
+button[aria-pressed="true"] {
+  background: var(--highlight);
+  border-color: var(--secondary);
+  color: var(--secondary);
+}
+button.primary {
+  background: var(--secondary);
+  border-color: var(--secondary);
+  color: var(--on-accent);
+}
+button.primary:hover {
+  background: var(--tertiary);
+  color: var(--on-accent);
+}
+button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+:focus-visible {
+  outline: 2px solid var(--secondary);
+  outline-offset: 2px;
+}
+
+.segmented {
+  display: inline-flex;
+}
+.segmented button {
+  border-radius: 0;
+}
+.segmented button:first-child {
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+.segmented button:last-child {
+  border-radius: 0 var(--radius) var(--radius) 0;
+  margin-left: -1px;
+}
+
+main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.message {
+  margin: 0;
+  padding: 0.5rem 1rem;
+  background: var(--highlight);
+  color: var(--dark);
+}
+.message.error {
+  background: color-mix(in srgb, var(--danger) 15%, transparent);
+}
+.message input {
+  width: min(100%, 40rem);
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--gray);
+  border-radius: var(--radius);
+  background: var(--light);
+  font: 0.85rem var(--code);
+}
+
+.editor {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  min-height: 0;
+}
+.panes {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: 0.75rem;
+  min-height: 0;
+}
+.pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 16rem;
+  color: var(--dark);
+  font-weight: 600;
+}
+textarea {
+  flex: 1;
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid var(--gray);
+  border-radius: var(--radius);
+  background: var(--lightgray);
+  font: 13px / 1.5 var(--code);
+  font-feature-settings:
+    "calt" 0,
+    "liga" 0;
+  resize: none;
+  tab-size: 2;
+}
+textarea.drop {
+  border-color: var(--secondary);
+  background: var(--highlight);
+}
+.row {
+  display: flex;
+  gap: 0.75rem;
+}
+.row input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--gray);
+  border-radius: var(--radius);
+  background: var(--light);
+}
+
+.diff {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
