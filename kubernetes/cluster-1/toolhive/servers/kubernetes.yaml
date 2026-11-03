@@ -1,37 +1,49 @@
-apiVersion: v1
-kind: ServiceAccount
+# yaml-language-server: $schema=https://flux-helm-schema.tplant.com.au?values=https://github.com/containers/kubernetes-mcp-server/raw/refs/heads/main/charts/kubernetes-mcp-server/values.yaml
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
 metadata:
-  name: kubernetes-mcp
+  name: kubernetes-mcp-server
   namespace: toolhive-system
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: kubernetes-mcp-server
+    namespace: flux-system
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    ingress:
+      enabled: false
+    rbac:
+      extraClusterRoleBindings:
+        - name: cluster-admin
+          roleRef:
+            name: cluster-admin
+            external: true
+    config:
+      stateless: true
+      # https://github.com/containers/kubernetes-mcp-server/blob/main/docs/scaling.md
+      # 128Mi + 2 * max_in_flight * 72Mi of default caps stays under the limit
+      max_in_flight: 2
+    resources:
+      limits:
+        memory: 512Mi
 ---
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: kubernetes-mcp
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: cluster-admin
-subjects:
-  - kind: ServiceAccount
-    name: kubernetes-mcp
-    namespace: toolhive-system
----
+# Registers the chart's Service with the vMCP without a ToolHive proxy.
+# The name stays "kubernetes" so tool names and the toolhive-safe filter keep working.
 apiVersion: toolhive.stacklok.dev/v1beta1
-kind: MCPServer
+kind: MCPServerEntry
 metadata:
   name: kubernetes
   namespace: toolhive-system
 spec:
   groupRef:
     name: toolhive
-  telemetryConfigRef:
-    name: toolhive
-  image: quay.io/containers/kubernetes_mcp_server:v0.0.65@sha256:5df586e2c7ced2a3125f6e78923388d80b69de0a2ad1470325b05318f12725bd
-  serviceAccount: kubernetes-mcp
+  remoteUrl: http://kubernetes-mcp-server.toolhive-system.svc.cluster.local:8080/mcp
+  allowPrivateEndpoint: true
   transport: streamable-http
-  mcpPort: 8080
-  args:
-    - --port
-    - "8080"
-    - --stateless

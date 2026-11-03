@@ -1,0 +1,17 @@
+source "https://rubygems.org"
+
+gem "jekyll", "~> 4.4.0"
+gem "minima", "~> 2.5"
+
+group :jekyll_plugins do
+  gem "jekyll-sitemap"
+  gem "jemoji"
+  gem "jekyll-figure"
+  gem "jekyll-last-modified-at"
+  gem "webrick"
+end
+
+# default gems that Ruby 3.4 no longer ships
+gem "csv"
+gem "base64"
+gem "bigdecimal"

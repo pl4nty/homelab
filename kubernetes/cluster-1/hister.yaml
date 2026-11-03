@@ -1,0 +1,268 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app hister
+  namespace: default
+spec:
+  interval: 15m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    global:
+      createDefaultServiceAccount: false
+    defaultPodOptions:
+      # keep off the 8GiB amd64 control plane node
+      nodeSelector:
+        kubernetes.io/arch: arm64
+      # the image runs as 65532, which can't write to fresh volumes
+      securityContext:
+        fsGroup: 65532
+        fsGroupChangePolicy: OnRootMismatch
+    controllers:
+      main:
+        # RWO volumes can't attach to two nodes during a rollout
+        strategy: Recreate
+        containers:
+          main:
+            image:
+              repository: ghcr.io/asciimoo/hister
+              tag: v0.21.0@sha256:4dab1cbd7aabe8ade8e696e4085ecd3254e1170467c4502debec792a904abdbc
+            # no access token: Cloudflare Access gates the route, and SearXNG
+            # queries the service in-cluster
+            env:
+              HISTER__SERVER__ADDRESS: 0.0.0.0:4433
+              HISTER__SERVER__BASE_URL: https://hister.${PRIVATE_DOMAIN}
+              HISTER__APP__SEARCH_URL: https://search.${PRIVATE_DOMAIN}/search?q={query}
+            probes:
+              liveness: &probe
+                enabled: true
+                type: HTTP
+                path: /health
+              readiness: *probe
+              startup:
+                enabled: true
+                type: HTTP
+                path: /health
+                spec:
+                  periodSeconds: 5
+                  failureThreshold: 30
+            resources:
+              requests:
+                cpu: 10m
+                memory: 128Mi
+              limits:
+                memory: 1Gi
+                ephemeral-storage: 256Mi
+          # Hister has no custom CSS setting, so nginx adds the tplant stylesheet to the page
+          nginx:
+            image:
+              repository: nginxinc/nginx-unprivileged
+              tag: 1.31.7-alpine-slim@sha256:a8cb0f33d51fa107c96fd2bd3a71aaf564ec131e9d2bdf8700944f0ed8b170d7
+            probes:
+              liveness: &nginx-probe
+                enabled: true
+                type: HTTP
+                path: /tplant.css
+                port: 8080
+              readiness: *nginx-probe
+            resources:
+              requests:
+                cpu: 5m
+                memory: 16Mi
+              limits:
+                memory: 64Mi
+                ephemeral-storage: 64Mi
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            primary: true
+            port: 4433
+          # browsers go through nginx. SearXNG queries the http port directly
+          web:
+            port: 8080
+    persistence:
+      data:
+        # keep the index if a failed install is remediated by uninstalling
+        retain: true
+        accessMode: ReadWriteOnce
+        size: 10Gi
+        advancedMounts:
+          main:
+            main:
+              - path: /hister/data
+      nginx:
+        type: configMap
+        identifier: nginx
+        advancedMounts:
+          main:
+            nginx:
+              - path: /etc/nginx/conf.d/default.conf
+                subPath: default.conf
+                readOnly: true
+              - path: /usr/share/nginx/html/tplant.css
+                subPath: tplant.css
+                readOnly: true
+    configMaps:
+      nginx:
+        data:
+          default.conf: |
+            map $http_upgrade $connection_upgrade {
+              default upgrade;
+              '' close;
+            }
+
+            server {
+              listen 8080;
+              # the extension and importers post page batches
+              client_max_body_size 0;
+
+              location = /tplant.css {
+                root /usr/share/nginx/html;
+                expires 1h;
+              }
+
+              location / {
+                proxy_pass http://127.0.0.1:4433;
+                proxy_http_version 1.1;
+                proxy_set_header Host $host;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+                # search results stream over a websocket
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection $connection_upgrade;
+                proxy_read_timeout 1h;
+                # sub_filter can't rewrite compressed responses
+                proxy_set_header Accept-Encoding "";
+                sub_filter '</head>' '<link rel="stylesheet" href="/tplant.css"></head>';
+                sub_filter_once on;
+              }
+            }
+          tplant.css: |
+            /* tplant.com.au design tokens (pl4nty/garden) over Hister's colour variables */
+            @import url('https://cdn.jsdelivr.net/npm/@fontsource/titillium-web@5.3.0/400.css');
+            @import url('https://cdn.jsdelivr.net/npm/@fontsource/titillium-web@5.3.0/600.css');
+            @import url('https://cdn.jsdelivr.net/npm/@fontsource/titillium-web@5.3.0/700.css');
+
+            :root {
+              --tp-light: #fff;
+              --tp-lightgray: #f8f8f8;
+              --tp-gray: #b0b0b0;
+              --tp-darkgray: #666;
+              --tp-dark: #303030;
+              --tp-secondary: #2e7d32;
+              --tp-tertiary: #388e3c;
+              --tp-border: #e2e2e2;
+              --tp-muted: #efefef;
+            }
+
+            .dark {
+              --tp-light: #141414;
+              --tp-lightgray: #1f1f1f;
+              --tp-gray: #7a8882;
+              --tp-darkgray: #a9a9a9;
+              --tp-dark: #e0f0e9;
+              --tp-secondary: #66bb6a;
+              --tp-tertiary: #81c784;
+              --tp-border: #2e3330;
+              --tp-muted: #262826;
+            }
+
+            :root,
+            .dark {
+              --radius: 5px;
+              --background: var(--tp-light);
+              --foreground: var(--tp-dark);
+              --card: var(--tp-lightgray);
+              --card-foreground: var(--tp-dark);
+              --popover: var(--tp-lightgray);
+              --popover-foreground: var(--tp-dark);
+              --primary: var(--tp-secondary);
+              --primary-foreground: var(--tp-light);
+              --secondary: var(--tp-muted);
+              --secondary-foreground: var(--tp-dark);
+              --muted: var(--tp-muted);
+              --muted-foreground: var(--tp-darkgray);
+              --accent: var(--tp-muted);
+              --accent-foreground: var(--tp-dark);
+              --border: var(--tp-border);
+              --input: var(--tp-border);
+              --ring: var(--tp-secondary);
+              --sidebar: var(--tp-lightgray);
+              --sidebar-foreground: var(--tp-dark);
+              --sidebar-primary: var(--tp-secondary);
+              --sidebar-primary-foreground: var(--tp-light);
+              --sidebar-accent: var(--tp-muted);
+              --sidebar-accent-foreground: var(--tp-dark);
+              --sidebar-border: var(--tp-border);
+              --sidebar-ring: var(--tp-secondary);
+              /* links and highlights use indigo and teal; tag colours keep their hues */
+              --hister-indigo: var(--tp-secondary);
+              --hister-teal: var(--tp-tertiary);
+              --hister-cyan: var(--tp-tertiary);
+              --brutal-bg: var(--tp-light);
+              --brutal-border: var(--tp-border);
+              --brutal-card: var(--tp-lightgray);
+              --brutal-shadow: transparent;
+              --text-primary: var(--tp-dark);
+              --text-secondary: var(--tp-darkgray);
+              --page-bg: var(--tp-light);
+              --card-surface: var(--tp-lightgray);
+              --text-primary-brand: var(--tp-dark);
+              --text-secondary-brand: var(--tp-darkgray);
+              --text-muted-brand: var(--tp-darkgray);
+              --muted-surface: var(--tp-muted);
+              --border-brand: var(--tp-border);
+              --border-muted-brand: var(--tp-border);
+              --font-outfit: 'Titillium Web', sans-serif;
+              --font-inter: 'Titillium Web', sans-serif;
+            }
+
+            /* the font utilities are compiled with literal family names, so override them */
+            html,
+            html :is(.font-inter, .font-outfit, .font-space, .font-sans) {
+              font-family: 'Titillium Web', system-ui, sans-serif;
+            }
+
+            a {
+              font-weight: 600;
+            }
+
+            /* soften the brutalist borders, corners and press effects */
+            html .border-\[3px\],
+            html .border-\[2px\],
+            html .border-2 {
+              border-width: 1px;
+            }
+
+            html :is(input, button, textarea, select, [data-slot], .border, .border-\[3px\], .border-\[2px\], .border-2) {
+              border-radius: 5px;
+            }
+
+            html :is(.brutal-press, .brutal-press-lg, .brutal-press-card):hover {
+              translate: none;
+            }
+
+            html [data-slot='card'].card-accented {
+              box-shadow: none;
+            }
+
+            /* component styles are scoped, so they outrank plain selectors */
+            html [class*='shadow-['],
+            html .home-search {
+              box-shadow: none !important;
+            }
+    route:
+      main:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - hister.${PRIVATE_DOMAIN}
+        rules:
+          - backendRefs:
+              - identifier: main
+                port: 8080

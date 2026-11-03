@@ -2,51 +2,51 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: stickers${APP_SUFFIX:=}
+  name: vert
   namespace: default
-  annotations:
-    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chartRef:
     kind: OCIRepository
     name: app-template
-    namespace: default
   values:
     global:
       createDefaultServiceAccount: false
     controllers:
       main:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: 0
         containers:
           main:
             image:
-              repository: ghcr.io/pl4nty/stickers
-              tag: ${APP_IMAGE_TAG:=}
-            env:
-              PUBLIC_URL: https://stickers${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
-            envFrom:
-              - secretRef:
-                  name: stickers
-                  optional: true
+              repository: ghcr.io/vert-sh/vert
+              tag: latest@sha256:51edb89e7c57197b0281ba8427fb27eea63730a3683b10d422061afab2708a49
+            securityContext:
+              capabilities:
+                add:
+                  - NET_BIND_SERVICE
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
     service:
       main:
         controller: main
         ports:
           http:
-            port: 8000
-    persistence:
-      data:
-        type: emptyDir
-        globalMounts:
-          - path: /data
+            port: 80
     route:
       main:
         parentRefs:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - stickers${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
+          - convert.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - identifier: main
-                port: 8000
+              - name: vert
+                port: 80

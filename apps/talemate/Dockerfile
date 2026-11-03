@@ -1,5 +1,5 @@
 # Stage 1: Frontend build (static assets, so build once on the native platform)
-FROM --platform=$BUILDPLATFORM node:21.7.3@sha256:4b232062fa976e3a966c49e9b6279efa56c8d207a67270868f51b3d155c4e33d AS frontend-build
+FROM --platform=$BUILDPLATFORM node:26.12.0@sha256:45a2bf9d9300e9cf47ecb375e38447c140c45ef5fbae869c430475b05b98d86e AS frontend-build
 
 ENV NODE_ENV=development
 
