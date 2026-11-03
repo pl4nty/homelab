@@ -13,6 +13,9 @@ spec:
   affinity:
     nodeSelector:
       node.longhorn.io/create-default-disk: config
+    # longhorn-local is best-effort, so a replica can follow its pod to another
+    # node. Required anti-affinity keeps the two instances on separate nodes.
+    podAntiAffinityType: required
 
   bootstrap:
     initdb:
