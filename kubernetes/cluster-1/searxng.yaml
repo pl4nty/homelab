@@ -76,6 +76,12 @@ spec:
               # only signs image proxy links and hashes cache keys, which live as long as the pod
               secret_key: ultrasecretkey
               image_proxy: true
+            search:
+              # the reddit engine queries this instance's JSON API
+              formats: [html, json]
+            hostnames:
+              replace:
+                '^(www\.|new\.|np\.)?reddit\.com$': old.reddit.com
             engines:
               - name: hister
                 engine: json_engine
@@ -87,6 +93,18 @@ spec:
                 url_query: url
                 title_query: title
                 content_query: text
+              - name: reddit
+                engine: json_engine
+                shortcut: r
+                categories: [social media]
+                # SearXNG has no reddit engine, so ask this instance for site:reddit.com results
+                search_url: http://localhost:8080/search?format=json&engines=google,bing,duckduckgo&q=site%3Areddit.com+{query}
+                results_query: results
+                url_query: url
+                title_query: title
+                content_query: content
+                # longer than the inner engines' 3s request timeout
+                timeout: 6
     route:
       main:
         parentRefs:
