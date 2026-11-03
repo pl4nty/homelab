@@ -7,7 +7,12 @@ machine:
         memory: 1Gi
         pid: "100"
         ephemeral-storage: 256Mi
+  # talos default for control planes, but kube-vip announces Services from this node
+  nodeLabels:
+    $patch: delete
   features:
+    hostDNS:
+      resolveMemberNames: true
     # for kubernetes/cluster-1/backups/etcd.yaml
     kubernetesTalosAPIAccess:
       enabled: true
