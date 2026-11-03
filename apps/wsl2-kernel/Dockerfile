@@ -1,15 +1,15 @@
-# https://github.com/microsoft/WSL2-Linux-Kernel/tree/linux-msft-wsl-6.6.y#build-instructions
+# https://github.com/microsoft/WSL2-Linux-Kernel/tree/linux-msft-wsl-6.18.y#build-instructions
 # download bzImage from the latest wsl2-kernel/sha-* release
 FROM ubuntu:24.04 AS build
 
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-  --mount=type=cache,target=/var/lib/apt,sharing=locked \
+RUN --mount=type=cache,id=apt-cache-noble,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,id=apt-lists-noble,target=/var/lib/apt,sharing=locked \
   apt update && apt-get --no-install-recommends install -y \
   build-essential flex bison dwarves libssl-dev libelf-dev cpio \
   libncurses-dev bc python3 openssl
 
 WORKDIR /app
-ADD https://github.com/microsoft/WSL2-Linux-Kernel.git /app
+COPY --from=src . .
 COPY config-wsl .
 RUN make -j"$(nproc)" KCONFIG_CONFIG=config-wsl
 

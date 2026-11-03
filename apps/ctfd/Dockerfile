@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM quay.io/curl/curl:8.23.0@sha256:11e64e28c5f58c8d93ee95fcf22ac055f48b0bc440e0ce7d8013bbb5ad6aa8ac AS plugins
+FROM --platform=$BUILDPLATFORM quay.io/curl/curl:8.23.0@sha256:3fb7e13e5d179a845c97d78204f3f1064d1907037f26a3ebf91710571151fd93 AS plugins
 
 RUN mkdir /tmp/plugins
 RUN curl -L https://github.com/CTFd/public_challenges/archive/36667c9f0dffc37e42a1cd3df874daf762425d1e.tar.gz | tar xz -C /tmp/plugins

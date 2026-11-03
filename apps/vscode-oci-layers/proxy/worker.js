@@ -91,6 +91,9 @@ export default {
     });
     for (let i = 0; i < 5 && !hasBody && [301, 302, 303, 307, 308].includes(res.status); i++) {
       const next = new URL(res.headers.get('Location'), target);
+      // the hop isn't allowlisted (blob CDNs vary), so at least keep it off plain http, which
+      // is how a redirect would reach cluster-internal services from the in-cluster proxy
+      if (next.protocol !== 'https:') break;
       const h = new Headers(headers);
       if (next.host !== target.host) h.delete('authorization'); // presigned CDN URLs reject extra auth
       target = next;
