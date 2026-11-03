@@ -1,0 +1,14 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: prometheus-smartctl-exporter
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: oci://ghcr.io/prometheus-community/charts/prometheus-smartctl-exporter
+  layerSelector:
+    mediaType: 'application/vnd.cncf.helm.chart.content.v1.tar+gzip'
+    operation: copy
+  ref:
+    tag: 0.19.0
+    digest: sha256:47545ec362fd0e29d8a91ed8f014a2a7b58c1b8584dab787770736d911292e5d
