@@ -1,0 +1,5 @@
+-- codeworld-api 0.8.1 is the last release and predates GHC 9.12 and mtl 2.3, so the
+-- Dockerfile unpacks it here and applies codeworld-api.patch
+packages: . codeworld-api-0.8.1
+
+allow-newer: codeworld-api:*

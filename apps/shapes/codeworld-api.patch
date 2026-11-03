@@ -1,0 +1,45 @@
+diff -ruN a/src/CodeWorld/CanvasM.hs b/src/CodeWorld/CanvasM.hs
+--- a/src/CodeWorld/CanvasM.hs
++++ b/src/CodeWorld/CanvasM.hs
+@@ -1,7 +1,9 @@
+ {-# LANGUAGE CPP #-}
+ {-# LANGUAGE DeriveFunctor #-}
+ {-# LANGUAGE ForeignFunctionInterface #-}
++#ifdef ghcjs_HOST_OS
+ {-# LANGUAGE JavaScriptFFI #-}
++#endif
+ {-# LANGUAGE OverloadedStrings #-}
+ {-# LANGUAGE TypeFamilies #-}
+
+@@ -20,6 +22,7 @@
+
+ module CodeWorld.CanvasM where
+
++import Control.Monad
+ import Control.Monad.Reader
+ import Data.Text (Text)
+
+diff -ruN a/src/CodeWorld/Driver.hs b/src/CodeWorld/Driver.hs
+--- a/src/CodeWorld/Driver.hs
++++ b/src/CodeWorld/Driver.hs
+@@ -6,7 +6,9 @@
+ {-# LANGUAGE ForeignFunctionInterface #-}
+ {-# LANGUAGE FunctionalDependencies #-}
+ {-# LANGUAGE GeneralizedNewtypeDeriving #-}
++#ifdef ghcjs_HOST_OS
+ {-# LANGUAGE JavaScriptFFI #-}
++#endif
+ {-# LANGUAGE OverloadedStrings #-}
+ {-# LANGUAGE PatternGuards #-}
+ {-# LANGUAGE RankNTypes #-}
+diff -ruN a/src/CodeWorld/Reflex.hs b/src/CodeWorld/Reflex.hs
+--- a/src/CodeWorld/Reflex.hs
++++ b/src/CodeWorld/Reflex.hs
+@@ -127,6 +127,7 @@
+ import CodeWorld.Driver
+ import CodeWorld.Picture
+ import Control.Monad.Fix
++import Control.Monad
+ import Control.Monad.Trans
+ import Data.Bool
+ import qualified Data.Text as T
