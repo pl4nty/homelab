@@ -6,9 +6,10 @@ ENV CABAL_CONFIG=/etc/cabal/config
 ARG TARGETARCH
 # each step updates the index itself: a remote layer-cache hit skips the RUN, so the mount can be empty
 
+# cabal.project lists codeworld-api-0.8.1, which doesn't exist until cabal get, hence --ignore-project
 COPY *.cabal cabal.project codeworld-api.patch .
 RUN --mount=type=cache,id=cabal-$TARGETARCH,target=/root/.cabal \
-    cabal v2-update && \
+    cabal v2-update --ignore-project && \
     cabal get codeworld-api-0.8.1 && patch -p1 -d codeworld-api-0.8.1 < codeworld-api.patch && \
     cabal v2-build --only-dependencies
 
