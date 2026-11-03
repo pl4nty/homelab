@@ -25,3 +25,19 @@ apiVersion: v1alpha1
 kind: KubeNodeConfig
 taints:
   $patch: delete
+---
+apiVersion: v1alpha1
+kind: ResolverConfig
+hostDNS:
+  resolveMemberNames: true
+---
+# drop the default LB-exclusion label (kube-vip announces Services from control planes), keep the role label
+apiVersion: v1alpha1
+kind: KubeNodeConfig
+labels:
+  $patch: delete
+---
+apiVersion: v1alpha1
+kind: KubeNodeConfig
+labels:
+  node-role.kubernetes.io/control-plane: ""
