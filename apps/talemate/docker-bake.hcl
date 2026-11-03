@@ -1,6 +1,6 @@
 target "default" {
   contexts = {
     # renovate: branch=main
-    src = "https://github.com/vegu-ai/talemate.git#9e8e9da5ae191899d5ac8ad09e8d51fe585bfb48"
+    src = "https://github.com/vegu-ai/talemate.git#7db12b042b6200d6a91145ae7c833af1b7e9fc9e"
   }
 }

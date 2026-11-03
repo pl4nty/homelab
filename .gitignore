@@ -2,3 +2,4 @@
 .devcontainer/kubeconfig
 .decrypted~*
 dist/
+talos/output/
