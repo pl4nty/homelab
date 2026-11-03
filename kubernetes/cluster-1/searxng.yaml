@@ -321,6 +321,10 @@ spec:
               replace:
                 '^(www\.|new\.|np\.)?reddit\.com$': old.reddit.com
             engines:
+              # its SPARQL queries took 2.9s while every other engine answered in under 1s,
+              # and results wait for the slowest engine
+              - name: wikidata
+                disabled: true
               - name: hister
                 engine: json_engine
                 shortcut: hi
