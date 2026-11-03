@@ -8,7 +8,7 @@ buildscript {
     gradlePluginPortal()
 
     maven {
-      url "https://sandec.jfrog.io/artifactory/repo"
+      url = "https://sandec.jfrog.io/artifactory/repo"
     }
   }
 
@@ -64,7 +64,11 @@ apply plugin: 'com.sandec.jpro'
 /**
  * App Main Class
  */
-mainClassName = 'comp1140.ass2.gui.Board'
+application {
+  mainClass = 'comp1140.ass2.gui.Board'
+}
+// Gradle 9 removed the mainClassName convention, but jpro 2022.1's tasks still read it
+ext.mainClassName = application.mainClass.get()
 
 /**
  * jpro settings
