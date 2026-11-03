@@ -1,0 +1,21 @@
+machine:
+  kubelet:
+    extraConfig:
+      # etcd isn't in kubelet accounting. This replaces all Talos defaults, so keep the other keys
+      systemReserved:
+        cpu: 50m
+        memory: 1Gi
+        pid: "100"
+        ephemeral-storage: 256Mi
+  features:
+    # for kubernetes/cluster-1/backups/etcd.yaml
+    kubernetesTalosAPIAccess:
+      enabled: true
+      allowedRoles: [os:etcd:backup]
+      allowedKubernetesNamespaces: [default]
+cluster:
+  proxy:
+    # multi-arch build that includes riscv64; bump with kubernetesVersion
+    image: ghcr.io/pl4nty/kube-proxy:v1.34.2
+    mode: nftables
+  allowSchedulingOnControlPlanes: true

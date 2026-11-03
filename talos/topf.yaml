@@ -1,0 +1,19 @@
+# Rendered and applied with topf: https://github.com/postfinance/topf
+# Patches merge in order: all/, control-plane/ or worker/, then node/<host> (a symlink to hardware/<type>.yaml).
+clusterName: cluster-1
+clusterEndpoint: https://192.168.1.131:6443
+kubernetesVersion: 1.34.2
+talosVersion: 1.11.1
+nodes:
+  - host: talos-ivx-yqq
+    ip: 192.168.1.131
+    role: control-plane
+    schematicId: "@hardware/nuc-schematic.yaml"
+  - host: talos-d04-4hs
+    ip: 192.168.1.133
+    role: worker
+    schematicId: "@hardware/rk1-schematic.yaml"
+  - host: talos-uj3-t5w
+    ip: 192.168.1.134
+    role: worker
+    schematicId: "@hardware/rk1-schematic.yaml"
