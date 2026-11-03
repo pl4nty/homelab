@@ -24,11 +24,10 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 from pydantic import BaseModel
 
-
 DEFAULT_MODEL = "claude-sonnet-5-5"
-DETAIL_PX = 1568      # long edge; at or below the standard-tier no-resize limit
-PANEL_PX = 480        # each grid panel; grid is ~1000 px square
-PANELS = {"A": 0, "B": 90, "C": 180, "D": 270}   # clockwise rotation shown in panel
+DETAIL_PX = 1568  # long edge; at or below the standard-tier no-resize limit
+PANEL_PX = 480  # each grid panel; grid is ~1000 px square
+PANELS = {"A": 0, "B": 90, "C": 180, "D": 270}  # clockwise rotation shown in panel
 
 
 class StickerInfo(BaseModel):
@@ -46,20 +45,23 @@ SCHEMA = {
     "required": ["upright_panel", "orientation_confidence", "title", "tags"],
     "properties": {
         "upright_panel": {
-            "type": "string", "enum": list(PANELS),
+            "type": "string",
+            "enum": list(PANELS),
             "description": "Grid panel in which the sticker is the right way up.",
         },
         "orientation_confidence": {
-            "type": "string", "enum": ["high", "medium", "low"],
+            "type": "string",
+            "enum": ["high", "medium", "low"],
             "description": "high if text or a clear subject fixes the orientation; "
-                           "low for abstract or symmetric designs.",
+            "low for abstract or symmetric designs.",
         },
         "title": {
             "type": "string",
             "description": "Short catalogue name, e.g. the event or brand plus year.",
         },
         "tags": {
-            "type": "array", "items": {"type": "string"},
+            "type": "array",
+            "items": {"type": "string"},
             "description": "Usually empty or one or two lowercase tags; see the rules in the prompt.",
         },
     },
@@ -128,7 +130,7 @@ def rotation_grid(im: Image.Image) -> Image.Image:
         x = gap + (i % 2) * cell
         y = gap + (i // 2) * (cell + label_h)
         d.text((x, y), label, fill=(200, 0, 0), font=font)
-        r = im.rotate(-deg, expand=True)          # PIL rotates counter-clockwise
+        r = im.rotate(-deg, expand=True)  # PIL rotates counter-clockwise
         grid.paste(r, (x + (PANEL_PX - r.width) // 2, y + label_h + (PANEL_PX - r.height) // 2))
     return grid
 
@@ -137,18 +139,25 @@ def build_request(im: Image.Image, model: str, effort: str | None, vocab: list[s
     output_config: dict = {"format": {"type": "json_schema", "schema": SCHEMA}}
     if effort:
         output_config["effort"] = effort
-    img = lambda data: {"type": "image",  # noqa: E731
-                        "source": {"type": "base64", "media_type": "image/jpeg", "data": data}}
-    return dict(
-        model=model,
-        max_tokens=4096,
-        output_config=output_config,
-        messages=[{"role": "user", "content": [
-            img(_b64_jpeg(detail_image(im))),
-            img(_b64_jpeg(rotation_grid(im))),
-            {"type": "text", "text": PROMPT.format(vocab=", ".join(vocab) or "none yet")},
-        ]}],
-    )
+    img = lambda data: {
+        "type": "image",
+        "source": {"type": "base64", "media_type": "image/jpeg", "data": data},
+    }
+    return {
+        "model": model,
+        "max_tokens": 4096,
+        "output_config": output_config,
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    img(_b64_jpeg(detail_image(im))),
+                    img(_b64_jpeg(rotation_grid(im))),
+                    {"type": "text", "text": PROMPT.format(vocab=", ".join(vocab) or "none yet")},
+                ],
+            }
+        ],
+    }
 
 
 def parse_response(resp) -> StickerInfo:
@@ -171,7 +180,9 @@ FINE_STEPS = [-40, -30, -20, -10, 0, 10, 20, 30, 40]
 FINE_LABELS = "ABCDEFGHI"
 FINE_PX = 330
 FINE_SCHEMA = {
-    "type": "object", "additionalProperties": False, "required": ["panel"],
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["panel"],
     "properties": {"panel": {"type": "string", "enum": list(FINE_LABELS)}},
 }
 FINE_PROMPT = """\
@@ -195,8 +206,9 @@ def fine_grid(im: Image.Image, centre: float) -> Image.Image:
     for k, step in enumerate(FINE_STEPS):
         x, y = (k % 3) * FINE_PX, (k // 3) * (FINE_PX + label_h)
         d.text((x + 6, y), FINE_LABELS[k], fill=(200, 0, 0), font=font)
-        r = im.rotate(-(centre + step), expand=True, resample=Image.BICUBIC,
-                      fillcolor=(128, 128, 128))
+        r = im.rotate(
+            -(centre + step), expand=True, resample=Image.BICUBIC, fillcolor=(128, 128, 128)
+        )
         r.thumbnail((FINE_PX - 10, FINE_PX - 10))
         g.paste(r, (x + (FINE_PX - r.width) // 2, y + label_h + (FINE_PX - r.height) // 2))
     return g
@@ -206,11 +218,27 @@ def fine_request(im: Image.Image, centre: float, model: str, effort: str | None)
     oc: dict = {"format": {"type": "json_schema", "schema": FINE_SCHEMA}}
     if effort:
         oc["effort"] = effort
-    return dict(model=model, max_tokens=4096, output_config=oc, messages=[{
-        "role": "user", "content": [
-            {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg",
-                                         "data": _b64_jpeg(fine_grid(im, centre))}},
-            {"type": "text", "text": FINE_PROMPT}]}])
+    return {
+        "model": model,
+        "max_tokens": 4096,
+        "output_config": oc,
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": "image/jpeg",
+                            "data": _b64_jpeg(fine_grid(im, centre)),
+                        },
+                    },
+                    {"type": "text", "text": FINE_PROMPT},
+                ],
+            }
+        ],
+    }
 
 
 def fine_angle(call, im: Image.Image, model: str, effort: str | None, rounds: int = 2) -> float:
@@ -228,15 +256,24 @@ def fine_angle(call, im: Image.Image, model: str, effort: str | None, rounds: in
 
 # --- applying rotations -----------------------------------------------------
 
+
 def rotate_image(im: Image.Image, deg: float, dpi: float = 600.0) -> Image.Image:
     """Rotate clockwise by `deg`. Quarter turns are lossless. Other angles
     resample and trim to the alpha outline, keeping the original transparent
     margin (capped at 3 mm)."""
     deg %= 360
     if deg in (0, 90, 180, 270):
-        return im if not deg else im.transpose({90: Image.Transpose.ROTATE_270,
-                                                180: Image.Transpose.ROTATE_180,
-                                                270: Image.Transpose.ROTATE_90}[int(deg)])
+        return (
+            im
+            if not deg
+            else im.transpose(
+                {
+                    90: Image.Transpose.ROTATE_270,
+                    180: Image.Transpose.ROTATE_180,
+                    270: Image.Transpose.ROTATE_90,
+                }[int(deg)]
+            )
+        )
     im = im.convert("RGBA")
     ob = _solid(im).getbbox()
     pad = min(ob[0], ob[1], im.width - ob[2], im.height - ob[3]) if ob else 0
@@ -246,8 +283,9 @@ def rotate_image(im: Image.Image, deg: float, dpi: float = 600.0) -> Image.Image
     if not box:
         return rot
     x0, y0, x1, y1 = box
-    return rot.crop((max(0, x0 - pad), max(0, y0 - pad),
-                     min(rot.width, x1 + pad), min(rot.height, y1 + pad)))
+    return rot.crop(
+        (max(0, x0 - pad), max(0, y0 - pad), min(rot.width, x1 + pad), min(rot.height, y1 + pad))
+    )
 
 
 def _solid(im: Image.Image) -> Image.Image:
@@ -291,7 +329,7 @@ def symmetry_angle(im: Image.Image, search: float = 20.0) -> tuple[float, float,
         if not m.any():
             return 0.0
         cx = np.nonzero(m)[1].mean()
-        mir = np.roll(m[:, ::-1], int(round(2 * cx - (m.shape[1] - 1))), axis=1)
+        mir = np.roll(m[:, ::-1], round(2 * cx - (m.shape[1] - 1)), axis=1)
         return float((m & mir).sum() / max((m | mir).sum(), 1))
 
     best = max(np.arange(-search, search + 0.01, 1.0), key=score)
@@ -322,20 +360,32 @@ def call_claude(client, req: dict, usage: dict | None = None, lock=None):
         u = getattr(resp, "usage", None)
         if usage is not None and u is not None:
             with lock or threading.Lock():
-                usage["input_tokens"] = usage.get("input_tokens", 0) + (getattr(u, "input_tokens", 0) or 0)
-                usage["output_tokens"] = usage.get("output_tokens", 0) + (getattr(u, "output_tokens", 0) or 0)
+                usage["input_tokens"] = usage.get("input_tokens", 0) + (
+                    getattr(u, "input_tokens", 0) or 0
+                )
+                usage["output_tokens"] = usage.get("output_tokens", 0) + (
+                    getattr(u, "output_tokens", 0) or 0
+                )
         if getattr(resp, "stop_reason", None) != "refusal":
             return resp
     raise RuntimeError("model declined")
 
 
-def tag_one(client, folder: Path, rec: dict, model: str = DEFAULT_MODEL,
-            effort: str | None = "low", fine_pass: bool = True,
-            usage: dict | None = None, lock=None, vocab: list[str] = ()) -> dict:
+def tag_one(
+    client,
+    folder: Path,
+    rec: dict,
+    model: str = DEFAULT_MODEL,
+    effort: str | None = "low",
+    fine_pass: bool = True,
+    usage: dict | None = None,
+    lock=None,
+    vocab: list[str] = (),
+) -> dict:
     """Orient and tag one sticker: rotates its PNG in place, returns the new record."""
     with Image.open(folder / rec["file"]) as im:
         im.load()
-    call = lambda req: call_claude(client, req, usage, lock)  # noqa: E731
+    call = lambda req: call_claude(client, req, usage, lock)
     info = parse_response(call(build_request(im, model, effort, vocab)))
     fine = 0.0
     # Fine-tune only die-cuts with a real up direction: on a live run the

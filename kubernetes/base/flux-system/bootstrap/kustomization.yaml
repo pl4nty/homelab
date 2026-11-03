@@ -29,3 +29,13 @@ patches:
     group: networking.k8s.io
     version: v1
     kind: NetworkPolicy
+# nothing uses image automation
+- patch: |-
+    $patch: delete
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: not-used
+  target:
+    kind: Deployment
+    name: image-(automation|reflector)-controller

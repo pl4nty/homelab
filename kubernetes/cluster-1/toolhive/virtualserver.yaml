@@ -40,8 +40,11 @@ spec:
   outgoingAuth:
     source: discovered
   config:
-    operational:
-      logLevel: debug
+    aggregation:
+      tools:
+        # FlowSavvy tools: replaced by the official connector, server kept running
+        - workload: selfhost
+          excludeAll: true
     codeMode:
       enabled: true
 ---
@@ -87,8 +90,6 @@ spec:
   outgoingAuth:
     source: discovered
   config:
-    operational:
-      logLevel: debug
     aggregation:
       # defaultToolVisibility: deny means any workload in the group with no
       # entry below contributes no tools, so unsafe workloads just stay
@@ -154,6 +155,5 @@ spec:
             - list_mail_folders
             - read_attachment
             - search_emails
-        - workload: selfhost
         - workload: google-maps
         - workload: youtube-transcript

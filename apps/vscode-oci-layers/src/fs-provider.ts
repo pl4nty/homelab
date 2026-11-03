@@ -9,7 +9,14 @@ import type { SessionStore } from './session-store.ts';
 const pathOf = (uri: vscode.Uri) => normalizePath(uri.path);
 
 function fileType(node: FsNode, isLink = false): vscode.FileType {
-  const t = node.type === 'dir' ? vscode.FileType.Directory : node.type === 'file' ? vscode.FileType.File : node.type === 'symlink' ? vscode.FileType.SymbolicLink : vscode.FileType.Unknown;
+  const t =
+    node.type === 'dir'
+      ? vscode.FileType.Directory
+      : node.type === 'file'
+        ? vscode.FileType.File
+        : node.type === 'symlink'
+          ? vscode.FileType.SymbolicLink
+          : vscode.FileType.Unknown;
   return isLink && t !== vscode.FileType.SymbolicLink ? t | vscode.FileType.SymbolicLink : t;
 }
 
@@ -32,9 +39,13 @@ export class ImageFileSystemProvider implements vscode.FileSystemProvider {
   readonly onDidChangeFile = this._onDidChangeFile.event;
   private readonly store: SessionStore;
 
-  constructor(store: SessionStore) { this.store = store; }
+  constructor(store: SessionStore) {
+    this.store = store;
+  }
 
-  fire(events: vscode.FileChangeEvent[]): void { this._onDidChangeFile.fire(events); }
+  fire(events: vscode.FileChangeEvent[]): void {
+    this._onDidChangeFile.fire(events);
+  }
 
   private async run<T>(uri: vscode.Uri, fn: (o: Overlay) => T, mutates?: vscode.FileChangeEvent[]): Promise<T> {
     const session = await this.store.load(uri.authority);
@@ -50,10 +61,15 @@ export class ImageFileSystemProvider implements vscode.FileSystemProvider {
     }
   }
 
-  watch(): vscode.Disposable { return new vscode.Disposable(() => undefined); }
+  watch(): vscode.Disposable {
+    return new vscode.Disposable(() => undefined);
+  }
 
   stat(uri: vscode.Uri) {
-    return this.run(uri, (o) => { const s = o.stat(pathOf(uri)); return toStat(s.node, s.isLink); });
+    return this.run(uri, (o) => {
+      const s = o.stat(pathOf(uri));
+      return toStat(s.node, s.isLink);
+    });
   }
 
   readDirectory(uri: vscode.Uri) {
@@ -70,7 +86,9 @@ export class ImageFileSystemProvider implements vscode.FileSystemProvider {
     });
   }
 
-  readFile(uri: vscode.Uri) { return this.run(uri, (o) => o.readFile(pathOf(uri))); }
+  readFile(uri: vscode.Uri) {
+    return this.run(uri, (o) => o.readFile(pathOf(uri)));
+  }
 
   writeFile(uri: vscode.Uri, content: Uint8Array, options: { create: boolean; overwrite: boolean }) {
     return this.run(uri, (o) => {
@@ -79,23 +97,43 @@ export class ImageFileSystemProvider implements vscode.FileSystemProvider {
       return existed;
     }).then((existed) => {
       this.store.changed(uri.authority);
-      this._onDidChangeFile.fire([{ type: existed ? vscode.FileChangeType.Changed : vscode.FileChangeType.Created, uri }]);
+      this._onDidChangeFile.fire([
+        { type: existed ? vscode.FileChangeType.Changed : vscode.FileChangeType.Created, uri },
+      ]);
     });
   }
 
   createDirectory(uri: vscode.Uri) {
-    return this.run(uri, (o) => { o.mkdir(pathOf(uri)); }, [{ type: vscode.FileChangeType.Created, uri }]);
+    return this.run(
+      uri,
+      (o) => {
+        o.mkdir(pathOf(uri));
+      },
+      [{ type: vscode.FileChangeType.Created, uri }],
+    );
   }
 
   delete(uri: vscode.Uri, options: { recursive: boolean }) {
-    return this.run(uri, (o) => { o.delete(pathOf(uri), options.recursive); }, [{ type: vscode.FileChangeType.Deleted, uri }]);
+    return this.run(
+      uri,
+      (o) => {
+        o.delete(pathOf(uri), options.recursive);
+      },
+      [{ type: vscode.FileChangeType.Deleted, uri }],
+    );
   }
 
   rename(oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean }) {
-    return this.run(oldUri, (o) => { o.rename(pathOf(oldUri), pathOf(newUri), options.overwrite); }, [
-      { type: vscode.FileChangeType.Deleted, uri: oldUri },
-      { type: vscode.FileChangeType.Created, uri: newUri },
-    ]);
+    return this.run(
+      oldUri,
+      (o) => {
+        o.rename(pathOf(oldUri), pathOf(newUri), options.overwrite);
+      },
+      [
+        { type: vscode.FileChangeType.Deleted, uri: oldUri },
+        { type: vscode.FileChangeType.Created, uri: newUri },
+      ],
+    );
   }
 }
 
@@ -105,9 +143,13 @@ export class BaseFileSystemProvider implements vscode.FileSystemProvider {
   readonly onDidChangeFile = this._onDidChangeFile.event;
   private readonly store: SessionStore;
 
-  constructor(store: SessionStore) { this.store = store; }
+  constructor(store: SessionStore) {
+    this.store = store;
+  }
 
-  fire(events: vscode.FileChangeEvent[]): void { this._onDidChangeFile.fire(events); }
+  fire(events: vscode.FileChangeEvent[]): void {
+    this._onDidChangeFile.fire(events);
+  }
 
   private async node(uri: vscode.Uri): Promise<FsNode> {
     const session = await this.store.load(uri.authority);
@@ -116,18 +158,25 @@ export class BaseFileSystemProvider implements vscode.FileSystemProvider {
     return node;
   }
 
-  watch(): vscode.Disposable { return new vscode.Disposable(() => undefined); }
-  async stat(uri: vscode.Uri) { return toStat(await this.node(uri)); }
-  async readFile(uri: vscode.Uri) { return (await this.node(uri)).data ?? new Uint8Array(); }
+  watch(): vscode.Disposable {
+    return new vscode.Disposable(() => undefined);
+  }
+  async stat(uri: vscode.Uri) {
+    return toStat(await this.node(uri));
+  }
+  async readFile(uri: vscode.Uri) {
+    return (await this.node(uri)).data ?? new Uint8Array();
+  }
   async readDirectory(uri: vscode.Uri): Promise<[string, vscode.FileType][]> {
     const session = await this.store.load(uri.authority);
     const p = pathOf(uri);
     return session.overlay.base.list(p).map((n) => [n, fileType(session.overlay.base.get(p ? `${p}/${n}` : n)!)]);
   }
-  private readonly ro = () => { throw vscode.FileSystemError.NoPermissions('base image layers are read-only'); };
+  private readonly ro = () => {
+    throw vscode.FileSystemError.NoPermissions('base image layers are read-only');
+  };
   writeFile = this.ro;
   createDirectory = this.ro;
   delete = this.ro;
   rename = this.ro;
 }
-

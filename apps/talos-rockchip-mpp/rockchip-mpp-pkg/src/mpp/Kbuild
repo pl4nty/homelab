@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+# Out-of-tree build of the Rockchip BSP MPP service for mainline kernels,
+# RK3588 codec blocks only.
+
+NOSTDINC_FLAGS += -I$(src)/../compat -I$(src)/../compat/uapi -I$(src)/../dt
+
+ccflags-y += -include $(src)/mpp_config.h
+
+CFLAGS_mpp_service.o += -DMPP_VERSION="\"armbian rk-6.12-rkr1\""
+
+rk_vcodec-y := mpp_service.o mpp_common.o mpp_iommu.o \
+	mpp_rkvdec2.o mpp_rkvdec2_link.o mpp_rkvenc2.o \
+	mpp_vdpu2.o mpp_vepu2.o mpp_jpgdec.o mpp_iep2.o mpp_av1dec.o
+
+obj-m += rk_vcodec.o
+
+rk_vcodec-y += mpp_compat.o

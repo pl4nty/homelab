@@ -1,0 +1,118 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app searxng
+  namespace: default
+spec:
+  interval: 15m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    global:
+      createDefaultServiceAccount: false
+    defaultPodOptions:
+      # keep off the 8GiB amd64 control plane node
+      nodeSelector:
+        kubernetes.io/arch: arm64
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              repository: ghcr.io/searxng/searxng
+              tag: latest@sha256:892ed5710603e38f9dc201e6a0b2f3f14dbdb8108edcadac30e55b165c979fb7
+            # the image user. the entrypoint only needs root to chown volumes
+            securityContext:
+              runAsUser: 977
+              runAsGroup: 977
+              runAsNonRoot: true
+            probes:
+              liveness: &probe
+                enabled: true
+                type: HTTP
+                path: /healthz
+              readiness: *probe
+              startup:
+                enabled: true
+                type: HTTP
+                path: /healthz
+                spec:
+                  periodSeconds: 5
+                  failureThreshold: 30
+            resources:
+              requests:
+                cpu: 20m
+                memory: 256Mi
+              limits:
+                memory: 1Gi
+                ephemeral-storage: 256Mi
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 8080
+    persistence:
+      config:
+        type: configMap
+        identifier: config
+        advancedMounts:
+          main:
+            main:
+              # the entrypoint copies the template to /etc/searxng/settings.yml and
+              # swaps ultrasecretkey for a random key on every start
+              - path: /usr/local/searxng/settings.template.yml
+                subPath: settings.yml
+                readOnly: true
+    configMaps:
+      config:
+        data:
+          settings.yml: |
+            use_default_settings: true
+            server:
+              base_url: https://search.${PRIVATE_DOMAIN}/
+              # only signs image proxy links and hashes cache keys, which live as long as the pod
+              secret_key: ultrasecretkey
+              image_proxy: true
+            search:
+              # the reddit engine queries this instance's JSON API
+              formats: [html, json]
+            hostnames:
+              replace:
+                '^(www\.|new\.|np\.)?reddit\.com$': old.reddit.com
+            engines:
+              - name: hister
+                engine: json_engine
+                shortcut: hi
+                categories: [general]
+                # query={"highlight":"text","limit":20}, so results carry a text snippet
+                search_url: http://hister.default.svc:4433/search?format=json&query=%7B%22highlight%22%3A%22text%22%2C%22limit%22%3A20%7D&q={query}
+                results_query: documents
+                url_query: url
+                title_query: title
+                content_query: text
+              - name: reddit
+                engine: json_engine
+                shortcut: r
+                categories: [social media]
+                # SearXNG has no reddit engine, so ask this instance for site:reddit.com results
+                search_url: http://localhost:8080/search?format=json&engines=google,bing,duckduckgo&q=site%3Areddit.com+{query}
+                results_query: results
+                url_query: url
+                title_query: title
+                content_query: content
+                # longer than the inner engines' 3s request timeout
+                timeout: 6
+    route:
+      main:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - search.${PRIVATE_DOMAIN}
+        rules:
+          - backendRefs:
+              - identifier: main
+                port: 8080

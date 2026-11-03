@@ -1,0 +1,74 @@
+# The modules, built against the released Talos kernel as siderolabs/pkgs builds
+# out-of-tree modules: the Rockchip BSP drivers from Armbian's tree with
+# patches/ applied, the mainline vsi-iommu driver, and src/ (build files,
+# the pm_domains and IOMMU headers, the device tree module) on top. They aren't signed: the Talos
+# key is thrown away after its kernel build, so nodes boot with
+# -module.sig_enforce.
+name: rockchip-mpp-pkg
+variant: scratch
+shell: /bin/bash
+dependencies:
+  - stage: base
+  - stage: kernel-tree
+  - image: "{{ .BUILD_ARG_TOOLS_PREFIX }}/llvm:{{ .BUILD_ARG_TOOLS }}"
+steps:
+  - sources:
+      - url: https://github.com/armbian/linux-rockchip/archive/{{ .linux_rockchip_ref }}.tar.gz
+        destination: linux-rockchip.tar.gz
+        sha256: "{{ .linux_rockchip_sha256 }}"
+        sha512: "{{ .linux_rockchip_sha512 }}"
+      - url: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/plain/drivers/iommu/vsi-iommu.c?id={{ .vsi_iommu_ref }}
+        destination: vsi-iommu.c
+        sha256: "{{ .vsi_iommu_sha256 }}"
+        sha512: "{{ .vsi_iommu_sha512 }}"
+    env:
+      ARCH: arm64
+      LLVM: 1
+    prepare:
+      - |
+        mkdir -p /linux-rockchip
+        tar -xzf linux-rockchip.tar.gz --strip-components=1 -C /linux-rockchip --wildcards \
+          '*/drivers/video/rockchip/mpp/*' '*/drivers/video/rockchip/rga3/*' '*/include/uapi/linux/rk-mpp.h' \
+          '*/include/linux/dma-buf-cache.h' '*/include/linux/rockchip/rockchip_sip.h' \
+          '*/include/soc/rockchip/rockchip_dmc.h' '*/include/soc/rockchip/rockchip_ipa.h' \
+          '*/include/soc/rockchip/rockchip_opp_select.h' '*/include/soc/rockchip/rockchip_sip.h' \
+          '*/include/soc/rockchip/rockchip_system_monitor.h'
+        rm linux-rockchip.tar.gz
+        cd /linux-rockchip
+        for patch in $(find /pkg/patches -type f -name "*.patch" | sort); do
+          patch -p1 < "${patch}" || { echo "Failed to apply ${patch}"; exit 1; }
+        done
+      - |
+        mkdir -p /build/compat/uapi/linux /build/vsi-iommu
+        cp -r /linux-rockchip/drivers/video/rockchip/mpp /linux-rockchip/drivers/video/rockchip/rga3 /build/
+        cp /linux-rockchip/include/uapi/linux/rk-mpp.h /build/compat/uapi/linux/
+        # vendor headers: without the vendor Kconfig options they declare stubs
+        cp -r /linux-rockchip/include/linux /linux-rockchip/include/soc /build/compat/
+        cp vsi-iommu.c /build/vsi-iommu/
+        cp -r /pkg/src/. /build/
+    build:
+      - |
+        make -C /src M=/build -j $(nproc) modules
+    install:
+      - |
+        export KERNELRELEASE=$(cat /src/include/config/kernel.release)
+        mkdir -p /rootfs/usr/lib/modules/${KERNELRELEASE}
+        make -C /src M=/build modules_install \
+          INSTALL_MOD_PATH=/rootfs/usr INSTALL_MOD_DIR=extras INSTALL_MOD_STRIP=1 DEPMOD=true \
+          CONFIG_MODULE_SIG_ALL=
+    test:
+      - |
+        export KERNELRELEASE=$(cat /src/include/config/kernel.release)
+        for m in vsi_iommu rk3588_mpp_dt rk_vcodec rga3; do
+          ko=$(find /rootfs/usr/lib/modules/${KERNELRELEASE}/extras -name "${m}.ko")
+          test -n "${ko}"
+          grep -aq "vermagic=${KERNELRELEASE} SMP mod_unload modversions aarch64" "${ko}"
+        done
+        ! grep -Fq '~Module signature appended~' $(find /rootfs -name '*.ko')
+        # only the modules, no index files from the kernel tree
+        test "$(find /rootfs/usr/lib/modules -type f | grep -vc '/extras/')" = 0
+      - |
+        fhs-validator /rootfs
+finalize:
+  - from: /rootfs
+    to: /

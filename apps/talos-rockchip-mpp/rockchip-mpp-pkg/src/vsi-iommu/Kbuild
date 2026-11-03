@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: GPL-2.0
+# Backport of the mainline Verisilicon IOMMU driver (Linux 7.x), the MMU in
+# front of the RK3588 AV1 decoder. iommu-pages.h is private to drivers/iommu.
+ccflags-y += -I$(srctree)/drivers/iommu
+obj-m += vsi_iommu.o
+vsi_iommu-y := vsi-iommu.o vsi-iommu-dep.o

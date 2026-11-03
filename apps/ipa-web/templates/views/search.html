@@ -1,0 +1,37 @@
+{{ define "views/search.html" }}
+
+<!--Embed the header.html template at this location-->
+{{ template "layouts/header.html" .}}
+
+{{ if .BundleQuery }}
+<p><a class="link-primary" href="/bundle/{{ .Query }}">Open bundle ID <code>{{ .Query }}</code></a></p>
+{{ end }}
+
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Bundle ID</th>
+      <th scope="col">ID</th>
+      <th scope="col">Name</th>
+      <th scope="col">Price</th>
+      <th scope="col">Version</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{ range .Results }}
+    <tr>
+      <th scope="row"><a class="link-primary" href="/bundle/{{ .BundleID }}">{{ .BundleID }}</a></th>
+      <td><a class="link-primary" target="_blank" rel="noopener noreferrer"
+          href="https://apps.apple.com/app/{{ .ID }}">{{ .ID }}</td>
+      <td>{{ .Name }}</td>
+      <td>{{ .Price }}</td>
+      <td>{{ .Version }}</td>
+    </tr>
+    {{ end }}
+  </tbody>
+</table>
+
+<!--Embed the footer.html template at this location-->
+{{ template "layouts/footer.html" .}}
+
+{{ end }}

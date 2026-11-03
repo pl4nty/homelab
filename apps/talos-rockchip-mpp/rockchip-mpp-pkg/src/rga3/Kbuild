@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: GPL-2.0
+# Out-of-tree build of the Rockchip BSP multi-RGA driver for mainline kernels.
+
+NOSTDINC_FLAGS += -I$(src)/../compat -I$(src)/../compat/uapi
+ccflags-y += -I$(src)/include -I$(src)/../dt -include $(src)/rga_config.h -include rk3588_mpp_dt.h
+
+rga3-y	:= rga_drv.o rga_common.o rga3_reg_info.o rga_iommu.o rga_dma_buf.o rga_job.o rga_hw_config.o rga2_reg_info.o rga_policy.o rga_mm.o
+rga3-y += rga_fence.o
+
+obj-m += rga3.o

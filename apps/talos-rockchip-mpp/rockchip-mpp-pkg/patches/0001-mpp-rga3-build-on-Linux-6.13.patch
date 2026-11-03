@@ -1,0 +1,53 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 24 Oct 2026 01:34:12 +0000
+Subject: [PATCH] mpp, rga3: build on Linux 6.13+
+
+String module namespaces, and hrtimer_setup() in place of hrtimer_init().
+---
+ drivers/video/rockchip/mpp/mpp_service.c | 2 +-
+ drivers/video/rockchip/rga3/rga_drv.c    | 8 +++++++-
+ 2 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/video/rockchip/mpp/mpp_service.c b/drivers/video/rockchip/mpp/mpp_service.c
+index 66cdef5..a5998b5 100644
+--- a/drivers/video/rockchip/mpp/mpp_service.c
++++ b/drivers/video/rockchip/mpp/mpp_service.c
+@@ -541,7 +541,7 @@ static struct platform_driver mpp_service_driver = {
+ 
+ module_platform_driver(mpp_service_driver);
+ 
+-MODULE_IMPORT_NS(DMA_BUF);
++MODULE_IMPORT_NS("DMA_BUF");
+ MODULE_LICENSE("Dual MIT/GPL");
+ MODULE_VERSION(MPP_VERSION);
+ MODULE_AUTHOR("Ding Wei leo.ding@rock-chips.com");
+diff --git a/drivers/video/rockchip/rga3/rga_drv.c b/drivers/video/rockchip/rga3/rga_drv.c
+index 0a5d852..6a2e35e 100644
+--- a/drivers/video/rockchip/rga3/rga_drv.c
++++ b/drivers/video/rockchip/rga3/rga_drv.c
+@@ -406,9 +406,13 @@ static enum hrtimer_restart hrtimer_handler(struct hrtimer *timer)
+ static void rga_init_timer(void)
+ {
+ 	kt = ktime_set(0, RGA_TIMER_INTERVAL_NS);
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 13, 0)
++	hrtimer_setup(&timer, hrtimer_handler, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
++#else
+ 	hrtimer_init(&timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+ 
+ 	timer.function = hrtimer_handler;
++#endif
+ 
+ 	hrtimer_start(&timer, kt, HRTIMER_MODE_REL);
+ }
+@@ -1761,7 +1765,9 @@ module_exit(rga_exit);
+ MODULE_AUTHOR("putin.li@rock-chips.com");
+ MODULE_DESCRIPTION("Driver for rga device");
+ MODULE_LICENSE("GPL");
+-#ifdef MODULE_IMPORT_NS
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 13, 0)
++MODULE_IMPORT_NS("DMA_BUF");
++#elif defined(MODULE_IMPORT_NS)
+ MODULE_IMPORT_NS(DMA_BUF);
+ MODULE_IMPORT_NS(VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver);
+ #endif

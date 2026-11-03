@@ -30,7 +30,7 @@ spec:
           app:
             image:
               repository: ghcr.io/onedr0p/qbittorrent-beta
-              tag: "5.0.3"
+              tag: "5.0.3@sha256:4b9de3356475bd97fda3fb4d98f213e8d139aef15e7bd20dab72973e661901dd"
             env:
               TZ: ${TIMEZONE}
               QBT_WEBUI_PORT: &port 80

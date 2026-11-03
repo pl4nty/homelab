@@ -47,12 +47,12 @@ To push to a private registry, run **OCI Layers: Sign In to Registry…**. Crede
   - Skips binary files (a NUL byte in the first 8 KiB) and does not follow symlinks.
   - Runs synchronously on the extension host. That is fine for typical images, but a search over hundreds of MB blocks the host while it runs.
 
-| Setting | Default | Purpose |
-|---|---|---|
-| `ociLayers.platform` | `linux/amd64` | Platform to select from a multi-platform index |
-| `ociLayers.corsProxy` | `""` | URL prefix for every request (browser only, see below) |
-| `ociLayers.insecureRegistries` | `["localhost","127.0.0.1"]` | Hosts to reach over plain HTTP |
-| `ociLayers.maxImageSizeMB` | `512` | Refuse larger images (everything is held in memory) |
+| Setting                        | Default                     | Purpose                                                |
+| ------------------------------ | --------------------------- | ------------------------------------------------------ |
+| `ociLayers.platform`           | `linux/amd64`               | Platform to select from a multi-platform index         |
+| `ociLayers.corsProxy`          | `""`                        | URL prefix for every request (browser only, see below) |
+| `ociLayers.insecureRegistries` | `["localhost","127.0.0.1"]` | Hosts to reach over plain HTTP                         |
+| `ociLayers.maxImageSizeMB`     | `512`                       | Refuse larger images (everything is held in memory)    |
 
 ### Browsers and CORS
 
@@ -63,12 +63,12 @@ In VS Code for the Web, the extension calls registries with `fetch()` from the e
 
 On 2026-10-18 no major public registry did. Each `/v2/`, token, manifest and blob endpoint was probed with `Origin: https://vscode.dev`, a preflight and a GET:
 
-| Option | Result |
-|---|---|
-| Docker Hub, ghcr.io, quay.io, public.ecr.aws, gcr.io / pkg.dev, registry.k8s.io, cgr.dev, GitLab, nvcr.io | No `Access-Control-Allow-Origin` on the API or token endpoints. Quay's CDN alone sends ACAO `*`. |
-| mcr.microsoft.com | Exposes headers but sends ACAO only to allowlisted origins (e.g. portal.azure.com), not vscode.dev. |
-| Mirrors: mirror.gcr.io, docker.m.daocloud.io, dockerproxy.com, and others | No CORS. docker.1ms.run allows CORS on the API and token endpoints, but its blob CDN does not, and it exposes no headers, so a pull still fails. |
-| Public CORS proxies: corsproxy.io, corsfix, cors-anywhere, allorigins, codetabs, cors.lol | Need a paid key or a registered domain, require a manual opt-in, are rate-limited, or are down. Most are GET-only or strip `Authorization`. All of them would see your registry tokens. |
+| Option                                                                                                    | Result                                                                                                                                                                                  |
+| --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Docker Hub, ghcr.io, quay.io, public.ecr.aws, gcr.io / pkg.dev, registry.k8s.io, cgr.dev, GitLab, nvcr.io | No `Access-Control-Allow-Origin` on the API or token endpoints. Quay's CDN alone sends ACAO `*`.                                                                                        |
+| mcr.microsoft.com                                                                                         | Exposes headers but sends ACAO only to allowlisted origins (e.g. portal.azure.com), not vscode.dev.                                                                                     |
+| Mirrors: mirror.gcr.io, docker.m.daocloud.io, dockerproxy.com, and others                                 | No CORS. docker.1ms.run allows CORS on the API and token endpoints, but its blob CDN does not, and it exposes no headers, so a pull still fails.                                        |
+| Public CORS proxies: corsproxy.io, corsfix, cors-anywhere, allorigins, codetabs, cors.lol                 | Need a paid key or a registered domain, require a manual opt-in, are rate-limited, or are down. Most are GET-only or strip `Authorization`. All of them would see your registry tokens. |
 
 When a request is blocked, the extension reports `cannot reach <host> … set ociLayers.corsProxy` and offers a **Configure Proxy** button. Options, best first:
 
@@ -163,12 +163,12 @@ Running two `vscode-test-web` servers with different `--quality` values from one
 
 As of 2026-10-18, I found nothing that does the whole flow of editing image files in an editor and committing them as a layer. Searches covered the VS Code Marketplace, Open VSX, GitHub and the web.
 
-| Project | What it does | Gap |
-|---|---|---|
-| [`crane edit fs`](https://github.com/google/go-containerregistry/blob/main/internal/cmd/edit.go) (go-containerregistry, hidden subcommand) | Edits **one file** in `$EDITOR` and pushes it as a new layer | Closest in behaviour: single file per run, CLI only |
-| [`crane append` / `mutate`](https://github.com/google/go-containerregistry/blob/main/cmd/crane/doc/crane_append.md), [`regctl image mod`](https://regclient.org/cli/regctl/image/mod/) | Append tarball layers, change config | You build the tar yourself |
-| [`buildah commit`](https://github.com/containers/buildah/blob/main/docs/buildah-commit.1.md), `docker commit` | Commit a container's read-write layer | Needs a runtime and local storage |
-| [Container Tools](https://github.com/microsoft/vscode-containers) (ex-Docker extension) | Read/write FileSystemProvider for **running containers** | Not images; needs a daemon; no layers or commit; Node-only |
-| [OCI Layout Explorer](https://marketplace.visualstudio.com/items?itemName=jpinz.oci-layout-explorer) | Read-only tree of an OCI layout's manifests, configs and layers | Read-only; needs `oras` or `docker` |
-| [dive](https://github.com/wagoodman/dive), [explore.ggcr.dev](https://explore.ggcr.dev/), [dagdotdev](https://github.com/jonjohnsonjr/dagdotdev) | Browse layers and filesystems | Read-only; the web ones run server-side |
-| [container-wasm](https://github.com/ktock/vscode-container-wasm) | Runs containers inside VS Code for the Web | No editing. Its README also hits the registry CORS problem |
+| Project                                                                                                                                                                                | What it does                                                    | Gap                                                        |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------- |
+| [`crane edit fs`](https://github.com/google/go-containerregistry/blob/main/internal/cmd/edit.go) (go-containerregistry, hidden subcommand)                                             | Edits **one file** in `$EDITOR` and pushes it as a new layer    | Closest in behaviour: single file per run, CLI only        |
+| [`crane append` / `mutate`](https://github.com/google/go-containerregistry/blob/main/cmd/crane/doc/crane_append.md), [`regctl image mod`](https://regclient.org/cli/regctl/image/mod/) | Append tarball layers, change config                            | You build the tar yourself                                 |
+| [`buildah commit`](https://github.com/containers/buildah/blob/main/docs/buildah-commit.1.md), `docker commit`                                                                          | Commit a container's read-write layer                           | Needs a runtime and local storage                          |
+| [Container Tools](https://github.com/microsoft/vscode-containers) (ex-Docker extension)                                                                                                | Read/write FileSystemProvider for **running containers**        | Not images; needs a daemon; no layers or commit; Node-only |
+| [OCI Layout Explorer](https://marketplace.visualstudio.com/items?itemName=jpinz.oci-layout-explorer)                                                                                   | Read-only tree of an OCI layout's manifests, configs and layers | Read-only; needs `oras` or `docker`                        |
+| [dive](https://github.com/wagoodman/dive), [explore.ggcr.dev](https://explore.ggcr.dev/), [dagdotdev](https://github.com/jonjohnsonjr/dagdotdev)                                       | Browse layers and filesystems                                   | Read-only; the web ones run server-side                    |
+| [container-wasm](https://github.com/ktock/vscode-container-wasm)                                                                                                                       | Runs containers inside VS Code for the Web                      | No editing. Its README also hits the registry CORS problem |

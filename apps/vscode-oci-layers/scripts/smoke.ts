@@ -18,8 +18,19 @@ console.log('bin/sh ->', s.overlay.resolve('bin/sh'));
 s.overlay.writeFile('etc/motd', new TextEncoder().encode('edited in vscode\n'), { create: true, overwrite: true });
 s.overlay.delete('etc/issue', false);
 console.log(s.overlay.changes());
-const res = await s.commit(parseRef(`${targetHost}/copy/${image.split(':')[0].split('/').pop()}:edited`), 'smoke test', console.log);
+const res = await s.commit(
+  parseRef(`${targetHost}/copy/${image.split(':')[0].split('/').pop()}:edited`),
+  'smoke test',
+  console.log,
+);
 console.log('pushed', res.digest, 'layer', res.layer.size, 'bytes');
-const again = await ImageSession.open(client, `${targetHost}/copy/${image.split(':')[0].split('/').pop()}:edited`, { platform: 'linux/amd64' });
-console.log('re-pulled motd:', JSON.stringify(dec.decode(again.overlay.readFile('etc/motd'))), 'issue exists:', !!again.overlay.lookup('etc/issue'));
+const again = await ImageSession.open(client, `${targetHost}/copy/${image.split(':')[0].split('/').pop()}:edited`, {
+  platform: 'linux/amd64',
+});
+console.log(
+  're-pulled motd:',
+  JSON.stringify(dec.decode(again.overlay.readFile('etc/motd'))),
+  'issue exists:',
+  !!again.overlay.lookup('etc/issue'),
+);
 await reg.close();

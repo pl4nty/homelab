@@ -1,0 +1,14 @@
+version: v1alpha1
+metadata:
+  name: rockchip-mpp
+  version: "{{ .VERSION }}"
+  author: Tom Plant
+  description: |
+    This system extension provides the Rockchip MPP (/dev/mpp_service) and RGA (/dev/rga)
+    kernel modules for RK3588, ported from the Rockchip BSP to the Talos kernel, and the
+    mainline Verisilicon IOMMU driver for the AV1 decoder. They're built against the kernel of
+    a specific Talos version and aren't signed with the Talos key, so boot with
+    -module.sig_enforce.
+  compatibility:
+    talos:
+      version: ">= v1.14.0"

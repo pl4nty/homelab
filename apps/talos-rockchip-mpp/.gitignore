@@ -1,0 +1,14 @@
+*.o
+*.ko
+*.mod
+*.mod.c
+*.cmd
+.*.cmd
+Module.symvers
+modules.order
+.tmp*
+*.dtbo
+*.pp
+mpp_dtbo.S
+.*.d
+*.d

@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+# The RK3588 MPP, RGA and AV1 device tree nodes, as an overlay linked into the
+# module and applied when it loads.
+
+obj-m += rk3588_mpp_dt.o
+rk3588_mpp_dt-y := rk3588_mpp_dt_main.o rk3588_mpp_dtbo.o
+
+MPP_DTC ?= $(if $(wildcard $(objtree)/scripts/dtc/dtc),$(objtree)/scripts/dtc/dtc,dtc)
+
+quiet_cmd_mpp_dtbo = DTCO    $@
+      cmd_mpp_dtbo = $(CPP) -nostdinc -I$(srctree)/include -I$(srctree)/arch/arm64/boot/dts \
+		-undef -D__DTS__ -x assembler-with-cpp -o $@.pp $< && \
+		$(MPP_DTC) -q -I dts -O dtb -o $@ $@.pp
+
+$(obj)/rk3588-mpp.dtbo: $(src)/rk3588-mpp.dtso FORCE
+	$(call if_changed,mpp_dtbo)
+
+quiet_cmd_mpp_wrap = WRAP    $@
+      cmd_mpp_wrap = { echo '.section .rodata,"a"'; echo '.balign 8'; \
+		echo '.global mpp_dtbo_begin'; echo 'mpp_dtbo_begin:'; \
+		echo '.incbin "$(abspath $<)"'; \
+		echo '.global mpp_dtbo_end'; echo 'mpp_dtbo_end:'; } > $@
+
+$(obj)/rk3588_mpp_dtbo.S: $(obj)/rk3588-mpp.dtbo FORCE
+	$(call if_changed,mpp_wrap)
+
+targets += rk3588-mpp.dtbo rk3588_mpp_dtbo.S

@@ -1,0 +1,20 @@
+{{ define "views/index.html" }}
+
+<!--Embed the header.html template at this location-->
+{{ template "layouts/header.html" .}}
+
+<div class="row m-0 align-items-start">
+  <div class="col justify-content-center d-flex">
+    <form action="/search" class="input-group lg-shadow w-100" style="max-width: 576px">
+      <input id="search" name="q" type="search" class="form-control" placeholder="Search by app name or ID"
+        aria-label="Search by app name or ID">
+      <button class="btn btn-outline-secondary" type="submit">Search</button>
+    </form>
+  </div>
+  <p class="text-muted small mt-2">Free apps only. New versions are fetched on request, at most once a day.</p>
+</div>
+
+<!--Embed the footer.html template at this location-->
+{{ template "layouts/footer.html" .}}
+
+{{ end }}

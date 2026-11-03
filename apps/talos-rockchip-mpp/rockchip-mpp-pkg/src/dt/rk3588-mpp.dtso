@@ -1,0 +1,426 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * RK3588 MPP codec and RGA blocks for a mainline device tree, from the
+ * vendor rk3588s.dtsi (armbian/linux-rockchip rk-6.12-rkr1), with:
+ * - 4-cell GIC specifiers, as mainline's GIC has ppi-partitions
+ * - mainline IOMMU compatibles; vdpu/vepu share mainline's vpu121_mmu
+ * - the AV1 decoder's IOMMU as mainline describes it, for the vsi-iommu driver
+ * - rockchip,core-id instead of aliases, which overlays can't add
+ * - no OPP tables: the vendor OPP/leakage framework isn't in mainline
+ *
+ * External references (cru, power, vpu121_mmu) resolve through /__symbols__,
+ * which the module adds before applying this, as board DTBs are built without.
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/clock/rockchip,rk3588-cru.h>
+#include <dt-bindings/interrupt-controller/arm-gic.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/power/rk3588-power.h>
+#include <dt-bindings/reset/rockchip,rk3588-cru.h>
+
+/* the mainline hantro/rga nodes for the same blocks */
+&{/video-codec@fdb50000} {
+	status = "disabled";
+};
+
+&{/video-codec@fdc70000} {
+	status = "disabled";
+};
+
+&{/rga@fdb80000} {
+	status = "disabled";
+};
+
+&{/sram@ff001000} {
+	rkvdec0_sram: rkvdec-sram@0 {
+		reg = <0x0 0x78000>;
+	};
+
+	rkvdec1_sram: rkvdec-sram@78000 {
+		reg = <0x78000 0x77000>;
+	};
+};
+
+&{/} {
+	mpp_srv: mpp-srv {
+		compatible = "rockchip,mpp-service";
+		rockchip,taskqueue-count = <12>;
+		rockchip,resetgroup-count = <1>;
+	};
+
+	rkvenc_ccu: rkvenc-ccu {
+		compatible = "rockchip,rkv-encoder-v2-ccu";
+	};
+
+	rga3_core0: rga@fdb60000 {
+		compatible = "rockchip,rga3_core0";
+		reg = <0x0 0xfdb60000 0x0 0x1000>;
+		interrupts = <GIC_SPI 114 IRQ_TYPE_LEVEL_HIGH 0>;
+		interrupt-names = "rga3_core0_irq";
+		clocks = <&cru ACLK_RGA3_0>, <&cru HCLK_RGA3_0>, <&cru CLK_RGA3_0_CORE>;
+		clock-names = "aclk_rga3_0", "hclk_rga3_0", "clk_rga3_0";
+		power-domains = <&power RK3588_PD_RGA30>;
+		iommus = <&rga3_0_mmu>;
+	};
+
+	rga3_0_mmu: iommu@fdb60f00 {
+		compatible = "rockchip,rk3588-iommu", "rockchip,rk3568-iommu";
+		reg = <0x0 0xfdb60f00 0x0 0x100>;
+		interrupts = <GIC_SPI 114 IRQ_TYPE_LEVEL_HIGH 0>;
+		clocks = <&cru ACLK_RGA3_0>, <&cru HCLK_RGA3_0>;
+		clock-names = "aclk", "iface";
+		power-domains = <&power RK3588_PD_RGA30>;
+		#iommu-cells = <0>;
+	};
+
+	rga3_core1: rga@fdb70000 {
+		compatible = "rockchip,rga3_core1";
+		reg = <0x0 0xfdb70000 0x0 0x1000>;
+		interrupts = <GIC_SPI 115 IRQ_TYPE_LEVEL_HIGH 0>;
+		interrupt-names = "rga3_core1_irq";
+		clocks = <&cru ACLK_RGA3_1>, <&cru HCLK_RGA3_1>, <&cru CLK_RGA3_1_CORE>;
+		clock-names = "aclk_rga3_1", "hclk_rga3_1", "clk_rga3_1";
+		power-domains = <&power RK3588_PD_RGA31>;
+		iommus = <&rga3_1_mmu>;
+	};
+
+	rga3_1_mmu: iommu@fdb70f00 {
+		compatible = "rockchip,rk3588-iommu", "rockchip,rk3568-iommu";
+		reg = <0x0 0xfdb70f00 0x0 0x100>;
+		interrupts = <GIC_SPI 115 IRQ_TYPE_LEVEL_HIGH 0>;
+		clocks = <&cru ACLK_RGA3_1>, <&cru HCLK_RGA3_1>;
+		clock-names = "aclk", "iface";
+		power-domains = <&power RK3588_PD_RGA31>;
+		#iommu-cells = <0>;
+	};
+
+	/* replaces mainline's rga@fdb80000, which has the same block */
+	rga2: rga2@fdb80000 {
+		compatible = "rockchip,rga2_core0";
+		reg = <0x0 0xfdb80000 0x0 0x1000>;
+		interrupts = <GIC_SPI 116 IRQ_TYPE_LEVEL_HIGH 0>;
+		interrupt-names = "rga2_irq";
+		clocks = <&cru ACLK_RGA2>, <&cru HCLK_RGA2>, <&cru CLK_RGA2_CORE>;
+		clock-names = "aclk_rga2", "hclk_rga2", "clk_rga2";
+		power-domains = <&power RK3588_PD_VDPU>;
+	};
+
+	vepu: vepu@fdb50000 {
+		compatible = "rockchip,vpu-encoder-v2";
+		reg = <0x0 0xfdb50000 0x0 0x400>;
+		interrupts = <GIC_SPI 120 IRQ_TYPE_LEVEL_HIGH 0>;
+		interrupt-names = "irq_vepu";
+		clocks = <&cru ACLK_VPU>, <&cru HCLK_VPU>;
+		clock-names = "aclk_vcodec", "hclk_vcodec";
+		rockchip,normal-rates = <594000000>, <0>;
+		assigned-clocks = <&cru ACLK_VPU>;
+		assigned-clock-rates = <594000000>;
+		resets = <&cru SRST_A_VPU>, <&cru SRST_H_VPU>;
+		reset-names = "shared_video_a", "shared_video_h";
+		rockchip,skip-pmu-idle-request;
+		rockchip,disable-auto-freq;
+		iommus = <&vpu121_mmu>;
+		rockchip,srv = <&mpp_srv>;
+		rockchip,taskqueue-node = <0>;
+		rockchip,resetgroup-node = <0>;
+		power-domains = <&power RK3588_PD_VDPU>;
+	};
+
+	vdpu: vdpu@fdb50400 {
+		compatible = "rockchip,vpu-decoder-v2";
+		reg = <0x0 0xfdb50400 0x0 0x400>;
+		interrupts = <GIC_SPI 119 IRQ_TYPE_LEVEL_HIGH 0>;
+		interrupt-names = "irq_vdpu";
+		clocks = <&cru ACLK_VPU>, <&cru HCLK_VPU>;
+		clock-names = "aclk_vcodec", "hclk_vcodec";
+		rockchip,normal-rates = <594000000>, <0>;
+		assigned-clocks = <&cru ACLK_VPU>;
+		assigned-clock-rates = <594000000>;
+		resets = <&cru SRST_A_VPU>, <&cru SRST_H_VPU>;
+		reset-names = "shared_video_a", "shared_video_h";
+		rockchip,skip-pmu-idle-request;
+		rockchip,disable-auto-freq;
+		iommus = <&vpu121_mmu>;
+		rockchip,srv = <&mpp_srv>;
+		rockchip,taskqueue-node = <0>;
+		rockchip,resetgroup-node = <0>;
+		power-domains = <&power RK3588_PD_VDPU>;
+	};
+
+	jpegd: jpegd@fdb90000 {
+		compatible = "rockchip,rkv-jpeg-decoder-v1";
+		reg = <0x0 0xfdb90000 0x0 0x400>;
+		interrupts = <GIC_SPI 129 IRQ_TYPE_LEVEL_HIGH 0>;
+		interrupt-names = "irq_jpegd";
+		clocks = <&cru ACLK_JPEG_DECODER>, <&cru HCLK_JPEG_DECODER>;
+		clock-names = "aclk_vcodec", "hclk_vcodec";
+		rockchip,normal-rates = <600000000>, <0>;
+		assigned-clocks = <&cru ACLK_JPEG_DECODER>;
+		assigned-clock-rates = <600000000>;
+		resets = <&cru SRST_A_JPEG_DECODER>, <&cru SRST_H_JPEG_DECODER>;
+		reset-names = "video_a", "video_h";
+		rockchip,skip-pmu-idle-request;
+		iommus = <&jpegd_mmu>;
+		rockchip,srv = <&mpp_srv>;
+		rockchip,taskqueue-node = <1>;
+		power-domains = <&power RK3588_PD_VDPU>;
+	};
+
+	jpegd_mmu: iommu@fdb90480 {
+		compatible = "rockchip,rk3588-iommu", "rockchip,rk3568-iommu";
+		reg = <0x0 0xfdb90480 0x0 0x40>;
+		interrupts = <GIC_SPI 130 IRQ_TYPE_LEVEL_HIGH 0>;
+		clocks = <&cru ACLK_JPEG_DECODER>, <&cru HCLK_JPEG_DECODER>;
+		clock-names = "aclk", "iface";
+		power-domains = <&power RK3588_PD_VDPU>;
+		#iommu-cells = <0>;
+	};
+
+	iep: iep@fdbb0000 {
+		compatible = "rockchip,iep-v2";
+		reg = <0x0 0xfdbb0000 0x0 0x500>;
+		interrupts = <GIC_SPI 117 IRQ_TYPE_LEVEL_HIGH 0>;
+		interrupt-names = "irq_iep";
+		clocks = <&cru ACLK_IEP2P0>, <&cru HCLK_IEP2P0>, <&cru CLK_IEP2P0_CORE>;
+		clock-names = "aclk", "hclk", "sclk";
+		rockchip,normal-rates = <594000000>, <0>;
+		assigned-clocks = <&cru ACLK_IEP2P0>;
+		assigned-clock-rates = <594000000>;
+		resets = <&cru SRST_A_IEP2P0>, <&cru SRST_H_IEP2P0>, <&cru SRST_IEP2P0_CORE>;
+		reset-names = "rst_a", "rst_h", "rst_s";
+		rockchip,skip-pmu-idle-request;
+		rockchip,disable-auto-freq;
+		power-domains = <&power RK3588_PD_VDPU>;
+		rockchip,srv = <&mpp_srv>;
+		rockchip,taskqueue-node = <6>;
+		iommus = <&iep_mmu>;
+	};
+
+	iep_mmu: iommu@fdbb0800 {
+		compatible = "rockchip,rk3588-iommu", "rockchip,rk3568-iommu";
+		reg = <0x0 0xfdbb0800 0x0 0x100>;
+		interrupts = <GIC_SPI 117 IRQ_TYPE_LEVEL_HIGH 0>;
+		clocks = <&cru ACLK_IEP2P0>, <&cru HCLK_IEP2P0>;
+		clock-names = "aclk", "iface";
+		#iommu-cells = <0>;
+		power-domains = <&power RK3588_PD_VDPU>;
+	};
+
+	rkvenc0: rkvenc-core@fdbd0000 {
+		compatible = "rockchip,rkv-encoder-v2-core";
+		reg = <0x0 0xfdbd0000 0x0 0x6000>;
+		interrupts = <GIC_SPI 101 IRQ_TYPE_LEVEL_HIGH 0>;
+		interrupt-names = "irq_rkvenc0";
+		clocks = <&cru ACLK_RKVENC0>, <&cru HCLK_RKVENC0>, <&cru CLK_RKVENC0_CORE>;
+		clock-names = "aclk_vcodec", "hclk_vcodec", "clk_core";
+		rockchip,normal-rates = <500000000>, <0>, <800000000>;
+		assigned-clocks = <&cru ACLK_RKVENC0>, <&cru CLK_RKVENC0_CORE>;
+		assigned-clock-rates = <500000000>, <800000000>;
+		resets = <&cru SRST_A_RKVENC0>, <&cru SRST_H_RKVENC0>, <&cru SRST_RKVENC0_CORE>;
+		reset-names = "video_a", "video_h", "video_core";
+		rockchip,skip-pmu-idle-request;
+		iommus = <&rkvenc0_mmu>;
+		rockchip,srv = <&mpp_srv>;
+		rockchip,ccu = <&rkvenc_ccu>;
+		rockchip,core-id = <0>;
+		rockchip,taskqueue-node = <7>;
+		rockchip,task-capacity = <8>;
+		power-domains = <&power RK3588_PD_VENC0>;
+	};
+
+	rkvenc0_mmu: iommu@fdbdf000 {
+		compatible = "rockchip,rk3588-iommu", "rockchip,rk3568-iommu";
+		reg = <0x0 0xfdbdf000 0x0 0x40>, <0x0 0xfdbdf040 0x0 0x40>;
+		interrupts = <GIC_SPI 99 IRQ_TYPE_LEVEL_HIGH 0>,
+			     <GIC_SPI 100 IRQ_TYPE_LEVEL_HIGH 0>;
+		clocks = <&cru ACLK_RKVENC0>, <&cru HCLK_RKVENC0>;
+		clock-names = "aclk", "iface";
+		rockchip,disable-mmu-reset;
+		#iommu-cells = <0>;
+		power-domains = <&power RK3588_PD_VENC0>;
+	};
+
+	rkvenc1: rkvenc-core@fdbe0000 {
+		compatible = "rockchip,rkv-encoder-v2-core";
+		reg = <0x0 0xfdbe0000 0x0 0x6000>;
+		interrupts = <GIC_SPI 104 IRQ_TYPE_LEVEL_HIGH 0>;
+		interrupt-names = "irq_rkvenc1";
+		clocks = <&cru ACLK_RKVENC1>, <&cru HCLK_RKVENC1>, <&cru CLK_RKVENC1_CORE>;
+		clock-names = "aclk_vcodec", "hclk_vcodec", "clk_core";
+		rockchip,normal-rates = <500000000>, <0>, <800000000>;
+		assigned-clocks = <&cru ACLK_RKVENC1>, <&cru CLK_RKVENC1_CORE>;
+		assigned-clock-rates = <500000000>, <800000000>;
+		resets = <&cru SRST_A_RKVENC1>, <&cru SRST_H_RKVENC1>, <&cru SRST_RKVENC1_CORE>;
+		reset-names = "video_a", "video_h", "video_core";
+		rockchip,skip-pmu-idle-request;
+		iommus = <&rkvenc1_mmu>;
+		rockchip,srv = <&mpp_srv>;
+		rockchip,ccu = <&rkvenc_ccu>;
+		rockchip,core-id = <1>;
+		rockchip,taskqueue-node = <7>;
+		rockchip,task-capacity = <8>;
+		power-domains = <&power RK3588_PD_VENC1>;
+	};
+
+	rkvenc1_mmu: iommu@fdbef000 {
+		compatible = "rockchip,rk3588-iommu", "rockchip,rk3568-iommu";
+		reg = <0x0 0xfdbef000 0x0 0x40>, <0x0 0xfdbef040 0x0 0x40>;
+		interrupts = <GIC_SPI 102 IRQ_TYPE_LEVEL_HIGH 0>,
+			     <GIC_SPI 103 IRQ_TYPE_LEVEL_HIGH 0>;
+		clocks = <&cru ACLK_RKVENC1>, <&cru HCLK_RKVENC1>;
+		clock-names = "aclk", "iface";
+		rockchip,disable-mmu-reset;
+		#iommu-cells = <0>;
+		power-domains = <&power RK3588_PD_VENC1>;
+	};
+
+	rkvdec_ccu: rkvdec-ccu@fdc30000 {
+		compatible = "rockchip,rkv-decoder-v2-ccu";
+		reg = <0x0 0xfdc30000 0x0 0x100>;
+		reg-names = "ccu";
+		clocks = <&cru ACLK_RKVDEC_CCU>;
+		clock-names = "aclk_ccu";
+		assigned-clocks = <&cru ACLK_RKVDEC_CCU>;
+		assigned-clock-rates = <600000000>;
+		resets = <&cru SRST_A_RKVDEC_CCU>;
+		reset-names = "video_ccu";
+		rockchip,skip-pmu-idle-request;
+		/* 1: soft ccu 2: hw ccu */
+		rockchip,ccu-mode = <1>;
+		power-domains = <&power RK3588_PD_RKVDEC0>;
+	};
+
+	rkvdec0: rkvdec-core@fdc38000 {
+		compatible = "rockchip,rkv-decoder-v2";
+		reg = <0x0 0xfdc38100 0x0 0x400>, <0x0 0xfdc38000 0x0 0x100>;
+		reg-names = "regs", "link";
+		interrupts = <GIC_SPI 95 IRQ_TYPE_LEVEL_HIGH 0>;
+		interrupt-names = "irq_rkvdec0";
+		clocks = <&cru ACLK_RKVDEC0>, <&cru HCLK_RKVDEC0>, <&cru CLK_RKVDEC0_CORE>,
+			 <&cru CLK_RKVDEC0_CA>, <&cru CLK_RKVDEC0_HEVC_CA>;
+		clock-names = "aclk_vcodec", "hclk_vcodec", "clk_core",
+			      "clk_cabac", "clk_hevc_cabac";
+		rockchip,normal-rates = <800000000>, <0>, <600000000>,
+					<600000000>, <1000000000>;
+		assigned-clocks = <&cru ACLK_RKVDEC0>, <&cru CLK_RKVDEC0_CORE>,
+				  <&cru CLK_RKVDEC0_CA>, <&cru CLK_RKVDEC0_HEVC_CA>;
+		assigned-clock-rates = <800000000>, <600000000>,
+				       <600000000>, <1000000000>;
+		resets = <&cru SRST_A_RKVDEC0>, <&cru SRST_H_RKVDEC0>, <&cru SRST_RKVDEC0_CORE>,
+			 <&cru SRST_RKVDEC0_CA>, <&cru SRST_RKVDEC0_HEVC_CA>;
+		reset-names = "video_a", "video_h", "video_core",
+			      "video_cabac", "video_hevc_cabac";
+		rockchip,skip-pmu-idle-request;
+		iommus = <&rkvdec0_mmu>;
+		rockchip,srv = <&mpp_srv>;
+		rockchip,ccu = <&rkvdec_ccu>;
+		rockchip,core-id = <0>;
+		rockchip,core-mask = <0x00010001>;
+		rockchip,task-capacity = <16>;
+		rockchip,taskqueue-node = <9>;
+		rockchip,sram = <&rkvdec0_sram>;
+		/* rcb_iova: start and size 1M@4095M */
+		rockchip,rcb-iova = <0xFFF00000 0x100000>;
+		rockchip,rcb-info = <136 24576>, <137 49152>, <141 90112>, <140 49152>,
+				    <139 180224>, <133 49152>, <134 8192>, <135 4352>,
+				    <138 13056>, <142 291584>;
+		rockchip,rcb-min-width = <512>;
+		power-domains = <&power RK3588_PD_RKVDEC0>;
+	};
+
+	rkvdec0_mmu: iommu@fdc38700 {
+		compatible = "rockchip,rk3588-iommu", "rockchip,rk3568-iommu";
+		reg = <0x0 0xfdc38700 0x0 0x40>, <0x0 0xfdc38740 0x0 0x40>;
+		interrupts = <GIC_SPI 96 IRQ_TYPE_LEVEL_HIGH 0>;
+		clocks = <&cru ACLK_RKVDEC0>, <&cru HCLK_RKVDEC0>;
+		clock-names = "aclk", "iface";
+		rockchip,disable-mmu-reset;
+		#iommu-cells = <0>;
+		power-domains = <&power RK3588_PD_RKVDEC0>;
+	};
+
+	rkvdec1: rkvdec-core@fdc48000 {
+		compatible = "rockchip,rkv-decoder-v2";
+		reg = <0x0 0xfdc48100 0x0 0x400>, <0x0 0xfdc48000 0x0 0x100>;
+		reg-names = "regs", "link";
+		interrupts = <GIC_SPI 97 IRQ_TYPE_LEVEL_HIGH 0>;
+		interrupt-names = "irq_rkvdec1";
+		clocks = <&cru ACLK_RKVDEC1>, <&cru HCLK_RKVDEC1>, <&cru CLK_RKVDEC1_CORE>,
+			 <&cru CLK_RKVDEC1_CA>, <&cru CLK_RKVDEC1_HEVC_CA>;
+		clock-names = "aclk_vcodec", "hclk_vcodec", "clk_core",
+			      "clk_cabac", "clk_hevc_cabac";
+		rockchip,normal-rates = <800000000>, <0>, <600000000>,
+					<600000000>, <1000000000>;
+		assigned-clocks = <&cru ACLK_RKVDEC1>, <&cru CLK_RKVDEC1_CORE>,
+				  <&cru CLK_RKVDEC1_CA>, <&cru CLK_RKVDEC1_HEVC_CA>;
+		assigned-clock-rates = <800000000>, <600000000>,
+				       <600000000>, <1000000000>;
+		resets = <&cru SRST_A_RKVDEC1>, <&cru SRST_H_RKVDEC1>, <&cru SRST_RKVDEC1_CORE>,
+			 <&cru SRST_RKVDEC1_CA>, <&cru SRST_RKVDEC1_HEVC_CA>;
+		reset-names = "video_a", "video_h", "video_core",
+			      "video_cabac", "video_hevc_cabac";
+		rockchip,skip-pmu-idle-request;
+		iommus = <&rkvdec1_mmu>;
+		rockchip,srv = <&mpp_srv>;
+		rockchip,ccu = <&rkvdec_ccu>;
+		rockchip,core-id = <1>;
+		rockchip,core-mask = <0x00020002>;
+		rockchip,task-capacity = <16>;
+		rockchip,taskqueue-node = <9>;
+		rockchip,sram = <&rkvdec1_sram>;
+		/* rcb_iova: start and size 1M@4094M */
+		rockchip,rcb-iova = <0xFFE00000 0x100000>;
+		rockchip,rcb-info = <136 24576>, <137 49152>, <141 90112>, <140 49152>,
+				    <139 180224>, <133 49152>, <134 8192>, <135 4352>,
+				    <138 13056>, <142 291584>;
+		rockchip,rcb-min-width = <512>;
+		power-domains = <&power RK3588_PD_RKVDEC1>;
+	};
+
+	rkvdec1_mmu: iommu@fdc48700 {
+		compatible = "rockchip,rk3588-iommu", "rockchip,rk3568-iommu";
+		reg = <0x0 0xfdc48700 0x0 0x40>, <0x0 0xfdc48740 0x0 0x40>;
+		interrupts = <GIC_SPI 98 IRQ_TYPE_LEVEL_HIGH 0>;
+		clocks = <&cru ACLK_RKVDEC1>, <&cru HCLK_RKVDEC1>;
+		clock-names = "aclk", "iface";
+		rockchip,disable-mmu-reset;
+		#iommu-cells = <0>;
+		power-domains = <&power RK3588_PD_RKVDEC1>;
+	};
+
+	av1d: av1d@fdc70000 {
+		compatible = "rockchip,av1-decoder";
+		reg = <0x0 0xfdc70000 0x0 0x800>, <0x0 0xfdc80000 0x0 0x400>,
+		      <0x0 0xfdc90000 0x0 0x400>;
+		reg-names = "vcd", "cache", "afbc";
+		interrupts = <GIC_SPI 108 IRQ_TYPE_LEVEL_HIGH 0>,
+			     <GIC_SPI 107 IRQ_TYPE_LEVEL_HIGH 0>,
+			     <GIC_SPI 106 IRQ_TYPE_LEVEL_HIGH 0>;
+		interrupt-names = "irq_av1d", "irq_cache", "irq_afbc";
+		clocks = <&cru ACLK_AV1>, <&cru PCLK_AV1>;
+		clock-names = "aclk_vcodec", "hclk_vcodec";
+		rockchip,normal-rates = <400000000>, <400000000>;
+		assigned-clocks = <&cru ACLK_AV1>, <&cru PCLK_AV1>;
+		assigned-clock-rates = <400000000>, <400000000>;
+		resets = <&cru SRST_A_AV1>, <&cru SRST_P_AV1>;
+		reset-names = "video_a", "video_h";
+		iommus = <&av1d_mmu>;
+		rockchip,srv = <&mpp_srv>;
+		rockchip,taskqueue-node = <11>;
+		power-domains = <&power RK3588_PD_AV1>;
+	};
+
+	/* as mainline (Linux 7.x) describes it, for vsi-iommu */
+	av1d_mmu: iommu@fdca0000 {
+		compatible = "rockchip,rk3588-av1-iommu", "verisilicon,iommu-1.2";
+		reg = <0x0 0xfdca0000 0x0 0x600>;
+		interrupts = <GIC_SPI 109 IRQ_TYPE_LEVEL_HIGH 0>;
+		clocks = <&cru ACLK_AV1>, <&cru PCLK_AV1>;
+		clock-names = "core", "iface";
+		#iommu-cells = <0>;
+		power-domains = <&power RK3588_PD_AV1>;
+	};
+};

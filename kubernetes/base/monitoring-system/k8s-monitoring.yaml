@@ -6,14 +6,10 @@ metadata:
   namespace: monitoring-system
 spec:
   interval: 15m
-  chart:
-    spec:
-      chart: k8s-monitoring
-      version: 4.5.3
-      sourceRef:
-        kind: HelmRepository
-        name: grafana
-        namespace: flux-system
+  chartRef:
+    kind: OCIRepository
+    name: k8s-monitoring
+    namespace: flux-system
   maxHistory: 3
   install:
     createNamespace: true
@@ -55,6 +51,43 @@ spec:
             target_label = "pod"
             replacement = "$1"
           }
+          // previews are tested over HTTP, and every push churns ~45 new series
+          write_relabel_config {
+            source_labels = ["namespace","pod","deployment","replicaset","owner_name"]
+            separator = "@"
+            regex = "default@.*-pr-[0-9]+.*"
+            action = "drop"
+          }
+        queueConfig:
+          # Grafana Cloud rejects older samples, but still bills them as DPM
+          sampleAgeLimit: 1h
+          # an active series limit 429 rejects only the new series, and retrying it stalls every other series
+          retryOnHttp429: false
+        # load PrometheusRule objects into the Grafana Cloud ruler. the sync deletes rule groups
+        # under its prefix that it didn't create, so each cluster needs its own prefix. the matcher
+        # scopes each cluster's copy of a base rule to that cluster's series.
+        # alloy-metrics, since the chart only renders this destination's secret on collectors that
+        # write to it. clustered instances elect one leader to sync
+        rules:
+          enabled: true
+          collector: alloy-metrics
+          address: https://prometheus-prod-09-prod-au-southeast-0.grafana.net
+          mimirNamespacePrefix: ${CLUSTER_NAME:=bootstrap}
+          # LogQL rules, loaded by loki.rules.kubernetes below
+          labelExpressions:
+            - key: ruler
+              operator: NotIn
+              values:
+                - loki
+          extraArguments: |-
+            external_labels = {"cluster" = "${CLUSTER_NAME:=bootstrap}"}
+            extra_query_matchers {
+              matcher {
+                name       = "cluster"
+                match_type = "="
+                value      = "${CLUSTER_NAME:=bootstrap}"
+              }
+            }
       logs:
         type: loki
         url: https://logs-prod-004.grafana.net/loki/api/v1/push
@@ -77,28 +110,72 @@ spec:
 
     clusterMetrics:
       enabled: true
-      # TODO enable after cluster consolidation
+      # TODO enable after cluster consolidation, with includeMetrics since control plane sources have no default allowlist
       # controlPlane:
       #   enabled: true
       # kubeProxy:
       #   enabled: true
-      kube-state-metrics:
+      kubelet:
         metricsTuning:
           excludeMetrics:
+            - kubelet_cgroup_manager_duration_seconds_bucket
+            - kubelet_pleg_relist_interval_seconds_bucket
+            - kubelet_pod_start_duration_seconds_bucket
+            # kubelet dashboard only
+            - kubelet_runtime_operations_(errors_)?total
+            - storage_operation_duration_seconds_count
+            - volume_manager_total_volumes
+      cadvisor:
+        metricsTuning:
+          excludeMetrics:
+            # no swap on Talos or OKE
+            - container_memory_swap
+            # only feeds a recording rule for the mixin dashboards
+            - container_memory_cache
+            # byte counters already cover pod IO and traffic, and node_network_*_drop_total keeps drops
+            - container_fs_(reads|writes)_total
+            - container_network_(receive|transmit)_packets(_dropped)?_total
+      kube-state-metrics:
+        # Unknown pod phase is deprecated, and the "true" series already reads 0 for an unknown status.
+        # KubePersistentVolumeErrors only reads Failed and Pending volumes
+        extraMetricProcessingRules: |-
+          rule {
+            source_labels = ["__name__","phase","condition","status"]
+            separator = "@"
+            regex = "kube_pod_status_phase@Unknown@.*|kube_pod_status_ready@.*@unknown@.*|kube_deployment_status_condition@.*@unknown|kube_persistentvolume_status_phase@(Available|Released)@.*|kube_persistentvolumeclaim_status_phase@Lost@.*"
+            action = "drop"
+          }
+        metricsTuning:
+          excludeMetrics:
+            - kube_configmap_.*
             - kube_pod_status_reason
             - kube_replicaset_created
             - kube_replicaset_metadata_generation
             - kube_replicaset_spec_replicas
             - kube_replicaset_status_.*
             - kube_secret_metadata_resource_version
-            - kube_pod_container_status_restarts_total
       collector: alloy-metrics
     hostMetrics:
       linuxHosts:
         enabled: true
+        # one veth per pod, renamed on every restart, and cAdvisor's container_network_* already covers pods.
+        # loopback never leaves the node, and the kernel's tunnel and dummy devices sit idle
+        extraMetricProcessingRules: |-
+          rule {
+            source_labels = ["__name__","device"]
+            separator = "@"
+            regex = "node_network_.+@(veth.+|lo|dummy0|ip6tnl0|sit0|teql0|tunl0)"
+            action = "drop"
+          }
         metricsTuning:
           excludeMetrics:
+            - node_cpu_(scaling_)?frequency_.*
+            - node_cpu_guest_seconds_total
+            - node_cpu_online
+            - node_cpu_scaling_governor
             - node_filesystem_device_error
+            - node_filesystem_mount_info
+            - node_filesystem_purgeable_bytes
             - node_filesystem_readonly
       enabled: true
       collector: alloy-metrics
@@ -122,6 +199,14 @@ spec:
     podLogsViaLoki:
       enabled: true
       collector: alloy-logs
+      # stdio MCP servers write JSON-RPC responses to stdout, eg a 22KB tools/list every
+      # health check. ~225MB/day, most of the log volume
+      extraLogProcessingStages: |-
+        stage.match {
+          selector            = `{namespace="toolhive-system", container="mcp", stream="stdout"} |~ "^[{]\"(jsonrpc|result)\""`
+          action              = "drop"
+          drop_counter_reason = "mcp_jsonrpc"
+        }
     applicationObservability:
       enabled: true
       receivers:
@@ -130,6 +215,13 @@ spec:
             enabled: true
           http:
             enabled: true
+      traces:
+        filters:
+          span:
+            # toolhive vMCP polls every backend for health and capabilities, ~300k spans/day.
+            # real sessions still keep their tools/call spans
+            - resource.attributes["k8s.namespace.name"] == "toolhive-system" and IsMatch(attributes["mcp.method.name"], "^(initialize|server/discover|notifications/.*|(tools|prompts|resources|resources/templates)/list)$")
+            - resource.attributes["k8s.namespace.name"] == "toolhive-system" and attributes["http.request.method"] == "DELETE" and attributes["url.path"] == "/mcp"
       collector: alloy-receiver
     # eBPF, but we already have OTel
     # autoInstrumentation:
@@ -138,6 +230,19 @@ spec:
     prometheusOperatorObjects:
       enabled: true
       collector: alloy-metrics
+      # Go runtime and process metrics, which every exporter repeats
+      podMonitors:
+        metricsTuning:
+          excludeMetrics:
+            - go_.*
+            - process_.*
+            - promhttp_.*
+      serviceMonitors:
+        metricsTuning:
+          excludeMetrics:
+            - go_.*
+            - process_.*
+            - promhttp_.*
     # 4GB/day but only 50GB/month limit
     # profiling:
     # likely high metrics
@@ -152,6 +257,29 @@ spec:
       alloy-singleton:
         presets:
           - singleton
+        # the chart only syncs rules to prometheus destinations. LogQL rules need the cluster
+        # matcher written in, since loki.rules.kubernetes can't add one
+        extraConfig: |-
+          remote.kubernetes.secret "loki_rules" {
+            namespace = "monitoring-system"
+            name      = "k8s-monitoring-logs"
+          }
+
+          loki.rules.kubernetes "logs" {
+            address               = "https://logs-prod-004.grafana.net"
+            loki_namespace_prefix = "${CLUSTER_NAME:=bootstrap}"
+
+            rule_selector {
+              match_labels = {
+                ruler = "loki",
+              }
+            }
+
+            basic_auth {
+              username = convert.nonsensitive(remote.kubernetes.secret.loki_rules.data["username"])
+              password = remote.kubernetes.secret.loki_rules.data["password"]
+            }
+          }
       alloy-logs:
         presets:
           - daemonset

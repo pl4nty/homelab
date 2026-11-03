@@ -1,0 +1,23 @@
+# syntax = ghcr.io/siderolabs/bldr:v0.6.5
+
+format: v1alpha2
+
+vars:
+  # the kernel in siderolabs/kernel:${PKGS}
+  linux_version: 6.18.57
+  linux_sha256: 5bd9acdc82ec5efc3790ae840e5aaa40dfde7efff261cf6dde902dc570acf98c
+  linux_sha512: 6d9b39bee05daf05849c0bacc7bd407b13f34882bd06f46dc8c69835e98aba762d41f81852b5af34728c5cf15832fecb047c01d182bf3b581e82921885653689
+
+  # drivers/video/rockchip/{mpp,rga3} come from Armbian's Rockchip BSP tree
+  # renovate: datasource=git-refs versioning=git depName=https://github.com/armbian/linux-rockchip.git currentValue=rk-6.12-rkr1
+  linux_rockchip_ref: 6bdc00dfa94e1ca52c2fac66253ed00fcaab52b8
+  linux_rockchip_sha256: 3c9a6e505733a1f7e8ba5cd8c0c375ca47933d504e017d4a4ba69373039cfc17
+  linux_rockchip_sha512: 7689e410138b5345e74258786b2a2f29a52e03696c5b5437ea2b30ba3f7fb2ff83f26cfd6378cb28740e20ed7105dec9089b9651b34845554e6c4fb606f58e9d
+
+  # the mainline Verisilicon IOMMU driver, from Linux 7.3
+  vsi_iommu_ref: 4da9dedf3fc59137fd86d664693776aa38cb97f5
+  vsi_iommu_sha256: bf5642d2e5f8754d6f47bea6b858cdfebbc42d945527bdde536d9848bcceb910
+  vsi_iommu_sha512: 1c68a06b526ec9613f6112c35ff25a6a460b68cd65ef8cc96a6663df0bf8ab3633242178a5746cbb9fbbaf6ad1db6001bc265f369d687055a4efd49900a674ec
+
+labels:
+  org.opencontainers.image.source: https://github.com/pl4nty/homelab

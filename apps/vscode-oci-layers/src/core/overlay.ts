@@ -26,7 +26,7 @@ export const WH_OPAQUE = '.wh..wh..opq';
 export const dirname = (p: string) => (p.includes('/') ? p.slice(0, p.lastIndexOf('/')) : '');
 export const basename = (p: string) => p.slice(p.lastIndexOf('/') + 1);
 export const join = (a: string, b: string) => (a ? `${a}/${b}` : b);
-const isUnder = (p: string, dir: string) => dir === '' || p.startsWith(dir + '/');
+const isUnder = (p: string, dir: string) => dir === '' || p.startsWith(`${dir}/`);
 
 function ancestors(p: string): string[] {
   const out: string[] = [];
@@ -41,9 +41,13 @@ export class Tree {
   readonly nodes = new Map<string, FsNode>([['', ROOT]]);
   private readonly children = new Map<string, Set<string>>([['', new Set()]]);
 
-  get(p: string): FsNode | undefined { return this.nodes.get(p); }
+  get(p: string): FsNode | undefined {
+    return this.nodes.get(p);
+  }
 
-  list(p: string): string[] { return [...(this.children.get(p) ?? [])]; }
+  list(p: string): string[] {
+    return [...(this.children.get(p) ?? [])];
+  }
 
   set(p: string, node: FsNode): void {
     const parent = dirname(p);
@@ -81,7 +85,7 @@ export class Tree {
         const target = this.get(normalizePath(e.linkname ?? ''));
         this.set(path, { ...meta, linkname: undefined, type: 'file', data: target?.data ?? new Uint8Array() });
       } else {
-        this.set(path, { ...meta, type, data: type === 'file' ? data ?? new Uint8Array() : undefined });
+        this.set(path, { ...meta, type, data: type === 'file' ? (data ?? new Uint8Array()) : undefined });
       }
     }
   }
@@ -90,7 +94,11 @@ export class Tree {
 type Upper = { kind: 'node'; node: FsNode; opaque?: boolean } | { kind: 'deleted' };
 
 export type ChangeStatus = 'added' | 'modified' | 'deleted';
-export interface Change { path: string; status: ChangeStatus; type: TarType }
+export interface Change {
+  path: string;
+  status: ChangeStatus;
+  type: TarType;
+}
 
 export type FsErrorCode = 'FileNotFound' | 'FileExists' | 'FileNotADirectory' | 'FileIsADirectory' | 'NoPermissions';
 
@@ -109,7 +117,9 @@ export class Overlay {
   private upper = new Map<string, Upper>();
   readonly base: Tree;
 
-  constructor(base: Tree) { this.base = base; }
+  constructor(base: Tree) {
+    this.base = base;
+  }
 
   // ---- lookup -------------------------------------------------------------
 
@@ -125,7 +135,8 @@ export class Overlay {
 
   /** Raw lookup without following symlinks. */
   lookup(p: string): FsNode | undefined {
-    if (p === '') return this.upper.get('')?.kind === 'node' ? (this.upper.get('') as { node: FsNode }).node : this.base.get('');
+    if (p === '')
+      return this.upper.get('')?.kind === 'node' ? (this.upper.get('') as { node: FsNode }).node : this.base.get('');
     const u = this.upper.get(p);
     if (u) return u.kind === 'deleted' ? undefined : u.node;
     // An upper entry only exists below directories that exist, so checking masks suffices.
@@ -194,7 +205,12 @@ export class Overlay {
     return real;
   }
 
-  writeFile(p: string, data: Uint8Array, opts: { create: boolean; overwrite: boolean }, now = Math.floor(Date.now() / 1000)): string {
+  writeFile(
+    p: string,
+    data: Uint8Array,
+    opts: { create: boolean; overwrite: boolean },
+    now = Math.floor(Date.now() / 1000),
+  ): string {
     const real = this.realForWrite(p);
     const existing = this.lookup(real);
     if (existing?.type === 'dir') throw new FsError('FileIsADirectory', p);
@@ -203,7 +219,16 @@ export class Overlay {
     const meta: Pick<FsNode, 'mode' | 'uid' | 'gid' | 'uname' | 'gname'> = existing ?? { mode: 0o644, uid: 0, gid: 0 };
     this.upper.set(real, {
       kind: 'node',
-      node: { type: 'file', mode: meta.mode, uid: meta.uid, gid: meta.gid, uname: meta.uname, gname: meta.gname, mtime: now, data },
+      node: {
+        type: 'file',
+        mode: meta.mode,
+        uid: meta.uid,
+        gid: meta.gid,
+        uname: meta.uname,
+        gname: meta.gname,
+        mtime: now,
+        data,
+      },
     });
     return real;
   }
@@ -220,7 +245,10 @@ export class Overlay {
   symlink(p: string, target: string, now = Math.floor(Date.now() / 1000)): string {
     const real = join(this.resolve(dirname(normalizePath(p))), basename(normalizePath(p)));
     if (this.lookup(real)) throw new FsError('FileExists', p);
-    this.upper.set(real, { kind: 'node', node: { type: 'symlink', mode: 0o777, uid: 0, gid: 0, mtime: now, linkname: target } });
+    this.upper.set(real, {
+      kind: 'node',
+      node: { type: 'symlink', mode: 0o777, uid: 0, gid: 0, mtime: now, linkname: target },
+    });
     return real;
   }
 
@@ -261,7 +289,9 @@ export class Overlay {
 
   // ---- change tracking ----------------------------------------------------
 
-  isDirty(): boolean { return this.upper.size > 0; }
+  isDirty(): boolean {
+    return this.upper.size > 0;
+  }
 
   changes(): Change[] {
     const out: Change[] = [];
@@ -274,7 +304,8 @@ export class Overlay {
       if (u.node.type === 'dir') {
         // Only report directories that are new and have no reported children, or that were replaced.
         const hasChildren = [...this.upper.keys()].some((k) => k !== p && isUnder(k, p));
-        if ((!inBase || u.opaque) && !hasChildren) out.push({ path: p, status: inBase ? 'modified' : 'added', type: 'dir' });
+        if ((!inBase || u.opaque) && !hasChildren)
+          out.push({ path: p, status: inBase ? 'modified' : 'added', type: 'dir' });
         continue;
       }
       out.push({ path: p, status: inBase ? 'modified' : 'added', type: u.node.type });
@@ -291,7 +322,9 @@ export class Overlay {
     for (const k of [...this.upper.keys()]) if (k === p || isUnder(k, p)) this.upper.delete(k);
   }
 
-  discardAll(): void { this.upper.clear(); }
+  discardAll(): void {
+    this.upper.clear();
+  }
 
   /** Build the tar entries for the upper layer, including parent directories and whiteouts. */
   toLayerEntries(): TarEntry[] {
@@ -302,14 +335,31 @@ export class Overlay {
     for (const p of [...all].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))) {
       const u = this.upper.get(p);
       if (u?.kind === 'deleted') {
-        entries.push({ path: join(dirname(p), WH_PREFIX + basename(p)), type: 'file', mode: 0, uid: 0, gid: 0, mtime: 0, data: new Uint8Array() });
+        entries.push({
+          path: join(dirname(p), WH_PREFIX + basename(p)),
+          type: 'file',
+          mode: 0,
+          uid: 0,
+          gid: 0,
+          mtime: 0,
+          data: new Uint8Array(),
+        });
         continue;
       }
       const node = u?.node ?? this.lookup(p);
       if (!node) continue;
       const { data, ...meta } = node;
       entries.push({ ...meta, path: p, data: node.type === 'file' ? data : undefined });
-      if (u?.opaque) entries.push({ path: join(p, WH_OPAQUE), type: 'file', mode: 0, uid: 0, gid: 0, mtime: 0, data: new Uint8Array() });
+      if (u?.opaque)
+        entries.push({
+          path: join(p, WH_OPAQUE),
+          type: 'file',
+          mode: 0,
+          uid: 0,
+          gid: 0,
+          mtime: 0,
+          data: new Uint8Array(),
+        });
     }
     return entries;
   }
@@ -333,7 +383,12 @@ export class Overlay {
     if (!Array.isArray(state)) return;
     for (const [p, n, opaque] of state as [string, 0 | (Omit<FsNode, 'data'> & { data?: string }), number?][]) {
       if (n === 0) this.upper.set(p, { kind: 'deleted' });
-      else this.upper.set(p, { kind: 'node', node: { ...n, data: n.data ? fromBase64(n.data) : undefined }, opaque: !!opaque });
+      else
+        this.upper.set(p, {
+          kind: 'node',
+          node: { ...n, data: n.data ? fromBase64(n.data) : undefined },
+          opaque: !!opaque,
+        });
     }
   }
 }

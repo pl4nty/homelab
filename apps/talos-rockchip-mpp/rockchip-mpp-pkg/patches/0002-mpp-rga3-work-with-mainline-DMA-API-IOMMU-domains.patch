@@ -1,0 +1,98 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 24 Oct 2026 01:34:12 +0000
+Subject: [PATCH] mpp, rga3: work with mainline DMA API IOMMU domains
+
+Since Linux 6.15 the dma-iommu cookie starts with its iova_domain and its type is in iommu_domain::cookie_type; the decoder reserves its RCB window through it. A DMA domain also holds its cookie where a fault handler would go, so only set one on unmanaged domains.
+---
+ drivers/video/rockchip/mpp/mpp_iommu.c  | 18 ++++++++++++++----
+ drivers/video/rockchip/mpp/mpp_iommu.h  | 14 ++++++--------
+ drivers/video/rockchip/rga3/rga_iommu.c | 13 ++++++++++---
+ 3 files changed, 30 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/video/rockchip/mpp/mpp_iommu.c b/drivers/video/rockchip/mpp/mpp_iommu.c
+index c24d381..83793ca 100644
+--- a/drivers/video/rockchip/mpp/mpp_iommu.c
++++ b/drivers/video/rockchip/mpp/mpp_iommu.c
+@@ -651,9 +651,18 @@ int mpp_iommu_dev_activate(struct mpp_iommu_info *info, struct mpp_dev *dev)
+ 		ret = -EINVAL;
+ 	} else {
+ 		info->dev_active = dev;
+-		/* switch domain pagefault handler and arg depending on device */
+-		iommu_set_fault_handler(info->domain, dev->fault_handler ?
+-					dev->fault_handler : mpp_iommu_handle, dev);
++		/*
++		 * switch domain pagefault handler and arg depending on device.
++		 * A DMA API domain holds its IOVA cookie where the handler would
++		 * go, so faults there are only logged by the IOMMU driver.
++		 */
++		if (info->domain->cookie_type == IOMMU_COOKIE_NONE ||
++		    info->domain->cookie_type == IOMMU_COOKIE_FAULT_HANDLER) {
++			info->domain->cookie_type = IOMMU_COOKIE_FAULT_HANDLER;
++			info->domain->handler = dev->fault_handler ?
++						dev->fault_handler : mpp_iommu_handle;
++			info->domain->handler_token = dev;
++		}
+ 
+ 		dev_dbg(info->dev, "activate -> %p %s\n", dev, dev_name(dev->dev));
+ 	}
+@@ -696,7 +705,8 @@ int mpp_iommu_reserve_iova(struct mpp_iommu_info *info, dma_addr_t iova, size_t
+ 		return 0;
+ 
+ 	domain = info->domain;
+-	if (!domain || !domain->iova_cookie)
++	if (!domain || domain->cookie_type != IOMMU_COOKIE_DMA_IOVA ||
++	    !domain->iova_cookie)
+ 		return -EINVAL;
+ 
+ 	cookie = (struct mpp_iommu_dma_cookie *)domain->iova_cookie;
+diff --git a/drivers/video/rockchip/mpp/mpp_iommu.h b/drivers/video/rockchip/mpp/mpp_iommu.h
+index bf51e0e..17417a3 100644
+--- a/drivers/video/rockchip/mpp/mpp_iommu.h
++++ b/drivers/video/rockchip/mpp/mpp_iommu.h
+@@ -16,15 +16,13 @@
+ #include <linux/interrupt.h>
+ #include <linux/iova.h>
+ 
+-enum iommu_dma_cookie_type {
+-	IOMMU_DMA_IOVA_COOKIE,
+-	IOMMU_DMA_MSI_COOKIE,
+-};
+-
+-/* Keep in mind: member order must keep align with struct iommu_dma_cookie */
++/*
++ * Keep in mind: member order must keep align with struct iommu_dma_cookie.
++ * Since Linux 6.15 the cookie type lives in iommu_domain::cookie_type and the
++ * cookie starts with the iova_domain.
++ */
+ struct mpp_iommu_dma_cookie {
+-	enum iommu_dma_cookie_type type;
+-	/* Full allocator for IOMMU_DMA_IOVA_COOKIE */
++	/* Full allocator for IOMMU_COOKIE_DMA_IOVA */
+ 	struct iova_domain iovad;
+ };
+ 
+diff --git a/drivers/video/rockchip/rga3/rga_iommu.c b/drivers/video/rockchip/rga3/rga_iommu.c
+index a9b75ff..e2dd39a 100644
+--- a/drivers/video/rockchip/rga3/rga_iommu.c
++++ b/drivers/video/rockchip/rga3/rga_iommu.c
+@@ -338,9 +338,16 @@ int rga_iommu_bind(void)
+ 			if (main_iommu == NULL) {
+ 				main_iommu = scheduler->iommu_info;
+ 				main_iommu_index = i;
+-				iommu_set_fault_handler(main_iommu->domain,
+-							rga_iommu_intr_fault_handler,
+-							(void *)scheduler);
++				/*
++				 * A DMA API domain holds its IOVA cookie where the
++				 * handler would go; faults there are only logged by
++				 * the IOMMU driver.
++				 */
++				if (main_iommu->domain->cookie_type == IOMMU_COOKIE_NONE) {
++					main_iommu->domain->cookie_type = IOMMU_COOKIE_FAULT_HANDLER;
++					main_iommu->domain->handler = rga_iommu_intr_fault_handler;
++					main_iommu->domain->handler_token = (void *)scheduler;
++				}
+ 			} else {
+ 				scheduler->iommu_info->domain = main_iommu->domain;
+ 				scheduler->iommu_info->default_dev = main_iommu->default_dev;

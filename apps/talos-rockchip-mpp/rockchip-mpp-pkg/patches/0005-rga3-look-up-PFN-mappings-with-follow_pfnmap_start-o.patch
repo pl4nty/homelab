@@ -1,0 +1,77 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 24 Oct 2026 01:34:13 +0000
+Subject: [PATCH] rga3: look up PFN mappings with follow_pfnmap_start() on
+ 6.12+
+
+Mainline doesn't export __pte_offset_map_lock().
+---
+ drivers/video/rockchip/rga3/rga_mm.c | 48 ++++++++++++++++++++++++++++
+ 1 file changed, 48 insertions(+)
+
+diff --git a/drivers/video/rockchip/rga3/rga_mm.c b/drivers/video/rockchip/rga3/rga_mm.c
+index 6473b43..1ca6d12 100644
+--- a/drivers/video/rockchip/rga3/rga_mm.c
++++ b/drivers/video/rockchip/rga3/rga_mm.c
+@@ -204,6 +204,53 @@ static void rga_current_mm_read_unlock(struct mm_struct *mm)
+ #endif
+ }
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 12, 0)
++/*
++ * Mainline doesn't export __pte_offset_map_lock(): look PFN mappings up with
++ * follow_pfnmap_start(), which takes the page table locks itself. Like the
++ * walk below, it runs under the mmap read lock rga_get_user_pages() holds.
++ */
++static int rga_get_user_pages_from_vma(struct page **pages, unsigned long Memory,
++				       uint32_t pageCount, struct mm_struct *current_mm)
++{
++	int ret = 0;
++	int i;
++	struct vm_area_struct *vma;
++	struct follow_pfnmap_args args;
++
++	for (i = 0; i < pageCount; i++) {
++		vma = find_vma(current_mm, (Memory + i) << PAGE_SHIFT);
++		if (!vma) {
++			rga_err("page[%d] failed to get vma\n", i);
++			ret = RGA_OUT_OF_RESOURCES;
++			break;
++		}
++
++		args.vma = vma;
++		args.address = (Memory + i) << PAGE_SHIFT;
++		if (follow_pfnmap_start(&args)) {
++			rga_err("page[%d] failed to get pfn\n", i);
++			ret = RGA_OUT_OF_RESOURCES;
++			break;
++		}
++
++		if (!pfn_valid(args.pfn)) {
++			follow_pfnmap_end(&args);
++			rga_err("page[%d] pfn %lx has no struct page\n", i, args.pfn);
++			ret = RGA_OUT_OF_RESOURCES;
++			break;
++		}
++		pages[i] = pfn_to_page(args.pfn);
++		follow_pfnmap_end(&args);
++	}
++
++	if (ret == RGA_OUT_OF_RESOURCES && i > 0)
++		rga_err("Only get buffer %d byte from vma, but current image required %d byte",
++			(int)(i * PAGE_SIZE), (int)(pageCount * PAGE_SIZE));
++
++	return ret;
++}
++#else
+ static int rga_get_user_pages_from_vma(struct page **pages, unsigned long Memory,
+ 				       uint32_t pageCount, struct mm_struct *current_mm)
+ {
+@@ -282,6 +329,7 @@ static int rga_get_user_pages_from_vma(struct page **pages, unsigned long Memory
+ 
+ 	return ret;
+ }
++#endif
+ 
+ static int rga_get_user_pages(struct page **pages, unsigned long Memory,
+ 			      uint32_t pageCount, int writeFlag,
