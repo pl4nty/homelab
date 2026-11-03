@@ -28,6 +28,11 @@ spec:
               runAsUser: 977
               runAsGroup: 977
               runAsNonRoot: true
+            env:
+              # granian runs WSGI requests on these threads. the image default of 4
+              # is used up by a search and its image proxy requests, so health
+              # checks and page assets wait for them
+              GRANIAN_BLOCKING_THREADS: "32"
             probes:
               liveness: &probe
                 enabled: true
@@ -88,6 +93,8 @@ spec:
                 shortcut: hi
                 categories: [general]
                 # query={"highlight":"text","limit":20}, so results carry a text snippet
+                # engines are https-only unless enable_http is set
+                enable_http: true
                 search_url: http://hister.default.svc:4433/search?format=json&query=%7B%22highlight%22%3A%22text%22%2C%22limit%22%3A20%7D&q={query}
                 results_query: documents
                 url_query: url
@@ -97,8 +104,10 @@ spec:
                 engine: json_engine
                 shortcut: r
                 categories: [social media]
-                # SearXNG has no reddit engine, so ask this instance for site:reddit.com results
-                search_url: http://localhost:8080/search?format=json&engines=google,bing,duckduckgo&q=site%3Areddit.com+{query}
+                # SearXNG has no reddit engine, so ask this instance for site:reddit.com results.
+                # google and bing are disabled upstream because they return no results
+                enable_http: true
+                search_url: http://localhost:8080/search?format=json&engines=duckduckgo,brave,startpage&q=site%3Areddit.com+{query}
                 results_query: results
                 url_query: url
                 title_query: title
