@@ -51,7 +51,7 @@ spec:
             runAsGroup: 568
             fsGroup: 568
             fsGroupChangePolicy: OnRootMismatch
-          # media is strict-local, so follow jellyfin to its node
+          # media is RWO with a single local replica, so follow jellyfin to its node
           affinity:
             podAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:
