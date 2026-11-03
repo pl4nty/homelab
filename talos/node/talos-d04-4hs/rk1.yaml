@@ -3,6 +3,8 @@ machine:
   install:
     diskSelector:
       size: <= 100GB
+    extraKernelArgs:
+      - talos.logging.kernel=tcp://192.168.1.131:30544
   disks:
     - device: /dev/nvme0n1
       partitions:

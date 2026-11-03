@@ -1,3 +1,5 @@
 machine:
   install:
     disk: /dev/nvme0n1
+    extraKernelArgs:
+      - talos.logging.kernel=tcp://192.168.1.131:30544
