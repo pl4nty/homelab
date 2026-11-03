@@ -365,6 +365,10 @@ spec:
               # only signs image proxy links and hashes cache keys, which live as long as the pod
               secret_key: ultrasecretkey
               image_proxy: true
+            outgoing:
+              # results wait for the slowest engine, so drop one that takes longer than this.
+              # brave and google cse answer in about 0.6s
+              request_timeout: 1.5
             search:
               # the reddit engine queries this instance's JSON API
               formats: [html, json]
@@ -404,7 +408,7 @@ spec:
                 url_query: url
                 title_query: title
                 content_query: content
-                # longer than the inner engines' 3s request timeout
+                # longer than the inner engines' 1.5s request timeout
                 timeout: 6
     route:
       main:
