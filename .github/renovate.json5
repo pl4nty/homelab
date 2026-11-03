@@ -80,7 +80,7 @@
         '/apps/[^/]+/docker-bake\\.hcl$/',
       ],
       matchStrings: [
-        '# renovate: branch=(?<currentValue>\\S+)\n\\s*\\S+\\s*=\\s*"(?<depName>https://github\\.com/[^"#]+?)(\\.git)?#(?<currentDigest>[0-9a-f]{40})"',
+        '# renovate: branch=(?<currentValue>\\S+)\n\\s*\\S+\\s*=\\s*"(?<depName>https://github\\.com/[^"#?]+?)(\\.git)?(\\?[^"#]*)?#(?<currentDigest>[0-9a-f]{40})"',
       ],
       datasourceTemplate: 'git-refs',
     },
@@ -198,16 +198,6 @@
       ],
       groupName: 'longhorn',
       separateMultipleMinor: true,
-    },
-    {
-      description: 'flat-viewer uses vite 2, which breaks on node 17+, and node 26 also drops yarn',
-      matchFileNames: [
-        'apps/flat-viewer/**',
-      ],
-      matchPackageNames: [
-        'node',
-      ],
-      allowedVersions: '<17',
     },
     {
       description: 'One PR per app, named after it, so each gets its own preview',

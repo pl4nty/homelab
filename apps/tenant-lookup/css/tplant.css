@@ -1,0 +1,166 @@
+/* tplant.com.au (Quartz) palette and type on top of Bootstrap 5.3: white or near-black,
+   grey text, one green accent, Titillium Web and Fira Code. Load after bootstrap.min.css;
+   the page sets data-bs-theme from prefers-color-scheme. */
+:root,
+[data-bs-theme="light"] {
+  --tp-light: #ffffff;
+  --tp-lightgray: #f2f2f2;
+  --tp-gray: #b0b0b0;
+  --tp-darkgray: #666666;
+  --tp-dark: #303030;
+  --tp-secondary: #2e7d32;
+  --tp-tertiary: #388e3c;
+  --tp-highlight: #2e7d3226;
+  --tp-on-accent: #ffffff;
+
+  --bs-font-sans-serif: "Titillium Web", system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --bs-font-monospace: "Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --bs-body-bg: var(--tp-light);
+  --bs-body-bg-rgb: 255, 255, 255;
+  --bs-body-color: var(--tp-darkgray);
+  --bs-body-color-rgb: 102, 102, 102;
+  --bs-emphasis-color: var(--tp-dark);
+  --bs-emphasis-color-rgb: 48, 48, 48;
+  --bs-heading-color: var(--tp-dark);
+  --bs-secondary-color: var(--tp-darkgray);
+  --bs-secondary-bg: var(--tp-lightgray);
+  --bs-tertiary-bg: var(--tp-lightgray);
+  --bs-tertiary-bg-rgb: 242, 242, 242;
+  --bs-border-color: #e5e5e5;
+  --bs-border-radius: 5px;
+  --bs-primary: var(--tp-secondary);
+  --bs-primary-rgb: 46, 125, 50;
+  --bs-primary-bg-subtle: var(--tp-highlight);
+  --bs-primary-text-emphasis: var(--tp-secondary);
+  --bs-link-color: var(--tp-secondary);
+  --bs-link-color-rgb: 46, 125, 50;
+  --bs-link-hover-color: var(--tp-tertiary);
+  --bs-link-hover-color-rgb: 56, 142, 60;
+  --bs-focus-ring-color: rgb(46 125 50 / 25%);
+}
+
+[data-bs-theme="dark"] {
+  --tp-light: #141414;
+  --tp-lightgray: #1f1f1f;
+  --tp-gray: #7a8882;
+  --tp-darkgray: #a9a9a9;
+  --tp-dark: #e0f0e9;
+  --tp-secondary: #66bb6a;
+  --tp-tertiary: #81c784;
+  --tp-highlight: #66bb6a26;
+  --tp-on-accent: #0f1f10;
+
+  --bs-body-bg-rgb: 20, 20, 20;
+  --bs-body-color-rgb: 169, 169, 169;
+  --bs-emphasis-color-rgb: 224, 240, 233;
+  --bs-tertiary-bg-rgb: 31, 31, 31;
+  --bs-border-color: #2a2a2a;
+  --bs-primary-rgb: 102, 187, 106;
+  --bs-link-color-rgb: 102, 187, 106;
+  --bs-link-hover-color-rgb: 129, 199, 132;
+  --bs-focus-ring-color: rgb(102 187 106 / 25%);
+}
+
+body {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--tp-tertiary) 60%, transparent);
+}
+
+a {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+.navbar-brand {
+  color: var(--tp-dark);
+  font-weight: 700;
+}
+
+.navbar-brand {
+  font-weight: 600;
+}
+
+.btn {
+  --bs-btn-font-weight: 600;
+}
+
+.btn-primary {
+  --bs-btn-color: var(--tp-on-accent);
+  --bs-btn-bg: var(--tp-secondary);
+  --bs-btn-border-color: var(--tp-secondary);
+  --bs-btn-hover-color: var(--tp-on-accent);
+  --bs-btn-hover-bg: var(--tp-tertiary);
+  --bs-btn-hover-border-color: var(--tp-tertiary);
+  --bs-btn-active-color: var(--tp-on-accent);
+  --bs-btn-active-bg: var(--tp-tertiary);
+  --bs-btn-active-border-color: var(--tp-tertiary);
+  --bs-btn-disabled-color: var(--tp-on-accent);
+  --bs-btn-disabled-bg: var(--tp-secondary);
+  --bs-btn-disabled-border-color: var(--tp-secondary);
+  --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb);
+}
+
+.btn-outline-secondary {
+  --bs-btn-color: var(--tp-dark);
+  --bs-btn-bg: var(--tp-lightgray);
+  --bs-btn-border-color: var(--tp-lightgray);
+  --bs-btn-hover-color: var(--tp-dark);
+  --bs-btn-hover-bg: var(--tp-lightgray);
+  --bs-btn-hover-border-color: var(--tp-gray);
+  --bs-btn-active-color: var(--tp-secondary);
+  --bs-btn-active-bg: var(--tp-highlight);
+  --bs-btn-active-border-color: var(--tp-secondary);
+}
+
+.form-control,
+.form-select {
+  background-color: var(--tp-lightgray);
+  border-color: var(--tp-lightgray);
+  color: var(--tp-dark);
+}
+
+.form-control:focus,
+.form-select:focus {
+  background-color: var(--tp-lightgray);
+  border-color: var(--tp-secondary);
+  color: var(--tp-dark);
+  box-shadow: none;
+}
+
+.form-control::placeholder {
+  color: var(--tp-darkgray);
+}
+
+.dropdown-menu {
+  --bs-dropdown-link-active-bg: var(--tp-highlight);
+  --bs-dropdown-link-active-color: var(--tp-secondary);
+}
+
+.card {
+  --bs-card-cap-bg: transparent;
+  --bs-card-cap-color: var(--tp-dark);
+  --bs-card-border-color: var(--bs-border-color);
+}
+
+.table {
+  --bs-table-color: var(--tp-darkgray);
+  --bs-table-bg: transparent;
+}
+
+.table th {
+  color: var(--tp-dark);
+  font-weight: 600;
+}
+
+code,
+pre {
+  color: var(--tp-dark);
+}
