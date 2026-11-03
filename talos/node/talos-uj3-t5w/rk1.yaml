@@ -1,12 +1,18 @@
 # OS on eMMC, Longhorn on NVMe
 machine:
-  install:
-    diskSelector:
-      size: <= 100GB
   disks:
     - device: /dev/nvme0n1
       partitions:
         - mountpoint: /var/mnt/nvme0n1
-  sysctls:
-    # cnpg pods request 100Mi hugepages-2Mi each
-    vm.nr_hugepages: "256"
+---
+apiVersion: v1alpha1
+kind: UnattendedInstallConfig
+provisioning:
+  diskSelector:
+    match: disk.size <= 100u * GB
+---
+apiVersion: v1alpha1
+kind: SysctlConfig
+params:
+  # cnpg pods request 100Mi hugepages-2Mi each
+  vm.nr_hugepages: "256"

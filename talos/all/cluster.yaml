@@ -4,13 +4,27 @@ machine:
     destinations:
       - endpoint: tcp://192.168.1.131:30544
         format: json_lines
-  kubelet:
-    extraArgs:
-      rotate-server-certificates: "true"
-  sysctls:
-    vm.nr_hugepages: "0"
 ---
 apiVersion: v1alpha1
 kind: KmsgLogConfig
 name: alloy
 url: tcp://192.168.1.131:30544/
+---
+apiVersion: v1alpha1
+kind: KubeletConfig
+extraArgs:
+  rotate-server-certificates: "true"
+---
+apiVersion: v1alpha1
+kind: SysctlConfig
+params:
+  vm.nr_hugepages: "0"
+---
+# on by default for new 1.14 clusters. Longhorn needs host iscsiadm, untested inside the sandbox
+apiVersion: v1alpha1
+kind: SecurityProfileConfig
+workloadIsolation: false
+---
+apiVersion: v1alpha1
+kind: FilesystemScrubConfig
+interval: 168h
