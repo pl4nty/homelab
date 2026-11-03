@@ -362,9 +362,11 @@ spec:
             use_default_settings: true
             server:
               base_url: https://search.${PRIVATE_DOMAIN}/
-              # only signs image proxy links and hashes cache keys, which live as long as the pod
+              # only hashes cache keys, which live as long as the pod
               secret_key: ultrasecretkey
-              image_proxy: true
+              # thumbnails load straight from the engines' CDNs: each took 250-430ms
+              # through the proxy. pages send no referrer
+              image_proxy: false
             outgoing:
               # results wait for the slowest engine, so drop one that takes longer than this.
               # brave and google cse answer in about 0.6s
