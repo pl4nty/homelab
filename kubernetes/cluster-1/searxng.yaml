@@ -376,6 +376,10 @@ spec:
               # and results wait for the slowest engine
               - name: wikidata
                 disabled: true
+              # it answered last (0.9s, Brave and Google CSE 0.6s) and added 5 of 38 results,
+              # all below the first 10; !ddg still queries it
+              - name: duckduckgo
+                disabled: true
               - name: hister
                 engine: json_engine
                 shortcut: hi
