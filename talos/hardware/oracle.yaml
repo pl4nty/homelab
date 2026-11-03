@@ -1,0 +1,8 @@
+# Oracle Cloud VM.Standard.A1.Flex (arm64), created by ../oracle.sh and reached over KubeSpan
+machine:
+  kubelet:
+    extraArgs:
+      # NodeRestriction stops workers changing their own taints later, so set it at registration
+      register-with-taints: homelab/cloud=oracle:NoSchedule
+  nodeLabels:
+    homelab/cloud: oracle

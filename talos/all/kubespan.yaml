@@ -1,0 +1,14 @@
+# WireGuard mesh so the Oracle node can reach the home LAN. Peers find each other via discovery.talos.dev
+cluster:
+  discovery:
+    enabled: true
+    registries:
+      # breaks KubeSpan when the API endpoint is itself routed over KubeSpan
+      kubernetes:
+        disabled: true
+---
+apiVersion: v1alpha1
+kind: KubeSpanConfig
+enabled: true
+# LAN traffic falls back to plain routing if a peer is down, e.g. when the internet is out
+allowDownPeerBypass: true

@@ -1,9 +1,9 @@
 # Rendered and applied with topf: https://github.com/postfinance/topf
-# Patches merge in order: all/, control-plane/ or worker/, then node/<host> (a symlink to hardware/<type>.yaml).
+# Patches merge in order: all/, control-plane/ or worker/, then node/<host> (a symlink to hardware/<type>.yaml, or a folder holding one).
 clusterName: cluster-1
 clusterEndpoint: https://192.168.1.131:6443
 kubernetesVersion: 1.34.2
-talosVersion: 1.11.1
+talosVersion: 1.13.11
 nodes:
   - host: talos-ivx-yqq
     ip: 192.168.1.131
