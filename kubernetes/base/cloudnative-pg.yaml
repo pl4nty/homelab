@@ -23,6 +23,35 @@ spec:
   uninstall:
     keepHistory: false
 ---
+# yaml-language-server: $schema=https://flux-helm-schema.tplant.com.au?values=https://raw.githubusercontent.com/cloudnative-pg/charts/refs/heads/main/charts/plugin-barman-cloud/values.schema.json
+# replaces the operator's in-tree barmanObjectStore, which CNPG 1.31 removes. must share its namespace
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: plugin-barman-cloud
+  namespace: flux-system
+spec:
+  targetNamespace: cnpg-system
+  releaseName: plugin-barman-cloud
+  dependsOn:
+    - name: cert-manager
+    - name: cloudnative-pg
+  interval: 15m
+  chartRef:
+    kind: OCIRepository
+    name: plugin-barman-cloud
+    namespace: flux-system
+  maxHistory: 3
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+---
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
 metadata:
@@ -45,7 +74,7 @@ spec:
       # only the series the alerts below read. KubePersistentVolumeFillingUp covers database size
       metricRelabelings:
         - sourceLabels: [__name__]
-          regex: cnpg_collector_(up|last_available_backup_timestamp|last_failed_backup_timestamp)|cnpg_pg_replication_(lag|streaming_replicas)|cnpg_pg_stat_archiver_(failed_count|seconds_since_last_archival)
+          regex: cnpg_collector_up|barman_cloud_cloudnative_pg_io_(last_available_backup_timestamp|last_failed_backup_timestamp)|cnpg_pg_replication_(lag|streaming_replicas)|cnpg_pg_stat_archiver_(failed_count|seconds_since_last_archival)
           action: keep
         # cnpg_collector_up's own cluster label (the CNPG cluster, already in cnpg_io_cluster) would
         # otherwise beat the Kubernetes cluster name, and the rules' cluster matcher would skip it
@@ -71,9 +100,9 @@ spec:
           annotations:
             summary: Postgres instance is down.
             description: Instance {{ $labels.pod }} of {{ $labels.namespace }}/{{ $labels.cnpg_io_cluster }} has been down or unscrapeable for 5 minutes.
-        # ScheduledBackups run daily. the collector reports 0 when a cluster has no backup
+        # ScheduledBackups run daily. the plugin reports 0 when a cluster has no backup
         - alert: CNPGBackupStale
-          expr: time() - max by (cluster, namespace, cnpg_io_cluster) (cnpg_collector_last_available_backup_timestamp) > 30 * 3600
+          expr: time() - max by (cluster, namespace, cnpg_io_cluster) (barman_cloud_cloudnative_pg_io_last_available_backup_timestamp) > 30 * 3600
           for: 15m
           labels:
             severity: warning
@@ -82,8 +111,8 @@ spec:
             description: The last available backup of {{ $labels.namespace }}/{{ $labels.cnpg_io_cluster }} is {{ $value | humanizeDuration }} old.
         - alert: CNPGBackupFailed
           expr: |
-            max by (cluster, namespace, cnpg_io_cluster) (cnpg_collector_last_failed_backup_timestamp)
-            > max by (cluster, namespace, cnpg_io_cluster) (cnpg_collector_last_available_backup_timestamp)
+            max by (cluster, namespace, cnpg_io_cluster) (barman_cloud_cloudnative_pg_io_last_failed_backup_timestamp)
+            > max by (cluster, namespace, cnpg_io_cluster) (barman_cloud_cloudnative_pg_io_last_available_backup_timestamp)
           labels:
             severity: warning
           annotations:
