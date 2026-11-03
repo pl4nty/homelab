@@ -19,6 +19,10 @@ spec:
     remediation:
       retries: 3
   values:
+    # Longhorn v1 volumes attach to each node as iSCSI disks (sdX, model IET VIRTUAL-DISK), ~15 per
+    # RK1. they have no SMART, and their series churn on every attach
+    config:
+      device_include: ^nvme
     # the chart binds a PodSecurityPolicy ClusterRole, which no longer exists.
     # monitoring-system already enforces the privileged pod security level
     rbac:
