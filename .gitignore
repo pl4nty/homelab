@@ -2,3 +2,5 @@
 .devcontainer/kubeconfig
 .decrypted~*
 dist/
+.terraform/
+terraform.tfstate*

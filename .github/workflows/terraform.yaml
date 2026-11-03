@@ -1,0 +1,55 @@
+name: terraform
+
+on:
+  pull_request:
+    paths: [terraform/**, .github/workflows/terraform.yaml]
+  push:
+    branches: [main]
+    paths: [terraform/**, .github/workflows/terraform.yaml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-${{ github.event.pull_request.number || 'main' }}
+
+env:
+  GITHUB_TOKEN: ${{ secrets.TERRAFORM_GITHUB_TOKEN }}
+  TERRAFORM_ACTIONS_GITHUB_TOKEN: ${{ github.token }}
+  # state is only a cache: without it, import blocks adopt everything again
+  STATE: terraform/github/terraform.tfstate
+
+jobs:
+  plan:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ env.STATE }}
+          key: terraform-state-${{ github.run_id }}
+          restore-keys: terraform-state-
+      - uses: dflook/tofu-plan@53b5b01b6eef56cd678401dbe92a0f6ca6b863ff # v3.1.2
+        with:
+          path: terraform/github
+
+  apply:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ env.STATE }}
+          key: terraform-state-${{ github.run_id }}
+          restore-keys: terraform-state-
+      - uses: dflook/tofu-apply@1de081df5087fb9ba2acf4866e9bc9b95f79676c # v3.1.2
+        with:
+          path: terraform/github
+          # main is the source of truth, like Flux
+          auto_approve: true
