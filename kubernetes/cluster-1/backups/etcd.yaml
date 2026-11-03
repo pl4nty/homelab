@@ -1,0 +1,80 @@
+# Talos creates a Secret with a talosconfig for this. Needs machine.features.kubernetesTalosAPIAccess on the control plane
+apiVersion: talos.dev/v1alpha1
+kind: ServiceAccount
+metadata:
+  name: backup-etcd
+  namespace: default
+spec:
+  roles:
+    - os:etcd:backup
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: backup-etcd
+  namespace: default
+spec:
+  interval: 15m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    global:
+      createDefaultServiceAccount: false
+    controllers:
+      main:
+        type: cronjob
+        cronjob:
+          schedule: "0 */6 * * *"
+        pod:
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+        containers:
+          main:
+            image:
+              repository: ghcr.io/siderolabs/talos-backup
+              tag: v0.1.0-beta.3@sha256:05c86663b251a407551dc948097e32e163a345818117eb52c573b0447bd0c7a7
+            command: [/talos-backup]
+            workingDir: /tmp
+            env:
+              CLUSTER_NAME: cluster-1
+              S3_PREFIX: etcd/cluster-1
+              BUCKET: tplant-homelab-postgres
+              AWS_REGION: us-west-004
+              CUSTOM_S3_ENDPOINT: https://s3.us-west-004.backblazeb2.com
+              # sops recipient, so the repo age key decrypts snapshots
+              AGE_X25519_PUBLIC_KEY: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+              AWS_ACCESS_KEY_ID:
+                valueFrom:
+                  secretKeyRef:
+                    name: cloudnative-pg
+                    key: ACCESS_KEY_ID
+              AWS_SECRET_ACCESS_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: cloudnative-pg
+                    key: ACCESS_SECRET_KEY
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
+    persistence:
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
+      talos:
+        type: emptyDir
+        globalMounts:
+          - path: /.talos
+      talos-secrets:
+        type: secret
+        name: backup-etcd
+        globalMounts:
+          - path: /var/run/secrets/talos.dev
