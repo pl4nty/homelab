@@ -1,0 +1,19 @@
+machine:
+  install:
+    extraKernelArgs:
+      - talos.logging.kernel=tcp://192.168.1.131:30544
+  logging:
+    destinations:
+      # alloy-logs NodePort, see kubernetes/base/monitoring-system/k8s-monitoring-services.yaml
+      - endpoint: tcp://192.168.1.131:30544
+        format: json_lines
+  kubelet:
+    extraArgs:
+      rotate-server-certificates: "true"
+    extraMounts:
+      - destination: /var/lib/longhorn
+        type: bind
+        source: /var/lib/longhorn
+        options: [bind, rshared, rw]
+  sysctls:
+    vm.nr_hugepages: "0"

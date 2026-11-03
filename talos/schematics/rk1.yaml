@@ -1,10 +1,11 @@
-{{- if eq .Node.Data.hw "rk1" }}
+# Turing RK1
 overlay:
   image: siderolabs/sbc-rockchip
   name: turingrk1
-{{- end }}
 customization:
   systemExtensions:
     officialExtensions:
+      - siderolabs/fuse3
       - siderolabs/iscsi-tools
+      - siderolabs/panfrost
       - siderolabs/util-linux-tools

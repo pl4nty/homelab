@@ -1,0 +1,12 @@
+# OS on eMMC, Longhorn on NVMe
+machine:
+  install:
+    diskSelector:
+      size: <= 100GB
+  disks:
+    - device: /dev/nvme0n1
+      partitions:
+        - mountpoint: /var/mnt/nvme0n1
+  sysctls:
+    # cnpg pods request 100Mi hugepages-2Mi each
+    vm.nr_hugepages: "256"
