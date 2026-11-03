@@ -1,0 +1,85 @@
+# yaml-language-server: $schema=https://flux-helm-schema.tplant.com.au?values=https://raw.githubusercontent.com/prometheus-community/helm-charts/refs/heads/main/charts/prometheus-smartctl-exporter/values.yaml
+# SMART for every NVMe drive: the NUC system disk (etcd) and the RK1 Longhorn disks.
+# smartctl can't read eMMC, see the mmc-health sidecar in base/monitoring-system/k8s-monitoring.yaml
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: prometheus-smartctl-exporter
+  namespace: monitoring-system
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: prometheus-smartctl-exporter
+    namespace: flux-system
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    # the chart binds a PodSecurityPolicy ClusterRole, which no longer exists.
+    # monitoring-system already enforces the privileged pod security level
+    rbac:
+      create: false
+    # no riscv64 image
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: kubernetes.io/arch
+                  operator: In
+                  values: [amd64, arm64]
+    serviceMonitor:
+      enabled: true
+      # ~10 series per NVMe drive. smartctl_device carries model, serial and firmware
+      metricRelabelings:
+        - sourceLabels: [__name__]
+          regex: smartctl_device(_smart_status|_smartctl_exit_status|_critical_warning|_media_errors|_percentage_used|_available_spare|_available_spare_threshold|_temperature)?
+          action: keep
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: smartctl
+  namespace: monitoring-system
+spec:
+  groups:
+    - name: smartctl
+      rules:
+        # smartctl's overall verdict. on NVMe it fails on any critical warning bit: spare below
+        # threshold, over temperature, degraded reliability, read-only media or volatile backup failure
+        - alert: DiskSmartFailed
+          expr: smartctl_device_smart_status != 1
+          for: 15m
+          labels:
+            severity: critical
+          annotations:
+            summary: A drive failed its SMART health check.
+            description: '{{ $labels.device }} on {{ $labels.instance }} failed SMART. smartctl_device_critical_warning has the NVMe warning bits. Move its data off before it fails.'
+        - alert: DiskMediaErrors
+          expr: increase(smartctl_device_media_errors[1h]) > 0
+          labels:
+            severity: warning
+          annotations:
+            summary: A drive reported new unrecovered media errors.
+            description: '{{ $labels.device }} on {{ $labels.instance }} logged new NVMe media errors in the last hour, which are data integrity failures the drive couldn''t correct.'
+        # vendor estimate of rated endurance used. it can go past 100
+        - alert: DiskWearHigh
+          expr: smartctl_device_percentage_used >= 80
+          labels:
+            severity: warning
+          annotations:
+            summary: A drive has used most of its rated endurance.
+            description: '{{ $labels.device }} on {{ $labels.instance }} has used {{ $value }}% of its rated write endurance.'
+        # the alerts above go quiet when the exporter can't read any drive
+        - alert: DiskSmartMissing
+          expr: absent(smartctl_device_smart_status)
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: No drive reports SMART data.
+            description: No smartctl_device_smart_status series for 1 hour, so drive SMART alerts can't fire. Check the prometheus-smartctl-exporter pods and their ServiceMonitor scrape.
