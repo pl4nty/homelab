@@ -30,7 +30,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/diff-viewer
-              tag: latest@sha256:PENDING
+              tag: latest@sha256:cec162e5e1ed58f332c9293e70e007f8270927fb069c3f3cd175b5a6844ff8f0
             securityContext:
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
