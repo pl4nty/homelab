@@ -3,7 +3,7 @@
 clusterName: cluster-1
 clusterEndpoint: https://192.168.1.131:6443
 kubernetesVersion: 1.36.6
-talosVersion: 1.11.1
+talosVersion: 1.14.5
 nodes:
   - host: talos-ivx-yqq
     ip: 192.168.1.131
@@ -15,5 +15,9 @@ nodes:
     schematicId: "@hardware/rk1-schematic.yaml"
   - host: talos-uj3-t5w
     ip: 192.168.1.134
+    role: worker
+    schematicId: "@hardware/rk1-schematic.yaml"
+  - host: talos-vpz-3a1
+    ip: 192.168.1.136
     role: worker
     schematicId: "@hardware/rk1-schematic.yaml"

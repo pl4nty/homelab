@@ -1,24 +1,41 @@
-machine:
-  kubelet:
-    extraConfig:
-      # etcd isn't in kubelet accounting. This replaces all Talos defaults, so keep the other keys
-      systemReserved:
-        cpu: 50m
-        memory: 1Gi
-        pid: "100"
-        ephemeral-storage: 256Mi
-  # talos default for control planes, but kube-vip announces Services from this node
-  nodeLabels:
-    $patch: delete
-  features:
-    hostDNS:
-      resolveMemberNames: true
-    # for kubernetes/cluster-1/backups/etcd.yaml
-    kubernetesTalosAPIAccess:
-      enabled: true
-      allowedRoles: [os:etcd:backup]
-      allowedKubernetesNamespaces: [default]
-cluster:
-  proxy:
-    mode: nftables
-  allowSchedulingOnControlPlanes: true
+apiVersion: v1alpha1
+kind: KubeletConfig
+config:
+  # etcd isn't in kubelet accounting. This replaces all Talos defaults, so keep the other keys
+  systemReserved:
+    cpu: 50m
+    memory: 1Gi
+    pid: "100"
+    ephemeral-storage: 256Mi
+---
+apiVersion: v1alpha1
+kind: KubeProxyConfig
+mode: nftables
+---
+# for kubernetes/cluster-1/backups/etcd.yaml
+apiVersion: v1alpha1
+kind: KubeTalosAPIAccessConfig
+allowedRoles: [os:etcd:backup]
+allowedKubernetesNamespaces: [default]
+---
+# allow scheduling on control planes
+apiVersion: v1alpha1
+kind: KubeNodeConfig
+taints:
+  $patch: delete
+---
+apiVersion: v1alpha1
+kind: ResolverConfig
+hostDNS:
+  resolveMemberNames: true
+---
+# drop the default LB-exclusion label (kube-vip announces Services from control planes), keep the role label
+apiVersion: v1alpha1
+kind: KubeNodeConfig
+labels:
+  $patch: delete
+---
+apiVersion: v1alpha1
+kind: KubeNodeConfig
+labels:
+  node-role.kubernetes.io/control-plane: ""
