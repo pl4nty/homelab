@@ -82,3 +82,9 @@ spec:
 #    "allowScheduling": true
 # }]'
 # k label node <node> node.longhorn.io/create-default-disk=config
+
+# Large disks (2 TB on d04, uj3) get the "large" tag, which the longhorn-local diskSelector needs.
+# Don't tag or label talos-vpz-3a1 (256 GB): it only takes 2-replica volumes.
+# k -n longhorn patch nodes.longhorn.io <node> --type merge -p '{"spec":{"disks":{"disk-1":{"tags":["large"]}}}}'
+# Existing 1-replica volumes don't pick up a StorageClass change:
+# k -n longhorn patch volumes.longhorn.io <pvc-...> --type merge -p '{"spec":{"diskSelector":["large"]}}'

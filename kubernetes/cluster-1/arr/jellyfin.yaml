@@ -57,6 +57,8 @@ spec:
           # RKMPP transcoding needs the RK3588 VPU
           nodeSelector:
             kubernetes.io/arch: arm64
+            # media/cache/transcode are longhorn-local, so stay on a large-disk node
+            node.longhorn.io/create-default-disk: config
     service:
       app:
         controller: *app

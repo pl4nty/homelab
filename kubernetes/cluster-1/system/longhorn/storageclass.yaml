@@ -45,6 +45,9 @@ parameters:
   # attached strict-local volume, so every Longhorn minor needed downtime.
   # With 1 replica, best-effort still keeps the data on the pod's node.
   dataLocality: best-effort
+  # only the 2 TB NVMe disks (d04, uj3) are tagged large, see longhorn.yaml.
+  # Keeps the single replica off the 256 GB vpz disk.
+  diskSelector: large
   staleReplicaTimeout: "30"
   recurringJobSelector: '[
     {
