@@ -38,6 +38,10 @@ spec:
                   values: [amd64, arm64]
     serviceMonitor:
       enabled: true
+      # name the node like node-exporter does, instead of the pod IP
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_node_name]
+          targetLabel: instance
       # ~10 series per NVMe drive. smartctl_device carries model, serial and firmware
       metricRelabelings:
         - sourceLabels: [__name__]
