@@ -46,7 +46,8 @@ spec:
   values:
     persistence:
       # defaultClass: false # no option to set param for v2 engine
-      defaultClassReplicaCount: 2
+      # one replica per RK1 control plane
+      defaultClassReplicaCount: 3
       # defaultDataLocality: best-effort
     csi:
       attacherReplicaCount: 1
