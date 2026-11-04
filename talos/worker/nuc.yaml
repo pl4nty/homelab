@@ -1,3 +1,4 @@
+# The only worker is the NUC (talos-ivx-yqq)
 apiVersion: v1alpha1
 kind: UnattendedInstallConfig
 provisioning:
