@@ -1,0 +1,126 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app radarr
+  namespace: default
+spec:
+  interval: 15m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    global:
+      createDefaultServiceAccount: false
+    controllers:
+      radarr:
+        containers:
+          app:
+            # home-operations builds radarr from the develop branch (7.x) and tags it as plain
+            # semver, so renovate would offer prereleases. linuxserver keeps develop under
+            # develop-* tags, so plain x.y.z tags are stable releases only
+            image:
+              repository: ghcr.io/linuxserver/radarr
+              tag: 6.4.4@sha256:ade5937813c6ae415b29db729386e53fea3ecf067a019849bafbe2d2a6ec02ba
+            env:
+              TZ: ${TIMEZONE}
+              RADARR__APP__INSTANCENAME: Radarr
+              RADARR__AUTH__METHOD: External
+              RADARR__AUTH__REQUIRED: DisabledForLocalAddresses
+              RADARR__SERVER__PORT: &port 7878
+              RADARR__LOG__LEVEL: info
+              # the log db is pure write churn on a longhorn volume
+              RADARR__LOG__DBENABLED: "False"
+              # pinned so recyclarr and prowlarr can talk to a freshly created instance
+              RADARR__AUTH__APIKEY:
+                secretKeyRef:
+                  name: radarr
+                  key: RADARR_API_KEY
+            securityContext:
+              # also required for linuxserver's non-root mode: with privilege escalation
+              # allowed, s6-overlay-suexec tries to setgid to root and exits
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /ping
+                    port: *port
+                  initialDelaySeconds: 0
+                  periodSeconds: 10
+                  timeoutSeconds: 1
+                  failureThreshold: 3
+              readiness: *probes
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /ping
+                    port: *port
+                  failureThreshold: 30
+                  periodSeconds: 10
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                memory: 1Gi
+        pod:
+          # linuxserver runs non-root when the pod sets a user, and then ignores PUID/PGID
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 568
+            runAsGroup: 568
+            fsGroup: 568
+            fsGroupChangePolicy: OnRootMismatch
+            seccompProfile: { type: RuntimeDefault }
+          # media is RWO with a single local replica, so follow jellyfin to its node
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchExpressions:
+                      - key: app.kubernetes.io/instance
+                        operator: In
+                        values:
+                          - jellyfin
+                  topologyKey: kubernetes.io/hostname
+    service:
+      app:
+        controller: *app
+        ports:
+          http:
+            port: *port
+    route:
+      app:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - radarr.${PRIVATE_DOMAIN}
+        rules:
+          - backendRefs:
+              - name: *app
+                port: *port
+    persistence:
+      config:
+        accessMode: ReadWriteOnce
+        size: 4Gi
+      # s6-overlay's service tree, plus radarr's temp dir (the image sets TMPDIR=/run/radarr-temp),
+      # so /tmp stays unused. tmpfs, as it should start empty every restart
+      run:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 256Mi
+        globalMounts:
+          - path: /run
+      # sonarr's init-layout container already creates the movies folders
+      media:
+        existingClaim: media
+        globalMounts:
+          - path: /data
