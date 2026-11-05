@@ -11,7 +11,6 @@ config:
 apiVersion: v1alpha1
 kind: KubeProxyConfig
 mode: nftables
-# registry.k8s.io/kube-proxy has no riscv64 build. Renovate bumps this with kubernetesVersion in topf.yaml
 image: quay.io/k0sproject/kube-proxy:v1.36.6@sha256:89ab5ebd6edf5d6409c09d17287134299ec53395340fbf80f2158a11a502a1e3
 ---
 # for kubernetes/cluster-1/backups/etcd.yaml
