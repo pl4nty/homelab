@@ -39,3 +39,15 @@ apiVersion: v1alpha1
 kind: KubeNodeConfig
 labels:
   node-role.kubernetes.io/control-plane: ""
+---
+# the endpoint moved from the NUC's address to the VIP, which also moved the token issuer.
+# Keep accepting tokens from the old issuer until every projected token has been refreshed
+apiVersion: v1alpha1
+kind: KubeServiceAccountConfig
+accepted:
+  issuers:
+    - https://192.168.1.131:6443
+  # those tokens also carry the old issuer as their audience
+  audiences:
+    - https://192.168.1.200:6443
+    - https://192.168.1.131:6443
