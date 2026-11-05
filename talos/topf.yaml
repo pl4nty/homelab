@@ -11,7 +11,7 @@ nodes:
     schematicId: "@hardware/nuc-schematic.yaml"
   - host: talos-d04-4hs
     ip: 192.168.1.133
-    role: worker
+    role: control-plane
     schematicId: "@hardware/rk1-schematic.yaml"
   - host: talos-uj3-t5w
     ip: 192.168.1.134
