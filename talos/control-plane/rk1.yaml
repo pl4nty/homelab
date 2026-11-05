@@ -1,6 +1,5 @@
-# An RK1 that has been reset into a control plane: OS on eMMC, EPHEMERAL (and etcd under it) and
-# Longhorn on NVMe. Talos only places EPHEMERAL when it provisions a node, so a node only points
-# here as part of its reset. Folds into control-plane/ once every RK1 has moved (homelab#1506).
+# Every control plane is an RK1: OS on eMMC, EPHEMERAL (and etcd under it) and Longhorn on NVMe.
+# Talos only places EPHEMERAL when it provisions a node, so a node only takes this layout at its reset.
 apiVersion: v1alpha1
 kind: UnattendedInstallConfig
 provisioning:
@@ -32,9 +31,3 @@ kind: SysctlConfig
 params:
   # cnpg pods request 100Mi hugepages-2Mi each
   vm.nr_hugepages: "256"
----
-# control-plane/vip.yaml has the NUC's eno1
-apiVersion: v1alpha1
-kind: Layer2VIPConfig
-name: 192.168.1.200
-link: end0
