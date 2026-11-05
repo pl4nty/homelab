@@ -1,4 +1,5 @@
 # syntax=docker/dockerfile:1
+# check=skip=InvalidDefaultArgInFrom
 # The installer Image Factory would build from hardware/rk1-schematic.yaml, if it took unofficial extensions
 ARG TALOS_VERSION
 

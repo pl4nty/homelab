@@ -5,6 +5,8 @@ variable "TALOS_VERSION" {}
 target "default" {
   context   = "talos"
   platforms = ["linux/arm64"]
+  # as Image Factory, which pushes plain images
+  attest    = ["type=provenance,disabled=true"]
   args = {
     SCHEMATIC_ID  = SCHEMATIC_ID
     TALOS_VERSION = TALOS_VERSION
