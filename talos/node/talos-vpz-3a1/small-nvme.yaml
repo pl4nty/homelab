@@ -1,4 +1,4 @@
-# 256 GB NVMe, so keep most of it for Longhorn. Sorts after rk1-control-plane.yaml so it wins, and the
+# 256 GB NVMe, so keep most of it for Longhorn. node/ patches apply after control-plane/, and the
 # merge replaces provisioning whole, so repeat it all
 apiVersion: v1alpha1
 kind: VolumeConfig
