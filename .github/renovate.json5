@@ -86,30 +86,6 @@
     },
     {
       customType: 'regex',
-      description: 'Process the Kubernetes version in topf',
-      managerFilePatterns: [
-        '/^talos/topf\\.yaml$/',
-      ],
-      matchStrings: [
-        'kubernetesVersion: (?<currentValue>\\S+)',
-      ],
-      depNameTemplate: 'kubernetes/kubernetes',
-      datasourceTemplate: 'github-releases',
-      extractVersionTemplate: '^v(?<version>.+)$',
-    },
-    {
-      customType: 'regex',
-      description: 'Process the kube-proxy image in Talos config',
-      managerFilePatterns: [
-        '/^talos/.+\\.yaml$/',
-      ],
-      matchStrings: [
-        'kind: KubeProxyConfig\\n(?:[^-].*\\n)*?image: (?<depName>[^\\s:]+):(?<currentValue>[^\\s@]+)(@(?<currentDigest>sha256:[0-9a-f]+))?',
-      ],
-      datasourceTemplate: 'docker',
-    },
-    {
-      customType: 'regex',
       description: 'Process raw GitHub URLs',
       managerFilePatterns: [
         '/kubernetes/[^.]+\\.ya?ml$/',
@@ -248,14 +224,6 @@
       automergeType: 'pr',
       platformAutomerge: false,
       ignoreTests: false,
-    },
-    {
-      description: 'kube-proxy must not be newer than the API server, so bump the k0s kube-proxy (it has riscv64) with the cluster version',
-      matchPackageNames: [
-        'kubernetes/kubernetes',
-        'quay.io/k0sproject/kube-proxy',
-      ],
-      groupName: 'kubernetes',
     },
   ],
 }
