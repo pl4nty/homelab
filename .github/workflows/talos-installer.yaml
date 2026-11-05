@@ -1,0 +1,61 @@
+name: talos-installer
+
+on:
+  pull_request:
+    paths: &paths
+      - .github/workflows/talos-installer.yaml
+      - talos/hardware/rk1-schematic.yaml
+      - talos/topf.yaml
+  push:
+    branches: [main]
+    paths: *paths
+
+permissions:
+  contents: read
+
+# the RK1 installer, where topf looks for it: <factory>/metal-installer/<schematic ID>:v<talosVersion>
+jobs:
+  rk1:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    defaults:
+      run:
+        working-directory: talos
+    env:
+      SCHEMATIC: hardware/rk1-schematic.yaml
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - run: |
+          go install github.com/google/go-containerregistry/cmd/crane@v0.22.1
+          go install github.com/postfinance/topf/cmd/topf@v0.6.2
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+      - id: topf
+        run: |
+          yq '.nodes |= map(select(.factory))' topf.yaml > rk1.yaml
+          echo "id=$(topf --topfconfig rk1.yaml schematic-ids)" >> "$GITHUB_OUTPUT"
+          echo "version=v$(yq .talosVersion topf.yaml)" >> "$GITHUB_OUTPUT"
+      # as Image Factory adds, so topf upgrade can tell the node is current
+      - env:
+          ID: ${{ steps.topf.outputs.id }}
+        run: |
+          mkdir -p schematic/rootfs/usr/local/share/schematic
+          touch "schematic/rootfs/usr/local/share/schematic/$ID"
+          yq -n '{"version": "v1alpha1", "metadata": {"name": "schematic", "version": strenv(ID), "author": "pl4nty", "description": "topf schematic ID", "compatibility": {"talos": {"version": ">= 1.0.0"}}}}' > schematic/manifest.yaml
+          tar -cf schematic.tar -C schematic manifest.yaml rootfs
+          crane append -f schematic.tar -t "ghcr.io/pl4nty/talos/schematic:$ID"
+      - env:
+          ID: ${{ steps.topf.outputs.id }}
+          VERSION: ${{ steps.topf.outputs.version }}
+        run: |
+          docker run --rm -v "$PWD/_out:/out" "ghcr.io/siderolabs/imager:$VERSION" installer --arch arm64 \
+            --overlay-name "$(yq .overlay.name "$SCHEMATIC")" --overlay-image "$(yq .overlay.image "$SCHEMATIC")" \
+            $(yq '.customization.systemExtensions.officialExtensions[] | "--system-extension-image=" + .' "$SCHEMATIC") \
+            --system-extension-image "ghcr.io/pl4nty/talos/schematic:$ID" \
+            $(yq '.customization.extraKernelArgs[] | "--extra-kernel-arg=" + .' "$SCHEMATIC")
+          crane push _out/installer-arm64.tar "ghcr.io/pl4nty/talos/metal-installer/$ID:$VERSION"
