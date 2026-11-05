@@ -19,5 +19,5 @@ nodes:
     schematicId: "@hardware/rk1-schematic.yaml"
   - host: talos-vpz-3a1
     ip: 192.168.1.136
-    role: worker
+    role: control-plane
     schematicId: "@hardware/rk1-schematic.yaml"
