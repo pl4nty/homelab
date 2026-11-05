@@ -1,0 +1,93 @@
+# Talos 1.14 limits its kube-proxy DaemonSet to amd64/arm64, and registry.k8s.io/kube-proxy has no riscv64 build.
+# This copies the Talos DaemonSet for riscv64 nodes only, with k0s's kube-proxy build (upstream source, riscv64 enabled).
+# Keep args in step with talos/control-plane/control-plane.yaml KubeProxyConfig.
+# The image version must not be newer than the API server, so Renovate groups it with kubernetesVersion in talos/topf.yaml.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kube-proxy-riscv64
+  namespace: kube-system
+  labels:
+    k8s-app: kube-proxy-riscv64
+    tier: node
+spec:
+  selector:
+    matchLabels:
+      k8s-app: kube-proxy-riscv64
+      tier: node
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        k8s-app: kube-proxy-riscv64
+        tier: node
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/os
+                operator: In
+                values: [linux]
+              - key: kubernetes.io/arch
+                operator: In
+                values: [riscv64]
+      containers:
+      - name: kube-proxy
+        image: quay.io/k0sproject/kube-proxy:v1.36.6@sha256:89ab5ebd6edf5d6409c09d17287134299ec53395340fbf80f2158a11a502a1e3
+        command:
+        - /usr/local/bin/kube-proxy
+        # Talos defaults: pod CIDR, in-cluster kubeconfig (from the Talos-managed kubeconfig-in-cluster ConfigMap)
+        - --cluster-cidr=10.244.0.0/16
+        - --conntrack-max-per-core=0
+        - --hostname-override=$(NODE_NAME)
+        - --kubeconfig=/etc/kubernetes/kubeconfig
+        - --proxy-mode=nftables
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        resources:
+          requests:
+            cpu: 100m
+            memory: 50Mi
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: lib-modules
+          mountPath: /lib/modules
+          readOnly: true
+        - name: ssl-certs-host
+          mountPath: /etc/ssl/certs
+          readOnly: true
+        - name: kubeconfig
+          mountPath: /etc/kubernetes
+          readOnly: true
+      hostNetwork: true
+      priorityClassName: system-cluster-critical
+      # created by Talos with the system:node-proxier binding
+      serviceAccountName: kube-proxy
+      tolerations:
+      - operator: Exists
+        effect: NoSchedule
+      - operator: Exists
+        effect: NoExecute
+      volumes:
+      - name: lib-modules
+        hostPath:
+          path: /usr/lib/modules
+      - name: ssl-certs-host
+        hostPath:
+          path: /etc/ssl/certs
+      - name: kubeconfig
+        configMap:
+          name: kubeconfig-in-cluster
