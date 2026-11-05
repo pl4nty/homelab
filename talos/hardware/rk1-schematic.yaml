@@ -1,4 +1,4 @@
-# Turing RK1. Built by .github/workflows/talos-installer.yaml, since Image Factory only builds official extensions
+# Turing RK1. Built by talos/docker-bake.hcl, since Image Factory only builds official extensions
 overlay:
   image: ghcr.io/siderolabs/sbc-rockchip:v0.2.1@sha256:9ce1d1d2ca1c0866bafd9728bd12eb0ef70b386318b033db2c841ce35e33b882
   name: turingrk1

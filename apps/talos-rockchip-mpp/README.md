@@ -87,7 +87,7 @@ APP=talos-rockchip-mpp docker buildx bake -f apps/docker-bake.hcl -f apps/talos-
 
 ## Install
 
-topf installs it on the RK1s. `.github/workflows/talos-installer.yaml` builds their installer from
+topf installs it on the RK1s. `talos/docker-bake.hcl` builds their installer from
 `talos/hardware/rk1-schematic.yaml`, and `talos/control-plane/rk1.yaml` loads the modules.
 After a Talos bump here, pin the new image in that schematic.
 
