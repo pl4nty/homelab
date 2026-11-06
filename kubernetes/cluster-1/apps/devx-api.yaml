@@ -17,6 +17,9 @@ spec:
       createDefaultServiceAccount: false
     controllers:
       main:
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-dotnet: "true"
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
