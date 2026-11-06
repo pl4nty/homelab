@@ -21,7 +21,7 @@ spec:
               repository: docker.io/kutt/kutt
               tag: v3.2.6@sha256:fa3d24a89b04e0feb542ed7d3c77993d58dbcc1406e5291a369595d543886146
             env:
-              DEFAULT_DOMAIN: s.${PUBLIC_DOMAIN}
+              DEFAULT_DOMAIN: l.${PRIVATE_DOMAIN}
               DB_FILENAME: /var/lib/kutt/data.sqlite
               # links are only created by signed-in users, and registration needs email, so this stays a private shortener
               DISALLOW_ANONYMOUS_LINKS: "true"
@@ -48,7 +48,7 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - s.${PUBLIC_DOMAIN}
+          - l.${PRIVATE_DOMAIN}
         rules:
           - backendRefs:
               - name: *app

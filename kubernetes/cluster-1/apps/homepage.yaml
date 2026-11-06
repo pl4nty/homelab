@@ -108,7 +108,7 @@ spec:
         - JWT decoder:
             href: https://jwt.${PUBLIC_DOMAIN}
         - Link shortener:
-            href: https://s.${PUBLIC_DOMAIN}
+            href: https://l.${PRIVATE_DOMAIN}
         - Misc IT tools:
             href: https://tools.${PUBLIC_DOMAIN}
         - OpenSSL web:
