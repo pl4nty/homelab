@@ -109,7 +109,7 @@ namespace StoreWeb.Controllers
             if (!string.IsNullOrWhiteSpace(packagerequest.msatoken)) {
                 await dcat.QueryDCATAsync(packagerequest.id, packagerequest.type, packagerequest.msatoken);
             }
-            else 
+            else
             {
                 await dcat.QueryDCATAsync(packagerequest.id, packagerequest.type);
             }
