@@ -99,6 +99,33 @@ spec:
           annotations:
             summary: node-exporter can't be scraped.
             description: node-exporter on {{ $labels.instance }} has been down for 15 minutes, so its filesystem and memory alerts can't fire.
+    # eMMC wear from the mmc-health sidecar on node-exporter, see k8s-monitoring.yaml.
+    # the sidecar reads sysfs hourly and both fields only ever rise, so no for:
+    - name: mmc-health
+      rules:
+        # JEDEC DEVICE_LIFE_TIME_EST_TYP_A/B in 10% steps: 9 is 80-90% of rated erase cycles, 11 is past it
+        - alert: EmmcWearHigh
+          expr: mmc_life_time_estimate >= 9
+          labels:
+            severity: warning
+          annotations:
+            summary: An eMMC has used most of its rated life.
+            description: '{{ $labels.device }} on {{ $labels.instance }} reports life time estimate {{ $value }} for type {{ $labels.type }} cells, so at least 80% of its rated erase cycles are used. 11 means past rated life.'
+        # JEDEC PRE_EOL_INFO: 2 means 80% of reserved blocks are consumed, 3 is urgent
+        - alert: EmmcReservedBlocksLow
+          expr: mmc_pre_eol_info >= 2
+          labels:
+            severity: warning
+          annotations:
+            summary: An eMMC is running out of reserved blocks.
+            description: '{{ $labels.device }} on {{ $labels.instance }} has consumed 80% of its reserved blocks. Plan to move /var off it.'
+        - alert: EmmcReservedBlocksLow
+          expr: mmc_pre_eol_info >= 3
+          labels:
+            severity: critical
+          annotations:
+            summary: An eMMC has almost no reserved blocks left.
+            description: '{{ $labels.device }} on {{ $labels.instance }} reports urgent pre-EOL status, so it can fail or go read-only soon.'
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule

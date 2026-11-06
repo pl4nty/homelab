@@ -55,7 +55,7 @@ spec:
         kind: OCIRepository
         name: << $name >>
       path: ./
-      # same release defaults as the cluster-oke Kustomization
+      # same release defaults as the cluster-1 Kustomization
       patches:
         - patch: |-
             apiVersion: helm.toolkit.fluxcd.io/v2
@@ -79,6 +79,7 @@ spec:
         substitute:
           APP_SSA: Override
           APP_SUFFIX: "<< if $preview >>-<< $ref >><< end >>"
+          APP_RETAIN: "<< not $preview >>"
         substituteFrom:
           - kind: ConfigMap
             name: cluster-settings

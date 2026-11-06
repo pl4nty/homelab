@@ -5,6 +5,9 @@ metadata:
   name: opentelemetry-operator
   namespace: monitoring-system
 spec:
+  dependsOn:
+    - name: cert-manager
+      namespace: flux-system
   interval: 15m
   chartRef:
     kind: OCIRepository
@@ -24,10 +27,7 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    # use selfsigned from helm, not cert-manager
     admissionWebhooks:
-      certManager:
-        enabled: false
       failurePolicy: Ignore # don't Fail on flaky TLS errors
     manager:
       # controller_runtime_webhook_latency_seconds_bucket has high cardinality, no option to drop as of 0.33.0

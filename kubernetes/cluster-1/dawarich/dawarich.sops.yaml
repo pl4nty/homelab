@@ -1,0 +1,23 @@
+kind: Secret
+apiVersion: v1
+metadata:
+  name: dawarich
+  namespace: default
+type: Opaque
+stringData:
+  SECRET_KEY_BASE: ENC[AES256_GCM,data:FWqV/2p/NHG2W3NS+Gtr+P1WUAX5ke7+SfeGKm4e2U0zBCNz6d3Cko2TruCqQgHEAp6HgIn51vr1ExLjDoTTO9upFhegbb+9rlt4/BGxkdIYobN4jJWsvre7vFcLj9T8Vlni4/fr1DU7ry9RJoj1m08RlBXhQ480KCR/gO4wO4Q=,iv:eiklNFjGBeSjg9T/rsIp2QztvbiLO5mwrVoeZ+orsEA=,tag:cIa+QGbHNUzX2nVS7C4qQg==,type:str]
+sops:
+  age:
+    - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBDSDZoQVlScDdjUGlYSWhF
+        bnJBaS8zYmRialBqRHM3ZmNUZElsSlpvQncwCnVhUG50ODFzTFl1bVE1NE9EQUcx
+        TU5RZEhGYytnQVc2c3AyL1hKUG9scjAKLS0tIGdpdTlyOXpUejRCRHNxdHRvd0VE
+        NVpWZ2ZlTDRGQlNmWVhXL2hxODZNMUUKlxUefsFyKU2G4TosMwnGV697sFG/H3OA
+        4ALHyu9RO2hSnq7IXZgoz4oXhIPO/WKJJGBXzei7gh19AhE2/ntWkw==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2026-11-02T22:02:10Z"
+  mac: ENC[AES256_GCM,data:07NFLz20Tt4s0a61YnqwBcVelwl0a248dVcyRbv4OGqWt4n1djmS9OmMzfbXiAypmDVWZeyaXN9xw6Ytp6RVwKuIcyfx0nCZKNaiUTNV8jICz8yFrTpBynpL77UgLxb/29LTDG6uTJcrzzxuPMqj7/h+5IReumfhukpa9S9vLN0=,iv:vaRR/1hIsmBWf95rmt+p8DxFx2hB2GQsUN0Fhj3M8WA=,tag:zX3PWFl09Yo2uZALcYE/DQ==,type:str]
+  encrypted_regex: ^(data|stringData)$
+  version: 3.11.0

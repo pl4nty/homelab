@@ -1,0 +1,6 @@
+# The only worker is the NUC (talos-ivx-yqq)
+apiVersion: v1alpha1
+kind: UnattendedInstallConfig
+provisioning:
+  diskSelector:
+    match: disk.dev_path == "/dev/nvme0n1"

@@ -2,7 +2,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: fortinet-downloads${APP_SUFFIX:=}
+  name: flux-helm-schema${APP_SUFFIX:=}
   namespace: default
   annotations:
     kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
@@ -17,13 +17,16 @@ spec:
       createDefaultServiceAccount: false
     controllers:
       main:
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-python: "true"
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
         containers:
           main:
             image:
-              repository: ghcr.io/pl4nty/fortinet-downloads
+              repository: ghcr.io/pl4nty/flux-helm-schema
               tag: ${APP_IMAGE_TAG:=}
             probes:
               liveness:
@@ -37,15 +40,15 @@ spec:
         controller: main
         ports:
           http:
-            port: 8501
+            port: 8000
     route:
       main:
         parentRefs:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - fortinet-dl${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
+          - flux-helm-schema${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
               - identifier: main
-                port: 8501
+                port: 8000
