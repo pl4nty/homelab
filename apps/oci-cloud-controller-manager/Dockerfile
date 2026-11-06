@@ -1,8 +1,9 @@
 # Upstream's Dockerfile plus these patches (diffs without docs); drop each once a release includes the fix:
 # - node-filter.patch, oracle/oci-cloud-controller-manager#544 (--node-filter-requirements), so the CCM only
 #   reconciles Oracle nodes in this mixed cluster
-# - skip-unmapped-nodes.patch, ours: getNodeIpFamily and getCompartmentIDByInstanceID gave up on the first
-#   node without an OCI provider ID, which includes the node being initialised, so nodes never got one (#522)
+# - node-lookups.patch, ours: getNodeIpFamily and getCompartmentIDByInstanceID gave up on the first node
+#   without an OCI provider ID, including the node being initialised, so nodes never got one (#522). They now
+#   skip non-OCI nodes, find the uninitialised node by name, and read the compartment from the instance
 # The Makefile defaults ARCH to amd64, so cross-compile per TARGETARCH rather than build under QEMU
 FROM --platform=$BUILDPLATFORM golang:1.26.6 AS builder
 ARG TARGETARCH VERSION
