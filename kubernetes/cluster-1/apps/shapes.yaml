@@ -4,6 +4,9 @@ kind: HelmRelease
 metadata:
   name: shapes
   namespace: default
+  annotations:
+    # TEMPORARY: the next commit renames this preview, so its Kustomization must not prune production
+    kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
   interval: 15m
   chartRef:
