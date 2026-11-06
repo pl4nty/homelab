@@ -21,3 +21,8 @@ nodes:
     ip: 192.168.1.136
     role: control-plane
     schematicId: "@hardware/rk1-schematic.yaml"
+  - host: talos-oci-a1
+    ip: 192.9.186.226
+    role: worker
+    platform: oracle
+    schematicId: "@hardware/oracle-schematic.yaml"

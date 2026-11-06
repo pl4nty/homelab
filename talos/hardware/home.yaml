@@ -1,0 +1,18 @@
+# The home nodes (RK1 control planes and the NUC). Symlinked from control-plane/ and node/talos-ivx-yqq/.
+#
+# Home LAN traffic stays off KubeSpan. KubeSpan's rule (priority 32500) sends every peer address to its
+# WireGuard table 180; this rule matches the LAN first and uses the main table, so node-to-node traffic
+# (Longhorn, flannel, etcd) goes direct. Only talos-oci-a1, which isn't on the LAN, goes over WireGuard.
+# The idea is from https://github.com/siderolabs/talos/issues/8364#issuecomment-2638110082
+apiVersion: v1alpha1
+kind: RoutingRuleConfig
+name: "32000"
+dst: 192.168.1.0/24
+table: main
+---
+# well-known topology labels, matching what the OCI cloud controller sets on talos-oci-a1 (ap-sydney-1)
+apiVersion: v1alpha1
+kind: KubeNodeConfig
+labels:
+  topology.kubernetes.io/region: home
+  topology.kubernetes.io/zone: home
