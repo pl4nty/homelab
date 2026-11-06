@@ -29,6 +29,12 @@ spec:
               SYSTEM_ENABLEANALYTICS: false
               # upstream settings.yml defaults security.enableLogin to true; this is a public tool
               SECURITY_ENABLELOGIN: false
+            # the java agent and PDF temp files outgrow cluster-1's 100Mi ephemeral-storage default (system/limitrange.yaml)
+            resources:
+              requests:
+                ephemeral-storage: 256Mi
+              limits:
+                ephemeral-storage: 2Gi
     service:
       main:
         controller: main
