@@ -36,6 +36,10 @@ spec:
                 secretKeyRef:
                   name: arr
                   key: SONARR_API_KEY
+              RADARR_API_KEY:
+                secretKeyRef:
+                  name: radarr
+                  key: RADARR_API_KEY
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
@@ -90,3 +94,15 @@ spec:
                   - trash_id: 20e0fc959f1f1704bed501f23bdae76f # [Anime] Remux-1080p
                     reset_unmatched_scores:
                       enabled: true
+            radarr:
+              movies:
+                base_url: http://radarr:7878
+                api_key: !env_var RADARR_API_KEY
+                # folder and file names carry [tmdbid-N], which jellyfin matches on
+                media_naming:
+                  folder: jellyfin-tmdb
+                  movie:
+                    rename: true
+                    standard: jellyfin-tmdb
+                quality_definition:
+                  type: movie
