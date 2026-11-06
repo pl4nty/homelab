@@ -1,5 +1,5 @@
 // arch-affinity is a mutating webhook that requires pods to run on a node
-// architecture that every one of their images supports.
+// os and architecture that every one of their images supports.
 package main
 
 import (
@@ -43,7 +43,7 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("/mutate", &handler{archs: newResolver().archs})
+	mux.Handle("/mutate", &handler{platforms: newResolver().platforms})
 	mux.HandleFunc("/healthz", func(http.ResponseWriter, *http.Request) {})
 	srv := &http.Server{
 		Addr:              *addr,

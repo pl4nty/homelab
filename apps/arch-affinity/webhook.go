@@ -3,19 +3,30 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 	"slices"
+	"strings"
+	"sync"
 	"time"
 
+	"github.com/google/go-containerregistry/pkg/name"
+	"github.com/google/go-containerregistry/pkg/v1/remote"
 	admissionv1 "k8s.io/api/admission/v1"
 	corev1 "k8s.io/api/core/v1"
 )
 
-const archLabel = "kubernetes.io/arch"
+const (
+	archLabel = "kubernetes.io/arch"
+	osLabel   = "kubernetes.io/os"
+	// tags can move, digests can't
+	tagTTL = 10 * time.Minute
+)
 
 type handler struct {
-	archs func(ctx context.Context, image string) ([]string, error)
+	// platforms returns the os/arch pairs an image supports
+	platforms func(ctx context.Context, image string) ([]string, error)
 }
 
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +55,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(review)
 }
 
-// patch returns a JSON patch that requires the architectures every image supports,
+// patch returns a JSON patch that requires a platform every image supports,
 // or nil to admit the pod unchanged
 func (h *handler) patch(ctx context.Context, namespace string, pod *corev1.Pod) []byte {
 	if constrained(pod) {
@@ -54,20 +65,31 @@ func (h *handler) patch(ctx context.Context, namespace string, pod *corev1.Pod) 
 
 	var allowed []string
 	for i, c := range slices.Concat(pod.Spec.InitContainers, pod.Spec.Containers) {
-		archs, err := h.archs(ctx, c.Image)
+		platforms, err := h.platforms(ctx, c.Image)
 		if err != nil {
 			log.Warn("skipped: image lookup failed", "image", c.Image, "err", err)
 			return nil
 		}
 		if i == 0 {
-			allowed = archs
+			allowed = platforms
 		} else {
-			allowed = slices.DeleteFunc(slices.Clone(allowed), func(a string) bool { return !slices.Contains(archs, a) })
+			allowed = slices.DeleteFunc(slices.Clone(allowed), func(p string) bool { return !slices.Contains(platforms, p) })
 		}
 	}
 	if len(allowed) == 0 {
-		log.Warn("skipped: images share no architecture")
+		log.Warn("skipped: images share no platform")
 		return nil
+	}
+
+	// a node matches os AND arch, so each os gets its own term
+	var oses []string
+	archs := map[string][]string{}
+	for _, p := range allowed {
+		os, arch, _ := strings.Cut(p, "/")
+		if archs[os] == nil {
+			oses = append(oses, os)
+		}
+		archs[os] = append(archs[os], arch)
 	}
 
 	affinity := pod.Spec.Affinity.DeepCopy()
@@ -77,24 +99,31 @@ func (h *handler) patch(ctx context.Context, namespace string, pod *corev1.Pod) 
 	if affinity.NodeAffinity == nil {
 		affinity.NodeAffinity = &corev1.NodeAffinity{}
 	}
-	required := affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution
-	if required == nil || len(required.NodeSelectorTerms) == 0 {
-		required = &corev1.NodeSelector{NodeSelectorTerms: []corev1.NodeSelectorTerm{{}}}
+	existing := []corev1.NodeSelectorTerm{{}}
+	if r := affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution; r != nil && len(r.NodeSelectorTerms) > 0 {
+		existing = r.NodeSelectorTerms
 	}
-	// terms are ORed, so each one needs the requirement
-	expr := corev1.NodeSelectorRequirement{Key: archLabel, Operator: corev1.NodeSelectorOpIn, Values: allowed}
-	for i := range required.NodeSelectorTerms {
-		required.NodeSelectorTerms[i].MatchExpressions = append(required.NodeSelectorTerms[i].MatchExpressions, expr)
+	// terms are ORed, so each existing term is split per os
+	var terms []corev1.NodeSelectorTerm
+	for _, t := range existing {
+		for _, os := range oses {
+			t := *t.DeepCopy()
+			t.MatchExpressions = append(t.MatchExpressions,
+				corev1.NodeSelectorRequirement{Key: osLabel, Operator: corev1.NodeSelectorOpIn, Values: []string{os}},
+				corev1.NodeSelectorRequirement{Key: archLabel, Operator: corev1.NodeSelectorOpIn, Values: archs[os]})
+			terms = append(terms, t)
+		}
 	}
-	affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution = required
+	affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution = &corev1.NodeSelector{NodeSelectorTerms: terms}
 
 	patch, _ := json.Marshal([]map[string]any{{"op": "add", "path": "/spec/affinity", "value": affinity}})
-	log.Info("required architectures", "archs", allowed)
+	log.Info("required platforms", "platforms", allowed)
 	return patch
 }
 
 // constrained reports whether the pod already picks its node or architecture.
 // DaemonSet pods are skipped: a pending pod on an unsupported node would stall rollouts.
+// An os selector alone doesn't count, since many charts set kubernetes.io/os: linux by default.
 func constrained(pod *corev1.Pod) bool {
 	if pod.Spec.NodeName != "" {
 		return true
@@ -117,4 +146,89 @@ func constrained(pod *corev1.Pod) bool {
 		}
 	}
 	return false
+}
+
+type resolver struct {
+	mu    sync.Mutex
+	cache map[string]cached
+}
+
+type cached struct {
+	platforms []string
+	expires   time.Time // zero for digests
+}
+
+func newResolver() *resolver {
+	return &resolver{cache: map[string]cached{}}
+}
+
+func (r *resolver) platforms(ctx context.Context, image string) ([]string, error) {
+	ref, err := name.ParseReference(image)
+	if err != nil {
+		return nil, err
+	}
+	key := ref.Name()
+
+	r.mu.Lock()
+	c, ok := r.cache[key]
+	r.mu.Unlock()
+	if ok && (c.expires.IsZero() || time.Now().Before(c.expires)) {
+		return c.platforms, nil
+	}
+
+	desc, err := remote.Get(ref, remote.WithContext(ctx))
+	if err != nil {
+		return nil, err
+	}
+	platforms, err := imagePlatforms(desc)
+	if err != nil {
+		return nil, err
+	}
+
+	c = cached{platforms: platforms}
+	if _, digest := ref.(name.Digest); !digest {
+		c.expires = time.Now().Add(tagTTL)
+	}
+	r.mu.Lock()
+	if len(r.cache) > 1024 {
+		clear(r.cache)
+	}
+	r.cache[key] = c
+	r.mu.Unlock()
+	return platforms, nil
+}
+
+func imagePlatforms(desc *remote.Descriptor) ([]string, error) {
+	var platforms []string
+	if desc.MediaType.IsIndex() {
+		idx, err := desc.ImageIndex()
+		if err != nil {
+			return nil, err
+		}
+		m, err := idx.IndexManifest()
+		if err != nil {
+			return nil, err
+		}
+		// skips attestation manifests, which are unknown/unknown
+		for _, d := range m.Manifests {
+			if p := d.Platform; p != nil && p.OS != "unknown" {
+				platforms = append(platforms, p.OS+"/"+p.Architecture)
+			}
+		}
+	} else {
+		img, err := desc.Image()
+		if err != nil {
+			return nil, err
+		}
+		cfg, err := img.ConfigFile()
+		if err != nil {
+			return nil, err
+		}
+		platforms = append(platforms, cfg.OS+"/"+cfg.Architecture)
+	}
+	if len(platforms) == 0 {
+		return nil, errors.New("no platforms")
+	}
+	slices.Sort(platforms)
+	return slices.Compact(platforms), nil
 }

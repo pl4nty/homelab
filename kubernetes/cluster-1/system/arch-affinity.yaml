@@ -1,4 +1,4 @@
-# requires pods to run on an architecture their images support, see apps/arch-affinity
+# requires pods to run on an os and architecture their images support, see apps/arch-affinity
 apiVersion: v1
 kind: ServiceAccount
 metadata:
