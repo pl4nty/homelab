@@ -3,74 +3,142 @@
 <!--Embed the header.html template at this location-->
 {{ template "layouts/header.html" .}}
 
-<h1>{{ .Bundle.App.Name }}</h1>
-<p class="text-muted"><code>{{ .Id }}</code> · <a class="link-primary" target="_blank" rel="noopener noreferrer"
-    href="https://apps.apple.com/app/id{{ .Bundle.App.ID }}">App Store</a></p>
+<main class="container text-start pb-4 bundle">
+  <div class="d-flex flex-wrap align-items-end gap-3 mb-4">
+    <div class="me-auto">
+      <h1 class="h2 mb-1">{{ .Bundle.App.Name }}</h1>
+      <div class="d-flex flex-wrap align-items-center gap-2 text-muted">
+        <code>{{ .Id }}</code>
+        <button type="button" class="btn btn-sm btn-link p-0 copy-icon" data-copy="{{ .Id }}" aria-label="Copy bundle ID"
+          title="Copy bundle ID"><i class="bi bi-clipboard" aria-hidden="true"></i></button>
+        <span aria-hidden="true">·</span>
+        <a target="_blank" rel="noopener noreferrer" href="https://apps.apple.com/app/id{{ .Bundle.App.ID }}">App Store</a>
+      </div>
+    </div>
+    <form method="get" id="version-form">
+      <label class="form-label small text-muted mb-1" for="version">Version</label>
+      <select class="form-select" id="version" name="version">
+        {{ $current := .Version.App.Version }}
+        {{ range .Versions }}
+        <option value="{{ .App.Version }}" {{ if eq .App.Version $current }}selected{{ end }}>{{ .App.Version }} (seen {{ .Extracted.Format "2006-01-02" }})</option>
+        {{ end }}
+      </select>
+    </form>
+  </div>
 
-<form class="d-flex justify-content-center mb-4" method="get">
-  <select class="form-select w-auto" name="version" aria-label="Version" onchange="this.form.submit()">
-    {{ $current := .Version.App.Version }}
-    {{ range .Versions }}
-    <option value="{{ .App.Version }}" {{ if eq .App.Version $current }}selected{{ end }}>{{ .App.Version }} (seen {{ .Extracted.Format "2006-01-02" }})</option>
-    {{ end }}
-  </select>
-</form>
-
-<div>
-  <h4>
-    <a class="link-primary" href="/download/{{ .Id }}/Info.plist?version={{ .Version.App.Version }}">Info.plist</a>
-  </h4>
-  <table class="table">
-    <thead>
-      <tr>
-        <th scope="col">Type</th>
-        <th scope="col">Role</th>
-        <th scope="col">Schemes</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{ range .Bundle.Information.CFBundleURLTypes }}
-      <tr>
-        <th scope="row">{{ or .CFBundleURLName .CFBundleTypeRole }}</th>
-        <td>{{ .CFBundleTypeRole }}</td>
-        <td>{{ range .CFBundleURLSchemes }}{{ . }}<br>{{ end }}</td>
-      </tr>
+  <section class="card mb-4" aria-labelledby="schemes-heading">
+    <div class="card-header">
+      <h2 class="h5 mb-0" id="schemes-heading">URL schemes</h2>
+      <p class="small text-muted mb-0">For Intune <em>Select apps to exempt</em>: paste the name and value as one row.</p>
+    </div>
+    <div class="card-body">
+      {{ if .Schemes }}
+      <label class="form-label small text-muted mb-1" for="exempt-name">Name</label>
+      <div class="input-group mb-3">
+        <input class="form-control" id="exempt-name" readonly value="{{ .Bundle.App.Name }}">
+        <button type="button" class="btn btn-outline-secondary" data-copy-from="exempt-name">
+          <i class="bi bi-clipboard" aria-hidden="true"></i> Copy</button>
+      </div>
+      <label class="form-label small text-muted mb-1" for="exempt-value">Value</label>
+      <div class="input-group">
+        <textarea class="form-control font-monospace" id="exempt-value" rows="2" readonly>{{ .SchemeValue }}</textarea>
+        <button type="button" class="btn btn-primary" data-copy-from="exempt-value">
+          <i class="bi bi-clipboard" aria-hidden="true"></i> Copy</button>
+      </div>
+      <p class="small text-muted mt-2 mb-3">{{ len .Schemes }} scheme{{ if ne (len .Schemes) 1 }}s{{ end }}, separated by <code>;</code>.
+        http and https are never included, because exempting them sends org data to any browser.</p>
+      <div class="d-flex flex-wrap gap-2">
+        {{ range .Schemes }}
+        <button type="button" class="btn btn-sm btn-outline-secondary font-monospace" data-copy="{{ . }}"
+          title="Copy {{ . }}">{{ . }}</button>
+        {{ end }}
+      </div>
+      {{ else }}
+      <p class="text-muted mb-0">This app declares no URL schemes, apart from http or https.</p>
       {{ end }}
-    </tbody>
-  </table>
-</div>
+    </div>
+  </section>
 
-<br>
+  <section class="card mb-4" aria-labelledby="links-heading">
+    <div class="card-header d-flex flex-wrap align-items-center gap-2">
+      <div class="me-auto">
+        <h2 class="h5 mb-0" id="links-heading">Universal links</h2>
+        <p class="small text-muted mb-0">For Intune <em>Select universal links to exempt</em> or <em>Select managed
+            universal links</em>: paste one link per row.</p>
+      </div>
+      {{ if .Links }}
+      <button type="button" class="btn btn-sm btn-outline-secondary" data-copy-all="links"
+        title="Copy every link, one per line"><i class="bi bi-clipboard" aria-hidden="true"></i> Copy all</button>
+      {{ end }}
+    </div>
+    {{ if .Links }}
+    <ul class="list-group list-group-flush" id="links">
+      {{ range .Links }}
+      <li class="list-group-item d-flex align-items-center gap-2">
+        <code class="me-auto text-break" data-link>{{ . }}</code>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-copy="{{ . }}" aria-label="Copy {{ . }}"
+          title="Copy"><i class="bi bi-clipboard" aria-hidden="true"></i></button>
+      </li>
+      {{ end }}
+    </ul>
+    {{ else }}
+    <div class="card-body">
+      <p class="text-muted mb-0">This app has no applinks associated domains.</p>
+    </div>
+    {{ end }}
+  </section>
 
-<div>
-  <h4>
-    <a class="link-primary" href="/download/{{ .Id }}/entitlements.plist?version={{ .Version.App.Version }}">entitlements.plist</a>
-  </h4>
-  <table class="table">
-    <thead>
-      <tr>
-        <th scope="col">Entitlement</th>
-        <th scope="col">Values</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <th scope="row">associated-domains (Universal Links)</th>
-        <td>{{ range .Bundle.Entitlements.AssociatedDomains }}http://{{ . }}/*<br>https://{{ . }}/*<br>{{ end }}</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+  <section aria-labelledby="files-heading">
+    <h2 class="h6 text-muted mb-2" id="files-heading">Files</h2>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-sm btn-outline-secondary" href="/download/{{ .Id }}/Info.plist?version={{ .Version.App.Version }}">
+        <i class="bi bi-download" aria-hidden="true"></i> Info.plist</a>
+      <a class="btn btn-sm btn-outline-secondary"
+        href="/download/{{ .Id }}/entitlements.plist?version={{ .Version.App.Version }}">
+        <i class="bi bi-download" aria-hidden="true"></i> entitlements.plist</a>
+      {{ if .Privacy }}
+      <a class="btn btn-sm btn-outline-secondary"
+        href="/download/{{ .Id }}/PrivacyInfo.xcprivacy?version={{ .Version.App.Version }}">
+        <i class="bi bi-download" aria-hidden="true"></i> PrivacyInfo.xcprivacy</a>
+      {{ end }}
+    </div>
+  </section>
+</main>
 
-{{ if .Privacy }}
-<br>
+<!-- data-cfasync: run without waiting for Cloudflare Rocket Loader -->
+<script data-cfasync="false">
+  document.getElementById("version").addEventListener("change", (e) => e.target.form.submit());
 
-<div>
-  <h4>
-    <a class="link-primary" href="/download/{{ .Id }}/PrivacyInfo.xcprivacy?version={{ .Version.App.Version }}">PrivacyInfo.xcprivacy</a>
-  </h4>
-</div>
-{{ end }}
+  for (const input of document.querySelectorAll("[readonly]")) {
+    input.addEventListener("focus", () => input.select());
+  }
+
+  const copied = (button) => {
+    const icon = button.querySelector(".bi");
+    button.classList.add("copied");
+    icon?.classList.replace("bi-clipboard", "bi-check2");
+    setTimeout(() => {
+      button.classList.remove("copied");
+      icon?.classList.replace("bi-check2", "bi-clipboard");
+    }, 1500);
+  };
+
+  document.addEventListener("click", async (e) => {
+    const button = e.target.closest("[data-copy], [data-copy-from], [data-copy-all]");
+    if (!button) return;
+    let text = button.dataset.copy;
+    if (button.dataset.copyFrom) text = document.getElementById(button.dataset.copyFrom).value;
+    if (button.dataset.copyAll) {
+      text = [...document.querySelectorAll(`#${button.dataset.copyAll} [data-link]`)].map((el) => el.textContent).join("\n");
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      copied(button);
+    } catch {
+      button.title = "Copy failed. Select the text and copy it instead.";
+    }
+  });
+</script>
 
 <!--Embed the footer.html template at this location-->
 {{ template "layouts/footer.html" .}}
