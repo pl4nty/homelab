@@ -54,9 +54,10 @@ deferred-probe timeout, and finds no IOMMU driver, binds without one.
   overlay in `rockchip-mpp-pkg/src/dt/rk3588-mpp.dtso`. That overlay holds the vendor
   nodes, translated to mainline: 4-cell GIC specifiers, mainline IOMMU
   compatibles, `rockchip,core-id` in place of aliases, and no vendor OPP tables.
-  It disables mainline's hantro `vpu121` and `rga` nodes for the same blocks. The
-  overlay stays applied until reboot, because the mainline IOMMU driver can't
-  unbind.
+  It leaves mainline's hantro `vpu121` and `rga` nodes for the same blocks alone:
+  Talos doesn't build those drivers, and disabling a populated node removes its
+  device, which oopses the mainline IOMMU driver. The overlay stays applied until
+  reboot for the same reason.
 - **Signing**: Talos signs modules with a key it throws away after its build, so
   these modules can't carry a signature Talos trusts. Talos v1.14's kernel
   enforces signatures only through the `module.sig_enforce=1` boot argument, so

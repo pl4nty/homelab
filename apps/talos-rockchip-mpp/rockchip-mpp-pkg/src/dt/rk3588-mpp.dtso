@@ -21,18 +21,12 @@
 #include <dt-bindings/power/rk3588-power.h>
 #include <dt-bindings/reset/rockchip,rk3588-cru.h>
 
-/* the mainline hantro/rga nodes for the same blocks */
-&{/video-codec@fdb50000} {
-	status = "disabled";
-};
-
-&{/video-codec@fdc70000} {
-	status = "disabled";
-};
-
-&{/rga@fdb80000} {
-	status = "disabled";
-};
+/*
+ * Mainline's hantro and rga nodes for the same blocks stay as they are: Talos builds
+ * neither driver, and disabling a populated node at runtime tears down its platform
+ * device, which the mainline Rockchip IOMMU driver can't survive (list corruption in
+ * rk_iommu_release_device). Unbound, they hold no registers.
+ */
 
 &{/sram@ff001000} {
 	rkvdec0_sram: rkvdec-sram@0 {
