@@ -14,6 +14,9 @@ spec:
       createDefaultServiceAccount: false
     controllers:
       main:
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-python: "true"
         containers:
           main:
             image:
@@ -22,6 +25,10 @@ spec:
             env:
               TZ: ${TIMEZONE}
               SECURE_REFERRER_POLICY: origin
+              # the OTel agent's sitecustomize loads the Django instrumentation before uWSGI sets these
+              # (uwsgi.ini). without them it configures Django's defaults, and every request 500s on ROOT_URLCONF
+              DJANGO_SETTINGS_MODULE: bookmarks.settings.prod
+              PYTHONPATH: /etc/linkding
     service:
       main:
         controller: main
