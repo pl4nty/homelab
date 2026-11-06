@@ -22,10 +22,44 @@ spec:
     # https://opentelemetry.io/docs/reference/specification/sdk-environment-variables/#exporter-selection
     - name: OTEL_METRICS_EXPORTER
       value: none
+    # pod stdout already reaches Loki, so OTLP logs would store every line twice
+    - name: OTEL_LOGS_EXPORTER
+      value: none
+  # agent images are pinned because the operator writes its defaults into the CR once, at creation,
+  # and never updates them (cluster-1 kept java 1.26.0, nodejs 0.40.0 and dotnet 0.7.0).
+  # versions follow the operator's versions.txt.
+  # each init container copies its agent into an emptyDir, which counts towards the pod's
+  # ephemeral-storage limit, and the default LimitRange gives each container only 100Mi.
+  # the pod limit is max(sum of app containers, largest init container), so a 1Gi init
+  # container limit lifts the pod to 1Gi without a per-app override. the cpu and memory
+  # values are the operator's defaults, which it only fills in when limits/requests are unset
+  java:
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-java:2.32.0
+    # java names this field resources, the other languages resourceRequirements
+    resources: &agent-resources
+      limits:
+        cpu: 500m
+        memory: 256Mi
+        ephemeral-storage: 1Gi
+      requests:
+        cpu: 50m
+        memory: 64Mi
+        ephemeral-storage: 100Mi
+    env:
+      # the 2.x agent exports http/protobuf by default
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: http://k8s-monitoring-alloy-receiver.monitoring-system:4318
+  nodejs:
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-nodejs:0.82.0
+    resourceRequirements: *agent-resources
+    env:
+      # the sdk-node register hook exports http/protobuf by default
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: http://k8s-monitoring-alloy-receiver.monitoring-system:4318
   python:
-    # pinned: the CR kept 0.39b0, which has no musl build (hyperglass uses otel-python-platform: musl).
-    # operator 0.162.0 defaults to 0.66b1 (versions.txt)
+    # 0.39b0 had no musl build (hyperglass uses otel-python-platform: musl)
     image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-python:0.66b1
+    resourceRequirements: *agent-resources
     env:
       # Required if endpoint is set to 4317.
       # Python autoinstrumentation uses http/proto by default
@@ -35,6 +69,9 @@ spec:
       - name: OTEL_METRICS_EXPORTER
         value: none
   dotnet:
+    # multi-arch since 1.x, so arm64 nodes work without the old custom image
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-dotnet:1.17.0
+    resourceRequirements: *agent-resources
     env:
       # Required if endpoint is set to 4317.
       # Dotnet autoinstrumentation uses http/proto by default
