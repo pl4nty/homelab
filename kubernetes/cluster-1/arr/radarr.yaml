@@ -1,0 +1,122 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app radarr
+  namespace: default
+spec:
+  interval: 15m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    global:
+      createDefaultServiceAccount: false
+    controllers:
+      radarr:
+        containers:
+          app:
+            # home-operations builds radarr from the servarr develop (beta) branch, so this
+            # follows develop. its database migrations are one-way, so there's no going back to 6.x
+            image:
+              repository: ghcr.io/home-operations/radarr
+              tag: 7.0.1@sha256:52d09607f72d475ba75cfc781f9041cf679ddb16ed2e9dfb8a2139cc1e89ab94
+            env:
+              TZ: ${TIMEZONE}
+              RADARR__APP__INSTANCENAME: Radarr
+              RADARR__AUTH__METHOD: External
+              RADARR__AUTH__REQUIRED: DisabledForLocalAddresses
+              RADARR__SERVER__PORT: &port 7878
+              RADARR__LOG__LEVEL: info
+              # the log db is pure write churn on a longhorn volume
+              RADARR__LOG__DBENABLED: "False"
+              # pinned so recyclarr and prowlarr can talk to a freshly created instance
+              RADARR__AUTH__APIKEY:
+                secretKeyRef:
+                  name: radarr
+                  key: RADARR_API_KEY
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /ping
+                    port: *port
+                  initialDelaySeconds: 0
+                  periodSeconds: 10
+                  timeoutSeconds: 1
+                  failureThreshold: 3
+              readiness: *probes
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /ping
+                    port: *port
+                  failureThreshold: 30
+                  periodSeconds: 10
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                memory: 1Gi
+        pod:
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 568
+            runAsGroup: 568
+            fsGroup: 568
+            fsGroupChangePolicy: OnRootMismatch
+            seccompProfile: { type: RuntimeDefault }
+          # media is RWO with a single local replica, so follow jellyfin to its node
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchExpressions:
+                      - key: app.kubernetes.io/instance
+                        operator: In
+                        values:
+                          - jellyfin
+                  topologyKey: kubernetes.io/hostname
+    service:
+      app:
+        controller: *app
+        ports:
+          http:
+            port: *port
+    route:
+      app:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - radarr.${PRIVATE_DOMAIN}
+        rules:
+          - backendRefs:
+              - name: *app
+                port: *port
+    persistence:
+      config:
+        accessMode: ReadWriteOnce
+        size: 4Gi
+      # a few MB of scratch that should start empty every restart, so tmpfs -
+      # counts against the memory limit rather than ephemeral-storage
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 256Mi
+        globalMounts:
+          - path: /tmp
+      # sonarr's init-layout container already creates the movies folders
+      media:
+        existingClaim: media
+        globalMounts:
+          - path: /data

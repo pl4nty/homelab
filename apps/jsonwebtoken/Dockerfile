@@ -1,15 +1,24 @@
+# upstream is now a Next.js app with a request proxy for language redirects, so it needs a server instead of nginx
 FROM --platform=$BUILDPLATFORM node:26.12.0@sha256:45a2bf9d9300e9cf47ecb375e38447c140c45ef5fbae869c430475b05b98d86e AS build
 
 WORKDIR /app
 COPY --from=src package*.json ./
 RUN --mount=type=cache,id=npm,target=/root/.npm npm ci
 
-# conflict between webpack 4 and node >= 17: error:0308010C:digital envelope routines::unsupported
-ENV NODE_OPTIONS=--openssl-legacy-provider
 COPY --from=src . .
-RUN ./node_modules/.bin/grunt build-website
-RUN ./node_modules/.bin/grunt pug:website
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN npm run build
 
-FROM nginx:1.31.7@sha256:8632b3314d74c61f0e27f59055bab13f7793b988c94c090154d867bc29e0f39b
+# native deps (sharp, swc) must match the target platform, so install them again without the build platform
+FROM node:26.12.0@sha256:45a2bf9d9300e9cf47ecb375e38447c140c45ef5fbae869c430475b05b98d86e
 
-COPY --from=build /app/dist/website /usr/share/nginx/html
+WORKDIR /app
+COPY --from=src package*.json ./
+RUN --mount=type=cache,id=npm,target=/root/.npm npm ci --omit=dev
+
+COPY --from=src . .
+COPY --from=build --chown=node:node /app/.next .next
+ENV NEXT_TELEMETRY_DISABLED=1 NODE_ENV=production
+USER node
+EXPOSE 8080
+CMD [ "npx", "next", "start", "-p", "8080" ]

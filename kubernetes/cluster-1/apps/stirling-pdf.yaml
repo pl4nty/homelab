@@ -17,9 +17,8 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
-        pod:
-          annotations:
-            instrumentation.opentelemetry.io/inject-java: "true"
+        # no OTel java agent: on cluster-1 the operator mounts it at /otel-auto-instrumentation-java-main but
+        # points -javaagent at /otel-auto-instrumentation-java, so the JVM exits at startup
         containers:
           main:
             image:
@@ -27,6 +26,14 @@ spec:
               tag: 3.2.2@sha256:c6872dd056b0046a14c5de1e9970283e7f1e1ff685bb08090c6b37a231127d31
             env:
               SYSTEM_ENABLEANALYTICS: false
+              # upstream settings.yml defaults security.enableLogin to true; this is a public tool
+              SECURITY_ENABLELOGIN: false
+            # the java agent and PDF temp files outgrow cluster-1's 100Mi ephemeral-storage default (system/limitrange.yaml)
+            resources:
+              requests:
+                ephemeral-storage: 256Mi
+              limits:
+                ephemeral-storage: 2Gi
     service:
       main:
         controller: main

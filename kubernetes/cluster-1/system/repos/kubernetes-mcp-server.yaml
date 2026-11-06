@@ -1,0 +1,11 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: kubernetes-mcp-server
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: oci://ghcr.io/containers/charts/kubernetes-mcp-server
+  ref:
+    tag: 0.1.1
+    digest: sha256:263282c4cd1d466edf87e502da277055eebea9b32ecd2471a2ebba3a4b6027eb
