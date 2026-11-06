@@ -1,6 +1,6 @@
 # Oracle Cloud VM.Standard.A1.Flex (arm64), created by ../oracle.sh and reached over KubeSpan.
-# Talos sets topology.kubernetes.io/region from the platform metadata; the node folder sets the
-# provider ID and zone (talosctl get platformmetadata)
+# The node folder sets the provider ID and topology labels from
+# talosctl get platformmetadata
 apiVersion: v1alpha1
 kind: UnattendedInstallConfig
 provisioning:
