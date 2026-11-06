@@ -97,6 +97,8 @@ spec:
       - tools:
         - CyberChef:
             href: https://cyberchef.${PUBLIC_DOMAIN}
+        - Diff viewer:
+            href: https://diff.${PUBLIC_DOMAIN}
         - Drawing canvas:
             href: https://shapes.${PUBLIC_DOMAIN}
             icon: si-haskell

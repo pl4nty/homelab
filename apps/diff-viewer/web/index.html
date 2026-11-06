@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="description" content="Compare two texts or a patch, and share the diff as a link." />
+    <title>Diff</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <script type="module" src="/src/main.js"></script>
+  </head>
+  <body>
+    <header class="bar">
+      <a class="brand" href="/">diff</a>
+      <span id="stats" class="stats" hidden></span>
+      <nav id="actions" class="actions" hidden>
+        <div class="segmented" role="group" aria-label="Layout">
+          <button type="button" data-style="split">Split</button>
+          <button type="button" data-style="unified">Unified</button>
+        </div>
+        <button id="wrap" type="button" aria-pressed="false">Wrap</button>
+        <button id="edit" type="button">Edit</button>
+        <button id="share" type="button" class="primary">Copy link</button>
+      </nav>
+    </header>
+
+    <main>
+      <p id="message" class="message" role="status" hidden></p>
+
+      <form id="editor" class="editor" hidden>
+        <div class="segmented" role="group" aria-label="Input">
+          <button type="button" data-mode="texts">Two texts</button>
+          <button type="button" data-mode="patch">Patch</button>
+        </div>
+        <div id="texts" class="panes">
+          <label class="pane">
+            <span>Original</span>
+            <textarea id="a" spellcheck="false" autocomplete="off" placeholder="Paste or drop a file"></textarea>
+          </label>
+          <label class="pane">
+            <span>Changed</span>
+            <textarea id="b" spellcheck="false" autocomplete="off" placeholder="Paste or drop a file"></textarea>
+          </label>
+        </div>
+        <div id="patch-pane" class="panes" hidden>
+          <label class="pane">
+            <span>Patch</span>
+            <textarea id="patch" spellcheck="false" autocomplete="off" placeholder="Paste the output of git diff"></textarea>
+          </label>
+        </div>
+        <div class="row">
+          <input id="name" type="text" spellcheck="false" autocomplete="off" placeholder="Filename for highlighting, like main.go" />
+          <button type="submit" class="primary">Compare</button>
+        </div>
+      </form>
+
+      <div id="diff" class="diff" hidden></div>
+    </main>
+  </body>
+</html>
