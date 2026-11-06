@@ -10,5 +10,6 @@ RUN npm test && npm run build
 
 FROM joseluisq/static-web-server:2.44.1@sha256:94618e3d17802265a21926217e6f9e7832b311b6fbf5933684001739fafed06a
 COPY --from=build /src/dist /public
-ENV SERVER_PORT=8080 SERVER_SECURITY_HEADERS=true
+COPY sws.toml /sws.toml
+ENV SERVER_PORT=8080 SERVER_SECURITY_HEADERS=true SERVER_CONFIG_FILE=/sws.toml
 EXPOSE 8080
