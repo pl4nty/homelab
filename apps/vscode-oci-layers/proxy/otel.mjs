@@ -1,8 +1,9 @@
 // OpenTelemetry for the Bun server, configured entirely from OTEL_* env (in the cluster, the operator's
 // inject-sdk annotation sets them). Node auto-instrumentations don't patch Bun.serve or Bun's fetch,
 // so this wraps both by hand: a server span per request, and a client span per upstream fetch.
+
+import { context, propagation, SpanKind, SpanStatusCode, trace } from '@opentelemetry/api';
 import { NodeSDK } from '@opentelemetry/sdk-node';
-import { context, propagation, trace, SpanKind, SpanStatusCode } from '@opentelemetry/api';
 
 new NodeSDK().start();
 const tracer = trace.getTracer('oci-layers-proxy');
@@ -36,7 +37,10 @@ export function traced(handler) {
     return tracer.startActiveSpan(req.method, { kind: SpanKind.SERVER, attributes }, parent, (span) =>
       Promise.resolve()
         .then(() => handler(req, server))
-        .then((res) => finish(span, res), (err) => fail(span, err))
+        .then(
+          (res) => finish(span, res),
+          (err) => fail(span, err),
+        )
         .finally(() => span.end()),
     );
   };
@@ -57,7 +61,10 @@ globalThis.fetch = (input, init = {}) => {
   return tracer.startActiveSpan(req.method, { kind: SpanKind.CLIENT, attributes }, (span) => {
     propagation.inject(context.active(), headers, setter);
     return rawFetch(input, { ...init, headers })
-      .then((res) => finish(span, res), (err) => fail(span, err))
+      .then(
+        (res) => finish(span, res),
+        (err) => fail(span, err),
+      )
       .finally(() => span.end());
   });
 };
