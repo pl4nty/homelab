@@ -29,6 +29,10 @@ spec:
               SYSTEM_ENABLEANALYTICS: false
               # upstream settings.yml defaults security.enableLogin to true; this is a public tool
               SECURITY_ENABLELOGIN: false
+              # init.sh replaces JAVA_TOOL_OPTIONS, which drops the operator's -javaagent,
+              # and appends JAVA_CUSTOM_OPTS instead. the operator mounts the agent at
+              # /otel-auto-instrumentation-java-<container name>
+              JAVA_CUSTOM_OPTS: -javaagent:/otel-auto-instrumentation-java-main/javaagent.jar
             # the java agent and PDF temp files outgrow cluster-1's 100Mi ephemeral-storage default (system/limitrange.yaml)
             resources:
               requests:
