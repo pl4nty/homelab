@@ -50,7 +50,7 @@ patches:
     # before the controller labels them
     - op: replace
       path: /spec/template/spec/containers/0/image
-      value: ghcr.io/pl4nty/oci-cloud-controller-manager:latest@sha256:be827500c4ba7c83b786ce15a9e6e8e3eff9700e41193938c6e1957d6d73efd7
+      value: ghcr.io/pl4nty/oci-cloud-controller-manager:latest@sha256:cbbf2f438a0b642160d373369680f929dd2ced57e0519cc7a52b9116ed4266b4
     - op: add
       path: /spec/template/spec/containers/0/args/-
       value: --node-filter-requirements=topology.kubernetes.io/region!=home
