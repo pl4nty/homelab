@@ -29,6 +29,8 @@ spec:
               # (uwsgi.ini). without them it configures Django's defaults, and every request 500s on ROOT_URLCONF
               DJANGO_SETTINGS_MODULE: bookmarks.settings.prod
               PYTHONPATH: /etc/linkding
+              # ~13 sqlite spans per request (~18k per 10 min from the crawler); keep the Django server spans
+              OTEL_PYTHON_DISABLED_INSTRUMENTATIONS: sqlite3
     service:
       main:
         controller: main
