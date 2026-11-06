@@ -1,6 +1,6 @@
 # Turing RK1. Built by talos/docker-bake.hcl, since Image Factory only builds official extensions
 overlay:
-  image: ghcr.io/siderolabs/sbc-rockchip:v0.2.1@sha256:9ce1d1d2ca1c0866bafd9728bd12eb0ef70b386318b033db2c841ce35e33b882
+  image: ghcr.io/siderolabs/sbc-rockchip:v0.2.1
   name: turingrk1
 customization:
   extraKernelArgs:
@@ -8,9 +8,9 @@ customization:
     - -module.sig_enforce
   systemExtensions:
     officialExtensions:
-      - ghcr.io/siderolabs/fuse3:3.18.3@sha256:8b48ce5eaa16d452bafa46a570684325cc807ecb0f4c8351da1a37c52468d6ca
-      - ghcr.io/siderolabs/iscsi-tools:v0.2.0@sha256:584e1d106e424d3e17ddd43bddf892b386748f10d11a9fd024a358f0d42c0a2e
-      - ghcr.io/siderolabs/panfrost:20260916-v1.14.5@sha256:ffd2926079a78339e75374f59bad1e83264341d36b977af854c15c3762a8c3b1
-      - ghcr.io/siderolabs/util-linux-tools:2.42.2@sha256:f93f23e96b28e00228cf9a006a15c1648bd5975be989adb1bee6c05c046001a1
+      - ghcr.io/siderolabs/fuse3:3.18.3
+      - ghcr.io/siderolabs/iscsi-tools:v0.2.0
+      - ghcr.io/siderolabs/panfrost:20260916-v1.14.5
+      - ghcr.io/siderolabs/util-linux-tools:2.42.2
       # built for one Talos kernel, so rebuild it with talosVersion
-      - ghcr.io/pl4nty/talos-rockchip-mpp:sha-79e986e69e7176046462997a5e3fc765ba00a6ee@sha256:8d3b184d5459a82d3281b8929cf5255d58ce7fb3f1ed2512be2fc012eb1b0379
+      - ghcr.io/pl4nty/talos-rockchip-mpp:v1.14.5
