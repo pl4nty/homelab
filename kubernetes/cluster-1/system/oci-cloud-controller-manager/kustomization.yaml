@@ -1,6 +1,8 @@
-# OCI cloud controller and block-volume CSI for the Oracle nodes. The controllers run on the control planes as
-# upstream intends, authenticating as the least-privilege user cluster-1-ccm (talos/oracle-iam.sh writes the
-# encrypted credentials). One region per config: Oracle nodes in another region need another instance.
+# OCI cloud controller and block-volume CSI for the Oracle nodes. The controllers authenticate as the Oracle
+# node they run on (instance principals: talos/oracle-iam.sh creates the dynamic group and policy), so they
+# must run on an Oracle node: one in this config's region, or a new one the controller hasn't labelled yet.
+# Home nodes always carry topology.kubernetes.io/region=home. One region per config: Oracle nodes elsewhere
+# need another instance with that region.
 # LoadBalancer Services: add the annotation
 #   oci.oraclecloud.com/node-label-selector: topology.kubernetes.io/region=ap-sydney-1
 # or the home nodes (unreachable from Oracle) become backends
@@ -13,22 +15,23 @@ resources:
 - https://raw.githubusercontent.com/oracle/oci-cloud-controller-manager/v1.36.0/manifests/container-storage-interface/oci-csi-node-rbac.yaml
 - https://raw.githubusercontent.com/oracle/oci-cloud-controller-manager/v1.36.0/manifests/container-storage-interface/oci-csi-controller-driver.yaml
 - https://raw.githubusercontent.com/oracle/oci-cloud-controller-manager/v1.36.0/manifests/container-storage-interface/oci-csi-node-driver.yaml
-- oci-cloud-controller-manager.sops.yaml
 - storageclass.yaml
+secretGenerator:
+- name: oci-cloud-controller-manager
+  files:
+  - cloud-provider.yaml
+- name: oci-volume-provisioner
+  files:
+  - config.yaml=cloud-provider.yaml
+generatorOptions:
+  disableNameSuffixHash: true
 patches:
-# only initialise Oracle nodes: node-lifecycle would delete the home nodes, which OCI doesn't know
 - target:
     kind: DaemonSet
     name: oci-cloud-controller-manager
   patch: |-
-    - op: add
-      path: /spec/template/spec/containers/0/args/-
-      value: --controllers=*,-cloud-node-lifecycle
-# the node plugin only works on Oracle nodes; the controller labels them with their region when it initialises them
-- target:
-    kind: DaemonSet
-    name: csi-oci-node
-  patch: |-
+    - op: remove
+      path: /spec/template/spec/nodeSelector
     - op: add
       path: /spec/template/spec/affinity
       value:
@@ -37,7 +40,37 @@ patches:
             nodeSelectorTerms:
             - matchExpressions:
               - key: topology.kubernetes.io/region
-                operator: Exists
+                operator: In
+                values: [ap-sydney-1]
+            - matchExpressions:
               - key: topology.kubernetes.io/region
-                operator: NotIn
-                values: [home]
+                operator: DoesNotExist
+    # only initialise Oracle nodes: node-lifecycle would delete the home nodes, which OCI doesn't know
+    - op: add
+      path: /spec/template/spec/containers/0/args/-
+      value: --controllers=*,-cloud-node-lifecycle
+- target:
+    kind: Deployment
+    name: csi-oci-controller
+  patch: |-
+    - op: remove
+      path: /spec/template/spec/nodeSelector
+    - op: add
+      path: /spec/template/spec/affinity
+      value:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: topology.kubernetes.io/region
+                operator: In
+                values: [ap-sydney-1]
+# the node plugin needs a node the controller has initialised
+- target:
+    kind: DaemonSet
+    name: csi-oci-node
+  patch: |-
+    - op: add
+      path: /spec/template/spec/nodeSelector
+      value:
+        topology.kubernetes.io/region: ap-sydney-1
