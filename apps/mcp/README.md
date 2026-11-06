@@ -9,7 +9,7 @@ apps/mcp/
 ├── Dockerfile
 ├── pyproject.toml
 ├── README.md
-├── main.py        # FastMCP server, Entra auth, OAuth proxy
+├── main.py        # MCPServer, Entra auth, OAuth proxy
 └── tools/
     ├── graph.py       # Microsoft Graph (Outlook email & calendar)
     ├── google_maps.py # Google Maps Routes API

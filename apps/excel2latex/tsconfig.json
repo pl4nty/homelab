@@ -9,18 +9,10 @@
     "outDir": "lib",
     "sourceMap": true,
     "target": "es5",
-    "lib": [
-      "es2015",
-      "dom"
-    ]
+    "lib": ["es2015", "dom"]
   },
-  "exclude": [
-    "node_modules",
-    "dist",
-    "lib",
-    "lib-amd"
-  ],
-  "ts-node": { 
-    "files": true 
+  "exclude": ["node_modules", "dist", "lib", "lib-amd"],
+  "ts-node": {
+    "files": true
   }
 }

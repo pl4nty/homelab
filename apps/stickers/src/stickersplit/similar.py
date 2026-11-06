@@ -46,11 +46,19 @@ def compare(a: str, b: str) -> dict | None:
     (pa, da, A), (pb, db, B) = features(a), features(b)
     if da is None or db is None or len(pa) < 8 or len(pb) < 8:
         return None
-    pairs = [m for m, n in (x for x in MATCH.knnMatch(db, da, k=2) if len(x) == 2) if m.distance < 0.75 * n.distance]
+    pairs = [
+        m
+        for m, n in (x for x in MATCH.knnMatch(db, da, k=2) if len(x) == 2)
+        if m.distance < 0.75 * n.distance
+    ]
     if len(pairs) < 12:
         return None
-    M, mask = cv2.estimateAffinePartial2D(pb[[m.queryIdx for m in pairs]], pa[[m.trainIdx for m in pairs]],
-                                          method=cv2.RANSAC, ransacReprojThreshold=5)
+    M, mask = cv2.estimateAffinePartial2D(
+        pb[[m.queryIdx for m in pairs]],
+        pa[[m.trainIdx for m in pairs]],
+        method=cv2.RANSAC,
+        ransacReprojThreshold=5,
+    )
     if M is None or not 0.9 < np.hypot(M[0, 0], M[1, 0]) < 1.1:
         return None
     inliers = int(mask.sum())
@@ -60,7 +68,14 @@ def compare(a: str, b: str) -> dict | None:
     both = ma & mb
     if iou < 0.85 or both.sum() < 100:
         return None
-    lab = lambda x: cv2.cvtColor(np.ascontiguousarray(x[..., :3]), cv2.COLOR_RGB2LAB)[both].astype(float)  # noqa: E731
+    lab = lambda x: cv2.cvtColor(np.ascontiguousarray(x[..., :3]), cv2.COLOR_RGB2LAB)[both].astype(
+        float
+    )
     de90 = float(np.percentile(np.linalg.norm((lab(A) - lab(W)) * [100 / 255, 1, 1], axis=1), 90))
     kind = "duplicate" if iou > 0.9 and de90 < 25 else "similar" if inliers >= 40 else None
-    return kind and {"kind": kind, "inliers": inliers, "iou": round(float(iou), 3), "de90": round(de90, 1)}
+    return kind and {
+        "kind": kind,
+        "inliers": inliers,
+        "iou": round(float(iou), 3),
+        "de90": round(de90, 1),
+    }

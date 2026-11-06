@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/base:bookworm@sha256:9a5942e64b35c5497c591b9bf177f4a3002d43440bf0a5e1a14fc34667b1a5c1
+FROM mcr.microsoft.com/devcontainers/base:bookworm@sha256:99f5250dd2d5f8b11046d5662dd94c1e3c1dae56b560c7caad5ceb7edf349046
 ARG TARGETOS TARGETARCH
 
 USER vscode
@@ -9,6 +9,8 @@ RUN bash -c "$(curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/s
 RUN curl -L https://github.com/siderolabs/talos/releases/latest/download/talosctl-$TARGETOS-$TARGETARCH -o ~/bin/talosctl \
   && chmod +x ~/bin/talosctl \
   && echo "source <(talosctl completion zsh)" >> ~/.zshrc
+
+RUN curl -s -L https://github.com/postfinance/topf/releases/latest/download/topf_${TARGETOS}_${TARGETARCH}.tar.gz | tar -xzf - -C ~/bin topf
 
 RUN curl -s -L https://github.com/backube/volsync/releases/latest/download/kubectl-volsync-linux-amd64.tar.gz | tar -xzf - -C ~/bin kubectl-volsync
 

@@ -3,18 +3,27 @@ import { after, before, test } from 'node:test';
 import { parseRef } from '../src/core/reference.ts';
 import { RegistryClient } from '../src/core/registry.ts';
 import { ImageSession } from '../src/core/session.ts';
-import { writeTar, type TarEntry } from '../src/core/tar.ts';
-import { seedImage, startFakeRegistry, type FakeRegistry } from './fake-registry.ts';
+import { type TarEntry, writeTar } from '../src/core/tar.ts';
+import { type FakeRegistry, seedImage, startFakeRegistry } from './fake-registry.ts';
 
 const enc = new TextEncoder();
 const dec = new TextDecoder();
-const f = (path: string, text: string): TarEntry => ({ path, type: 'file', mode: 0o644, uid: 0, gid: 0, mtime: 0, data: enc.encode(text) });
+const f = (path: string, text: string): TarEntry => ({
+  path,
+  type: 'file',
+  mode: 0o644,
+  uid: 0,
+  gid: 0,
+  mtime: 0,
+  data: enc.encode(text),
+});
 
 let reg: FakeRegistry;
-const client = (creds = true) => new RegistryClient({
-  insecure: (h) => h === '127.0.0.1',
-  getCredentials: async () => (creds ? { username: 'user', password: 'pass' } : undefined),
-});
+const client = (creds = true) =>
+  new RegistryClient({
+    insecure: (h) => h === '127.0.0.1',
+    getCredentials: async () => (creds ? { username: 'user', password: 'pass' } : undefined),
+  });
 
 before(async () => {
   reg = await startFakeRegistry({ auth: true });
@@ -26,9 +35,15 @@ before(async () => {
 after(() => reg.close());
 
 test('parses Docker-style references', () => {
-  assert.deepEqual(parseRef('alpine'), { registry: 'docker.io', apiHost: 'registry-1.docker.io', repository: 'library/alpine', tag: 'latest', digest: undefined });
+  assert.deepEqual(parseRef('alpine'), {
+    registry: 'docker.io',
+    apiHost: 'registry-1.docker.io',
+    repository: 'library/alpine',
+    tag: 'latest',
+    digest: undefined,
+  });
   assert.equal(parseRef('localhost:5000/a/b:t').apiHost, 'localhost:5000');
-  assert.equal(parseRef('ghcr.io/o/r@sha256:' + 'a'.repeat(64)).tag, undefined);
+  assert.equal(parseRef(`ghcr.io/o/r@sha256:${'a'.repeat(64)}`).tag, undefined);
   assert.throws(() => parseRef('UPPER/case'));
 });
 
@@ -66,8 +81,14 @@ test('push without credentials fails with an actionable error', async () => {
 });
 
 test('rejects unknown platforms and oversize images', async () => {
-  await assert.rejects(ImageSession.open(client(), `${reg.host}/team/app:v1`, { platform: 'linux/s390x' }), /available: linux\/arm64, linux\/amd64/);
-  await assert.rejects(ImageSession.open(client(), `${reg.host}/team/app:v1`, { platform: 'linux/amd64', maxBytes: 10 }), /limit/);
+  await assert.rejects(
+    ImageSession.open(client(), `${reg.host}/team/app:v1`, { platform: 'linux/s390x' }),
+    /available: linux\/arm64, linux\/amd64/,
+  );
+  await assert.rejects(
+    ImageSession.open(client(), `${reg.host}/team/app:v1`, { platform: 'linux/amd64', maxBytes: 10 }),
+    /limit/,
+  );
 });
 
 test('reads zstd and zstd:chunked layers (multiple and skippable frames)', async () => {
@@ -79,7 +100,11 @@ test('reads zstd and zstd:chunked layers (multiple and skippable frames)', async
   const skippable = Buffer.alloc(8 + 4);
   skippable.writeUInt32LE(0x184d2a50, 0);
   skippable.writeUInt32LE(4, 4);
-  const chunked = Buffer.concat([zstdCompressSync(tar.subarray(0, half)), zstdCompressSync(tar.subarray(half)), skippable]);
+  const chunked = Buffer.concat([
+    zstdCompressSync(tar.subarray(0, half)),
+    zstdCompressSync(tar.subarray(half)),
+    skippable,
+  ]);
   for (const blob of [zstdCompressSync(tar), chunked]) {
     const entries = parseTar(await decompressLayer('application/vnd.oci.image.layer.v1.tar+zstd', blob));
     assert.equal(dec.decode(entries[0].data), 'compressed with zstd');
@@ -88,6 +113,14 @@ test('reads zstd and zstd:chunked layers (multiple and skippable frames)', async
 });
 
 test('network failures (browser CORS blocks) become actionable errors', async () => {
-  const c = new RegistryClient({ fetch: async () => { throw new TypeError('Failed to fetch'); } });
-  await assert.rejects(c.getManifest(parseRef('ghcr.io/o/r:t')), (e: any) => e.network === true && /cannot reach ghcr\.io.*corsProxy/.test(e.message));
+  const c = new RegistryClient({
+    fetch: async () => {
+      throw new TypeError('Failed to fetch');
+    },
+  });
+  await assert.rejects(
+    c.getManifest(parseRef('ghcr.io/o/r:t')),
+    (e: { network?: boolean; message: string }) =>
+      e.network === true && /cannot reach ghcr\.io.*corsProxy/.test(e.message),
+  );
 });

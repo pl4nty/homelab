@@ -44,7 +44,9 @@ export class ImageSession {
     this.client = client;
   }
 
-  get layers(): LayerInfo[] { return layerInfos(this.resolved); }
+  get layers(): LayerInfo[] {
+    return layerInfos(this.resolved);
+  }
 
   /** Pinned reference (repository@digest) of the image the overlay is based on. */
   get pinned(): string {
@@ -61,13 +63,17 @@ export class ImageSession {
     const resolved = await client.resolve(ref, opts.platform);
     const total = resolved.manifest.layers.reduce((n, l) => n + l.size, 0);
     if (opts.maxBytes && total > opts.maxBytes) {
-      throw new RegistryError(`image layers total ${(total / 2 ** 20).toFixed(0)} MiB, above the ${(opts.maxBytes / 2 ** 20).toFixed(0)} MiB limit (ociLayers.maxImageSizeMB)`);
+      throw new RegistryError(
+        `image layers total ${(total / 2 ** 20).toFixed(0)} MiB, above the ${(opts.maxBytes / 2 ** 20).toFixed(0)} MiB limit (ociLayers.maxImageSizeMB)`,
+      );
     }
     const tree = new Tree();
     const layers = resolved.manifest.layers;
     for (let i = 0; i < layers.length; i++) {
       const l = layers[i];
-      opts.progress?.(`Layer ${i + 1}/${layers.length} ${l.digest.slice(7, 19)} (${(l.size / 2 ** 20).toFixed(1)} MiB)`);
+      opts.progress?.(
+        `Layer ${i + 1}/${layers.length} ${l.digest.slice(7, 19)} (${(l.size / 2 ** 20).toFixed(1)} MiB)`,
+      );
       const tar = await decompressLayer(l.mediaType, await client.getBlob(ref, l.digest));
       tree.applyLayer(parseTar(tar));
     }
@@ -78,7 +84,8 @@ export class ImageSession {
   private async ensureBlob(target: ImageRef, d: Descriptor): Promise<void> {
     if (target.apiHost === this.ref.apiHost && target.repository === this.ref.repository) return;
     if (await this.client.hasBlob(target, d.digest)) return;
-    if (target.apiHost === this.ref.apiHost && (await this.client.mountBlob(target, d.digest, this.ref.repository))) return;
+    if (target.apiHost === this.ref.apiHost && (await this.client.mountBlob(target, d.digest, this.ref.repository)))
+      return;
     await this.client.uploadBlob(target, await this.client.getBlob(this.ref, d.digest), d.digest);
   }
 
@@ -86,7 +93,11 @@ export class ImageSession {
    * Write pending edits as a new layer, push it and a new manifest to `target`,
    * then rebase the session on the pushed image.
    */
-  async commit(target: ImageRef, message: string, progress?: Progress): Promise<{ ref: ImageRef; digest: string; layer: Descriptor }> {
+  async commit(
+    target: ImageRef,
+    message: string,
+    progress?: Progress,
+  ): Promise<{ ref: ImageRef; digest: string; layer: Descriptor }> {
     const entries = this.overlay.toLayerEntries();
     if (!entries.length) throw new Error('nothing to commit');
     const now = new Date();
@@ -95,7 +106,11 @@ export class ImageSession {
     const diffId = await sha256(tar);
     const blob = await gzip(tar);
     const isDocker = this.resolved.manifestMediaType === MT.dockerManifest;
-    const layer: Descriptor = { mediaType: isDocker ? MT.dockerLayerGzip : MT.ociLayerGzip, digest: await sha256(blob), size: blob.length };
+    const layer: Descriptor = {
+      mediaType: isDocker ? MT.dockerLayerGzip : MT.ociLayerGzip,
+      digest: await sha256(blob),
+      size: blob.length,
+    };
 
     const { manifest } = this.resolved;
     for (const [i, d] of manifest.layers.entries()) {
@@ -116,15 +131,26 @@ export class ImageSession {
     const configBytes = enc.encode(JSON.stringify(config));
     const configDesc: Descriptor = { ...manifest.config, digest: await sha256(configBytes), size: configBytes.length };
     progress?.('Uploading config');
-    if (!(await this.client.hasBlob(target, configDesc.digest))) await this.client.uploadBlob(target, configBytes, configDesc.digest);
+    if (!(await this.client.hasBlob(target, configDesc.digest)))
+      await this.client.uploadBlob(target, configBytes, configDesc.digest);
 
     const newManifest = { ...structuredClone(manifest), config: configDesc, layers: [...manifest.layers, layer] };
     const manifestBytes = enc.encode(JSON.stringify(newManifest));
     progress?.(`Pushing manifest to ${formatRef(target)}`);
-    const digest = await this.client.putManifest(target, target.tag ?? (await sha256(manifestBytes)), manifestBytes, this.resolved.manifestMediaType);
+    const digest = await this.client.putManifest(
+      target,
+      target.tag ?? (await sha256(manifestBytes)),
+      manifestBytes,
+      this.resolved.manifestMediaType,
+    );
 
     this.ref = { ...target, digest: undefined };
-    this.resolved = { manifest: newManifest, manifestMediaType: this.resolved.manifestMediaType, manifestDigest: digest, config };
+    this.resolved = {
+      manifest: newManifest,
+      manifestMediaType: this.resolved.manifestMediaType,
+      manifestDigest: digest,
+      config,
+    };
     this.overlay.flatten();
     return { ref: { ...target, digest }, digest, layer };
   }

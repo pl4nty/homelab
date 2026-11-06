@@ -7,4 +7,5 @@ spec:
   interval: 1h
   url: oci://ghcr.io/home-operations/charts-mirror/headlamp
   ref:
-    tag: 0.43.0
+    tag: 0.46.0
+    digest: sha256:03d05e6f89c370416cace93034d946cb28f32a82372a48332b8a63eed671e67c

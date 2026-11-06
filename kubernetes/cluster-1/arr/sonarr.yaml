@@ -16,9 +16,11 @@ spec:
       sonarr:
         containers:
           app:
+            # home-operations builds sonarr from the v5 nightly (preview) channel, so this
+            # follows it. its database migrations are one-way, so there's no going back to v4
             image: &image
               repository: ghcr.io/home-operations/sonarr
-              tag: 4.0.20
+              tag: 5.0.0@sha256:f7c9347598c4aa1c76e2b39dc13cebe0e9e249d80962e49e08d1310e3961f3d6
             env:
               TZ: ${TIMEZONE}
               SONARR__APP__INSTANCENAME: Sonarr
@@ -77,7 +79,7 @@ spec:
             fsGroup: 568
             fsGroupChangePolicy: OnRootMismatch
             seccompProfile: { type: RuntimeDefault }
-          # media is strict-local, so follow jellyfin to its node
+          # media is RWO with a single local replica, so follow jellyfin to its node
           affinity:
             podAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:

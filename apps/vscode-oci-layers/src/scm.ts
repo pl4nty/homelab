@@ -41,7 +41,9 @@ export class ImageSourceControl implements vscode.Disposable, vscode.QuickDiffPr
     this.refresh();
   }
 
-  dispose(): void { this.scm.dispose(); }
+  dispose(): void {
+    this.scm.dispose();
+  }
 
   provideOriginalResource(uri: vscode.Uri): vscode.Uri | undefined {
     if (uri.scheme !== SCHEME || uri.authority !== this.id) return;
@@ -62,7 +64,11 @@ export class ImageSourceControl implements vscode.Disposable, vscode.QuickDiffPr
       const name = change.path.split('/').pop()!;
       const command: vscode.Command =
         change.status === 'modified' && change.type === 'file'
-          ? { command: 'vscode.diff', title: 'Open Changes', arguments: [baseUri(this.id, change.path), uri, `${name} (Image ↔ Edited)`] }
+          ? {
+              command: 'vscode.diff',
+              title: 'Open Changes',
+              arguments: [baseUri(this.id, change.path), uri, `${name} (Image ↔ Edited)`],
+            }
           : change.status === 'deleted'
             ? { command: 'vscode.open', title: 'Open Original', arguments: [baseUri(this.id, change.path)] }
             : { command: 'vscode.open', title: 'Open File', arguments: [uri] };
@@ -80,12 +86,14 @@ export class ImageSourceControl implements vscode.Disposable, vscode.QuickDiffPr
       };
     });
     this.scm.count = changes.length;
-    this.scm.statusBarCommands = [{
-      command: 'ociLayers.copyReference',
-      title: `$(package) ${displayName(this.session)}`,
-      tooltip: `Based on ${this.session.pinned}\nClick to copy`,
-      arguments: [this.session.pinned],
-    }];
+    this.scm.statusBarCommands = [
+      {
+        command: 'ociLayers.copyReference',
+        title: `$(package) ${displayName(this.session)}`,
+        tooltip: `Based on ${this.session.pinned}\nClick to copy`,
+        arguments: [this.session.pinned],
+      },
+    ];
   }
 }
 
@@ -95,9 +103,13 @@ export class ChangeDecorations implements vscode.FileDecorationProvider {
   readonly onDidChangeFileDecorations = this._onDidChange.event;
   private readonly controls: Map<string, ImageSourceControl>;
 
-  constructor(controls: Map<string, ImageSourceControl>) { this.controls = controls; }
+  constructor(controls: Map<string, ImageSourceControl>) {
+    this.controls = controls;
+  }
 
-  refresh(): void { this._onDidChange.fire(undefined); }
+  refresh(): void {
+    this._onDidChange.fire(undefined);
+  }
 
   provideFileDecoration(uri: vscode.Uri): vscode.FileDecoration | undefined {
     if (uri.scheme !== SCHEME) return;

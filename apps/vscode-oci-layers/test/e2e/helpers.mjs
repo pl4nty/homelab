@@ -4,8 +4,12 @@ export async function launch(shots) {
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM ?? '/opt/pw-browsers/chromium' });
   const page = await browser.newPage({ viewport: { width: 1400, height: 850 } });
   const errors = [];
-  page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
-  const shot = async (name) => { if (shots) await page.screenshot({ path: `${shots}/${name}.png` }); };
+  page.on('console', (m) => {
+    if (m.type() === 'error') errors.push(m.text());
+  });
+  const shot = async (name) => {
+    if (shots) await page.screenshot({ path: `${shots}/${name}.png` });
+  };
 
   /** Type into the quick input once it shows `hint` (fill() is lost while the widget re-renders). */
   async function answer(hint, value) {
@@ -40,10 +44,10 @@ export async function launch(shots) {
   async function run(body) {
     try {
       await body();
-      if (errors.length) console.log('console errors:\n' + errors.filter((e) => /oci|layer/i.test(e)).join('\n'));
+      if (errors.length) console.log(`console errors:\n${errors.filter((e) => /oci|layer/i.test(e)).join('\n')}`);
     } catch (e) {
       await shot('failure').catch(() => undefined);
-      console.log('console errors:\n' + errors.join('\n'));
+      console.log(`console errors:\n${errors.join('\n')}`);
       throw e;
     } finally {
       await browser.close();

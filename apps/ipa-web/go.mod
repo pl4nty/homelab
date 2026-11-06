@@ -2,7 +2,7 @@ module github.com/pl4nty/ipa-web
 
 go 1.26.5
 
-toolchain go1.26.10
+toolchain go1.27.3
 
 require (
 	github.com/gin-gonic/gin v1.12.0
