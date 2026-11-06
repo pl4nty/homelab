@@ -45,12 +45,12 @@ patches:
             - matchExpressions:
               - key: topology.kubernetes.io/region
                 operator: DoesNotExist
-    # upstream v1.36.0 plus oracle/oci-cloud-controller-manager#544 (apps/oci-cloud-controller-manager).
-    # Its node lookups otherwise fail on the first node without an OCI provider ID, so it can't initialise
-    # Oracle nodes in a mixed cluster. The filter matches new nodes before the controller labels them
+    # upstream v1.36.0 plus a fix for its provider ID lookups and oracle/oci-cloud-controller-manager#544
+    # (apps/oci-cloud-controller-manager). The filter keeps it off the home nodes, and matches new nodes
+    # before the controller labels them
     - op: replace
       path: /spec/template/spec/containers/0/image
-      value: ghcr.io/pl4nty/oci-cloud-controller-manager:latest@sha256:0f751d37868143dd28f6fc3cc427786943fbc0b0f48c98aa2a484bd7ca4c3a84
+      value: ghcr.io/pl4nty/oci-cloud-controller-manager:latest@sha256:be827500c4ba7c83b786ce15a9e6e8e3eff9700e41193938c6e1957d6d73efd7
     - op: add
       path: /spec/template/spec/containers/0/args/-
       value: --node-filter-requirements=topology.kubernetes.io/region!=home
