@@ -15,6 +15,9 @@ spec:
       createDefaultServiceAccount: false
     controllers:
       sillytavern:
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-nodejs: "true"
         containers:
           main:
             image:
