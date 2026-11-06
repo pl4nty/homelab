@@ -20,7 +20,6 @@ spec:
             instrumentation.opentelemetry.io/otel-python-platform: musl
           nodeSelector:
             node.longhorn.io/create-default-disk: config
-            kubernetes.io/arch: arm64
         type: statefulset
         containers:
           main:
