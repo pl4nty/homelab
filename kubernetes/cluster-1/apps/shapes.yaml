@@ -2,16 +2,16 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: shapes
+  name: shapes${APP_SUFFIX:=}
   namespace: default
   annotations:
-    # TEMPORARY: the next commit renames this preview, so its Kustomization must not prune production
-    kustomize.toolkit.fluxcd.io/prune: disabled
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chartRef:
     kind: OCIRepository
     name: app-template
+    namespace: default
   values:
     global:
       createDefaultServiceAccount: false
@@ -28,7 +28,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/shapes
-              tag: latest@sha256:22edd585835f4ec1656832a1f9e8c2d24b9baf9384ac8263e29aa8176c9375a7
+              tag: ${APP_IMAGE_TAG:=}
             probes:
               liveness:
                 enabled: true
@@ -48,8 +48,8 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - shapes.${PUBLIC_DOMAIN}
+          - shapes${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: shapes
+              - identifier: main
                 port: 3000
