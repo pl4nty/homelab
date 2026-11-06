@@ -149,6 +149,7 @@ def test_search_tags_and_viewer(page, server):
         page.locator(".count").count() == 0
         and page.get_attribute("#q", "placeholder") == "Search 24 stickers"
     )
+    assert page.locator("dialog .find a").count() == 1
     lens = page.get_attribute("dialog a[href*=lens]", "href")
     assert lens.startswith("https://lens.google.com/uploadbyurl?url=http%3A%2F%2F127.0.0.1")
     page.keyboard.press("ArrowRight")
@@ -190,7 +191,6 @@ def test_upload_review_publish_edit(page, server, tmp_path):
     assert page.locator(".tile").count() == 0 and page.is_hidden("#q")  # submitters only upload
     page.set_input_files("[type=file]", str(make_scan(tmp_path / f"scan-{page.kind}.png")))
     page.fill(".upload [name=creator]", "Ana")
-    page.fill(".upload [name=comment]", "Swap table")
     page.click(".upload .primary")
     page.wait_for_function(
         "document.querySelector('.jobs .st')?.textContent === 'done: 4 stickers'", timeout=60000
@@ -207,7 +207,7 @@ def test_upload_review_publish_edit(page, server, tmp_path):
 
     page.goto(f"{url}/admin?s={new[0]['id']}#adm-token")  # a link straight to one sticker
     page.wait_for_function("document.querySelector('.stage img')?.style.transform")
-    assert page.input_value("dialog [name=comment]") == "Swap table"
+    page.fill("dialog [name=comment]", "Swap table")  # each sticker has its own story
     page.wait_for_selector(".dupes:not([hidden])")
     assert "Same sticker?" in page.inner_text(".dupes") and "Earlier copy" in page.inner_text(
         ".dupes"
@@ -232,7 +232,13 @@ def test_upload_review_publish_edit(page, server, tmp_path):
     page.wait_for_selector(".toast.on")
     assert page.inner_text(".toast") == "Published"
     m = st.items[new[0]["id"]]
-    assert (m.state, m.title, m.tags, m.creator) == ("approved", "Reviewed", ["holo", "ctf"], "Ana")
+    assert (m.state, m.title, m.tags, m.creator, m.comment) == (
+        "approved",
+        "Reviewed",
+        ["holo", "ctf"],
+        "Ana",
+        "Swap table",
+    )
     before = len(st.list("pending"))
     page.click("[data-act=delete]")  # next one: reject, two clicks
     assert "click again" in page.inner_text("[data-act=delete]")

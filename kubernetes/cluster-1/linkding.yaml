@@ -14,6 +14,9 @@ spec:
       createDefaultServiceAccount: false
     controllers:
       main:
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-python: "true"
         containers:
           main:
             image:
@@ -22,6 +25,12 @@ spec:
             env:
               TZ: ${TIMEZONE}
               SECURE_REFERRER_POLICY: origin
+              # the OTel agent's sitecustomize loads the Django instrumentation before uWSGI sets these
+              # (uwsgi.ini). without them it configures Django's defaults, and every request 500s on ROOT_URLCONF
+              DJANGO_SETTINGS_MODULE: bookmarks.settings.prod
+              PYTHONPATH: /etc/linkding
+              # ~13 sqlite spans per request (~18k per 10 min from the crawler); keep the Django server spans
+              OTEL_PYTHON_DISABLED_INSTRUMENTATIONS: sqlite3
     service:
       main:
         controller: main

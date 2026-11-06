@@ -13,13 +13,18 @@ spec:
     name: app-template
     namespace: default
   values:
+    defaultPodOptions:
+      tolerations:
+      - key: topology.kubernetes.io/region
+        operator: Exists
+        effect: PreferNoSchedule
     global:
       createDefaultServiceAccount: false
-    # defaultPodOptions:
-    #   annotations:
-    #     instrumentation.opentelemetry.io/inject-python: "true"
     controllers:
       main:
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-python: "true"
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0

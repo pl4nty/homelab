@@ -233,9 +233,9 @@ function lookupTenant() {
           fetch(`api?tenantId=${tenantId[1]}`)
             .then((res) => res.json())
             .then((data) => {
-              document.getElementById('tenantName').innerHTML = data.displayName;
-              document.getElementById('tenantDomain').innerHTML = data.defaultDomainName;
-              document.getElementById('tenantFederation').innerHTML = data.federationBrandName || 'Not applicable';
+              document.getElementById('tenantName').textContent = data.displayName;
+              document.getElementById('tenantDomain').textContent = data.defaultDomainName;
+              document.getElementById('tenantFederation').textContent = data.federationBrandName || 'Not applicable';
 
               // build the plaintext version
               plainTextResults =

@@ -18,6 +18,10 @@ spec:
         kubernetes.io/arch: arm64
     controllers:
       main:
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-python: "true"
+            instrumentation.opentelemetry.io/python-container-names: main
         containers:
           main:
             image:

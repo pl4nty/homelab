@@ -62,6 +62,10 @@ jobs:
       fail-fast: false
       matrix:
         app: ${{ fromJson(needs.changes.outputs.apps) }}
+    # one build of an app per ref at a time, so an older main commit can't finish last and overwrite <app>.main.
+    # a queued build gives way to a newer one, which builds the app from a later tree
+    concurrency:
+      group: app-${{ matrix.app }}-${{ github.event.pull_request.number || 'main' }}
     environment:
       name: ${{ matrix.app }}${{ github.event.pull_request && '-preview' || '' }}
       url: ${{ steps.publish.outputs.url }}

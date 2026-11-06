@@ -4,7 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tenant Lookup</title>
-    <script>
+    <!-- data-cfasync: keep Cloudflare Rocket Loader from deferring the theme past first paint -->
+    <script data-cfasync="false">
         document.documentElement.dataset.bsTheme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">

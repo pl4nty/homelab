@@ -1,0 +1,41 @@
+name: talos-installer
+
+on:
+  pull_request:
+    paths: &paths
+      - .github/workflows/talos-installer.yaml
+      - talos/Dockerfile
+      - talos/docker-bake.hcl
+      - talos/hardware/rk1-schematic.yaml
+      - talos/topf.yaml
+  push:
+    branches: [main]
+    paths: *paths
+
+permissions:
+  contents: read
+
+jobs:
+  rk1:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      # bake can't read topf.yaml, so topf hands it the RK1 schematic ID
+      - working-directory: talos
+        run: |
+          yq '.nodes |= map(select(.factory))' topf.yaml > rk1-topf.yaml
+          echo "SCHEMATIC_ID=$(go run github.com/postfinance/topf/cmd/topf@v0.6.2 --topfconfig rk1-topf.yaml schematic-ids)" >> "$GITHUB_ENV"
+          echo "TALOS_VERSION=v$(yq .talosVersion topf.yaml)" >> "$GITHUB_ENV"
+      - uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: talos/docker-bake.hcl
+          push: true

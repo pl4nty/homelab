@@ -1,0 +1,108 @@
+# OCI cloud controller and block-volume CSI for the Oracle nodes. The controllers authenticate as the Oracle
+# node they run on (instance principals: talos/oracle-iam.sh creates the dynamic group and policy), so they
+# must run on an Oracle node: one in this config's region, or a new one the controller hasn't labelled yet.
+# Home nodes always carry topology.kubernetes.io/region=home. One region per config: Oracle nodes elsewhere
+# need another instance with that region.
+# LoadBalancer Services: add the annotation
+#   oci.oraclecloud.com/node-label-selector: topology.kubernetes.io/region=ap-sydney-1
+# or the home nodes (unreachable from Oracle) become backends
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: kube-system
+resources:
+- https://raw.githubusercontent.com/oracle/oci-cloud-controller-manager/v1.36.0/manifests/cloud-controller-manager/oci-cloud-controller-manager-rbac.yaml
+- https://raw.githubusercontent.com/oracle/oci-cloud-controller-manager/v1.36.0/manifests/cloud-controller-manager/oci-cloud-controller-manager.yaml
+- https://raw.githubusercontent.com/oracle/oci-cloud-controller-manager/v1.36.0/manifests/container-storage-interface/oci-csi-node-rbac.yaml
+- https://raw.githubusercontent.com/oracle/oci-cloud-controller-manager/v1.36.0/manifests/container-storage-interface/oci-csi-controller-driver.yaml
+- https://raw.githubusercontent.com/oracle/oci-cloud-controller-manager/v1.36.0/manifests/container-storage-interface/oci-csi-node-driver.yaml
+- storageclass.yaml
+secretGenerator:
+- name: oci-cloud-controller-manager
+  files:
+  - cloud-provider.yaml
+- name: oci-volume-provisioner
+  files:
+  - config.yaml=cloud-provider.yaml
+generatorOptions:
+  disableNameSuffixHash: true
+patches:
+- target:
+    kind: DaemonSet
+    name: oci-cloud-controller-manager
+  patch: |-
+    - op: remove
+      path: /spec/template/spec/nodeSelector
+    - op: add
+      path: /spec/template/spec/affinity
+      value:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: topology.kubernetes.io/region
+                operator: In
+                values: [ap-sydney-1]
+            - matchExpressions:
+              - key: topology.kubernetes.io/region
+                operator: DoesNotExist
+    # upstream v1.36.0 plus oracle/oci-cloud-controller-manager#544 (apps/oci-cloud-controller-manager).
+    # Its node lookups otherwise fail on the first node without an OCI provider ID, so it can't initialise
+    # Oracle nodes in a mixed cluster. The filter matches new nodes before the controller labels them
+    - op: replace
+      path: /spec/template/spec/containers/0/image
+      value: ghcr.io/pl4nty/oci-cloud-controller-manager:latest@sha256:0f751d37868143dd28f6fc3cc427786943fbc0b0f48c98aa2a484bd7ca4c3a84
+    - op: add
+      path: /spec/template/spec/containers/0/args/-
+      value: --node-filter-requirements=topology.kubernetes.io/region!=home
+    # node-lifecycle would delete the home nodes, which OCI doesn't know.
+    # No service controller until kube-vip and OCI use separate loadBalancerClasses: it takes every
+    # classless LoadBalancer Service, including the kube-vip ones
+    - op: add
+      path: /spec/template/spec/containers/0/args/-
+      value: --controllers=*,-cloud-node-lifecycle,-service
+- target:
+    kind: Deployment
+    name: csi-oci-controller
+  patch: |-
+    - op: remove
+      path: /spec/template/spec/nodeSelector
+    - op: add
+      path: /spec/template/spec/affinity
+      value:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: topology.kubernetes.io/region
+                operator: In
+                values: [ap-sydney-1]
+# the node plugin only works on OCI instances
+- target:
+    kind: DaemonSet
+    name: csi-oci-node
+  patch: |-
+    - op: add
+      path: /spec/template/spec/nodeSelector
+      value:
+        topology.kubernetes.io/region: ap-sydney-1
+# the mount/umount wrappers chroot into the host, and Talos has no mount binary: use the image's own
+- target:
+    kind: DaemonSet
+    name: csi-oci-node
+  patch: |-
+    apiVersion: apps/v1
+    kind: DaemonSet
+    metadata:
+      name: csi-oci-node
+    spec:
+      template:
+        spec:
+          containers:
+          - name: oci-csi-node-driver
+            volumeMounts:
+            - mountPath: /sbin/mount
+              $patch: delete
+            - mountPath: /sbin/umount
+              $patch: delete
+            - mountPath: /sbin/umount.oci-fss
+              $patch: delete

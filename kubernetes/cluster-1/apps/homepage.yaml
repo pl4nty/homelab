@@ -24,6 +24,10 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    tolerations:
+    - key: topology.kubernetes.io/region
+      operator: Exists
+      effect: PreferNoSchedule
     image:
       repository: ghcr.io/gethomepage/homepage
       tag: v2.7.0@sha256:19c5c09184458a41b7b5915e71463a39f36cd33540f41bdbed008791b8182d5f
@@ -93,6 +97,8 @@ spec:
       - tools:
         - CyberChef:
             href: https://cyberchef.${PUBLIC_DOMAIN}
+        - Diff viewer:
+            href: https://diff.${PUBLIC_DOMAIN}
         - Drawing canvas:
             href: https://shapes.${PUBLIC_DOMAIN}
             icon: si-haskell
