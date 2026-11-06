@@ -158,6 +158,14 @@ spec:
     hostMetrics:
       linuxHosts:
         enabled: true
+        # the chart makes a target per container, so the portless mmc-health sidecar was scraped
+        # too, failed with up=0 and fired NodeExporterDown on every node
+        extraDiscoveryRules: |-
+          rule {
+            source_labels = ["__meta_kubernetes_pod_container_name"]
+            regex = "node-exporter"
+            action = "keep"
+          }
         # one veth per pod, renamed on every restart, and cAdvisor's container_network_* already covers pods.
         # loopback never leaves the node, and the kernel's tunnel and dummy devices sit idle
         extraMetricProcessingRules: |-
