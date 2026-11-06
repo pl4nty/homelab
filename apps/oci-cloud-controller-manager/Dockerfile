@@ -2,7 +2,8 @@
 # release includes it:
 # - node-filter.patch, oracle/oci-cloud-controller-manager#544 (--node-filter-requirements), so the CCM only
 #   reconciles Oracle nodes in this mixed cluster
-# - provider-id.patch, oracle/oci-cloud-controller-manager#523, so it sets spec.providerID itself (#522)
+# - skip-unmapped-nodes.patch, ours: getNodeIpFamily and getCompartmentIDByInstanceID gave up on the first
+#   node without an OCI provider ID, which includes the node being initialised, so nodes never got one (#522)
 # The Makefile defaults ARCH to amd64, so cross-compile per TARGETARCH rather than build under QEMU
 FROM --platform=$BUILDPLATFORM golang:1.26.6 AS builder
 ARG TARGETARCH VERSION

@@ -1,0 +1,24 @@
+diff --git a/pkg/cloudprovider/providers/oci/instances.go b/pkg/cloudprovider/providers/oci/instances.go
+index e3540e9b..44dd2c7f 100644
+--- a/pkg/cloudprovider/providers/oci/instances.go
++++ b/pkg/cloudprovider/providers/oci/instances.go
+@@ -61,7 +61,8 @@ func (cp *CloudProvider) getCompartmentIDByInstanceID(instanceID string) (string
+ 	for _, node := range nodeList {
+ 		providerID, err := MapProviderIDToResourceID(node.Spec.ProviderID)
+ 		if err != nil {
+-			return "", errors.New("Failed to map providerID to instanceID")
++			// not initialised yet (including the node being initialised), or not an OCI node
++			continue
+ 		}
+ 		if providerID == instanceID {
+ 			if compartmentID, ok := node.Annotations[CompartmentIDAnnotation]; ok {
+@@ -218,7 +219,8 @@ func (cp *CloudProvider) getNodeIpFamily(instanceId string) ([]string, error) {
+ 	for _, node := range nodeList {
+ 		providerID, err := MapProviderIDToResourceID(node.Spec.ProviderID)
+ 		if err != nil {
+-			return nodeIpFamily, errors.New("Failed to map providerID to instanceID")
++			// not initialised yet (including the node being initialised), or not an OCI node
++			continue
+ 		}
+ 		if providerID == instanceId {
+ 			if _, ok := node.Labels[IPv4NodeIPFamilyLabel]; ok {
