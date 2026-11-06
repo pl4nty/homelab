@@ -88,7 +88,8 @@ APP=talos-rockchip-mpp docker buildx bake -f apps/docker-bake.hcl -f apps/talos-
 ## Install
 
 topf installs it on the RK1s. `talos/docker-bake.hcl` builds their installer from
-`talos/hardware/rk1-schematic.yaml`, and `talos/control-plane/rk1.yaml` loads the modules.
+`talos/hardware/rk1-schematic.yaml`. Nothing loads the modules yet: rk3588_mpp_dt applies its overlay to devices that
+are already bound, which oopsed talos-d04-4hs on 2026-11-06.
 CI also tags it with its Talos version, which that schematic uses.
 
 ## Test plan
