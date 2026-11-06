@@ -256,6 +256,12 @@ spec:
             # real sessions still keep their tools/call spans
             - resource.attributes["k8s.namespace.name"] == "toolhive-system" and IsMatch(attributes["mcp.method.name"], "^(initialize|server/discover|notifications/.*|(tools|prompts|resources|resources/templates)/list)$")
             - resource.attributes["k8s.namespace.name"] == "toolhive-system" and attributes["http.request.method"] == "DELETE" and attributes["url.path"] == "/mcp"
+            # Beyla: Go's per-request goroutine queue/processing children, Redis (dawarich's Sidekiq polls its
+            # sidecar ~400 times a minute), probe and scrape endpoints, and controllers' Kubernetes API watches
+            - resource.attributes["telemetry.sdk.name"] == "beyla" and (name == "in queue" or name == "processing")
+            - resource.attributes["telemetry.sdk.name"] == "beyla" and attributes["db.system.name"] == "redis"
+            - resource.attributes["telemetry.sdk.name"] == "beyla" and kind == SPAN_KIND_SERVER and IsMatch(attributes["url.path"], "^/(healthz?|livez|readyz?|ready|metrics|ping|failsafe|api/v1/health)$")
+            - resource.attributes["telemetry.sdk.name"] == "beyla" and kind == SPAN_KIND_CLIENT and attributes["server.address"] == "10.96.0.1"
       collector: alloy-receiver
     # eBPF HTTP/gRPC/SQL spans (Beyla, built on OBI) for apps without an OTel SDK: nginx, static-web-server,
     # Haskell, bun, Go, Ruby, PHP, C++. one privileged pod per node instead of the operator's per-pod Go sidecar.
@@ -272,12 +278,13 @@ spec:
         metricsTuning:
           excludeMetrics:
             - .+
+        # 512Mi OOMKilled on 4 of 6 nodes while it attached to every process. ~250-450Mi steady
         resources:
           requests:
             cpu: 10m
             memory: 128Mi
           limits:
-            memory: 512Mi
+            memory: 1Gi
         config:
           data:
             # the chart requires a metrics endpoint. keep the cheapest feature, since they're all dropped
@@ -287,6 +294,23 @@ spec:
             discovery:
               instrument:
                 - k8s_namespace: default
+              # replaces the chart's default exclusion, so it's repeated first. pods the operator injects
+              # are skipped up front, since detecting their OTLP export lets their first spans through twice.
+              # CNPG instance managers only poll their own Postgres
+              exclude_instrument:
+                - exe_path: "{*alloy*,*otelcol*,*beyla*}"
+                - k8s_pod_annotations:
+                    instrumentation.opentelemetry.io/inject-dotnet: "true"
+                - k8s_pod_annotations:
+                    instrumentation.opentelemetry.io/inject-java: "true"
+                - k8s_pod_annotations:
+                    instrumentation.opentelemetry.io/inject-nodejs: "true"
+                - k8s_pod_annotations:
+                    instrumentation.opentelemetry.io/inject-python: "true"
+                - k8s_pod_annotations:
+                    instrumentation.opentelemetry.io/inject-sdk: "true"
+                - k8s_pod_labels:
+                    cnpg.io/cluster: "*"
               exclude_otel_instrumented_services: true
     # just use prom CRDs
     # annotationAutodiscovery:
