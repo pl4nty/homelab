@@ -1,0 +1,281 @@
+diff --git a/pkg/cloudprovider/providers/oci/instances.go b/pkg/cloudprovider/providers/oci/instances.go
+index e3540e9b..1545473d 100644
+--- a/pkg/cloudprovider/providers/oci/instances.go
++++ b/pkg/cloudprovider/providers/oci/instances.go
+@@ -46,7 +46,59 @@ func mapNodeNameToInstanceName(nodeName types.NodeName) string {
+ 	return string(nodeName)
+ }
+ 
+-func (cp *CloudProvider) getCompartmentIDByInstanceID(instanceID string) (string, error) {
++// getInstance returns the instance from instanceCache, or from the API (caching it).
++func (cp *CloudProvider) getInstance(ctx context.Context, instanceID string) (*core.Instance, error) {
++	item, exists, err := cp.instanceCache.GetByKey(instanceID)
++	if err != nil {
++		return nil, errors.Wrap(err, "error fetching instance from instanceCache")
++	}
++	if exists {
++		return item.(*core.Instance), nil
++	}
++	inst, err := cp.client.Compute().GetInstance(ctx, instanceID)
++	if err != nil {
++		return nil, errors.Wrap(err, "GetInstance")
++	}
++	if err := cp.instanceCache.Add(inst); err != nil {
++		return nil, errors.Wrap(err, "failed to add instance in instanceCache")
++	}
++	return inst, nil
++}
++
++// getNodeByInstanceID returns the Node with the instance's provider ID. While the cloud node controller is
++// initialising a Node, it hasn't set the provider ID yet, so it falls back to the Node without one that's
++// named after the instance (see InstanceID). Nodes whose provider ID isn't an OCI one are skipped: they're
++// uninitialised or not on OCI. Returns nil if there's no such Node.
++func (cp *CloudProvider) getNodeByInstanceID(ctx context.Context, instanceID string) (*api.Node, error) {
++	nodeList, err := cp.NodeLister.List(labels.Everything())
++	if err != nil {
++		return nil, errors.Wrap(err, "error listing nodes using node informer")
++	}
++	for _, node := range nodeList {
++		providerID, err := MapProviderIDToResourceID(node.Spec.ProviderID)
++		if err != nil {
++			continue
++		}
++		if providerID == instanceID {
++			return node, nil
++		}
++	}
++	inst, err := cp.getInstance(ctx, instanceID)
++	if err != nil {
++		return nil, err
++	}
++	if inst.DisplayName == nil {
++		return nil, nil
++	}
++	for _, node := range nodeList {
++		if node.Spec.ProviderID == "" && mapNodeNameToInstanceName(types.NodeName(node.Name)) == *inst.DisplayName {
++			return node, nil
++		}
++	}
++	return nil, nil
++}
++
++func (cp *CloudProvider) getCompartmentIDByInstanceID(ctx context.Context, instanceID string) (string, error) {
+ 	item, exists, err := cp.instanceCache.GetByKey(instanceID)
+ 	if err != nil {
+ 		return "", errors.Wrap(err, "error fetching instance from instanceCache")
+@@ -61,7 +113,8 @@ func (cp *CloudProvider) getCompartmentIDByInstanceID(instanceID string) (string
+ 	for _, node := range nodeList {
+ 		providerID, err := MapProviderIDToResourceID(node.Spec.ProviderID)
+ 		if err != nil {
+-			return "", errors.New("Failed to map providerID to instanceID")
++			// uninitialised or not on OCI, so not this instance
++			continue
+ 		}
+ 		if providerID == instanceID {
+ 			if compartmentID, ok := node.Annotations[CompartmentIDAnnotation]; ok {
+@@ -71,12 +124,20 @@ func (cp *CloudProvider) getCompartmentIDByInstanceID(instanceID string) (string
+ 			}
+ 		}
+ 	}
+-	return "", errors.New("compartmentID annotation missing in the node. Would retry")
++	// no annotated Node yet, e.g. while it's being initialised: ask the instance itself
++	inst, err := cp.getInstance(ctx, instanceID)
++	if err != nil {
++		return "", err
++	}
++	if inst.CompartmentId == nil || *inst.CompartmentId == "" {
++		return "", errors.New("compartmentID annotation missing in the node. Would retry")
++	}
++	return *inst.CompartmentId, nil
+ }
+ 
+ func (cp *CloudProvider) extractNodeAddresses(ctx context.Context, instanceID string) ([]api.NodeAddress, error) {
+ 	var addresses []api.NodeAddress
+-	compartmentID, err := cp.getCompartmentIDByInstanceID(instanceID)
++	compartmentID, err := cp.getCompartmentIDByInstanceID(ctx, instanceID)
+ 	if err != nil {
+ 		return nil, err
+ 	}
+@@ -105,7 +166,7 @@ func (cp *CloudProvider) extractNodeAddresses(ctx context.Context, instanceID st
+ 		}
+ 		addresses = append(addresses, api.NodeAddress{Type: api.NodeExternalIP, Address: ip.String()})
+ 	}
+-	nodeIpFamily, err := cp.getNodeIpFamily(instanceID)
++	nodeIpFamily, err := cp.getNodeIpFamily(ctx, instanceID)
+ 	if err != nil {
+ 		return nil, err
+ 	}
+@@ -157,7 +218,7 @@ func (cp *CloudProvider) extractNodeAddresses(ctx context.Context, instanceID st
+ 				}
+ 			}
+ 		}
+-		nodeIpFamily, err := cp.getNodeIpFamily(instanceID)
++		nodeIpFamily, err := cp.getNodeIpFamily(ctx, instanceID)
+ 		if err != nil {
+ 			return nil, err
+ 		}
+@@ -207,27 +268,19 @@ func (cp *CloudProvider) extractNodeAddresses(ctx context.Context, instanceID st
+ // getNodeIpFamily checks if label exists in the Node
+ // oci.oraclecloud.com/ip-family-ipv4
+ // oci.oraclecloud.com/ip-family-ipv6
+-func (cp *CloudProvider) getNodeIpFamily(instanceId string) ([]string, error) {
++func (cp *CloudProvider) getNodeIpFamily(ctx context.Context, instanceId string) ([]string, error) {
+ 	nodeIpFamily := []string{}
+-	nodeList, err := cp.NodeLister.List(labels.Everything())
++	// TODO: @prasrira Add a cache to determine nodes that already have label https://github.com/kubernetes/client-go/blob/master/tools/cache/expiration_cache.go
++	node, err := cp.getNodeByInstanceID(ctx, instanceId)
+ 	if err != nil {
+-		return nodeIpFamily, errors.Wrap(err, "error listing nodes using node informer")
++		return nodeIpFamily, err
+ 	}
+-
+-	// TODO: @prasrira Add a cache to determine nodes that already have label https://github.com/kubernetes/client-go/blob/master/tools/cache/expiration_cache.go
+-	for _, node := range nodeList {
+-		providerID, err := MapProviderIDToResourceID(node.Spec.ProviderID)
+-		if err != nil {
+-			return nodeIpFamily, errors.New("Failed to map providerID to instanceID")
++	if node != nil {
++		if _, ok := node.Labels[IPv4NodeIPFamilyLabel]; ok {
++			nodeIpFamily = append(nodeIpFamily, IPv4)
+ 		}
+-		if providerID == instanceId {
+-			if _, ok := node.Labels[IPv4NodeIPFamilyLabel]; ok {
+-				nodeIpFamily = append(nodeIpFamily, IPv4)
+-			}
+-			if _, ok := node.Labels[IPv6NodeIPFamilyLabel]; ok {
+-				nodeIpFamily = append(nodeIpFamily, IPv6)
+-			}
+-			break
++		if _, ok := node.Labels[IPv6NodeIPFamilyLabel]; ok {
++			nodeIpFamily = append(nodeIpFamily, IPv6)
+ 		}
+ 	}
+ 	if len(nodeIpFamily) != 0 {
+@@ -371,7 +424,7 @@ func (cp *CloudProvider) InstanceExistsByProviderID(ctx context.Context, provide
+ 
+ func (cp *CloudProvider) checkForAuthorizationError(ctx context.Context, instanceId string) (bool, error) {
+ 	cp.logger.With("instanceId", instanceId).Info("Received 404 for an instance, listing instances to check for authorization errors")
+-	compartmentId, err := cp.getCompartmentIDByInstanceID(instanceId)
++	compartmentId, err := cp.getCompartmentIDByInstanceID(ctx, instanceId)
+ 	if err != nil {
+ 		return false, err
+ 	}
+diff --git a/pkg/cloudprovider/providers/oci/instances_test.go b/pkg/cloudprovider/providers/oci/instances_test.go
+index 7eb42bda..ad3abfdc 100644
+--- a/pkg/cloudprovider/providers/oci/instances_test.go
++++ b/pkg/cloudprovider/providers/oci/instances_test.go
+@@ -1740,7 +1740,7 @@ func TestGetNodeIpFamily(t *testing.T) {
+ 
+ 	for _, tt := range testCases {
+ 		t.Run(tt.name, func(t *testing.T) {
+-			result, err := cp.getNodeIpFamily(tt.in)
++			result, err := cp.getNodeIpFamily(context.Background(), tt.in)
+ 			if err != nil && err.Error() != tt.err.Error() {
+ 				t.Errorf("getNodeIpFamily(context, %+v) got error %v, expected %v", tt.in, err, tt.err)
+ 			}
+@@ -1963,10 +1963,10 @@ func TestGetCompartmentIDByInstanceID(t *testing.T) {
+ 			err:  nil,
+ 		},
+ 		{
+-			name: "instance neither found in cache nor node lister",
++			name: "instance neither found in cache nor node lister, so from the API",
+ 			in:   "ocid1.instancex",
+-			out:  "",
+-			err:  errors.New("compartmentID annotation missing in the node. Would retry"),
++			out:  "default",
++			err:  nil,
+ 		},
+ 	}
+ 
+@@ -1979,7 +1979,7 @@ func TestGetCompartmentIDByInstanceID(t *testing.T) {
+ 
+ 	for _, tt := range testCases {
+ 		t.Run(tt.name, func(t *testing.T) {
+-			result, err := cp.getCompartmentIDByInstanceID(tt.in)
++			result, err := cp.getCompartmentIDByInstanceID(context.Background(), tt.in)
+ 			if err != nil && err.Error() != tt.err.Error() {
+ 				t.Errorf("getCompartmentIDByInstanceID(%s) got error %s, expected %s", tt.in, err, tt.err)
+ 			}
+@@ -1990,6 +1990,82 @@ func TestGetCompartmentIDByInstanceID(t *testing.T) {
+ 	}
+ }
+ 
++// Nodes the cloud node controller hasn't initialised yet have no provider ID, and nodes on other
++// providers have someone else's. Neither may stop the lookups finding the instance's own node.
++func TestInstanceNodeLookupsWithUnmappedNodes(t *testing.T) {
++	onPrem := &v1.Node{
++		ObjectMeta: metav1.ObjectMeta{Name: "on-prem", Labels: map[string]string{IPv4NodeIPFamilyLabel: "true"}},
++	}
++	otherCloud := &v1.Node{
++		ObjectMeta: metav1.ObjectMeta{Name: "other-cloud", Labels: map[string]string{IPv4NodeIPFamilyLabel: "true"}},
++		Spec:       v1.NodeSpec{ProviderID: "aws:///us-east-1a/i-0123456789"},
++	}
++	// named after instances["instance1"], whose display name is instance1
++	uninitialised := &v1.Node{
++		ObjectMeta: metav1.ObjectMeta{Name: "instance1", Labels: map[string]string{IPv6NodeIPFamilyLabel: "true"}},
++	}
++	initialised := &v1.Node{
++		ObjectMeta: metav1.ObjectMeta{
++			Name:        "instance1",
++			Labels:      map[string]string{IPv4NodeIPFamilyLabel: "true", IPv6NodeIPFamilyLabel: "true"},
++			Annotations: map[string]string{CompartmentIDAnnotation: "annotated"},
++		},
++		Spec: v1.NodeSpec{ProviderID: "oci://ocid1.instance1"},
++	}
++	// same name as the instance, but it's another instance's node
++	otherInstance := &v1.Node{
++		ObjectMeta: metav1.ObjectMeta{Name: "instance1", Labels: map[string]string{IPv6NodeIPFamilyLabel: "true"}},
++		Spec:       v1.NodeSpec{ProviderID: "oci://ocid1.other"},
++	}
++
++	testCases := []struct {
++		name   string
++		nodes  []*v1.Node
++		family []string
++	}{
++		{name: "node being initialised, found by name", nodes: []*v1.Node{onPrem, otherCloud, uninitialised}, family: []string{IPv6}},
++		{name: "initialised node after unmapped ones", nodes: []*v1.Node{onPrem, otherCloud, initialised}, family: []string{IPv4, IPv6}},
++		{name: "name matches but provider ID doesn't", nodes: []*v1.Node{onPrem, otherInstance}, family: []string{}},
++		{name: "no node for the instance", nodes: []*v1.Node{onPrem, otherCloud}, family: []string{}},
++	}
++	for _, tt := range testCases {
++		t.Run(tt.name, func(t *testing.T) {
++			cp := &CloudProvider{
++				NodeLister:    &mockNodeLister{nodes: tt.nodes},
++				client:        MockOCIClient{},
++				config:        &providercfg.Config{CompartmentID: "testCompartment"},
++				logger:        zap.S(),
++				instanceCache: &mockInstanceCache{},
++			}
++			family, err := cp.getNodeIpFamily(context.Background(), "ocid1.instance1")
++			if err != nil {
++				t.Fatalf("getNodeIpFamily: unexpected error %v", err)
++			}
++			if !reflect.DeepEqual(family, tt.family) {
++				t.Errorf("getNodeIpFamily => %v, want %v", family, tt.family)
++			}
++		})
++	}
++
++	t.Run("compartment without an annotated node", func(t *testing.T) {
++		cp := &CloudProvider{
++			NodeLister:    &mockNodeLister{nodes: []*v1.Node{onPrem, otherCloud}},
++			client:        MockOCIClient{},
++			config:        &providercfg.Config{CompartmentID: "testCompartment"},
++			logger:        zap.S(),
++			instanceCache: &mockInstanceCache{},
++		}
++		// not in the cache: the compute mock answers with compartment "default"
++		compartment, err := cp.getCompartmentIDByInstanceID(context.Background(), "ocid1.uncached")
++		if err != nil {
++			t.Fatalf("getCompartmentIDByInstanceID: unexpected error %v", err)
++		}
++		if compartment != "default" {
++			t.Errorf("getCompartmentIDByInstanceID => %q, want %q", compartment, "default")
++		}
++	})
++}
++
+ type mockNodeLister struct {
+ 	nodes []*v1.Node
+ }
