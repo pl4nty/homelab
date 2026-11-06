@@ -2,8 +2,8 @@
 # download bzImage from the latest wsl2-kernel/sha-* release
 FROM ubuntu:24.04 AS build
 
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-  --mount=type=cache,target=/var/lib/apt,sharing=locked \
+RUN --mount=type=cache,id=apt-cache-noble,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,id=apt-lists-noble,target=/var/lib/apt,sharing=locked \
   apt update && apt-get --no-install-recommends install -y \
   build-essential flex bison dwarves libssl-dev libelf-dev cpio \
   libncurses-dev bc python3 openssl

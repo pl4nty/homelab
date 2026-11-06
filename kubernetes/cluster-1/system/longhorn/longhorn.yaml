@@ -26,10 +26,28 @@ spec:
       retries: 3
   uninstall:
     keepHistory: false
+  # chart only supports a nodeSelector. Skip nodes without the Talos iscsi-tools extension (custom images)
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: DaemonSet
+              name: longhorn-manager
+            patch: |
+              - op: add
+                path: /spec/template/spec/affinity
+                value:
+                  nodeAffinity:
+                    requiredDuringSchedulingIgnoredDuringExecution:
+                      nodeSelectorTerms:
+                        - matchExpressions:
+                            - key: extensions.talos.dev/iscsi-tools
+                              operator: Exists
   values:
     persistence:
       # defaultClass: false # no option to set param for v2 engine
-      defaultClassReplicaCount: 2
+      # one replica per RK1 control plane
+      defaultClassReplicaCount: 3
       # defaultDataLocality: best-effort
     csi:
       attacherReplicaCount: 1

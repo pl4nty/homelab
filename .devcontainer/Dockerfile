@@ -10,6 +10,8 @@ RUN curl -L https://github.com/siderolabs/talos/releases/latest/download/talosct
   && chmod +x ~/bin/talosctl \
   && echo "source <(talosctl completion zsh)" >> ~/.zshrc
 
+RUN curl -s -L https://github.com/postfinance/topf/releases/latest/download/topf_${TARGETOS}_${TARGETARCH}.tar.gz | tar -xzf - -C ~/bin topf
+
 RUN curl -s -L https://github.com/backube/volsync/releases/latest/download/kubectl-volsync-linux-amd64.tar.gz | tar -xzf - -C ~/bin kubectl-volsync
 
 RUN curl -s -L https://github.com/kubecolor/kubecolor/releases/download/v0.5.3/kubecolor_0.5.3_linux_amd64.deb -o ~/kubecolor.deb \

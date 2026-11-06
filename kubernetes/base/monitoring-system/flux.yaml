@@ -22,3 +22,28 @@
 #           - notification-controller
 #           - image-automation-controller
 #           - image-reflector-controller
+---
+# Flux failures from the Kubernetes events in Loki, so they cost no metric series. a recovered
+# object stays firing until its events age out of the 1h window
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: flux
+  namespace: flux-system
+  labels:
+    ruler: loki
+spec:
+  groups:
+    - name: flux
+      rules:
+        - alert: FluxReconciliationFailing
+          expr: |
+            sum by (cluster, namespace, kind, name) (
+              count_over_time({source="kubernetes-events", cluster="${CLUSTER_NAME:=bootstrap}", level="Warning"} | logfmt kind | kind=~"Kustomization|HelmRelease|HelmChart|HelmRepository|OCIRepository|GitRepository|Bucket|ImageRepository|ImagePolicy|ImageUpdateAutomation|ResourceSet|ResourceSetInputProvider|FluxInstance" [1h])
+            ) >= 2
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Flux object keeps failing to reconcile.
+            description: '{{ $labels.kind }} {{ $labels.namespace }}/{{ $labels.name }} on {{ $labels.cluster }} logged {{ $value }} Warning events in the last hour. Check its events or `flux get all -A --status-selector ready=false`.'

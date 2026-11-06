@@ -58,9 +58,36 @@ spec:
             regex = "default@.*-pr-[0-9]+.*"
             action = "drop"
           }
-        # an active series limit 429 rejects only the new series, and retrying it stalls every other series
         queueConfig:
+          # Grafana Cloud rejects older samples, but still bills them as DPM
+          sampleAgeLimit: 1h
+          # an active series limit 429 rejects only the new series, and retrying it stalls every other series
           retryOnHttp429: false
+        # load PrometheusRule objects into the Grafana Cloud ruler. the sync deletes rule groups
+        # under its prefix that it didn't create, so each cluster needs its own prefix. the matcher
+        # scopes each cluster's copy of a base rule to that cluster's series.
+        # alloy-metrics, since the chart only renders this destination's secret on collectors that
+        # write to it. clustered instances elect one leader to sync
+        rules:
+          enabled: true
+          collector: alloy-metrics
+          address: https://prometheus-prod-09-prod-au-southeast-0.grafana.net
+          mimirNamespacePrefix: ${CLUSTER_NAME:=bootstrap}
+          # LogQL rules, loaded by loki.rules.kubernetes below
+          labelExpressions:
+            - key: ruler
+              operator: NotIn
+              values:
+                - loki
+          extraArguments: |-
+            external_labels = {"cluster" = "${CLUSTER_NAME:=bootstrap}"}
+            extra_query_matchers {
+              matcher {
+                name       = "cluster"
+                match_type = "="
+                value      = "${CLUSTER_NAME:=bootstrap}"
+              }
+            }
       logs:
         type: loki
         url: https://logs-prod-004.grafana.net/loki/api/v1/push
@@ -94,18 +121,28 @@ spec:
             - kubelet_cgroup_manager_duration_seconds_bucket
             - kubelet_pleg_relist_interval_seconds_bucket
             - kubelet_pod_start_duration_seconds_bucket
+            # kubelet dashboard only
+            - kubelet_runtime_operations_(errors_)?total
+            - storage_operation_duration_seconds_count
+            - volume_manager_total_volumes
       cadvisor:
         metricsTuning:
-          # no swap on Talos or OKE
           excludeMetrics:
+            # no swap on Talos or OKE
             - container_memory_swap
+            # only feeds a recording rule for the mixin dashboards
+            - container_memory_cache
+            # byte counters already cover pod IO and traffic, and node_network_*_drop_total keeps drops
+            - container_fs_(reads|writes)_total
+            - container_network_(receive|transmit)_packets(_dropped)?_total
       kube-state-metrics:
-        # Unknown pod phase is deprecated, and the "true" series already reads 0 for an unknown status
+        # Unknown pod phase is deprecated, and the "true" series already reads 0 for an unknown status.
+        # KubePersistentVolumeErrors only reads Failed and Pending volumes
         extraMetricProcessingRules: |-
           rule {
             source_labels = ["__name__","phase","condition","status"]
             separator = "@"
-            regex = "kube_pod_status_phase@Unknown@.*|kube_pod_status_ready@.*@unknown@.*|kube_deployment_status_condition@.*@unknown"
+            regex = "kube_pod_status_phase@Unknown@.*|kube_pod_status_ready@.*@unknown@.*|kube_deployment_status_condition@.*@unknown|kube_persistentvolume_status_phase@(Available|Released)@.*|kube_persistentvolumeclaim_status_phase@Lost@.*"
             action = "drop"
           }
         metricsTuning:
@@ -121,19 +158,27 @@ spec:
     hostMetrics:
       linuxHosts:
         enabled: true
-        # one veth per pod, renamed on every restart, and cAdvisor's container_network_* already covers pods
+        # one veth per pod, renamed on every restart, and cAdvisor's container_network_* already covers pods.
+        # loopback never leaves the node, and the kernel's tunnel and dummy devices sit idle
         extraMetricProcessingRules: |-
           rule {
             source_labels = ["__name__","device"]
             separator = "@"
-            regex = "node_network_.+@veth.+"
+            regex = "node_network_.+@(veth.+|lo|dummy0|ip6tnl0|sit0|teql0|tunl0)"
             action = "drop"
           }
         metricsTuning:
+          # eMMC wear, from the mmc-health sidecar below
+          includeMetrics:
+            - mmc_.*
           excludeMetrics:
+            - node_cpu_(scaling_)?frequency_.*
             - node_cpu_guest_seconds_total
+            - node_cpu_online
             - node_cpu_scaling_governor
             - node_filesystem_device_error
+            - node_filesystem_mount_info
+            - node_filesystem_purgeable_bytes
             - node_filesystem_readonly
       enabled: true
       collector: alloy-metrics
@@ -142,6 +187,37 @@ spec:
         deploy: true
       node-exporter:
         deploy: true
+        # replaces the chart's list, so it repeats the chart's fs-types-exclude
+        extraArgs:
+          - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|erofs|sysfs|tracefs|tmpfs|ramfs)$
+          - --collector.textfile.directory=/run/textfile
+        sidecarVolumeMount:
+          - name: textfile
+            mountPath: /run/textfile
+            readOnly: false
+        # eMMC has no SMART. the kernel exposes JEDEC wear estimates in sysfs, which node-exporter
+        # doesn't read: life_time per cell type (0x01 = 0-10% used ... 0x0A = 90-100%, 0x0B = past
+        # rated life) and pre_eol_info (reserved blocks: 0x01 normal, 0x02 warning, 0x03 urgent).
+        # 0x00 means the eMMC doesn't report it. runs on the node-exporter image's busybox.
+        # the script avoids brace expansion, since Flux substitutes it. mmcblk0bootN share the card
+        sidecars:
+          - name: mmc-health
+            volumeMounts:
+              - name: sys
+                mountPath: /host/sys
+                readOnly: true
+            command: [/bin/sh, -c]
+            args:
+              - |
+                while :; do
+                  for d in /host/sys/block/mmcblk[0-9]/device; do
+                    [ -r "$d/life_time" ] || continue
+                    n=$(basename "$(dirname "$d")")
+                    set -- $(cat "$d/life_time" "$d/pre_eol_info")
+                    printf 'mmc_life_time_estimate{device="%s",type="A"} %d\nmmc_life_time_estimate{device="%s",type="B"} %d\nmmc_pre_eol_info{device="%s"} %d\n' "$n" "$1" "$n" "$2" "$n" "$3"
+                  done > /run/textfile/mmc.tmp && mv /run/textfile/mmc.tmp /run/textfile/mmc.prom
+                  sleep 3600
+                done
       # energy metrics
       # kepler:
       # cost metrics
@@ -188,6 +264,19 @@ spec:
     prometheusOperatorObjects:
       enabled: true
       collector: alloy-metrics
+      # Go runtime and process metrics, which every exporter repeats
+      podMonitors:
+        metricsTuning:
+          excludeMetrics:
+            - go_.*
+            - process_.*
+            - promhttp_.*
+      serviceMonitors:
+        metricsTuning:
+          excludeMetrics:
+            - go_.*
+            - process_.*
+            - promhttp_.*
     # 4GB/day but only 50GB/month limit
     # profiling:
     # likely high metrics
@@ -202,6 +291,29 @@ spec:
       alloy-singleton:
         presets:
           - singleton
+        # the chart only syncs rules to prometheus destinations. LogQL rules need the cluster
+        # matcher written in, since loki.rules.kubernetes can't add one
+        extraConfig: |-
+          remote.kubernetes.secret "loki_rules" {
+            namespace = "monitoring-system"
+            name      = "k8s-monitoring-logs"
+          }
+
+          loki.rules.kubernetes "logs" {
+            address               = "https://logs-prod-004.grafana.net"
+            loki_namespace_prefix = "${CLUSTER_NAME:=bootstrap}"
+
+            rule_selector {
+              match_labels = {
+                ruler = "loki",
+              }
+            }
+
+            basic_auth {
+              username = convert.nonsensitive(remote.kubernetes.secret.loki_rules.data["username"])
+              password = remote.kubernetes.secret.loki_rules.data["password"]
+            }
+          }
       alloy-logs:
         presets:
           - daemonset
