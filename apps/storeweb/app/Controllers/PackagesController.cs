@@ -117,6 +117,16 @@ namespace StoreWeb.Controllers
             {
                 return NotFound("Product not found");
             }
+            // alternate ID lookups (pfn, cid, xti...) return a Products list, and StoreLib only reads Product
+            dcat.ProductListing.Product ??= dcat.ProductListing.Products?.FirstOrDefault();
+            if (dcat.ProductListing.Product == null)
+            {
+                return NotFound("Product not found");
+            }
+            if (dcat.ProductListing.Product.DisplaySkuAvailabilities?.FirstOrDefault()?.Sku?.Properties?.FulfillmentData == null)
+            {
+                return NotFound("Product has no downloadable packages");
+            }
             List<PackageInfo> packages = new List<PackageInfo>();
             var productpackages = await dcat.GetPackagesForProductAsync();
             List<Task<HttpResponseMessage>> httpTasks = new List<Task<HttpResponseMessage>>();
