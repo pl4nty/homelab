@@ -60,12 +60,15 @@ patches:
     - op: add
       path: /spec/template/spec/containers/0/args/-
       value: --controllers=*,-cloud-node-lifecycle,-service
+# all images are public, and upstream's image-pull-secret doesn't exist here (kubelet warns on every sync)
 - target:
     kind: Deployment
     name: csi-oci-controller
   patch: |-
     - op: remove
       path: /spec/template/spec/nodeSelector
+    - op: remove
+      path: /spec/template/spec/imagePullSecrets
     - op: add
       path: /spec/template/spec/affinity
       value:
