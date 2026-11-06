@@ -17,3 +17,10 @@ extraArgs:
   # topology.kubernetes.io/region=ap-sydney-1 or nothing else fits. Set at registration, since NodeRestriction
   # stops workers changing their own taints later
   register-with-taints: topology.kubernetes.io/region=ap-sydney-1:PreferNoSchedule
+---
+# the value the OCI cloud controller sets too; set at registration so the controller itself
+# (nodeSelector topology.kubernetes.io/region) can schedule here before it has initialised the node
+apiVersion: v1alpha1
+kind: KubeNodeConfig
+labels:
+  topology.kubernetes.io/region: ap-sydney-1

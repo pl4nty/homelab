@@ -22,7 +22,8 @@ secretGenerator:
 generatorOptions:
   disableNameSuffixHash: true
 patches:
-# run on the Oracle node, not the home control planes
+# run on the Oracle node, not the home control planes. Talos sets this region label at registration
+# (talos/hardware/oracle.yaml), so it exists before the controller initialises the node
 - target:
     kind: DaemonSet
     name: oci-cloud-controller-manager
@@ -30,7 +31,7 @@ patches:
     - op: replace
       path: /spec/template/spec/nodeSelector
       value:
-        kubernetes.io/hostname: talos-oci-a1
+        topology.kubernetes.io/region: ap-sydney-1
     # only initialise the Oracle node: node-lifecycle would delete the home nodes, which OCI doesn't know
     - op: add
       path: /spec/template/spec/containers/0/args/-
@@ -42,7 +43,7 @@ patches:
     - op: replace
       path: /spec/template/spec/nodeSelector
       value:
-        kubernetes.io/hostname: talos-oci-a1
+        topology.kubernetes.io/region: ap-sydney-1
 - target:
     kind: DaemonSet
     name: csi-oci-node
