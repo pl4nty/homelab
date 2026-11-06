@@ -107,10 +107,14 @@ spec:
             icon: si-files
         - JWT decoder:
             href: https://jwt.${PUBLIC_DOMAIN}
+        - Link shortener:
+            href: https://l.${PRIVATE_DOMAIN}
         - Misc IT tools:
             href: https://tools.${PUBLIC_DOMAIN}
         - OpenSSL web:
             href: https://openssl.${PUBLIC_DOMAIN}
+        - Pastebin:
+            href: https://paste.${PUBLIC_DOMAIN}
         - PDF editor:
             href: https://pdf.${PUBLIC_DOMAIN}
             icon: si-adobeacrobatreader
