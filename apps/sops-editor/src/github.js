@@ -20,6 +20,7 @@ export class GitHub {
         Accept: 'application/vnd.github+json',
         Authorization: `Bearer ${this.token}`,
         'X-GitHub-Api-Version': '2022-11-28',
+        ...(body && { 'Content-Type': 'application/json' }),
       },
       body: body && JSON.stringify(body),
     });
@@ -47,13 +48,18 @@ export class GitHub {
   }
 
   // Creates the branch from the default branch if it doesn't exist yet. Returns true if created.
-  async ensureBranch(branch) {
+  async hasBranch(branch) {
     try {
       await this.api(`/git/ref/heads/${encodeURI(branch)}`);
-      return false;
+      return true;
     } catch (e) {
       if (e.status !== 404) throw e;
+      return false;
     }
+  }
+
+  async ensureBranch(branch) {
+    if (await this.hasBranch(branch)) return false;
     const base = await this.api(`/git/ref/heads/${encodeURI(await this.defaultBranch())}`);
     await this.api('/git/refs', { method: 'POST', body: { ref: `refs/heads/${branch}`, sha: base.object.sha } });
     return true;

@@ -22,6 +22,8 @@ const store = {
 
 let gh;
 let branch;
+// branch to read from: the target branch, or the default branch until the first commit creates it
+let ref;
 let files = [];
 let open; // { path, sha, ctx, plain, isNew }
 
@@ -79,7 +81,7 @@ function showEditor() {
 
 async function sopsConfig() {
   try {
-    return (await gh.read('.sops.yaml', branch)).text;
+    return (await gh.read('.sops.yaml', ref)).text;
   } catch (e) {
     if (e.status === 404) return 'creation_rules: [{}]';
     throw e;
@@ -99,13 +101,11 @@ async function connect() {
   store.set('key', $('remember-key').checked ? $('key').value.trim() : '');
   gh = new GitHub(token, repo);
   branch = $('branch').value.trim() || (await gh.defaultBranch());
+  ref = (await gh.hasBranch(branch)) ? branch : await gh.defaultBranch();
   const rules = (parseDocument(await sopsConfig()).toJS()?.creation_rules ?? []).map(
     (r) => new RegExp(r.path_regex ?? '.*'),
   );
-  const all = await gh.tree(branch).catch(async (e) => {
-    if (e.status === 404) return gh.tree(await gh.defaultBranch());
-    throw e;
-  });
+  const all = await gh.tree(ref);
   files = all.filter((p) => /\.ya?ml$/.test(p) && rules.some((r) => r.test(p)));
   renderFiles();
   $('settings').hidden = true;
@@ -115,7 +115,7 @@ async function connect() {
 async function openFile(path) {
   if (dirty() && !confirm('Discard unsaved changes?')) return;
   await run(`Decrypting ${path}`, async () => {
-    const { text, sha } = await gh.read(path, branch);
+    const { text, sha } = await gh.read(path, ref);
     const { plain, ctx } = await decrypt(text, identities());
     open = { path, sha, ctx, plain };
     showEditor();
@@ -152,6 +152,7 @@ async function save() {
     if (json(check.plain) !== json(plain)) throw new Error('round-trip check failed, not committing');
     status('Committing…');
     const created = await gh.ensureBranch(branch);
+    ref = branch;
     const { sha, url } = await gh.write(
       open.path,
       branch,

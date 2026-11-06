@@ -38,6 +38,7 @@ metadata:
   name: x
 type: Opaque
 stringData:
+  # rotated yearly
   TOKEN: abc
   EMPTY: ""
   JSON: '{"a": 1}'
@@ -99,7 +100,7 @@ for (const [name, plain] of Object.entries(fixtures)) {
   });
 }
 
-test('unchanged values keep their ciphertext', async () => {
+test('unchanged values and comments keep their ciphertext', async () => {
   const encrypted = sopsEncrypt(fixtures.secret);
   const { plain, ctx } = await decrypt(encrypted, [identity]);
   const out = await encrypt(plain.replace('TOKEN: abc', 'TOKEN: def'), ctx, new Date(Date.now() + 5000));

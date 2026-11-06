@@ -277,12 +277,15 @@ export async function decrypt(text, identities) {
       for (let i = 0; i < lines.length; i++) {
         if (!lines[i].startsWith('ENC[')) continue;
         let r;
+        let aad;
         for (let n = path.length; n >= 0 && !r; n--) {
+          aad = `${path.slice(0, n).join(':')}:`;
           try {
-            r = await decryptValue(key, lines[i], `${path.slice(0, n).join(':')}:`);
+            r = await decryptValue(key, lines[i], aad);
           } catch {}
         }
         if (!r) throw new Error(`could not decrypt comment at ${path.join('.')}`);
+        stash.set(`${aad}\0comment\0${r.plain}`, r.iv);
         lines[i] = r.plain;
       }
       holder[field] = lines.join('\n');
