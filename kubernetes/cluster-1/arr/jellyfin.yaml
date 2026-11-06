@@ -87,6 +87,17 @@ spec:
         storageClass: longhorn-local
         globalMounts:
           - path: /transcode
+      # Jellyfin's MPP uses DMA heaps only when all four of the vendor kernel's exist,
+      # and mainline only has system. Without them it falls back to DRM dumb buffers,
+      # which panthor doesn't implement
+      dma-heap:
+        type: hostPath
+        hostPath: /dev/dma_heap/system
+        hostPathType: CharDevice
+        globalMounts:
+          - path: /dev/dma_heap/system-dma32
+          - path: /dev/dma_heap/system-uncached
+          - path: /dev/dma_heap/system-uncached-dma32
       media:
         existingClaim: media
         globalMounts:
