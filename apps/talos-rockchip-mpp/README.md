@@ -92,8 +92,15 @@ topf installs it on the RK1s. `talos/docker-bake.hcl` builds their installer fro
 `talos/hardware/rk1-schematic.yaml`. `talos/control-plane/rk1.yaml` loads
 rk_vcodec and rga3, which pull in vsi_iommu and rk3588_mpp_dt.
 
-Hardware encoding works. Hardware decoding doesn't yet: every rkvdec2 job ends
-in a hardware timeout (`resetting for err 0x23`), so Jellyfin decodes in software.
+Jellyfin transcodes fully in hardware on d04 (Jellyfin's `rkmpp` acceleration):
+hevc_rkmpp decode, overlay_rkrga subtitle burn-in, h264_rkmpp encode. A 1080p
+HEVC Main 10 episode transcodes at 4–7x realtime. Mainline has only the `system`
+dma-heap, so `kubernetes/cluster-1/arr/jellyfin.yaml` mounts it under the other
+three names MPP checks for.
+
+For about 10 minutes after the modules first loaded, every rkvdec2 job timed out
+(`resetting for err 0x23`). After that, decoding ran cleanly. The cause is
+unknown. All decode jobs run on rkvdec core0, and core1 stays idle.
 CI also tags main's build with its Talos version. The schematic pins a digest, so a rebuild gets a new installer.
 
 ## Test plan
