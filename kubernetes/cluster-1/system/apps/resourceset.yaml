@@ -79,6 +79,7 @@ spec:
         substitute:
           APP_SSA: Override
           APP_SUFFIX: "<< if $preview >>-<< $ref >><< end >>"
+          APP_RETAIN: "<< not $preview >>"
         substituteFrom:
           - kind: ConfigMap
             name: cluster-settings
