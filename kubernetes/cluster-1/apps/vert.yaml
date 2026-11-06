@@ -10,7 +10,6 @@ spec:
     kind: OCIRepository
     name: app-template
   values:
-    # no on-prem dependency, so it may run on the Oracle nodes (talos/hardware/oracle.yaml taint)
     defaultPodOptions:
       tolerations:
       - key: topology.kubernetes.io/region

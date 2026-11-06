@@ -24,7 +24,6 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    # no on-prem dependency, so it may run on the Oracle nodes (talos/hardware/oracle.yaml taint)
     tolerations:
     - key: topology.kubernetes.io/region
       operator: Exists
