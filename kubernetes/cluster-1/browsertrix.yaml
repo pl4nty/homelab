@@ -36,6 +36,17 @@ spec:
                 path: /spec/strategy
                 value:
                   type: Recreate
+          # the chart has no pod annotation values. api and op are both FastAPI apps
+          - target:
+              kind: Deployment
+              name: browsertrix-cloud-backend
+            patch: |
+              - op: add
+                path: /spec/template/metadata/annotations/instrumentation.opentelemetry.io~1inject-python
+                value: "true"
+              - op: add
+                path: /spec/template/metadata/annotations/instrumentation.opentelemetry.io~1python-container-names
+                value: api,op
   values:
     superuser:
       email: tom@tplant.com.au

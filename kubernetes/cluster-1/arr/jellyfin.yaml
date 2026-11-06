@@ -54,6 +54,8 @@ spec:
               limits:
                 memory: 4Gi
         pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-dotnet: "true"
           # RKMPP transcoding needs the RK3588 VPU
           nodeSelector:
             kubernetes.io/arch: arm64

@@ -23,6 +23,11 @@ spec:
               tag: 7.0.1@sha256:52d09607f72d475ba75cfc781f9041cf679ddb16ed2e9dfb8a2139cc1e89ab94
             env:
               TZ: ${TIMEZONE}
+              # the image sets DOTNET_EnableDiagnostics=0, which also blocks the OTel CLR profiler.
+              # re-enable diagnostics for the profiler only, without the /tmp IPC pipes or debugger
+              DOTNET_EnableDiagnostics: "1"
+              DOTNET_EnableDiagnostics_IPC: "0"
+              DOTNET_EnableDiagnostics_Debugger: "0"
               RADARR__APP__INSTANCENAME: Radarr
               RADARR__AUTH__METHOD: External
               RADARR__AUTH__REQUIRED: DisabledForLocalAddresses
@@ -68,6 +73,10 @@ spec:
               limits:
                 memory: 1Gi
         pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-dotnet: "true"
+            # self-contained .NET on Alpine
+            instrumentation.opentelemetry.io/otel-dotnet-auto-runtime: linux-musl-x64
           securityContext:
             runAsNonRoot: true
             runAsUser: 568

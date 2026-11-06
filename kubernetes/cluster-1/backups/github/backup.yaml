@@ -17,6 +17,9 @@ spec:
     controllers:
       main:
         pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-python: "true"
+            instrumentation.opentelemetry.io/otel-python-platform: musl
           nodeSelector:
             node.longhorn.io/create-default-disk: config
         type: cronjob
