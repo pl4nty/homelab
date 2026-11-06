@@ -1,11 +1,16 @@
-# Turing RK1
+# Turing RK1. Built by talos/docker-bake.hcl, since Image Factory only builds official extensions
 overlay:
-  image: siderolabs/sbc-rockchip
+  image: ghcr.io/siderolabs/sbc-rockchip:v0.2.1
   name: turingrk1
 customization:
+  extraKernelArgs:
+    # rockchip-mpp isn't signed with the Talos key
+    - -module.sig_enforce
   systemExtensions:
     officialExtensions:
-      - siderolabs/fuse3
-      - siderolabs/iscsi-tools
-      - siderolabs/panfrost
-      - siderolabs/util-linux-tools
+      - ghcr.io/siderolabs/fuse3:3.18.3
+      - ghcr.io/siderolabs/iscsi-tools:v0.2.0
+      - ghcr.io/siderolabs/panfrost:20260916-v1.14.5
+      - ghcr.io/siderolabs/util-linux-tools:2.42.2
+      # built for one Talos kernel, so rebuild it with talosVersion
+      - ghcr.io/pl4nty/talos-rockchip-mpp:v1.14.5

@@ -31,3 +31,12 @@ kind: SysctlConfig
 params:
   # cnpg pods request 100Mi hugepages-2Mi each
   vm.nr_hugepages: "256"
+---
+# rockchip-mpp, for Jellyfin. These pull in vsi_iommu and rk3588_mpp_dt
+apiVersion: v1alpha1
+kind: KernelModuleConfig
+name: rk_vcodec
+---
+apiVersion: v1alpha1
+kind: KernelModuleConfig
+name: rga3
