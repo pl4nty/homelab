@@ -63,7 +63,8 @@ spec:
   rules:
   - backendRefs:
     - name: webhook-receiver
-      port: 80---
+      port: 80
+---
 # app main and PR-preview deployments from the apps ResourceSet (system/apps/resourceset.yaml)
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
