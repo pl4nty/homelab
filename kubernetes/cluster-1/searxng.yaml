@@ -12,10 +12,6 @@ spec:
   values:
     global:
       createDefaultServiceAccount: false
-    defaultPodOptions:
-      # keep off the 8GiB amd64 control plane node
-      nodeSelector:
-        kubernetes.io/arch: arm64
     controllers:
       main:
         pod:

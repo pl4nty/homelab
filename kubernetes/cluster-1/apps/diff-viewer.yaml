@@ -16,9 +16,6 @@ spec:
     global:
       createDefaultServiceAccount: false
     defaultPodOptions:
-      # keep off the 8GiB amd64 control plane node
-      nodeSelector:
-        kubernetes.io/arch: arm64
       securityContext:
         runAsNonRoot: true
         runAsUser: 65534
