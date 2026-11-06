@@ -64,6 +64,13 @@ spec:
               readOnlyRootFilesystem: true
               capabilities:
                 drop: [ALL]
+            # the snapshot and its encrypted copy land in /tmp, past the namespace's 100Mi default.
+            # etcd's 2 GiB quota bounds the snapshot
+            resources:
+              requests:
+                ephemeral-storage: 512Mi
+              limits:
+                ephemeral-storage: 4Gi
     persistence:
       tmp:
         type: emptyDir
