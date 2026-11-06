@@ -23,6 +23,11 @@ spec:
               tag: 5.0.0@sha256:f7c9347598c4aa1c76e2b39dc13cebe0e9e249d80962e49e08d1310e3961f3d6
             env:
               TZ: ${TIMEZONE}
+              # the image sets DOTNET_EnableDiagnostics=0, which also blocks the OTel CLR profiler.
+              # re-enable diagnostics for the profiler only, without the /tmp IPC pipes or debugger
+              DOTNET_EnableDiagnostics: "1"
+              DOTNET_EnableDiagnostics_IPC: "0"
+              DOTNET_EnableDiagnostics_Debugger: "0"
               SONARR__APP__INSTANCENAME: Sonarr
               SONARR__AUTH__METHOD: External
               SONARR__AUTH__REQUIRED: DisabledForLocalAddresses
@@ -72,6 +77,10 @@ spec:
               readOnlyRootFilesystem: true
               capabilities: { drop: ["ALL"] }
         pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-dotnet: "true"
+            # self-contained .NET on Alpine
+            instrumentation.opentelemetry.io/otel-dotnet-auto-runtime: linux-musl-x64
           securityContext:
             runAsNonRoot: true
             runAsUser: 568

@@ -45,10 +45,12 @@ patches:
             - matchExpressions:
               - key: topology.kubernetes.io/region
                 operator: DoesNotExist
-    # only initialise Oracle nodes: node-lifecycle would delete the home nodes, which OCI doesn't know
+    # node-lifecycle would delete the home nodes, which OCI doesn't know.
+    # No service controller until kube-vip and OCI use separate loadBalancerClasses: it takes every
+    # classless LoadBalancer Service, including the kube-vip ones
     - op: add
       path: /spec/template/spec/containers/0/args/-
-      value: --controllers=*,-cloud-node-lifecycle
+      value: --controllers=*,-cloud-node-lifecycle,-service
 - target:
     kind: Deployment
     name: csi-oci-controller
@@ -65,7 +67,7 @@ patches:
               - key: topology.kubernetes.io/region
                 operator: In
                 values: [ap-sydney-1]
-# the node plugin needs a node the controller has initialised
+# the node plugin only works on OCI instances
 - target:
     kind: DaemonSet
     name: csi-oci-node
@@ -74,3 +76,24 @@ patches:
       path: /spec/template/spec/nodeSelector
       value:
         topology.kubernetes.io/region: ap-sydney-1
+# the mount/umount wrappers chroot into the host, and Talos has no mount binary: use the image's own
+- target:
+    kind: DaemonSet
+    name: csi-oci-node
+  patch: |-
+    apiVersion: apps/v1
+    kind: DaemonSet
+    metadata:
+      name: csi-oci-node
+    spec:
+      template:
+        spec:
+          containers:
+          - name: oci-csi-node-driver
+            volumeMounts:
+            - mountPath: /sbin/mount
+              $patch: delete
+            - mountPath: /sbin/umount
+              $patch: delete
+            - mountPath: /sbin/umount.oci-fss
+              $patch: delete
