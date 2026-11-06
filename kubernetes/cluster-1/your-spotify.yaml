@@ -12,9 +12,6 @@ spec:
   values:
     global:
       createDefaultServiceAccount: false
-    # defaultPodOptions:
-    #   nodeSelector:
-    #     kubernetes.io/arch: arm64
     controllers:
       # Server
       main:
