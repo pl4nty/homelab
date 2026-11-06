@@ -2,7 +2,7 @@
 
 Compare two texts or a `git diff` patch and share the result as a link. Rendering uses [@pierre/diffs](https://diffs.com).
 
-- Links up to 10,000 characters hold the compressed diff in the URL fragment, so the server never sees it.
+- Links up to 2,040 characters (the most Kutt can shorten) hold the compressed diff in the URL fragment, so the server never sees it.
 - Longer diffs are encrypted in the browser (AES-GCM) and stored on the server for a year. The key stays in the link's fragment.
 
 ## Server
