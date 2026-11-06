@@ -1,0 +1,5 @@
+# pin the name: a reset wipes STATE, and auto: stable then generates a new one
+apiVersion: v1alpha1
+kind: HostnameConfig
+auto: "off"
+hostname: talos-ivx-yqq

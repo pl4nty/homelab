@@ -34,7 +34,3 @@ spec:
       volumes:
         - name: tmp
           emptyDir: {}
-  secrets:
-    - name: toolhive
-      key: flowsavvy-cookie
-      targetEnvName: FLOWSAVVY_COOKIE
