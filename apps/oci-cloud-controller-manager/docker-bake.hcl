@@ -4,6 +4,6 @@ target "default" {
     src = "https://github.com/oracle/oci-cloud-controller-manager.git#93969b53c3a17ea558b98ed31605cf69de9f37a5"
   }
   args = {
-    VERSION = "v1.36.0-node-filter"
+    VERSION = "v1.36.0-patched"
   }
 }

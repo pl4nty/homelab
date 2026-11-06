@@ -1,13 +1,15 @@
-# Upstream's Dockerfile plus oracle/oci-cloud-controller-manager#544 (--node-filter-requirements), so the
-# CCM only reconciles Oracle nodes in this mixed cluster. node-filter.patch is that PR's diff without docs;
-# drop this app once a release includes it.
+# Upstream's Dockerfile plus these patches (diffs without docs); drop each once a release includes the fix:
+# - node-filter.patch, oracle/oci-cloud-controller-manager#544 (--node-filter-requirements), so the CCM only
+#   reconciles Oracle nodes in this mixed cluster
+# - skip-unmapped-nodes.patch, ours: getNodeIpFamily and getCompartmentIDByInstanceID gave up on the first
+#   node without an OCI provider ID, which includes the node being initialised, so nodes never got one (#522)
 # The Makefile defaults ARCH to amd64, so cross-compile per TARGETARCH rather than build under QEMU
 FROM --platform=$BUILDPLATFORM golang:1.26.6 AS builder
 ARG TARGETARCH VERSION
 WORKDIR /go/src/github.com/oracle/oci-cloud-controller-manager
 COPY --from=src . .
-COPY node-filter.patch /tmp/
-RUN git apply /tmp/node-filter.patch && make build ARCH="$TARGETARCH" VERSION="$VERSION" BUILD="$VERSION"
+COPY *.patch /tmp/
+RUN git apply /tmp/*.patch && make build ARCH="$TARGETARCH" VERSION="$VERSION" BUILD="$VERSION"
 
 FROM ghcr.io/oracle/oraclelinux:8-slim-fips
 RUN microdnf -y install util-linux e2fsprogs xfsprogs python2 && \
