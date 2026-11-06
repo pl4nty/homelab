@@ -1,0 +1,172 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: hyperglass
+  namespace: default
+spec:
+  timeout: 15m
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    defaultPodOptions:
+      tolerations:
+      - key: topology.kubernetes.io/region
+        operator: Exists
+        effect: PreferNoSchedule
+    global:
+      createDefaultServiceAccount: false
+    controllers:
+      main:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: 0
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-python: "true"
+            instrumentation.opentelemetry.io/otel-python-platform: "musl"
+          securityContext:
+            fsGroup: 2000
+            fsGroupChangePolicy: OnRootMismatch
+        containers:
+          main:
+            image:
+              # no arm64
+              # repository: ghcr.io/m0nsterrr/hyperglass
+              # tag: v2.0.4
+              repository: quay.io/timrabl/hyperglass
+              tag: 1.0.4-1.0.233@sha256:ebdcfdebf03f94c80675e10c72dde982d46015f9a6de5efa15b89fcca60667da
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+                spec:
+                  initialDelaySeconds: 300
+                  # builds its frontend on first start, which takes over 5 minutes on the NUC
+                  failureThreshold: 60
+            resources:
+              requests:
+                cpu: 10m
+                ephemeral-storage: 1Gi
+              limits:
+                cpu: 1
+                ephemeral-storage: 2Gi
+          redis:
+            image:
+              repository: docker.io/redis
+              tag: 8.10.1@sha256:8a1efc5f479551822b47424ccae982026b633f28818eab0387348120a61e10e2
+          ssh:
+            image:
+              repository: ghcr.io/pl4nty/ubuntu-ssh
+              tag: latest@sha256:bedabe9435e1258ee34da88817c301dc7911bcd7a87071cda75043c0044b7267
+            # allow ICMP access. net.ipv4.ping_group_range="0 [the uid ie 1000]" may still be required on the node
+            # note that Azure loadbalancers (node egress) don't support ICMP
+            securityContext:
+              capabilities:
+                add:
+                  - NET_RAW
+    configMaps:
+      config:
+        data:
+          hyperglass.yaml: |
+            cache:
+              host: localhost
+            listen_address: 0.0.0.0
+          commands.yaml: |
+            linux:
+              ipv4_default:
+                bgp_aspath: echo "unsupported"
+                bgp_community: echo "unsupported"
+                bgp_route: ip route get {target}
+                ping: ping {target}
+                traceroute: traceroute {target}
+              ipv6_default:
+                bgp_aspath: echo "unsupported"
+                bgp_community: echo "unsupported"
+                bgp_route: ip route get {target}
+                ping: ping6 {target}
+                traceroute: traceroute6 {target}
+              ipv4_vpn:
+                bgp_aspath: echo "unsupported"
+                bgp_community: echo "unsupported"
+                bgp_route: ip route get {target}
+                ping: ping {target}
+                traceroute: traceroute {target}
+              ipv6_vpn:
+                bgp_aspath: echo "unsupported"
+                bgp_community: echo "unsupported"
+                bgp_route: ip route get {target}
+                ping: ping6 {target}
+                traceroute: traceroute6 {target}
+          devices.yaml: |
+            routers:
+            - name: Oracle Cloud, Aus East
+              network:
+                name: oracle-aue
+                display_name: oracle-aue
+              nos: linux
+              address: localhost
+              port: 2222
+              credential:
+                username: ubuntu
+                password: ubuntu
+              vrfs:
+              - name: global
+                default: true
+                ipv4:
+                  source_address: 192.0.2.1
+                ipv6:
+                  source_address: 2001:db8::1
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 8001
+    persistence:
+      # static:
+      #   type: emptyDir
+      #   advancedMounts:
+      #     main:
+      #       main:
+      #         - path: /opt/hyperglass/hyperglass/static
+      config-hyperglass:
+        type: configMap
+        name: "{{ .Release.Name }}"
+        advancedMounts:
+          main:
+            main:
+              - path: /opt/hyperglass/hyperglass/hyperglass.yaml
+                subPath: hyperglass.yaml
+      config-commands:
+        type: configMap
+        name: "{{ .Release.Name }}"
+        advancedMounts:
+          main:
+            main:
+              - path: /opt/hyperglass/hyperglass/commands.yaml
+                subPath: commands.yaml
+      config-devices:
+        type: configMap
+        name: "{{ .Release.Name }}"
+        advancedMounts:
+          main:
+            main:
+              - path: /opt/hyperglass/hyperglass/devices.yaml
+                subPath: devices.yaml
+    route:
+      main:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - lg.${PUBLIC_DOMAIN}
+        rules:
+          - backendRefs:
+              - name: hyperglass
+                port: 8001

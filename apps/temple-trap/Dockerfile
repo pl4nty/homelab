@@ -1,4 +1,4 @@
-FROM gradle:8.14.5-jdk17@sha256:38cc14c6936a74fba051090399b592fec24a618174719a6a94b8b7e0e8c2632e AS build
+FROM gradle:9.8.1-jdk17@sha256:47f780b3062115192d991c37276702c515a1349be5c288fd5ee422b408503fa9 AS build
 WORKDIR /app
 
 # only the paths the old .dockerignore allowed
@@ -10,12 +10,13 @@ RUN gradle jproRelease --warning-mode all
 
 # Ubuntu with required packages
 # https://www.jpro.one/docs/current/2.7/PREPARING_LINUX_FOR_JPRO
-FROM eclipse-temurin:17.0.20.1_1-jre-noble@sha256:b3e1d0486f09293b2455aed02d396d4b6b5ea9b0e8c7c065c297cfef453b0116
+# jpro 2026 bundles JavaFX 27, which needs Java 25
+FROM eclipse-temurin:25.0.5_8-jre-noble@sha256:a98128a57de944a72bd31fbc79b898edd5a5864d3652071d5bbd2160ab7d7dce
 
 # prevent interactive prompt from debconf
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections \
 && apt-get update \
-&& apt-get -y --no-install-recommends install xorg libasound2t64 libgtk2.0-0t64 unzip \
+&& apt-get -y --no-install-recommends install xorg libasound2t64 libgtk-3-0t64 unzip \
 && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app/build/distributions/app-jpro.zip .

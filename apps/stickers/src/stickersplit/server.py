@@ -114,7 +114,6 @@ class Worker:
                     title=rec.get("title", ""),
                     tags=rec.get("tags", []),
                     creator=job["creator"],
-                    comment=job["comment"],
                 )
                 job["stickers"] = k
 
@@ -211,7 +210,7 @@ def create_app(
         return store.similar(id)
 
     @app.post("/api/scans")
-    def upload(file: UploadFile, creator: str = Form(""), comment: str = Form(""), r=Depends(role)):
+    def upload(file: UploadFile, creator: str = Form(""), r=Depends(role)):
         need(r, "submit")
         ext = Path(file.filename or "").suffix.lower()
         if ext not in SCAN_EXTS:
@@ -238,7 +237,6 @@ def create_app(
                 "ext": ext,
                 "name": file.filename,
                 "creator": creator.strip(),
-                "comment": comment.strip(),
             }
         )
 

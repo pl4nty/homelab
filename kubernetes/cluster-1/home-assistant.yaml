@@ -15,21 +15,20 @@ spec:
     controllers:
       main:
         pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-python: "true"
+            instrumentation.opentelemetry.io/otel-python-platform: musl
           nodeSelector:
             node.longhorn.io/create-default-disk: config
-            kubernetes.io/arch: arm64
         type: statefulset
-        rollingUpdate:
-          unavailable: "0"
-        #   # incompatible boto3 version as of 2023.6.3. can only specify image at collector level
-        #   # eg open-telemetry/opentelemetry-operator#1774
-        #   annotations:
-        #     instrumentation.opentelemetry.io/inject-python: "true"
         containers:
           main:
             image:
               repository: ghcr.io/home-assistant/home-assistant
               tag: 2026.10.4@sha256:23f4dfbb69ce76315dbc4de7915504f1c2dcecd7ca2648113a493a385972e133
+            env:
+              # the recorder writes every state change to SQLite, which would flood the traces
+              OTEL_PYTHON_DISABLED_INSTRUMENTATIONS: sqlite3,sqlalchemy
             probes:
               liveness:
                 enabled: true

@@ -1,0 +1,23 @@
+kind: Secret
+apiVersion: v1
+metadata:
+  name: kutt
+  namespace: default
+type: Opaque
+stringData:
+  JWT_SECRET: ENC[AES256_GCM,data:kHMiM30wbBGUxsN8VXSZEdfEHYmIYb3amqksbDr+WRM4CZcs3KwEwB72moK7oGADV6lpHOG+u19aQU1SgrMQHA==,iv:KwW2S7vKm6ul15ym9Ob5D4DCxd6PY17p2sJGDp1KQHA=,tag:NPZ+9fte/GIktfXC/P/nFw==,type:str]
+sops:
+  age:
+    - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA4Rk1ydmRIVWpIUlJLek1P
+        QlJUTmo5TS9MTkl0VzMxNDY3ZDB5TUNiREZvCnAzNjJraEhOQWJ5MEZhZWNWbkhP
+        YXNNTExIOHdmeko5bnQxdkxLM3hHVEEKLS0tIExkQlYwQ0Q4blVOV3NXc2gxQ2hk
+        N1J6K2tzcHJVVUpxYnBjVVdVQmFINDAKOTtrs3BTRakaFcgYZS93N8ThpmEtGRHA
+        AFt1/gGX46Z0bHA40NAotlMU77axVz+ZESb2M90HDO1ef5nAv/kYqQ==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2026-11-03T06:24:30Z"
+  mac: ENC[AES256_GCM,data:RQ/YeyYDOs3lNkwoio+b+Lpowrl8ZBzjRNtekmvfXRY4ak7nuxOpgqCDmuto/csLBa/6/w6vZVEms0b7ohxiIEltirsU99Gos2T+xi9n4I8bWshHg92etFrkzbiGACyOeBJKolzN5kp0xn9ypldemYNKieM/nLQ4bhyRFzdQ80Q=,iv:vYVxRUKzoo8Rm2Vy25GwfLwdvfMPDGIis3stuVp7Iis=,tag:GAP/FIwEyuhVIZuzJtqz3g==,type:str]
+  encrypted_regex: ^(data|stringData)$
+  version: 3.10.2

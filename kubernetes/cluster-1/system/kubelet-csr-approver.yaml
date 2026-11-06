@@ -18,9 +18,14 @@ spec:
     remediation:
       retries: 3
   values:
-    providerRegex: ^talos-[a-z0-9]{3}-[a-z0-9]{3}$
+    # generated names, plus the pinned Oracle names (talos/node/talos-oci-*)
+    providerRegex: ^talos-([a-z0-9]{3}-[a-z0-9]{3}|oci-[a-z0-9-]+)$
     providerIpPrefixes:
       - 192.168.1.0/24
+      # Oracle VCN (talos/oracle.sh)
+      - 10.10.0.0/24
+      # talos-oci-a1's public IP, which the OCI cloud controller adds as its ExternalIP
+      - 192.9.186.226/32
     # node hostnames aren't in DNS
     bypassDnsResolution: true
     replicas: 1

@@ -1,0 +1,7 @@
+# WireGuard mesh so the Oracle node (talos-oci-a1) can reach the home LAN through NAT: Oracle accepts UDP 51820,
+# so no port forward is needed at home. Peers find each other via discovery.talos.dev (DiscoveryServiceConfig default)
+apiVersion: v1alpha1
+kind: KubeSpanConfig
+enabled: true
+# LAN traffic falls back to plain routing if a peer is down, e.g. when the internet is out
+allowDownPeerBypass: true

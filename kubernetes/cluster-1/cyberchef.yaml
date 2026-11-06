@@ -10,6 +10,11 @@ spec:
     kind: OCIRepository
     name: app-template
   values:
+    defaultPodOptions:
+      tolerations:
+      - key: topology.kubernetes.io/region
+        operator: Exists
+        effect: PreferNoSchedule
     global:
       createDefaultServiceAccount: false
     controllers:
@@ -17,10 +22,6 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
-        # archfilter fails
-        pod:
-          nodeSelector:
-            kubernetes.io/arch: amd64
         containers:
           main:
             image:

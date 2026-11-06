@@ -13,7 +13,7 @@ spec:
     name: home-kubernetes
   patches:
   # release defaults, hoisted out of every HelmRelease. scoped to the default
-  # namespace so longhorn, toolhive and kube-arch-scheduler keep their own.
+  # namespace so longhorn and toolhive keep their own.
   # spec.interval stays per-release: it is a required field, so a HelmRelease
   # without one fails the API dry-run before any patch is applied
   - patch: |-
@@ -64,3 +64,21 @@ spec:
   - backendRefs:
     - name: webhook-receiver
       port: 80
+---
+# app main and PR-preview deployments from the apps ResourceSet (system/apps/resourceset.yaml)
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: apps
+  namespace: flux-system
+spec:
+  interval: 30m
+  retryInterval: 2m
+  path: ./kubernetes/cluster-1/system/apps
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: home-kubernetes
+  postBuild:
+    substitute:
+      APP_SSA: Override

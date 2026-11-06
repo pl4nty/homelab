@@ -1,0 +1,425 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app searxng
+  namespace: default
+spec:
+  interval: 15m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    global:
+      createDefaultServiceAccount: false
+    controllers:
+      main:
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-python: "true"
+            instrumentation.opentelemetry.io/python-container-names: main
+        containers:
+          main:
+            image:
+              repository: ghcr.io/searxng/searxng
+              tag: latest@sha256:892ed5710603e38f9dc201e6a0b2f3f14dbdb8108edcadac30e55b165c979fb7
+            # the image user. the entrypoint only needs root to chown volumes
+            securityContext:
+              runAsUser: 977
+              runAsGroup: 977
+              runAsNonRoot: true
+            env:
+              # granian runs WSGI requests on these threads. the image default of 4
+              # is used up by a search and its image proxy requests, so health
+              # checks and page assets wait for them
+              GRANIAN_BLOCKING_THREADS: "32"
+            probes:
+              liveness: &probe
+                enabled: true
+                type: HTTP
+                path: /healthz
+              readiness: *probe
+              startup:
+                enabled: true
+                type: HTTP
+                path: /healthz
+                spec:
+                  periodSeconds: 5
+                  failureThreshold: 30
+            resources:
+              requests:
+                cpu: 20m
+                memory: 256Mi
+              limits:
+                memory: 1Gi
+                ephemeral-storage: 256Mi
+          # SearXNG has no custom CSS setting, so nginx adds the tplant stylesheet to each page
+          nginx:
+            image:
+              repository: nginxinc/nginx-unprivileged
+              tag: 1.31.7-alpine-slim@sha256:a8cb0f33d51fa107c96fd2bd3a71aaf564ec131e9d2bdf8700944f0ed8b170d7
+            probes:
+              liveness: &nginx-probe
+                enabled: true
+                type: HTTP
+                path: /tplant.css
+                port: 8081
+              readiness: *nginx-probe
+            resources:
+              requests:
+                cpu: 5m
+                memory: 16Mi
+              limits:
+                memory: 64Mi
+                ephemeral-storage: 64Mi
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            primary: true
+            port: 8080
+          # browsers go through nginx
+          web:
+            port: 8081
+    persistence:
+      config:
+        type: configMap
+        identifier: config
+        advancedMounts:
+          main:
+            main:
+              # the entrypoint copies the template to /etc/searxng/settings.yml and
+              # swaps ultrasecretkey for a random key on every start
+              - path: /usr/local/searxng/settings.template.yml
+                subPath: settings.yml
+                readOnly: true
+      nginx:
+        type: configMap
+        identifier: nginx
+        advancedMounts:
+          main:
+            nginx:
+              - path: /etc/nginx/conf.d/default.conf
+                subPath: default.conf
+                readOnly: true
+              - path: /usr/share/nginx/html/tplant.css
+                subPath: tplant.css
+                readOnly: true
+    configMaps:
+      nginx:
+        data:
+          default.conf: |
+            server {
+              # SearXNG has 8080
+              listen 8081;
+
+              location = /tplant.css {
+                root /usr/share/nginx/html;
+                expires 1h;
+              }
+
+              location / {
+                proxy_pass http://127.0.0.1:8080;
+                proxy_http_version 1.1;
+                proxy_set_header Host $host;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+                # sub_filter can't rewrite compressed responses
+                proxy_set_header Accept-Encoding "";
+                sub_filter '</head>' '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><link rel="stylesheet" href="/tplant.css"></head>';
+                sub_filter_once on;
+              }
+            }
+          tplant.css: |
+            /* tplant.com.au design tokens (pl4nty/garden) over the SearXNG simple theme variables */
+            /* fontsource's @font-face rules, inlined: @import would block rendering on two more requests */
+            @font-face {
+              font-family: 'Titillium Web';
+              font-style: normal;
+              font-display: swap;
+              font-weight: 400;
+              src: url('https://cdn.jsdelivr.net/npm/@fontsource/titillium-web@5.3.0/files/titillium-web-latin-400-normal.woff2') format('woff2');
+              unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+            }
+
+            @font-face {
+              font-family: 'Titillium Web';
+              font-style: normal;
+              font-display: swap;
+              font-weight: 400;
+              src: url('https://cdn.jsdelivr.net/npm/@fontsource/titillium-web@5.3.0/files/titillium-web-latin-ext-400-normal.woff2') format('woff2');
+              unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+            }
+
+            @font-face {
+              font-family: 'Titillium Web';
+              font-style: normal;
+              font-display: swap;
+              font-weight: 600;
+              src: url('https://cdn.jsdelivr.net/npm/@fontsource/titillium-web@5.3.0/files/titillium-web-latin-600-normal.woff2') format('woff2');
+              unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+            }
+
+            @font-face {
+              font-family: 'Titillium Web';
+              font-style: normal;
+              font-display: swap;
+              font-weight: 600;
+              src: url('https://cdn.jsdelivr.net/npm/@fontsource/titillium-web@5.3.0/files/titillium-web-latin-ext-600-normal.woff2') format('woff2');
+              unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+            }
+
+            @font-face {
+              font-family: 'Titillium Web';
+              font-style: normal;
+              font-display: swap;
+              font-weight: 700;
+              src: url('https://cdn.jsdelivr.net/npm/@fontsource/titillium-web@5.3.0/files/titillium-web-latin-700-normal.woff2') format('woff2');
+              unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+            }
+
+            @font-face {
+              font-family: 'Titillium Web';
+              font-style: normal;
+              font-display: swap;
+              font-weight: 700;
+              src: url('https://cdn.jsdelivr.net/npm/@fontsource/titillium-web@5.3.0/files/titillium-web-latin-ext-700-normal.woff2') format('woff2');
+              unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+            }
+
+            :root {
+              --tp-light: #fff;
+              --tp-lightgray: #f8f8f8;
+              --tp-darkgray: #666;
+              --tp-darkgray-rgb: 102, 102, 102;
+              --tp-dark: #303030;
+              --tp-secondary: #2e7d32;
+              --tp-tertiary: #388e3c;
+              --tp-border: #e2e2e2;
+              --tp-muted: #efefef;
+              --tp-highlight: rgb(46 125 50 / 12%);
+            }
+
+            @media (prefers-color-scheme: dark) {
+              :root.theme-auto {
+                --tp-light: #141414;
+                --tp-lightgray: #1f1f1f;
+                --tp-darkgray: #a9a9a9;
+                --tp-darkgray-rgb: 169, 169, 169;
+                --tp-dark: #e0f0e9;
+                --tp-secondary: #66bb6a;
+                --tp-tertiary: #81c784;
+                --tp-border: #2e3330;
+                --tp-muted: #262826;
+                --tp-highlight: rgb(102 187 106 / 15%);
+              }
+            }
+
+            :root.theme-dark,
+            :root.theme-black {
+              --tp-light: #141414;
+              --tp-lightgray: #1f1f1f;
+              --tp-darkgray: #a9a9a9;
+              --tp-darkgray-rgb: 169, 169, 169;
+              --tp-dark: #e0f0e9;
+              --tp-secondary: #66bb6a;
+              --tp-tertiary: #81c784;
+              --tp-border: #2e3330;
+              --tp-muted: #262826;
+              --tp-highlight: rgb(102 187 106 / 15%);
+            }
+
+            /* the theme redefines its variables under these selectors, so map them under the same ones */
+            :root,
+            :root.theme-auto,
+            :root.theme-dark,
+            :root.theme-black {
+              --color-base-font: var(--tp-darkgray);
+              --color-base-font-rgb: var(--tp-darkgray-rgb);
+              --color-base-background: var(--tp-light);
+              --color-base-background-mobile: var(--tp-light);
+              --color-url-font: var(--tp-secondary);
+              --color-url-visited-font: var(--tp-tertiary);
+              --color-header-background: var(--tp-lightgray);
+              --color-header-border: var(--tp-border);
+              --color-footer-background: var(--tp-lightgray);
+              --color-footer-border: var(--tp-border);
+              --color-sidebar-border: var(--tp-border);
+              --color-sidebar-font: var(--tp-dark);
+              --color-sidebar-background: var(--tp-light);
+              --color-backtotop-font: var(--tp-darkgray);
+              --color-backtotop-border: var(--tp-border);
+              --color-backtotop-background: var(--tp-light);
+              --color-btn-background: var(--tp-secondary);
+              --color-btn-font: var(--tp-light);
+              --color-show-btn-background: var(--tp-muted);
+              --color-show-btn-font: var(--tp-dark);
+              --color-search-border: var(--tp-border);
+              --color-search-shadow: 0 0 0 1px var(--tp-border);
+              --color-search-background: var(--tp-light);
+              --color-search-font: var(--tp-dark);
+              --color-search-background-hover: var(--tp-secondary);
+              --color-categories-item-selected-font: var(--tp-secondary);
+              --color-categories-item-border-selected: var(--tp-secondary);
+              --color-autocomplete-font: var(--tp-dark);
+              --color-autocomplete-border: var(--tp-border);
+              --color-autocomplete-shadow: 0 2px 8px rgb(0 0 0 / 10%);
+              --color-autocomplete-background: var(--tp-light);
+              --color-autocomplete-background-hover: var(--tp-muted);
+              --color-answer-font: var(--tp-darkgray);
+              --color-answer-background: var(--tp-lightgray);
+              --color-result-keyvalue-col-table: var(--tp-lightgray);
+              --color-result-keyvalue-odd: var(--tp-lightgray);
+              --color-result-keyvalue-even: var(--tp-light);
+              --color-result-background: var(--tp-light);
+              --color-result-border: var(--tp-border);
+              --color-result-url-font: var(--tp-darkgray);
+              --color-result-vim-selected: var(--tp-lightgray);
+              --color-result-vim-arrow: var(--tp-secondary);
+              --color-result-description-highlight-font: var(--tp-dark);
+              --color-result-link-font: var(--tp-secondary);
+              --color-result-link-font-highlight: var(--tp-tertiary);
+              --color-result-link-visited-font: var(--tp-tertiary);
+              --color-result-publishdate-font: var(--tp-darkgray);
+              --color-result-engines-font: var(--tp-darkgray);
+              --color-result-search-url-border: var(--tp-border);
+              --color-result-search-url-font: var(--tp-dark);
+              --color-result-image-span-font: var(--tp-darkgray);
+              --color-result-image-span-font-selected: var(--tp-light);
+              --color-result-image-background: var(--tp-light);
+              --color-settings-tr-hover: var(--tp-muted);
+              --color-settings-engine-description-font: var(--tp-darkgray);
+              --color-toolkit-select-background: var(--tp-muted);
+              --color-toolkit-select-border: var(--tp-border);
+              --color-toolkit-select-background-hover: var(--tp-border);
+              --color-toolkit-input-text-font: var(--tp-dark);
+              --color-toolkit-checkbox-onoff-on-mark-background: var(--tp-secondary);
+              --color-toolkit-checkbox-input-border: var(--tp-secondary);
+              --color-toolkit-dialog-border: var(--tp-border);
+              --color-toolkit-dialog-background: var(--tp-light);
+              --color-toolkit-engine-tooltip-border: var(--tp-border);
+              --color-toolkit-engine-tooltip-background: var(--tp-light);
+              --color-favicon-background-color: var(--tp-muted);
+              --color-favicon-border-color: var(--tp-border);
+            }
+
+            html {
+              font-family: 'Titillium Web', system-ui, sans-serif;
+            }
+
+            input,
+            button,
+            select,
+            textarea {
+              font-family: inherit;
+            }
+
+            /* the logo is drawn in the theme's blue, and the home page title is a blue PNG */
+            #search_logo svg [stroke='#3050ff'] {
+              stroke: var(--tp-secondary);
+            }
+
+            #search_logo svg [fill='#3050ff'] {
+              fill: var(--tp-secondary);
+            }
+
+            .index .title {
+              background: none;
+            }
+
+            .index .title h1 {
+              visibility: visible;
+              color: var(--tp-dark);
+              font-weight: 700;
+            }
+
+            .result h3 a,
+            #sidebar a {
+              font-weight: 600;
+            }
+
+            .result .content .highlight,
+            .result h3 a .highlight {
+              background: var(--tp-highlight);
+              border-radius: 3px;
+            }
+
+            .search_box {
+              border-radius: 5px;
+            }
+
+            #q {
+              border-radius: 5px 0 0 5px;
+            }
+
+            #send_search {
+              border-radius: 0 5px 5px 0;
+            }
+      config:
+        data:
+          settings.yml: |
+            use_default_settings: true
+            server:
+              base_url: https://search.${PRIVATE_DOMAIN}/
+              # only hashes cache keys, which live as long as the pod
+              secret_key: ultrasecretkey
+              # thumbnails load straight from the engines' CDNs: each took 250-430ms
+              # through the proxy. pages send no referrer
+              image_proxy: false
+            outgoing:
+              # results wait for the slowest engine, so drop one that takes longer than this.
+              # brave and google cse answer in about 0.6s
+              request_timeout: 1.5
+            search:
+              # the reddit engine queries this instance's JSON API
+              formats: [html, json]
+            hostnames:
+              replace:
+                '^(www\.|new\.|np\.)?reddit\.com$': old.reddit.com
+            engines:
+              # its SPARQL queries took 2.9s while every other engine answered in under 1s,
+              # and results wait for the slowest engine
+              - name: wikidata
+                disabled: true
+              # it answered last (0.9s, Brave and Google CSE 0.6s) and added 5 of 38 results,
+              # all below the first 10; !ddg still queries it
+              - name: duckduckgo
+                disabled: true
+              - name: hister
+                engine: json_engine
+                shortcut: hi
+                categories: [general]
+                # query={"highlight":"text","limit":20}, so results carry a text snippet
+                # engines are https-only unless enable_http is set
+                enable_http: true
+                search_url: http://hister.default.svc:4433/search?format=json&query=%7B%22highlight%22%3A%22text%22%2C%22limit%22%3A20%7D&q={query}
+                results_query: documents
+                url_query: url
+                title_query: title
+                content_query: text
+              - name: reddit
+                engine: json_engine
+                shortcut: r
+                categories: [social media]
+                # SearXNG has no reddit engine, so ask this instance for site:reddit.com results.
+                # google and bing are disabled upstream because they return no results
+                enable_http: true
+                search_url: http://localhost:8080/search?format=json&engines=duckduckgo,brave,startpage&q=site%3Areddit.com+{query}
+                results_query: results
+                url_query: url
+                title_query: title
+                content_query: content
+                # longer than the inner engines' 1.5s request timeout
+                timeout: 6
+    route:
+      main:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - search.${PRIVATE_DOMAIN}
+        rules:
+          - backendRefs:
+              - identifier: main
+                port: 8081

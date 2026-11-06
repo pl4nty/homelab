@@ -6,11 +6,19 @@ ENV CABAL_CONFIG=/etc/cabal/config
 ARG TARGETARCH
 # each step updates the index itself: a remote layer-cache hit skips the RUN, so the mount can be empty
 
+# before cabal.project, which fails to load while its vendor package is missing
+COPY blank-canvas.patch .
+RUN --mount=type=cache,id=cabal-$TARGETARCH,target=/root/.cabal \
+    cabal v2-update && cabal get -d vendor blank-canvas-0.7.5 && \
+    patch -d vendor/blank-canvas-0.7.5 -p1 < blank-canvas.patch
+
 COPY --from=src *.cabal .
+COPY cabal.project .
 RUN --mount=type=cache,id=cabal-$TARGETARCH,target=/root/.cabal \
     cabal v2-update && cabal v2-build --only-dependencies
 
 COPY --from=src . .
+COPY cabal.project .
 RUN --mount=type=cache,id=cabal-$TARGETARCH,target=/root/.cabal \
     cabal v2-update && cabal v2-build && \
     cp -r /root/.cabal /tmp

@@ -1,0 +1,85 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ipa-web${APP_SUFFIX:=}
+  namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
+spec:
+  interval: 15m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: default
+  values:
+    global:
+      createDefaultServiceAccount: false
+    controllers:
+      main:
+        strategy: Recreate
+        pod:
+          annotations:
+            # OTEL_* env only; the image is built with otelc (compile-time gin/net/http instrumentation)
+            instrumentation.opentelemetry.io/inject-sdk: "true"
+        containers:
+          main:
+            image:
+              repository: ghcr.io/pl4nty/ipa-web
+              tag: ${APP_IMAGE_TAG:=}
+            env:
+              # inject-sdk points at :4317 (gRPC); the Go SDK exports http/protobuf by default
+              OTEL_EXPORTER_OTLP_ENDPOINT: http://k8s-monitoring-alloy-receiver.monitoring-system:4318
+              GIN_MODE: release
+              DATA_DIR: /data
+              XDG_CACHE_HOME: /data/.cache
+              # Store hardware identity the Apple account already knows
+              MAC_ADDRESS: "09:26:2E:B0:AF:06"
+              CACHE_TTL: 24h
+            # downloads whole IPAs to /tmp, past the namespace's 100Mi LimitRange default
+            resources:
+              requests:
+                ephemeral-storage: 100Mi
+              limits:
+                ephemeral-storage: 4Gi
+            envFrom:
+              - secretRef:
+                  name: ipa-web
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+                spec:
+                  # first start downloads ~150MB of Apple and Unicorn runtime assets
+                  failureThreshold: 60
+                  periodSeconds: 10
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 8080
+    route:
+      main:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - ios-app-data${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
+        rules:
+          - backendRefs:
+              - identifier: main
+                port: 8080
+    persistence:
+      data:
+        accessMode: ReadWriteOnce
+        size: 2Gi
+        globalMounts:
+          - path: /data
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp

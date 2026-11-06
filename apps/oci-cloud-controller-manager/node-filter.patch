@@ -1,0 +1,475 @@
+diff --git a/cmd/oci-cloud-controller-manager/main.go b/cmd/oci-cloud-controller-manager/main.go
+index de52dfab..9883eaa2 100644
+--- a/cmd/oci-cloud-controller-manager/main.go
++++ b/cmd/oci-cloud-controller-manager/main.go
+@@ -19,9 +19,10 @@ import (
+ 	"fmt"
+ 	"math/rand"
+ 	"os"
++	"strings"
+ 	"time"
+ 
+-	_ "github.com/oracle/oci-cloud-controller-manager/pkg/cloudprovider/providers/oci"
++	oci "github.com/oracle/oci-cloud-controller-manager/pkg/cloudprovider/providers/oci"
+ 	"github.com/oracle/oci-cloud-controller-manager/pkg/logging"
+ 	"github.com/spf13/pflag"
+ 	"go.uber.org/zap"
+@@ -40,6 +41,7 @@ import (
+ 
+ var version string
+ var build string
++var nodeFilterRequirements string
+ 
+ func main() {
+ 	rand.Seed(time.Now().UTC().UnixNano())
+@@ -54,6 +56,12 @@ func main() {
+ 	}
+ 
+ 	fss := cliflag.NamedFlagSets{}
++	fss.FlagSet("node filtering").StringVar(
++		&nodeFilterRequirements,
++		"node-filter-requirements",
++		nodeFilterRequirements,
++		"Label selector for Nodes to be managed by the cloud controller manager (for example, 'platform=oci')",
++	)
+ 	command := app.NewCloudControllerManagerCommand(s, cloudInitializer, app.DefaultInitFuncConstructors, names.CCMControllerAliases(), fss, wait.NeverStop)
+ 
+ 	// TODO: once we switch everything over to Cobra commands, we can go back to calling
+@@ -76,6 +84,19 @@ func main() {
+ 
+ func cloudInitializer(config *config.CompletedConfig) cloudprovider.Interface {
+ 	cloudConfig := config.ComponentConfig.KubeCloudShared.CloudProvider
++
++	if strings.TrimSpace(nodeFilterRequirements) != "" {
++		nodeFilteredInformers, err := oci.NewNodeFilteredSharedInformerFactory(
++			config.VersionedClient,
++			app.ResyncPeriod(config)(),
++			nodeFilterRequirements,
++		)
++		if err != nil {
++			klog.Fatalf("Invalid node filter requirements %q: %v", nodeFilterRequirements, err)
++		}
++		config.SharedInformers = nodeFilteredInformers
++	}
++
+ 	// initialize cloud provider with the cloud provider name and config file provided
+ 	cloud, err := cloudprovider.InitCloudProvider(cloudConfig.Name, cloudConfig.CloudConfigFile)
+ 	if err != nil {
+@@ -85,6 +106,10 @@ func cloudInitializer(config *config.CompletedConfig) cloudprovider.Interface {
+ 		klog.Fatalf("Cloud provider is nil")
+ 	}
+ 
++	if ociCloud, ok := cloud.(*oci.CloudProvider); ok {
++		ociCloud.SetNodeFilterRequirements(nodeFilterRequirements)
++	}
++
+ 	if !cloud.HasClusterID() {
+ 		if config.ComponentConfig.KubeCloudShared.AllowUntaggedCloud {
+ 			klog.Warning("detected a cluster without a ClusterID.  A ClusterID will be required in the future.  Please tag your cluster to avoid any future issues")
+diff --git a/pkg/cloudprovider/providers/oci/ccm.go b/pkg/cloudprovider/providers/oci/ccm.go
+index f273ee34..cf03a6c0 100644
+--- a/pkg/cloudprovider/providers/oci/ccm.go
++++ b/pkg/cloudprovider/providers/oci/ccm.go
+@@ -30,7 +30,6 @@ import (
+ 	"k8s.io/apimachinery/pkg/selection"
+ 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+ 	"k8s.io/apimachinery/pkg/util/wait"
+-	"k8s.io/client-go/informers"
+ 	v1 "k8s.io/client-go/informers/core/v1"
+ 	clientset "k8s.io/client-go/kubernetes"
+ 	listersv1 "k8s.io/client-go/listers/core/v1"
+@@ -86,6 +85,8 @@ type CloudProvider struct {
+ 	instanceCache cache.Store
+ 	metricPusher  *metrics.MetricPusher
+ 
++	nodeFilterRequirements string
++
+ 	lbLocks *loadBalancerLocks
+ }
+ 
+@@ -183,7 +184,14 @@ func (cp *CloudProvider) Initialize(clientBuilder cloudprovider.ControllerClient
+ 		utilruntime.HandleError(fmt.Errorf("failed to create kubeclient: %v", err))
+ 	}
+ 
+-	factory := informers.NewSharedInformerFactory(cp.kubeclient, 5*time.Minute)
++	factory, err := NewNodeFilteredSharedInformerFactory(cp.kubeclient, 5*time.Minute, cp.nodeFilterRequirements)
++	if err != nil {
++		utilruntime.HandleError(fmt.Errorf("failed to create node-filtered informer factory: %w", err))
++		return
++	}
++	if strings.TrimSpace(cp.nodeFilterRequirements) != "" {
++		cp.logger.Infof("Restricting node-scoped reconciliation to Nodes matching %q", cp.nodeFilterRequirements)
++	}
+ 
+ 	nodeInfoController := NewNodeInfoController(
+ 		factory.Core().V1().Nodes(),
+@@ -272,6 +280,12 @@ func (cp *CloudProvider) Initialize(clientBuilder cloudprovider.ControllerClient
+ 	}
+ }
+ 
++// SetNodeFilterRequirements restricts node-scoped reconciliation to Nodes
++// matching the Kubernetes label selector.
++func (cp *CloudProvider) SetNodeFilterRequirements(requirements string) {
++	cp.nodeFilterRequirements = requirements
++}
++
+ // ProviderName returns the cloud-provider ID.
+ func (cp *CloudProvider) ProviderName() string {
+ 	return ProviderName()
+diff --git a/pkg/cloudprovider/providers/oci/node_filter.go b/pkg/cloudprovider/providers/oci/node_filter.go
+new file mode 100644
+index 00000000..9ec35d23
+--- /dev/null
++++ b/pkg/cloudprovider/providers/oci/node_filter.go
+@@ -0,0 +1,140 @@
++// Copyright (C) 2026, Oracle and/or its affiliates.
++//
++// Licensed under the Apache License, Version 2.0 (the "License");
++// you may not use this file except in compliance with the License.
++// You may obtain a copy of the License at
++//
++//     http://www.apache.org/licenses/LICENSE-2.0
++//
++// Unless required by applicable law or agreed to in writing, software
++// distributed under the License is distributed on an "AS IS" BASIS,
++// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++// See the License for the specific language governing permissions and
++// limitations under the License.
++
++package oci
++
++import (
++	"reflect"
++	"strings"
++	"time"
++
++	corev1 "k8s.io/api/core/v1"
++	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
++	"k8s.io/apimachinery/pkg/labels"
++	"k8s.io/apimachinery/pkg/runtime"
++	"k8s.io/apimachinery/pkg/runtime/schema"
++	"k8s.io/client-go/informers"
++	coreinformers "k8s.io/client-go/informers/core"
++	corev1informers "k8s.io/client-go/informers/core/v1"
++	internalinterfaces "k8s.io/client-go/informers/internalinterfaces"
++	"k8s.io/client-go/kubernetes"
++	"k8s.io/client-go/tools/cache"
++)
++
++var nodeGroupVersionResource = corev1.SchemeGroupVersion.WithResource("nodes")
++
++// NewNodeFilteredSharedInformerFactory creates a shared informer factory whose
++// Node informer is restricted by requirements. Informers for all other
++// resources remain unfiltered.
++func NewNodeFilteredSharedInformerFactory(
++	client kubernetes.Interface,
++	resyncPeriod time.Duration,
++	requirements string,
++) (informers.SharedInformerFactory, error) {
++	baseFactory := informers.NewSharedInformerFactory(client, resyncPeriod)
++	requirements = strings.TrimSpace(requirements)
++	if requirements == "" {
++		return baseFactory, nil
++	}
++
++	selector, err := labels.Parse(requirements)
++	if err != nil {
++		return nil, err
++	}
++
++	nodeFactory := informers.NewSharedInformerFactoryWithOptions(
++		client,
++		resyncPeriod,
++		informers.WithTweakListOptions(func(options *metav1.ListOptions) {
++			options.LabelSelector = selector.String()
++		}),
++	)
++
++	return &nodeFilteredSharedInformerFactory{
++		SharedInformerFactory: baseFactory,
++		nodeFactory:           nodeFactory,
++	}, nil
++}
++
++// nodeFilteredSharedInformerFactory delegates non-Node resources to the
++// unfiltered factory and Nodes to the filtered factory.
++type nodeFilteredSharedInformerFactory struct {
++	informers.SharedInformerFactory
++	nodeFactory informers.SharedInformerFactory
++}
++
++func (f *nodeFilteredSharedInformerFactory) Start(stopCh <-chan struct{}) {
++	f.SharedInformerFactory.Start(stopCh)
++	f.nodeFactory.Start(stopCh)
++}
++
++func (f *nodeFilteredSharedInformerFactory) Shutdown() {
++	f.SharedInformerFactory.Shutdown()
++	f.nodeFactory.Shutdown()
++}
++
++func (f *nodeFilteredSharedInformerFactory) WaitForCacheSync(stopCh <-chan struct{}) map[reflect.Type]bool {
++	synced := f.SharedInformerFactory.WaitForCacheSync(stopCh)
++	for resourceType, result := range f.nodeFactory.WaitForCacheSync(stopCh) {
++		synced[resourceType] = result
++	}
++	return synced
++}
++
++func (f *nodeFilteredSharedInformerFactory) ForResource(resource schema.GroupVersionResource) (informers.GenericInformer, error) {
++	if resource == nodeGroupVersionResource {
++		return f.nodeFactory.ForResource(resource)
++	}
++	return f.SharedInformerFactory.ForResource(resource)
++}
++
++func (f *nodeFilteredSharedInformerFactory) InformerFor(
++	obj runtime.Object,
++	newFunc internalinterfaces.NewInformerFunc,
++) cache.SharedIndexInformer {
++	if _, ok := obj.(*corev1.Node); ok {
++		// A caller-provided newFunc may create an unfiltered Node informer, so
++		// always return the canonical informer configured with the Node selector.
++		return f.nodeFactory.Core().V1().Nodes().Informer()
++	}
++	return f.SharedInformerFactory.InformerFor(obj, newFunc)
++}
++
++func (f *nodeFilteredSharedInformerFactory) Core() coreinformers.Interface {
++	return &nodeFilteredCoreInformers{
++		Interface:  f.SharedInformerFactory.Core(),
++		nodeCoreV1: f.nodeFactory.Core().V1(),
++	}
++}
++
++type nodeFilteredCoreInformers struct {
++	coreinformers.Interface
++	nodeCoreV1 corev1informers.Interface
++}
++
++func (i *nodeFilteredCoreInformers) V1() corev1informers.Interface {
++	return &nodeFilteredCoreV1Informers{
++		Interface:  i.Interface.V1(),
++		nodeCoreV1: i.nodeCoreV1,
++	}
++}
++
++type nodeFilteredCoreV1Informers struct {
++	corev1informers.Interface
++	nodeCoreV1 corev1informers.Interface
++}
++
++func (i *nodeFilteredCoreV1Informers) Nodes() corev1informers.NodeInformer {
++	return i.nodeCoreV1.Nodes()
++}
+diff --git a/pkg/cloudprovider/providers/oci/node_filter_test.go b/pkg/cloudprovider/providers/oci/node_filter_test.go
+new file mode 100644
+index 00000000..93902910
+--- /dev/null
++++ b/pkg/cloudprovider/providers/oci/node_filter_test.go
+@@ -0,0 +1,205 @@
++// Copyright (C) 2026, Oracle and/or its affiliates.
++//
++// Licensed under the Apache License, Version 2.0 (the "License");
++// you may not use this file except in compliance with the License.
++// You may obtain a copy of the License at
++//
++//     http://www.apache.org/licenses/LICENSE-2.0
++//
++// Unless required by applicable law or agreed to in writing, software
++// distributed under the License is distributed on an "AS IS" BASIS,
++// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++// See the License for the specific language governing permissions and
++// limitations under the License.
++
++package oci
++
++import (
++	"testing"
++	"time"
++
++	corev1 "k8s.io/api/core/v1"
++	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
++	"k8s.io/apimachinery/pkg/labels"
++	corev1informers "k8s.io/client-go/informers/core/v1"
++	"k8s.io/client-go/kubernetes"
++	"k8s.io/client-go/kubernetes/fake"
++	"k8s.io/client-go/tools/cache"
++)
++
++func TestNewNodeFilteredSharedInformerFactory(t *testing.T) {
++	ociNode := &corev1.Node{
++		ObjectMeta: metav1.ObjectMeta{
++			Name: "oci-node",
++			Labels: map[string]string{
++				"platform": "oci",
++			},
++		},
++	}
++	otherNode := &corev1.Node{
++		ObjectMeta: metav1.ObjectMeta{
++			Name: "other-node",
++			Labels: map[string]string{
++				"platform": "other",
++			},
++		},
++	}
++	service := &corev1.Service{
++		ObjectMeta: metav1.ObjectMeta{
++			Name:      "load-balancer",
++			Namespace: "default",
++		},
++	}
++	kubeClient := fake.NewSimpleClientset(ociNode, otherNode, service)
++
++	factory, err := NewNodeFilteredSharedInformerFactory(
++		kubeClient,
++		0,
++		"platform=oci",
++	)
++	if err != nil {
++		t.Fatalf("NewNodeFilteredSharedInformerFactory returned an error: %v", err)
++	}
++
++	nodeInformer := factory.Core().V1().Nodes()
++	serviceInformer := factory.Core().V1().Services()
++	nodeSharedInformer := nodeInformer.Informer()
++	serviceSharedInformer := serviceInformer.Informer()
++	stopCh := make(chan struct{})
++	t.Cleanup(func() {
++		close(stopCh)
++	})
++	factory.Start(stopCh)
++
++	if !cache.WaitForCacheSync(
++		stopCh,
++		nodeSharedInformer.HasSynced,
++		serviceSharedInformer.HasSynced,
++	) {
++		t.Fatal("timed out waiting for informer caches to sync")
++	}
++
++	nodes, err := nodeInformer.Lister().List(labels.Everything())
++	if err != nil {
++		t.Fatalf("failed to list Nodes: %v", err)
++	}
++	if len(nodes) != 1 || nodes[0].Name != ociNode.Name {
++		t.Fatalf("expected only %q, got %#v", ociNode.Name, nodeNames(nodes))
++	}
++
++	services, err := serviceInformer.Lister().List(labels.Everything())
++	if err != nil {
++		t.Fatalf("failed to list Services: %v", err)
++	}
++	if len(services) != 1 || services[0].Name != service.Name {
++		t.Fatalf("expected the Node selector not to filter Services, got %d Services", len(services))
++	}
++}
++
++func TestNewNodeFilteredSharedInformerFactoryInformerForMaintainsNodeFilter(t *testing.T) {
++	ociNode := &corev1.Node{
++		ObjectMeta: metav1.ObjectMeta{
++			Name: "oci-node",
++			Labels: map[string]string{
++				"platform": "oci",
++			},
++		},
++	}
++	otherNode := &corev1.Node{
++		ObjectMeta: metav1.ObjectMeta{
++			Name: "other-node",
++			Labels: map[string]string{
++				"platform": "other",
++			},
++		},
++	}
++	kubeClient := fake.NewSimpleClientset(ociNode, otherNode)
++
++	factory, err := NewNodeFilteredSharedInformerFactory(kubeClient, 0, "platform=oci")
++	if err != nil {
++		t.Fatalf("NewNodeFilteredSharedInformerFactory returned an error: %v", err)
++	}
++
++	directInformer := factory.InformerFor(
++		&corev1.Node{},
++		func(client kubernetes.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
++			return corev1informers.NewNodeInformer(
++				client,
++				resyncPeriod,
++				cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc},
++			)
++		},
++	)
++	nodeInformer := factory.Core().V1().Nodes()
++	typedInformer := nodeInformer.Informer()
++	if directInformer != typedInformer {
++		t.Fatal("expected direct and typed Node informer accessors to share an informer")
++	}
++
++	stopCh := make(chan struct{})
++	t.Cleanup(func() {
++		close(stopCh)
++	})
++	factory.Start(stopCh)
++
++	if !cache.WaitForCacheSync(stopCh, directInformer.HasSynced) {
++		t.Fatal("timed out waiting for informer cache to sync")
++	}
++
++	nodes, err := nodeInformer.Lister().List(labels.Everything())
++	if err != nil {
++		t.Fatalf("failed to list Nodes: %v", err)
++	}
++	if len(nodes) != 1 || nodes[0].Name != ociNode.Name {
++		t.Fatalf("expected only %q, got %#v", ociNode.Name, nodeNames(nodes))
++	}
++}
++
++func TestNewNodeFilteredSharedInformerFactoryEmptyRequirements(t *testing.T) {
++	kubeClient := fake.NewSimpleClientset(
++		&corev1.Node{ObjectMeta: metav1.ObjectMeta{Name: "node-one"}},
++		&corev1.Node{ObjectMeta: metav1.ObjectMeta{Name: "node-two"}},
++	)
++
++	factory, err := NewNodeFilteredSharedInformerFactory(kubeClient, 0, " ")
++	if err != nil {
++		t.Fatalf("NewNodeFilteredSharedInformerFactory returned an error: %v", err)
++	}
++
++	nodeInformer := factory.Core().V1().Nodes()
++	nodeSharedInformer := nodeInformer.Informer()
++	stopCh := make(chan struct{})
++	t.Cleanup(func() {
++		close(stopCh)
++	})
++	factory.Start(stopCh)
++
++	if !cache.WaitForCacheSync(stopCh, nodeSharedInformer.HasSynced) {
++		t.Fatal("timed out waiting for informer cache to sync")
++	}
++
++	nodes, err := nodeInformer.Lister().List(labels.Everything())
++	if err != nil {
++		t.Fatalf("failed to list Nodes: %v", err)
++	}
++	if len(nodes) != 2 {
++		t.Fatalf("expected an empty selector to include both Nodes, got %d", len(nodes))
++	}
++}
++
++func TestNewNodeFilteredSharedInformerFactoryInvalidRequirements(t *testing.T) {
++	kubeClient := fake.NewSimpleClientset()
++
++	_, err := NewNodeFilteredSharedInformerFactory(kubeClient, time.Minute, "platform in (")
++	if err == nil {
++		t.Fatal("expected invalid Node filter requirements to return an error")
++	}
++}
++
++func nodeNames(nodes []*corev1.Node) []string {
++	names := make([]string, 0, len(nodes))
++	for _, node := range nodes {
++		names = append(names, node.Name)
++	}
++	return names
++}

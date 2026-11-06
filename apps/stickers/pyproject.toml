@@ -7,22 +7,22 @@ name = "stickersplit"
 version = "0.3.0"
 description = "A sticker catalogue: upload scans, review Claude-tagged stickers, approve, browse."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.13"
 license = "MIT"
 authors = [{ name = "Tom Plant" }]
 dependencies = [
-  "numpy==2.2.6",
+  "numpy==2.5.4",
   "opencv-python-headless==5.0.0.93",
   "pillow>=10",
   "anthropic==2.3.0",
-  "pydantic==2.14.1",
+  "pydantic==2.14.2",
   "fastapi==0.162.0",
   "uvicorn==0.54.0",
   "python-multipart==0.0.32",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest==9.1.1", "httpx==0.28.1"]
+dev = ["pytest==9.2.0", "httpx==0.28.1"]
 
 [project.scripts]
 stickers = "stickersplit.server:main"

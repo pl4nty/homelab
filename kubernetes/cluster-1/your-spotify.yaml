@@ -12,18 +12,15 @@ spec:
   values:
     global:
       createDefaultServiceAccount: false
-    # defaultPodOptions:
-    #   nodeSelector:
-    #     kubernetes.io/arch: arm64
     controllers:
       # Server
       main:
         strategy: &strat RollingUpdate
         rollingUpdate: &ru
           unavailable: 0
-        # pod: &pod
-        #   annotations:
-        #     instrumentation.opentelemetry.io/inject-nodejs: "true"
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-nodejs: "true"
         containers:
           main:
             image:
@@ -51,7 +48,6 @@ spec:
       client:
         strategy: *strat
         rollingUpdate: *ru
-        # pod: *pod
         containers:
           main:
             image:
@@ -68,7 +64,6 @@ spec:
         type: statefulset
         # default, but there's a bug where statefulset is null by default
         # so statefulset.podManagementPolicy reference fails
-        rollingUpdate: *ru
         statefulset:
           podManagementPolicy: OrderedReady
         containers:

@@ -210,19 +210,8 @@ function sheet() {
   return d;
 }
 
-const ENGINES = {
-  'Google Lens': (u) => `https://lens.google.com/uploadbyurl?url=${u}`,
-  Bing: (u) => `https://www.bing.com/images/search?view=detailv2&iss=sbi&q=imgurl:${u}`,
-  TinEye: (u) => `https://tineye.com/search?url=${u}`,
-  Yandex: (u) => `https://yandex.com/images/search?rpt=imageview&url=${u}`,
-};
 const findOnline = (m) =>
-  `<div class="field"><span>Find this sticker online</span><div class="find">${Object.entries(ENGINES)
-    .map(
-      ([name, url]) =>
-        `<a class="btn" target="_blank" rel="noopener noreferrer" href="${esc(url(encodeURIComponent(pngUrl(m))))}">${name}</a>`,
-    )
-    .join('')}</div></div>`;
+  `<div class="field"><span>Find this sticker online</span><div class="find"><a class="btn" target="_blank" rel="noopener noreferrer" href="https://lens.google.com/uploadbyurl?url=${esc(encodeURIComponent(pngUrl(m)))}">Google Lens</a></div></div>`;
 const date = (s) =>
   s ? new Date(s).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' }) : '';
 const detail = (label, value) => (value ? `<div><dt>${label}</dt><dd>${esc(value)}</dd></div>` : '');
@@ -664,7 +653,6 @@ function uploadPanel(onProgress) {
     <form class="upload">
       <label class="drop wide"><input type="file" name="file" accept="image/*,.tif,.tiff" required><span>Choose a scan, or drop it here</span></label>
       <label class="field"><span>Your name</span><input name="creator" autocomplete="name"></label>
-      <label class="field"><span>How you got these, for every sticker in the scan</span><input name="comment" placeholder="BSides Perth 2026 swag table"></label>
       <div class="wide"><button class="btn primary">Upload scan</button></div>
     </form>
     <ul class="jobs"></ul></section>`);
