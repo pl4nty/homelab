@@ -112,7 +112,7 @@ docker build -t stickers .        # runs the tests; the image runs as uid 1000
 
 - Mount one persistent volume at `/data`.
 - Put `SUBMIT_TOKEN`, `ADMIN_TOKEN` and `ANTHROPIC_API_KEY` in a Secret.
-- `kubernetes/cluster-1/apps/stickers.yaml` does all three, and each PR gets a preview at `stickers-pr-<n>` with its own empty volume and serves it through the cluster's Cloudflare tunnel. The app enforces read-only access itself, so it needs no method allow-list in front of it. The zone caches every URL, so API responses are `no-store` and the public list revalidates by ETag.
+- `kubernetes/cluster-1/apps/stickers.yaml` does all three and serves it through the cluster's Cloudflare tunnel. Each PR gets a preview at `stickers-pr-<n>`, with its own empty volume. The app enforces read-only access itself, so it needs no method allow-list in front of it. The zone caches every URL, so API responses are `no-store` and the public list revalidates by ETag.
 
 ## Scanning
 
