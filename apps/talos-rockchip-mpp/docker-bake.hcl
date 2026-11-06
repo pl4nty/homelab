@@ -8,8 +8,8 @@ target "default" {
   platforms  = ["linux/arm64"]
   # as siderolabs/extensions, which builds with --provenance=false
   attest = ["type=provenance,disabled=true"]
-  # the modules only load on this Talos version, so talos/hardware/rk1-schematic.yaml pins it like Sidero's extensions
-  tags = ["ghcr.io/pl4nty/${APP}:${TAG}", "ghcr.io/pl4nty/${APP}:${ABBREV_TAG}"]
+  # the modules only load on this Talos version, so it tags main's build with it like Sidero's extensions
+  tags = concat(["ghcr.io/pl4nty/${APP}:${TAG}"], LATEST ? ["ghcr.io/pl4nty/${APP}:${ABBREV_TAG}"] : [])
   # siderolabs/extensions v1.14.5
   args = {
     ABBREV_TAG   = ABBREV_TAG
