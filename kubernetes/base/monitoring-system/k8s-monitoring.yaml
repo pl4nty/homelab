@@ -110,11 +110,47 @@ spec:
 
     clusterMetrics:
       enabled: true
-      # TODO enable after cluster consolidation, with includeMetrics since control plane sources have no default allowlist
-      # controlPlane:
-      #   enabled: true
-      # kubeProxy:
-      #   enabled: true
+      # control plane sources have no default allowlist, and a full apiserver scrape is thousands of
+      # series per instance. these keep health and leader signals only, ~100 series.
+      # Talos binds the scheduler and controller-manager to localhost unless talos/control-plane
+      # sets bind-address
+      controlPlane:
+        enabled: true
+      apiServer:
+        # 5xx only: a request counter per resource, verb and code would be ~500 series per apiserver
+        extraMetricProcessingRules: |-
+          rule {
+            source_labels = ["__name__","code"]
+            separator     = "@"
+            regex         = "apiserver_request_total@[^5].*"
+            action        = "drop"
+          }
+        metricsTuning:
+          includeMetrics:
+            - apiserver_current_inflight_requests
+            - apiserver_request_total
+            - apiserver_requested_deprecated_apis
+            - apiserver_storage_size_bytes
+            - kubernetes_build_info
+      kubeControllerManager:
+        metricsTuning:
+          includeMetrics:
+            - leader_election_master_status
+      kubeScheduler:
+        metricsTuning:
+          includeMetrics:
+            - leader_election_master_status
+            - scheduler_pending_pods
+            - scheduler_schedule_attempts_total
+      kubeDNS:
+        metricsTuning:
+          includeMetrics:
+            - coredns_dns_responses_total
+            - coredns_forward_healthcheck_broken_total
+            - coredns_panics_total
+      # Talos kube-proxy serves metrics on localhost only
+      kubeProxy:
+        enabled: false
       kubelet:
         metricsTuning:
           excludeMetrics:
@@ -351,6 +387,53 @@ spec:
         presets:
           - clustered
           - statefulset
+        # etcd runs as a Talos service rather than a pod, so it's scraped by node. it serves plain
+        # HTTP metrics on 2381 once talos/control-plane sets listen-metrics-urls.
+        # leader, size and disk latency only (eMMC and power loss, see the 2026-11-03 incident), ~130 series
+        extraConfig: |-
+          discovery.kubernetes "etcd" {
+            role = "node"
+
+            selectors {
+              role  = "node"
+              label = "node-role.kubernetes.io/control-plane"
+            }
+          }
+
+          discovery.relabel "etcd" {
+            targets = discovery.kubernetes.etcd.targets
+
+            rule {
+              source_labels = ["__meta_kubernetes_node_address_InternalIP"]
+              replacement   = "$1:2381"
+              target_label  = "__address__"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_node_name"]
+              target_label  = "instance"
+            }
+          }
+
+          prometheus.scrape "etcd" {
+            targets    = discovery.relabel.etcd.output
+            job_name   = "integrations/etcd"
+            forward_to = [prometheus.relabel.etcd.receiver]
+
+            clustering {
+              enabled = true
+            }
+          }
+
+          prometheus.relabel "etcd" {
+            rule {
+              source_labels = ["__name__"]
+              regex         = "up|etcd_server_has_leader|etcd_server_leader_changes_seen_total|etcd_server_proposals_failed_total|etcd_mvcc_db_total_size_in_(use_in_)?bytes|etcd_disk_(wal_fsync|backend_commit)_duration_seconds_(bucket|sum|count)"
+              action        = "keep"
+            }
+
+            forward_to = [prometheus.remote_write.metrics.receiver]
+          }
       alloy-singleton:
         presets:
           - singleton

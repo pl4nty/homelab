@@ -52,3 +52,21 @@ accepted:
   audiences:
     - https://192.168.1.200:6443
     - https://192.168.1.131:6443
+---
+# metrics for k8s-monitoring's control plane scrape (kubernetes/base/monitoring-system/k8s-monitoring.yaml).
+# Talos binds both to localhost. the secure ports still need a token allowed to GET /metrics
+apiVersion: v1alpha1
+kind: KubeControllerManagerConfig
+extraArgs:
+  bind-address: 0.0.0.0
+---
+apiVersion: v1alpha1
+kind: KubeSchedulerConfig
+extraArgs:
+  bind-address: 0.0.0.0
+---
+# etcd has no 1.14 document yet. plain HTTP, metrics and /health only
+cluster:
+  etcd:
+    extraArgs:
+      listen-metrics-urls: http://0.0.0.0:2381
