@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/browserless/chromium
-              tag: v2.55.0@sha256:bba9dc2014f90289d4b845dfe12b38bd00b25b2cd732d5b16778c5229f2da7e1
+              tag: v2.57.3@sha256:40dff7c23e0e378ba451c23ef66394ffb81bd11e6b9fe8ef3066d59eb402cc5d
               pullPolicy: IfNotPresent
             env:
               TZ: ${TIMEZONE}

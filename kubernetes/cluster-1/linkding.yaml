@@ -18,7 +18,7 @@ spec:
           main:
             image:
               repository: ghcr.io/sissbruecker/linkding
-              tag: 1.45.0
+              tag: 1.47.0@sha256:e35cb50e0581178f245125ffaa909c565416c94c9f22ace305a7d234a4345522
             env:
               TZ: ${TIMEZONE}
               SECURE_REFERRER_POLICY: origin
@@ -48,8 +48,9 @@ spec:
       overrides:
         type: configMap
         name: "{{ .Release.Name }}"
+        # 1.45 moved head.html from bookmarks/ to shared/. check the upstream template on upgrades
         globalMounts:
-          - path: /etc/linkding/bookmarks/templates/bookmarks/head.html
+          - path: /etc/linkding/bookmarks/templates/shared/head.html
             subPath: head.html
     configMaps:
       overrides:
@@ -67,7 +68,12 @@ spec:
               <meta name="apple-mobile-web-app-capable" content="yes">
               <meta name="viewport" content="width=device-width, initial-scale=1.0, minimal-ui">
               <meta name="description" content="Useful apps I've made or found on the web">
-              <meta name="robots" content="index,follow">
+              {# tag links append to the query (?q=#a+#a+#b...), so crawlers never run out of search URLs #}
+              {% if request.GET.q %}
+                <meta name="robots" content="noindex,nofollow">
+              {% else %}
+                <meta name="robots" content="index,follow">
+              {% endif %}
               <meta name="author" content="Tom Plant">
               <title>apps.tplant.com.au</title>
               {# Include specific theme variant based on user profile setting #}
@@ -97,4 +103,7 @@ spec:
                 <link rel="alternate" type="application/rss+xml" href="{{ rss_feed_url }}" />
               {% endif %}
               <script src="{% static "bundle.js" %}?v={{ app_version }}"></script>
+              {% if debug %}
+                <script src="{% static "live-reload.js" %}"></script>
+              {% endif %}
             </head>`}}

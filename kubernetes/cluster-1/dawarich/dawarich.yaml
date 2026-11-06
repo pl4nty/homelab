@@ -1,0 +1,146 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app dawarich
+  namespace: default
+spec:
+  interval: 15m
+  # the first install pulls a ~700MB image on an RK1, then migrates and seeds an empty database
+  timeout: 15m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    global:
+      createDefaultServiceAccount: false
+    defaultPodOptions:
+      # keep off the 8GiB amd64 control plane node
+      nodeSelector:
+        kubernetes.io/arch: arm64
+      # upstream's stop_grace_period, so embedded Sidekiq can requeue running jobs
+      terminationGracePeriodSeconds: 60
+    controllers:
+      main:
+        # RWO volumes can't attach to two nodes during a rollout
+        strategy: Recreate
+        # a native sidecar starts before the app and stops after it, so Sidekiq can
+        # push unfinished jobs back to Redis before Redis saves and exits
+        initContainers:
+          redis:
+            image:
+              repository: docker.io/library/redis
+              tag: 8.10.1-alpine@sha256:ef216d85ec44f4fdf7c0e6df2d1757a4734ed32fbb278cabd3181b5a27353b79
+            restartPolicy: Always
+            # upstream's snapshot schedule, so queued jobs survive restarts
+            args: [--save, "900", "1", --save, "300", "10", --appendonly, "no"]
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 256Mi
+        containers:
+          main:
+            image:
+              repository: docker.io/freikin/dawarich
+              tag: 1.20.1@sha256:0640f5adafd7acfcd8a3c79bb3bd0162d5df9108ebcde8734785f8925d2a01a4
+            # the image entrypoint is only `bundle exec`. this one also migrates and seeds
+            command: [web-entrypoint.sh]
+            args: [bin/rails, server, -p, "3000", -b, "::"]
+            env:
+              RAILS_ENV: production
+              SELF_HOSTED: "true"
+              TIME_ZONE: ${TIMEZONE}
+              APPLICATION_HOSTS: dawarich.${PRIVATE_DOMAIN}
+              # not DATABASE_URL: Rails would take the adapter from its postgresql:// scheme
+              # instead of postgis, and the spatial columns would break
+              DATABASE_HOST:
+                secretKeyRef:
+                  name: dawarich-cnpg-app
+                  key: host
+              DATABASE_PORT:
+                secretKeyRef:
+                  name: dawarich-cnpg-app
+                  key: port
+              DATABASE_USERNAME:
+                secretKeyRef:
+                  name: dawarich-cnpg-app
+                  key: username
+              DATABASE_PASSWORD:
+                secretKeyRef:
+                  name: dawarich-cnpg-app
+                  key: password
+              DATABASE_NAME:
+                secretKeyRef:
+                  name: dawarich-cnpg-app
+                  key: dbname
+              REDIS_URL: redis://localhost:6379
+              # jobs run inside Puma, so one container does web and background work
+              SIDEKIQ_EMBEDDED: "true"
+              WEB_CONCURRENCY: "0"
+              BACKGROUND_PROCESSING_CONCURRENCY: "2"
+            # SECRET_KEY_BASE
+            envFrom:
+              - secretRef:
+                  name: *app
+            probes:
+              liveness: &probe
+                enabled: true
+                type: HTTP
+                path: /api/v1/health
+                spec:
+                  # imports share the process with web requests
+                  timeoutSeconds: 5
+              readiness: *probe
+              startup:
+                enabled: true
+                type: HTTP
+                path: /api/v1/health
+                spec:
+                  # an empty database takes minutes to migrate and seed
+                  periodSeconds: 10
+                  failureThreshold: 60
+            resources:
+              requests:
+                cpu: 50m
+                memory: 512Mi
+              # upstream's memory limit. imports parse whole files in memory
+              limits:
+                memory: 4Gi
+                ephemeral-storage: 1Gi
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 3000
+    persistence:
+      data:
+        # keep data if a failed install is remediated by uninstalling
+        retain: true
+        accessMode: ReadWriteOnce
+        size: 10Gi
+        advancedMounts:
+          main:
+            main:
+              # uploaded imports and exports
+              - path: /var/app/storage
+                subPath: storage
+              # files copied into watched/<user email>/ are imported hourly
+              - path: /var/app/tmp/imports/watched
+                subPath: watched
+            redis:
+              - path: /data
+                subPath: redis
+    route:
+      main:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - dawarich.${PRIVATE_DOMAIN}
+        rules:
+          - backendRefs:
+              - name: *app
+                port: 3000

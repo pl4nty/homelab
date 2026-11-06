@@ -1,0 +1,23 @@
+kind: Secret
+apiVersion: v1
+metadata:
+  name: radarr
+  namespace: default
+type: Opaque
+stringData:
+  RADARR_API_KEY: ENC[AES256_GCM,data:HWsKQhZHNgfMc++UPn8WcV5plFWgm1hkjBET+HZTha4=,iv:HWvccKUVKrEnfcnw04BWGRU1/XWqGztVgs/gPwTcZPc=,tag:sMSjRKACazSps52Wvh892Q==,type:str]
+sops:
+  age:
+    - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSAzcDNrRW1BVmlzc3ZHajNl
+        TlpiWnoxV29GUllXbFVpQmxQbDMyWUd3TGtNCnNGa2hOMG8vaytUQUlPVXE0bkV0
+        ZEtyVDFYVmdEZ1kxeklRVXZnVnVQNVkKLS0tIHJSNmFiRFhKMTJBT0pYZWFQNEd3
+        V0JVSzd1OHFPOGUvMHBYN09UR2lzcG8K4pMwv0lC74PApqoeO1EsWbP5A1a3kkL6
+        jXDiTWhYKCXqSHfKfYme7XT4atQ/kEruOLCQ7ZudHS42KSQvTTpkwA==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2026-11-04T10:27:05Z"
+  mac: ENC[AES256_GCM,data:BP/tVZOsI0YTaWpZ6ZJYs1OLX6YzcAdF5ScEwbbk7Vc/Dm0r/clOoU0BBs0FWVUlIdIEy8G/NxeWwKZW0MViBHuuek8lR18bnFB6ZjAuUPISgVMoG59RrD9kNmCFUGLP4Z/07DS4515SYhO/gi1RWG9OGsWIEfdz4NXERgDlLqY=,iv:CIlPaYeSgGP2UnshG11aal7JPT3lcRwBJCUcrWC5Ex4=,tag:EGUneo9Q48cnm2GgSZor3A==,type:str]
+  encrypted_regex: ^(data|stringData)$
+  version: 3.12.2

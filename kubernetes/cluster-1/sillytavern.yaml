@@ -19,7 +19,7 @@ spec:
           main:
             image:
               repository: ghcr.io/sillytavern/sillytavern
-              tag: 1.18.0
+              tag: 1.19.0@sha256:eef27ff0c7961f1a2f488400f581f48ff38f8b910c5d3b8d389138d71791bb14
             env:
               TZ: "${TIMEZONE}"
               SILLYTAVERN_LISTEN: "true"
