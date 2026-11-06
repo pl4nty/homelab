@@ -6,12 +6,14 @@ ENV CABAL_CONFIG=/etc/cabal/config
 ARG TARGETARCH
 # each step updates the index itself: a remote layer-cache hit skips the RUN, so the mount can be empty
 
-COPY *.cabal .
+COPY *.cabal cabal.project blank-canvas.patch .
 RUN --mount=type=cache,id=cabal-$TARGETARCH,target=/root/.cabal \
-    cabal v2-update && cabal v2-build --only-dependencies
+    cabal v2-update && cabal get -d vendor blank-canvas-0.7.5 && \
+    patch -d vendor/blank-canvas-0.7.5 -p1 < blank-canvas.patch && \
+    cabal v2-build --only-dependencies
 
 COPY --from=src . .
-COPY *.cabal .
+COPY *.cabal cabal.project .
 RUN --mount=type=cache,id=cabal-$TARGETARCH,target=/root/.cabal \
     cabal v2-update && cabal v2-build && \
     cp -r /root/.cabal /tmp
