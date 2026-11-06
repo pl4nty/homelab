@@ -17,9 +17,8 @@ spec:
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0
-        pod:
-          annotations:
-            instrumentation.opentelemetry.io/inject-java: "true"
+        # no OTel java agent: on cluster-1 the operator mounts it at /otel-auto-instrumentation-java-main but
+        # points -javaagent at /otel-auto-instrumentation-java, so the JVM exits at startup
         containers:
           main:
             image:
