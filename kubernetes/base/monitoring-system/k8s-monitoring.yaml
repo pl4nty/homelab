@@ -257,8 +257,37 @@ spec:
             - resource.attributes["k8s.namespace.name"] == "toolhive-system" and IsMatch(attributes["mcp.method.name"], "^(initialize|server/discover|notifications/.*|(tools|prompts|resources|resources/templates)/list)$")
             - resource.attributes["k8s.namespace.name"] == "toolhive-system" and attributes["http.request.method"] == "DELETE" and attributes["url.path"] == "/mcp"
       collector: alloy-receiver
-    # eBPF, but we already have OTel
-    # autoInstrumentation:
+    # eBPF HTTP/gRPC/SQL spans (Beyla, built on OBI) for apps without an OTel SDK: nginx, static-web-server,
+    # Haskell, bun, Go, Ruby, PHP, C++. one privileged pod per node instead of the operator's per-pod Go sidecar.
+    # it skips processes that already export OTLP, so operator-injected apps aren't traced twice
+    autoInstrumentation:
+      enabled: true
+      # scrapes Beyla's metrics endpoint, which drops everything below
+      collector: alloy-metrics
+      beyla:
+        # each node watches the API itself, instead of a 256Mi cache Deployment
+        k8sCache:
+          replicas: 0
+        # traces only. Beyla's RED/network metrics would cost thousands of active series
+        metricsTuning:
+          excludeMetrics:
+            - .+
+        resources:
+          requests:
+            cpu: 10m
+            memory: 128Mi
+          limits:
+            memory: 512Mi
+        config:
+          data:
+            # the chart requires a metrics endpoint. keep the cheapest feature, since they're all dropped
+            prometheus_export:
+              features:
+                - application
+            discovery:
+              instrument:
+                - k8s_namespace: default
+              exclude_otel_instrumented_services: true
     # just use prom CRDs
     # annotationAutodiscovery:
     prometheusOperatorObjects:
