@@ -1,5 +1,4 @@
-# Upstream's Dockerfile plus two open upstream PRs, as their diffs without docs; drop each patch once a
-# release includes it:
+# Upstream's Dockerfile plus these patches (diffs without docs); drop each once a release includes the fix:
 # - node-filter.patch, oracle/oci-cloud-controller-manager#544 (--node-filter-requirements), so the CCM only
 #   reconciles Oracle nodes in this mixed cluster
 # - skip-unmapped-nodes.patch, ours: getNodeIpFamily and getCompartmentIDByInstanceID gave up on the first
