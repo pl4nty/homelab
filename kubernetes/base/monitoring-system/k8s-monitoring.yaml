@@ -128,7 +128,7 @@ spec:
       cadvisor:
         metricsTuning:
           excludeMetrics:
-            # no swap on Talos or OKE
+            # no swap on Talos
             - container_memory_swap
             # only feeds a recording rule for the mixin dashboards
             - container_memory_cache
