@@ -89,9 +89,12 @@ APP=talos-rockchip-mpp docker buildx bake -f apps/docker-bake.hcl -f apps/talos-
 ## Install
 
 topf installs it on the RK1s. `talos/docker-bake.hcl` builds their installer from
-`talos/hardware/rk1-schematic.yaml`. Nothing loads the modules yet: rk3588_mpp_dt applies its overlay to devices that
-are already bound, which oopsed talos-d04-4hs on 2026-11-06.
-CI also tags it with its Talos version, which that schematic uses.
+`talos/hardware/rk1-schematic.yaml`. `talos/control-plane/rk1.yaml` loads
+rk_vcodec and rga3, which pull in vsi_iommu and rk3588_mpp_dt.
+
+Hardware encoding works. Hardware decoding doesn't yet: every rkvdec2 job ends
+in a hardware timeout (`resetting for err 0x23`), so Jellyfin decodes in software.
+CI also tags main's build with its Talos version. The schematic pins a digest, so a rebuild gets a new installer.
 
 ## Test plan
 

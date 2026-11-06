@@ -13,5 +13,6 @@ customization:
       - ghcr.io/siderolabs/iscsi-tools:v0.2.0@sha256:584e1d106e424d3e17ddd43bddf892b386748f10d11a9fd024a358f0d42c0a2e
       - ghcr.io/siderolabs/panfrost:20260916-v1.14.5@sha256:ffd2926079a78339e75374f59bad1e83264341d36b977af854c15c3762a8c3b1
       - ghcr.io/siderolabs/util-linux-tools:2.42.2@sha256:f93f23e96b28e00228cf9a006a15c1648bd5975be989adb1bee6c05c046001a1
-      # built for one Talos kernel, so rebuild it with talosVersion
-      - ghcr.io/pl4nty/talos-rockchip-mpp:v1.14.5
+      # built for one Talos kernel, so rebuild it with talosVersion. Its digest is in the
+      # schematic ID, so a rebuild gets a new installer
+      - ghcr.io/pl4nty/talos-rockchip-mpp:sha-c5c3202e57df67d6fd9e9f9ffe2551d48dfd3855@sha256:d3aa831bc8673a98e03e8a15fc963e8b4e3b5fda6d62b24c41fbb4a59713c4d5
