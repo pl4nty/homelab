@@ -13,14 +13,17 @@ nodes:
     ip: 192.168.1.133
     role: control-plane
     schematicId: "@hardware/rk1-schematic.yaml"
+    factory: ghcr.io/pl4nty/talos
   - host: talos-uj3-t5w
     ip: 192.168.1.134
     role: control-plane
     schematicId: "@hardware/rk1-schematic.yaml"
+    factory: ghcr.io/pl4nty/talos
   - host: talos-vpz-3a1
     ip: 192.168.1.136
     role: control-plane
     schematicId: "@hardware/rk1-schematic.yaml"
+    factory: ghcr.io/pl4nty/talos
   - host: talos-oci-a1
     ip: 192.9.186.226
     role: worker
