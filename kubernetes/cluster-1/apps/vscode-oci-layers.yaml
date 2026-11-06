@@ -22,11 +22,18 @@ spec:
       createDefaultServiceAccount: false
     controllers:
       main:
+        pod:
+          annotations:
+            # OTEL_* env only; proxy/otel.mjs makes the spans (Node auto-instrumentation doesn't patch Bun.serve)
+            instrumentation.opentelemetry.io/inject-sdk: "true"
         containers:
           main:
             image:
               repository: ghcr.io/pl4nty/vscode-oci-layers
               tag: ${APP_IMAGE_TAG:=}
+            env:
+              # inject-sdk points at :4317 (gRPC); the JS SDK exports http/protobuf
+              OTEL_EXPORTER_OTLP_ENDPOINT: http://k8s-monitoring-alloy-receiver.monitoring-system:4318
     service:
       main:
         controller: main
