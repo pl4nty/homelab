@@ -42,6 +42,8 @@ spec:
                 enabled: true
                 spec:
                   initialDelaySeconds: 300
+                  # builds its frontend on first start, which takes over 5 minutes on the NUC
+                  failureThreshold: 60
             resources:
               requests:
                 cpu: 10m
