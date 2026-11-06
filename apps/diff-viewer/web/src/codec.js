@@ -2,7 +2,8 @@
 // Short documents live in the URL fragment; longer ones are encrypted in the browser
 // and uploaded, and the key stays in the fragment so the server never sees it.
 
-export const LINK_LIMIT = 10_000;
+// Kutt (l.tplant.au) rejects targets over 2040 characters, so longer links use stored diffs.
+export const LINK_LIMIT = 2040;
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
