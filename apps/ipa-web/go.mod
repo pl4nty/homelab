@@ -54,7 +54,7 @@ require (
 	github.com/ianlancetaylor/demangle v0.0.0-20251118225945-96ee0021ea0f // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/juju/go4 v0.0.0-20160222163258-40d72ab9641a // indirect
-	github.com/klauspost/compress v1.18.7 // indirect
+	github.com/klauspost/compress v1.20.2 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/majd/go-apfs v1.0.29 // indirect
