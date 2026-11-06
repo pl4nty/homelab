@@ -1,0 +1,6 @@
+# The OCI cloud controller doesn't set a node's provider ID: it needs one to look the instance up
+# (oracle/oci-cloud-controller-manager#522). talosctl get platformmetadata shows it, as does ../../oracle.sh
+apiVersion: v1alpha1
+kind: KubeletConfig
+extraArgs:
+  provider-id: oci://ocid1.instance.oc1.ap-sydney-1.anzxsljrqwuji6aczhavaddvahj72joa3j7xvkqpe7smuvk3chj345oy3v5a

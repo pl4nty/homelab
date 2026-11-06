@@ -1,6 +1,6 @@
 # Oracle Cloud VM.Standard.A1.Flex (arm64), created by ../oracle.sh and reached over KubeSpan.
 # The OCI cloud controller (kubernetes/cluster-1/system/oci-cloud-controller-manager) initialises it and sets
-# its provider ID and the well-known topology.kubernetes.io/region and zone labels
+# the well-known topology.kubernetes.io/region and zone labels. The node folder sets the provider ID
 apiVersion: v1alpha1
 kind: UnattendedInstallConfig
 provisioning:
