@@ -45,6 +45,15 @@ patches:
             - matchExpressions:
               - key: topology.kubernetes.io/region
                 operator: DoesNotExist
+    # upstream v1.36.0 plus oracle/oci-cloud-controller-manager#544 (apps/oci-cloud-controller-manager).
+    # Its node lookups otherwise fail on the first node without an OCI provider ID, so it can't initialise
+    # Oracle nodes in a mixed cluster. The filter matches new nodes before the controller labels them
+    - op: replace
+      path: /spec/template/spec/containers/0/image
+      value: ghcr.io/pl4nty/oci-cloud-controller-manager:latest@sha256:0f751d37868143dd28f6fc3cc427786943fbc0b0f48c98aa2a484bd7ca4c3a84
+    - op: add
+      path: /spec/template/spec/containers/0/args/-
+      value: --node-filter-requirements=topology.kubernetes.io/region!=home
     # node-lifecycle would delete the home nodes, which OCI doesn't know.
     # No service controller until kube-vip and OCI use separate loadBalancerClasses: it takes every
     # classless LoadBalancer Service, including the kube-vip ones
