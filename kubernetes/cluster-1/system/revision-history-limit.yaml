@@ -1,0 +1,38 @@
+# kube-state-metrics exports one kube_replicaset_owner series per ReplicaSet, and the default
+# revisionHistoryLimit of 10 kept 442 scaled-down ReplicaSets for 112 Deployments (~4% of the
+# Grafana Cloud series limit). Git is the rollback history, so keep none. Charts and operators
+# (ToolHive, flux-operator) set their own limit, so this mutates every Deployment write instead.
+# Existing Deployments pick it up on their next update. failurePolicy Ignore: a broken policy
+# must never block a rollout
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: revision-history-limit
+spec:
+  matchConstraints:
+    resourceRules:
+    - apiGroups: ["apps"]
+      apiVersions: ["v1"]
+      operations: ["CREATE", "UPDATE"]
+      resources: ["deployments"]
+  matchConditions:
+  - name: keeps-old-replicasets
+    expression: "!has(object.spec.revisionHistoryLimit) || object.spec.revisionHistoryLimit != 0"
+  failurePolicy: Ignore
+  reinvocationPolicy: Never
+  mutations:
+  - patchType: ApplyConfiguration
+    applyConfiguration:
+      expression: >
+        Object{
+          spec: Object.spec{
+            revisionHistoryLimit: 0
+          }
+        }
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: revision-history-limit
+spec:
+  policyName: revision-history-limit
