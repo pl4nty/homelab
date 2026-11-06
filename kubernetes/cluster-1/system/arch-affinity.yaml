@@ -1,0 +1,108 @@
+# requires pods to run on an architecture their images support, see apps/arch-affinity
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: arch-affinity
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: arch-affinity
+rules:
+- apiGroups: ["admissionregistration.k8s.io"]
+  resources: ["mutatingwebhookconfigurations"]
+  resourceNames: ["arch-affinity"]
+  verbs: ["get", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: arch-affinity
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: arch-affinity
+subjects:
+- kind: ServiceAccount
+  name: arch-affinity
+  namespace: kube-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: arch-affinity
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      app: arch-affinity
+  template:
+    metadata:
+      labels:
+        app: arch-affinity
+    spec:
+      serviceAccountName: arch-affinity
+      priorityClassName: system-cluster-critical
+      containers:
+      - name: arch-affinity
+        image: ghcr.io/pl4nty/arch-affinity:latest
+        ports:
+        - name: https
+          containerPort: 8443
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: https
+            scheme: HTTPS
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi
+          limits:
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: arch-affinity
+  namespace: kube-system
+spec:
+  selector:
+    app: arch-affinity
+  ports:
+  - port: 443
+    targetPort: https
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: arch-affinity
+webhooks:
+# the pod sets caBundle on startup
+- name: arch-affinity.tplant.com.au
+  admissionReviewVersions: ["v1"]
+  sideEffects: None
+  failurePolicy: Ignore
+  timeoutSeconds: 10
+  clientConfig:
+    service:
+      name: arch-affinity
+      namespace: kube-system
+      path: /mutate
+  rules:
+  - apiGroups: [""]
+    apiVersions: ["v1"]
+    operations: ["CREATE"]
+    resources: ["pods"]
+  # kube-system holds this webhook and the control plane
+  namespaceSelector:
+    matchExpressions:
+    - key: kubernetes.io/metadata.name
+      operator: NotIn
+      values: ["kube-system"]
