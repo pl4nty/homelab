@@ -76,3 +76,24 @@ patches:
       path: /spec/template/spec/nodeSelector
       value:
         topology.kubernetes.io/region: ap-sydney-1
+# the mount/umount wrappers chroot into the host, and Talos has no mount binary: use the image's own
+- target:
+    kind: DaemonSet
+    name: csi-oci-node
+  patch: |-
+    apiVersion: apps/v1
+    kind: DaemonSet
+    metadata:
+      name: csi-oci-node
+    spec:
+      template:
+        spec:
+          containers:
+          - name: oci-csi-node-driver
+            volumeMounts:
+            - mountPath: /sbin/mount
+              $patch: delete
+            - mountPath: /sbin/umount
+              $patch: delete
+            - mountPath: /sbin/umount.oci-fss
+              $patch: delete
