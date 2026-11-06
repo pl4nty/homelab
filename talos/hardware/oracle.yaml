@@ -1,0 +1,18 @@
+# Oracle Cloud VM.Standard.A1.Flex (arm64), created by ../oracle.sh and reached over KubeSpan
+apiVersion: v1alpha1
+kind: UnattendedInstallConfig
+provisioning:
+  diskSelector:
+    # the paravirtualized boot volume; worker/nuc.yaml's NVMe path doesn't exist here
+    match: disk.dev_path == "/dev/sda"
+---
+apiVersion: v1alpha1
+kind: KubeletConfig
+extraArgs:
+  # NodeRestriction stops workers changing their own taints later, so set it at registration
+  register-with-taints: homelab/cloud=oracle:NoSchedule
+---
+apiVersion: v1alpha1
+kind: KubeNodeConfig
+labels:
+  homelab/cloud: oracle
