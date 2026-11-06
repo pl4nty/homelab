@@ -262,6 +262,8 @@ spec:
             - resource.attributes["telemetry.sdk.name"] == "beyla" and attributes["db.system.name"] == "redis"
             - resource.attributes["telemetry.sdk.name"] == "beyla" and kind == SPAN_KIND_SERVER and IsMatch(attributes["url.path"], "^/(healthz?|livez|readyz?|ready|metrics|ping|failsafe|api/v1/health)$")
             - resource.attributes["telemetry.sdk.name"] == "beyla" and kind == SPAN_KIND_CLIENT and attributes["server.address"] == "10.96.0.1"
+            # qBittorrent peer connections show up as ~6k CONNECT client spans per 10 min
+            - resource.attributes["telemetry.sdk.name"] == "beyla" and kind == SPAN_KIND_CLIENT and name == "CONNECT"
       collector: alloy-receiver
     # eBPF HTTP/gRPC/SQL spans (Beyla, built on OBI) for apps without an OTel SDK: nginx, static-web-server,
     # Haskell, bun, Go, Ruby, PHP, C++. one privileged pod per node instead of the operator's per-pod Go sidecar.
