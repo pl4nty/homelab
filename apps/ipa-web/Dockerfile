@@ -10,7 +10,10 @@ WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=1 go test ./... && CGO_ENABLED=1 xx-go build -o /ipa-web . && xx-verify /ipa-web
+# otelc (a go.mod tool) adds OpenTelemetry for gin, net/http and slog at compile time. build it for the
+# build platform first, then wrap go so otelc's own go invocations cross-compile the app
+RUN CGO_ENABLED=1 go test ./... && go build -o /usr/local/bin/otelc go.opentelemetry.io/otelc/tool/cmd/otelc \
+  && xx-go --wrap && CGO_ENABLED=1 otelc go build -o /ipa-web . && xx-verify /ipa-web
 
 FROM alpine:latest@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a
 RUN apk add --no-cache ca-certificates
