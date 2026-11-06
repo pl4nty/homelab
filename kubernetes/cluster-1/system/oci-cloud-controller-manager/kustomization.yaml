@@ -45,10 +45,12 @@ patches:
             - matchExpressions:
               - key: topology.kubernetes.io/region
                 operator: DoesNotExist
-    # only initialise Oracle nodes: node-lifecycle would delete the home nodes, which OCI doesn't know
+    # only initialise Oracle nodes: node-lifecycle would delete the home nodes, which OCI doesn't know.
+    # No service controller until kube-vip and OCI use separate loadBalancerClasses: it takes every
+    # classless LoadBalancer Service, including the kube-vip ones
     - op: add
       path: /spec/template/spec/containers/0/args/-
-      value: --controllers=*,-cloud-node-lifecycle
+      value: --controllers=*,-cloud-node-lifecycle,-service
 - target:
     kind: Deployment
     name: csi-oci-controller
