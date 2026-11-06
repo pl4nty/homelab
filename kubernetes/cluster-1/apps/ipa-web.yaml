@@ -18,12 +18,18 @@ spec:
     controllers:
       main:
         strategy: Recreate
+        pod:
+          annotations:
+            # OTEL_* env only; the image is built with otelc (compile-time gin/net/http instrumentation)
+            instrumentation.opentelemetry.io/inject-sdk: "true"
         containers:
           main:
             image:
               repository: ghcr.io/pl4nty/ipa-web
               tag: ${APP_IMAGE_TAG:=}
             env:
+              # inject-sdk points at :4317 (gRPC); the Go SDK exports http/protobuf by default
+              OTEL_EXPORTER_OTLP_ENDPOINT: http://k8s-monitoring-alloy-receiver.monitoring-system:4318
               GIN_MODE: release
               DATA_DIR: /data
               XDG_CACHE_HOME: /data/.cache
