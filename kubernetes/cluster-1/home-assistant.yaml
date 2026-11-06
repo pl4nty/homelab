@@ -19,8 +19,6 @@ spec:
             node.longhorn.io/create-default-disk: config
             kubernetes.io/arch: arm64
         type: statefulset
-        rollingUpdate:
-          unavailable: "0"
         #   # incompatible boto3 version as of 2023.6.3. can only specify image at collector level
         #   # eg open-telemetry/opentelemetry-operator#1774
         #   annotations:
