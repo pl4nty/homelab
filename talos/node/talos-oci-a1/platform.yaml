@@ -1,0 +1,14 @@
+# No cloud-provider: external, so the OCI cloud controller never initialises this node: v1.36.0 can't in a
+# mixed cluster, because its node lookups fail on the first node without an OCI provider ID. The CSI driver
+# still needs the provider ID and zone (the availability domain), and the CCM adds the compartment annotation.
+# The CCM and CSI pods select on the region label
+apiVersion: v1alpha1
+kind: KubeletConfig
+extraArgs:
+  provider-id: oci://ocid1.instance.oc1.ap-sydney-1.anzxsljrqwuji6aczhavaddvahj72joa3j7xvkqpe7smuvk3chj345oy3v5a
+---
+apiVersion: v1alpha1
+kind: KubeNodeConfig
+labels:
+  topology.kubernetes.io/region: ap-sydney-1
+  topology.kubernetes.io/zone: AP-SYDNEY-1-AD-1

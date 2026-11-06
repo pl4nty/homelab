@@ -1,0 +1,3 @@
+-- blank-canvas serves its HTML and JS without a Content-Type; the Dockerfile
+-- unpacks it here and applies blank-canvas.patch
+packages: . vendor/blank-canvas-0.7.5

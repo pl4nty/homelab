@@ -1,6 +1,6 @@
 # Oracle Cloud VM.Standard.A1.Flex (arm64), created by ../oracle.sh and reached over KubeSpan.
-# The OCI cloud controller (kubernetes/cluster-1/system/oci-cloud-controller-manager) initialises it and sets
-# the well-known topology.kubernetes.io/region and zone labels
+# The node folder sets the provider ID and topology labels from
+# talosctl get platformmetadata
 apiVersion: v1alpha1
 kind: UnattendedInstallConfig
 provisioning:
@@ -11,8 +11,6 @@ provisioning:
 apiVersion: v1alpha1
 kind: KubeletConfig
 extraArgs:
-  # only this node is cloud-managed, so set it here rather than cluster.externalCloudProvider
-  cloud-provider: external
   # soft: pods default to the home nodes (where Longhorn is) and only land on Oracle nodes if they tolerate
   # topology.kubernetes.io/region (any value, so it suits every region) or nothing else fits. Set at
   # registration, since NodeRestriction stops workers changing their own taints later

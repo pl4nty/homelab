@@ -15,6 +15,10 @@ spec:
     controllers:
       prowlarr:
         pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-dotnet: "true"
+            # self-contained .NET on Alpine
+            instrumentation.opentelemetry.io/otel-dotnet-auto-runtime: linux-musl-x64
           securityContext:
             runAsNonRoot: true
             runAsUser: 568
@@ -29,8 +33,11 @@ spec:
               tag: 2.7.0@sha256:fcf7498692f97698ea8b8f7078a0f81120a16e7354e4c232b5e3810e3e783dff
             env:
               TZ: ${TIMEZONE}
-              # .NET writes diagnostic pipes to /tmp, which trips readOnlyRootFilesystem
-              COMPlus_EnableDiagnostics: "0"
+              # .NET writes diagnostic pipes to /tmp, which trips readOnlyRootFilesystem. diagnostics stay on
+              # for the OTel CLR profiler only, without the IPC pipes or debugger
+              DOTNET_EnableDiagnostics: "1"
+              DOTNET_EnableDiagnostics_IPC: "0"
+              DOTNET_EnableDiagnostics_Debugger: "0"
               PROWLARR__AUTH__METHOD: External
               PROWLARR__AUTH__REQUIRED: DisabledForLocalAddresses
               # pinned so a rebuilt instance keeps the same key
