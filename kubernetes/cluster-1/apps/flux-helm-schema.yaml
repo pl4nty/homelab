@@ -15,11 +15,11 @@ spec:
   values:
     global:
       createDefaultServiceAccount: false
-    # defaultPodOptions:
-    #   annotations:
-    #     instrumentation.opentelemetry.io/inject-python: "true"
     controllers:
       main:
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-python: "true"
         strategy: RollingUpdate
         rollingUpdate:
           unavailable: 0

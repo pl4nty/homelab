@@ -22,6 +22,9 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
     controllers:
       main:
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-python: "true"
         # RWO volumes can't attach to two nodes during a rollout
         strategy: Recreate
         containers:
