@@ -13,14 +13,7 @@ kind: KubeletConfig
 extraArgs:
   # only this node is cloud-managed, so set it here rather than cluster.externalCloudProvider
   cloud-provider: external
-  # soft: pods default to the home nodes (where Longhorn is) and only land here if they ask for
-  # topology.kubernetes.io/region=ap-sydney-1 or nothing else fits. Set at registration, since NodeRestriction
-  # stops workers changing their own taints later
-  register-with-taints: topology.kubernetes.io/region=ap-sydney-1:PreferNoSchedule
----
-# the value the OCI cloud controller sets too; set at registration so the controller itself
-# (nodeSelector topology.kubernetes.io/region) can schedule here before it has initialised the node
-apiVersion: v1alpha1
-kind: KubeNodeConfig
-labels:
-  topology.kubernetes.io/region: ap-sydney-1
+  # soft: pods default to the home nodes (where Longhorn is) and only land on Oracle nodes if they tolerate
+  # topology.kubernetes.io/region (any value, so it suits every region) or nothing else fits. Set at
+  # registration, since NodeRestriction stops workers changing their own taints later
+  register-with-taints: topology.kubernetes.io/region:PreferNoSchedule
