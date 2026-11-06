@@ -23,6 +23,9 @@ spec:
     - name: OTEL_METRICS_EXPORTER
       value: none
   python:
+    # pinned: the CR kept 0.39b0, which has no musl build (hyperglass uses otel-python-platform: musl).
+    # operator 0.162.0 defaults to 0.66b1 (versions.txt)
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-python:0.66b1
     env:
       # Required if endpoint is set to 4317.
       # Python autoinstrumentation uses http/proto by default

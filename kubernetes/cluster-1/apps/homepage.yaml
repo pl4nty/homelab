@@ -35,6 +35,12 @@ spec:
     persistence:
       logs:
         enabled: false
+    # the nodejs agent outgrows cluster-1's 100Mi ephemeral-storage default (system/limitrange.yaml)
+    resources:
+      requests:
+        ephemeral-storage: 256Mi
+      limits:
+        ephemeral-storage: 1Gi
     podAnnotations:
       instrumentation.opentelemetry.io/inject-nodejs: "true"
     config:
