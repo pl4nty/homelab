@@ -6,7 +6,7 @@ ARG TALOS_VERSION
 FROM --platform=$BUILDPLATFORM busybox:1.37.0-musl AS busybox
 FROM --platform=$BUILDPLATFORM gcr.io/go-containerregistry/crane:v0.22.1 AS crane
 
-FROM --platform=$BUILDPLATFORM mikefarah/yq:4.47.2 AS profile
+FROM --platform=$BUILDPLATFORM mikefarah/yq:4.54.1@sha256:4b3d9475d65571d28cbb19544d3820ec2945e4c8b2f18279394282b8dc3a592e AS profile
 ARG SCHEMATIC_ID
 # as Image Factory adds, so topf upgrade can tell the node is current
 COPY <<EOF schematic/manifest.yaml
