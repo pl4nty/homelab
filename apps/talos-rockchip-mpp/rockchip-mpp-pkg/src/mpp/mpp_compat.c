@@ -63,3 +63,7 @@ int rockchip_iommu_force_reset(struct device *dev)
 
 	return rockchip_iommu_enable(dev);
 }
+
+/* references vsi_iommu, so it loads first and the AV1 decoder finds its IOMMU driver */
+void vsi_iommu_dep(void);
+static void (*const mpp_vsi_iommu_dep)(void) __used = vsi_iommu_dep;

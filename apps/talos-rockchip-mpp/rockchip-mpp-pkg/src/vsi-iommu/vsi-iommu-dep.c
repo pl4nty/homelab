@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * Not part of the mainline driver: an exported symbol for rk_vcodec to call,
+ * Not part of the mainline driver: an exported symbol for rk_vcodec to reference,
  * so module dependency resolution loads this IOMMU driver before the AV1
  * decoder probes.
  */

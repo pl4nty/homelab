@@ -1,22 +1,11 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 /*
- * RK3588 MPP codec and RGA blocks for a mainline board DTB, from the vendor
- * rk3588s.dtsi (rockchip-linux/kernel develop-6.12). The RK1 installer build
- * (talos/Dockerfile) decompiles the DTB sbc-rockchip installs, appends this
- * once preprocessed, and compiles it again, so the nodes are there at boot.
- * Changes from the vendor nodes:
- * - 4-cell GIC specifiers, as mainline's GIC has ppi-partitions
- * - mainline IOMMU compatibles; vdpu/vepu share mainline's vpu121_mmu
- * - the AV1 decoder's IOMMU as mainline describes it, for the vsi-iommu driver
- * - rockchip,core-id instead of aliases
- * - no OPP tables: the vendor OPP/leakage framework isn't in mainline
- *
- * A decompiled DTB has no labels, so the nodes this refers to get theirs by path.
- * The IOMMUs and SRAM pools that Linux 7.x DTBs also have use mainline's node
- * names, so they merge into mainline's nodes there and are added on older DTBs.
- * The codec and RGA nodes have other names than mainline's hantro, rga and rkvdec
- * nodes for the same blocks, so nothing merges into those: Talos builds none of
- * their drivers, so they hold no registers.
+ * RK3588 MPP codec and RGA nodes from the vendor rk3588s.dtsi, for the RK1 DTB
+ * that talos/Dockerfile decompiles and recompiles with this appended. Vendor
+ * nodes, with mainline's 4-cell GIC specifiers and IOMMU compatibles, and
+ * without OPP tables. Nodes that Linux 7.x DTBs also have (IOMMUs, SRAM pools)
+ * use mainline's names, so they merge. Mainline's hantro, rga and rkvdec nodes
+ * for the same blocks stay as they are: Talos builds none of their drivers.
  */
 
 #include <dt-bindings/clock/rockchip,rk3588-cru.h>
@@ -28,6 +17,13 @@
 cru: &{/clock-controller@fd7c0000} {};
 power: &{/power-management@fd8d8000/power-controller} {};
 vpu121_mmu: &{/iommu@fdb50800} {};
+
+&{/aliases} {
+	rkvenc0 = &rkvenc0;
+	rkvenc1 = &rkvenc1;
+	rkvdec0 = &rkvdec0;
+	rkvdec1 = &rkvdec1;
+};
 
 &{/sram@ff001000} {
 	rkvdec0_sram: codec-sram@0 {
@@ -242,7 +238,6 @@ vpu121_mmu: &{/iommu@fdb50800} {};
 		iommus = <&rkvenc0_mmu>;
 		rockchip,srv = <&mpp_srv>;
 		rockchip,ccu = <&rkvenc_ccu>;
-		rockchip,core-id = <0>;
 		rockchip,taskqueue-node = <7>;
 		rockchip,task-capacity = <8>;
 		power-domains = <&power RK3588_PD_VENC0>;
@@ -276,7 +271,6 @@ vpu121_mmu: &{/iommu@fdb50800} {};
 		iommus = <&rkvenc1_mmu>;
 		rockchip,srv = <&mpp_srv>;
 		rockchip,ccu = <&rkvenc_ccu>;
-		rockchip,core-id = <1>;
 		rockchip,taskqueue-node = <7>;
 		rockchip,task-capacity = <8>;
 		power-domains = <&power RK3588_PD_VENC1>;
@@ -334,7 +328,6 @@ vpu121_mmu: &{/iommu@fdb50800} {};
 		iommus = <&rkvdec0_mmu>;
 		rockchip,srv = <&mpp_srv>;
 		rockchip,ccu = <&rkvdec_ccu>;
-		rockchip,core-id = <0>;
 		rockchip,core-mask = <0x00010001>;
 		rockchip,task-capacity = <16>;
 		rockchip,taskqueue-node = <9>;
@@ -372,7 +365,6 @@ vpu121_mmu: &{/iommu@fdb50800} {};
 		iommus = <&rkvdec1_mmu>;
 		rockchip,srv = <&mpp_srv>;
 		rockchip,ccu = <&rkvdec_ccu>;
-		rockchip,core-id = <1>;
 		rockchip,core-mask = <0x00020002>;
 		rockchip,task-capacity = <16>;
 		rockchip,taskqueue-node = <9>;
