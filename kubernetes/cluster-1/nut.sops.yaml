@@ -9,21 +9,21 @@ type: Opaque
 # upsmon logs a failed SHUTDOWNCMD's command line, so the password stays in shutdown.sh. On success
 # it holds there, so a restarted upsmon doesn't send it again and reset the UPS countdown
 stringData:
-  upsd.users: ENC[AES256_GCM,data:bG7v6Ky+dIDrMWNMYWCd+/1uRBbYStPfzxNgOzx2LPsD976Ka4z7uK8+pk1GUXQzw3QGZWWmLv3gcbl0Wo7LguoW0CsNNPuzsDX1CW9/2H1+LqfCXw4Sg3rPp7WNzqwuGfOaBU715o76auRhT0wzmefVJTpBZ+cnOPo/hvXDvcTB8r1dIDmKRVNo3MG4HcTVloKERw==,iv:go1ifECv2cp58HKadJvBSywc74NpfQLLs9e+oPkE9c4=,tag:CvFFnklKrq0uOCIoVoksEw==,type:str]
-  upsmon.conf: ENC[AES256_GCM,data:HYWDoeZimTB/H9PRkzKAtPXc7ZB4ycQw7RL+dr8WOUCeLs9js9m+9Wp6jATSozS231mnlU9dUT/mrRYp+os8CxUKkK8EsblnwlMlRilpiovffjZu/9ZcIxyqt0JqArNwvfCVEcO5xQRVp+h49zrJzLs43VmeRcWvoHJRo3izxw==,iv:KtlBh+0ZntarKL0TbZQzecnTpWCDDdollJIysPQUZ20=,tag:V/cGFK6q2F8BFXPiC/IpSw==,type:str]
-  shutdown.sh: ENC[AES256_GCM,data:sqVRDXLjcN+3vUwnwPfUo0XALvQHmOG6bsUjD8zQtz3nQA5Lp/lNK2P37sGzl5G6o0mF46Z+5DXuIYUYdvSbyI1YeqAljMoo+aAidTFbk7OZ2s3NTDzNbZK7v/sZYOAxJ9HiJ6JEDsU=,iv:u2kt15/lqUolqSR4w5MGJx4OjfVxQn5irQ/Ou39Bwl8=,tag:Yo6wAWmgM7x/7aR6viXnIw==,type:str]
+  upsd.users: ENC[AES256_GCM,data:RRcb+x8fyrgpPdV7bwoXfpo2Q1FfGSHPhemBeAn3g7a32mPB7ttSRPoaHyrqwGtHdB+kwDzZoqSEEGU8g6cyujY2jpcZAPxbqVWTcn4Vlg6LldN6s7g4s2pKrkj9PISX9bjk7Gka3DGTgzbkZdLcYZbm8XLwMz+M1+75riTYm+ghHqeYJPABfsORs2RV7rjSKFtT,iv:7cb/BDMYFN1ONEPjV7SRyPWt7fwats/Ixzni4yynmHc=,tag:hzG0MmaTkZsJk+JAusWlCw==,type:str]
+  upsmon.conf: ENC[AES256_GCM,data:kWhCoHLH7EjoSYoSd6Bd3dTRUBUzjCSzmjSj6xlNYHkqnYl1jfaWu01xuGoAV+VpBr7km/3F62OsJRsigIFpWQr5lhzdrODspvUIaLU4lnIBxuswLng6kcJtrLP5sX+rdcH7QlC3jaX8wU/Dh5j4as4z4u9wC6Tj4bnIgKsI0nWP/OfkH/ELW4yPyTr42BcUigIi+W+zKtZxXsA43vjP5v70khg4v7quWaG5roeu25MYeiaKkd8YWEwXKwETPXhqTaCnDIkUfjwsUrF4XnrYX9ZeOYAUD0qDm+B4sZqcuLF4WqdMF79+OutCzPn76KFjDXFwmKs4g/UWNkaL18g6+bjM44PzzbbpZhvWK7Gx3vSn/gAiOnsAa7iiZd8h4IMPixPYZNgaReU13g==,iv:HK/N5F2tZOVOIsv3H8b18jzszJybF8FSUL6YvJARYBk=,tag:/YCtfvp1FqUVcbzEVcs6JA==,type:str]
+  shutdown.sh: ENC[AES256_GCM,data:18UnFUDVT2hJep/ILvYUG5yqHsMDB44dtoOztMInlcOOAFJDpwBiy7SXGFBwnK1UdOu774QG+71XrEQ80c+c4UVGQNRSMVKpiZ1SSYq4WJ1GQIV+Ie36hylO4gDQNaJYX5g0xJUzCg==,iv:JeT02QZmyw3pL3dLxqXiz6loiNAfhxwswtU+izNuSBA=,tag:FsJPd3BKgs5099bFHyvUaQ==,type:str]
 sops:
   age:
     - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
       enc: |
         -----BEGIN AGE ENCRYPTED FILE-----
-        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA0UFZaeGFXSHNiRk5pcTJC
-        d3VLOEZGclI4NnRJQy9zZjFrRlA4Y3pjdEJJCmp6L0JiaXVyOC9mQUg3cWxhUnVz
-        aURPLzB2ZVFpL1VXUVVIQjdnQWFvc1kKLS0tIGp4Sk9kVHZ2YmdJYThsajdySGEv
-        UDg1Z1owd3IyTWozNGF2aXpZUHQ3L1kKFF0iC9bSb2xeoJcafSFYNcYkCywrRdxw
-        OKuGM5wLgoLbHdgVJf+lfIsFn37rwFBbGkKaWoKYB2UpuWtec6siXQ==
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBYcXZ0UjhJd1ZPd2Z3VmF1
+        U0wrSTBPcm1IRWxmVFVuN3M5RmV5ZzNhcWpFCm52YjhUNjZkUHFWbmtRUXFCckZI
+        YkdhL3V5MmFQSnU3MWhpeThWNm9iUDAKLS0tIEswZ2w3RFNtL2lLMHNqZmNETnVH
+        RDRZK2laZ05YdVVudzZSNmxzZ3ZPZ0EKmjrMCdD6pkUApd2N/QbtRHiO0y75PZCg
+        WEfp6m7iQaTl3+UMMKYxULCKYuO/ZlR8GCRahH5owDGVAjr4zVUe5g==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2026-11-07T02:03:22Z"
-  mac: ENC[AES256_GCM,data:wMU0G5tRI3SMualpNaNKbHLytl82dqm0ZAYGZQ87Sf3cW92x2m3Vfy/fQpcYUTn2BOtZMEkWZND2g+fUzny0+fA23lLu6FlIvE8FXPNqn3wcaK4SBvncQ1Z7PEXVkiDtzeGnrT2Am70eNgK2eEyYeMLtTNIXQQanuHQi/YuZ5lc=,iv:a5zNSs1lz2Q/ce5n6VCmjwthZ3P3N8a+9aL3uSqB7TI=,tag:Wr4q/ETG2eg7uTKL4V0Qfg==,type:str]
+  lastmodified: "2026-11-07T05:01:52Z"
+  mac: ENC[AES256_GCM,data:nP4U/Ib296lNSNL5Ds3jJw5dBLK4S8frSIhgVhU7bf8rafWx6ZITUapcjRX6WV9PvbkltA2Tp2q+XoNFRWl4+O4yVVjU9QJ0e6oXs04MBuNoEVqgziWeDHcV1LaDNKSc5igFSRtwi3E0F6GtVbGblH+LJfc/4HaaljA79QiqfYM=,iv:81QFX+eMBARoiwWbAXd9ozVS3a+H5qhvbzhFm1DRuaU=,tag:cRA8V9OjDU8pKZdtYsa5rw==,type:str]
   encrypted_regex: ^(data|stringData)$
   version: 3.10.2
