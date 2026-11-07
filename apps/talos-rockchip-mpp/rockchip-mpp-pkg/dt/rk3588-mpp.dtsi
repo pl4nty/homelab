@@ -1,21 +1,23 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 /*
- * RK3588 MPP codec and RGA blocks for a mainline device tree, from the
- * vendor rk3588s.dtsi (rockchip-linux/kernel develop-6.12), with:
+ * RK3588 MPP codec and RGA blocks for a mainline board DTB, from the vendor
+ * rk3588s.dtsi (rockchip-linux/kernel develop-6.12). The RK1 installer build
+ * (talos/Dockerfile) decompiles the DTB sbc-rockchip installs, appends this
+ * once preprocessed, and compiles it again, so the nodes are there at boot.
+ * Changes from the vendor nodes:
  * - 4-cell GIC specifiers, as mainline's GIC has ppi-partitions
  * - mainline IOMMU compatibles; vdpu/vepu share mainline's vpu121_mmu
  * - the AV1 decoder's IOMMU as mainline describes it, for the vsi-iommu driver
- * - rockchip,core-id instead of aliases, which overlays can't add
+ * - rockchip,core-id instead of aliases
  * - no OPP tables: the vendor OPP/leakage framework isn't in mainline
- * - node names that differ from mainline's, so nothing merges into a mainline node
  *
- * External references (cru, power and the IOMMUs) resolve through /__symbols__,
- * which the module adds before applying this, as board DTBs are built without.
- * The IOMMUs mainline only has since Linux 7.x are in rk3588-mpp-iommu.dtso.
+ * A decompiled DTB has no labels, so the nodes this refers to get theirs by path.
+ * The IOMMUs and SRAM pools that Linux 7.x DTBs also have use mainline's node
+ * names, so they merge into mainline's nodes there and are added on older DTBs.
+ * The codec and RGA nodes have other names than mainline's hantro, rga and rkvdec
+ * nodes for the same blocks, so nothing merges into those: Talos builds none of
+ * their drivers, so they hold no registers.
  */
-
-/dts-v1/;
-/plugin/;
 
 #include <dt-bindings/clock/rockchip,rk3588-cru.h>
 #include <dt-bindings/interrupt-controller/arm-gic.h>
@@ -23,24 +25,63 @@
 #include <dt-bindings/power/rk3588-power.h>
 #include <dt-bindings/reset/rockchip,rk3588-cru.h>
 
-/*
- * Mainline's hantro and rga nodes for the same blocks stay as they are: Talos builds
- * neither driver, and disabling a populated node at runtime tears down its platform
- * device, which the mainline Rockchip IOMMU driver can't survive (list corruption in
- * rk_iommu_release_device). Unbound, they hold no registers.
- */
+cru: &{/clock-controller@fd7c0000} {};
+power: &{/power-management@fd8d8000/power-controller} {};
+vpu121_mmu: &{/iommu@fdb50800} {};
 
 &{/sram@ff001000} {
-	rkvdec0_sram: rkvdec-sram@0 {
+	rkvdec0_sram: codec-sram@0 {
 		reg = <0x0 0x78000>;
 	};
 
-	rkvdec1_sram: rkvdec-sram@78000 {
+	rkvdec1_sram: codec-sram@78000 {
 		reg = <0x78000 0x77000>;
 	};
 };
 
-&{/} {
+/ {
+	rga3_0_mmu: iommu@fdb60f00 {
+		compatible = "rockchip,rk3588-iommu", "rockchip,rk3568-iommu";
+		reg = <0x0 0xfdb60f00 0x0 0x100>;
+		interrupts = <GIC_SPI 114 IRQ_TYPE_LEVEL_HIGH 0>;
+		clocks = <&cru ACLK_RGA3_0>, <&cru HCLK_RGA3_0>;
+		clock-names = "aclk", "iface";
+		power-domains = <&power RK3588_PD_RGA30>;
+		#iommu-cells = <0>;
+	};
+
+	rga3_1_mmu: iommu@fdb70f00 {
+		compatible = "rockchip,rk3588-iommu", "rockchip,rk3568-iommu";
+		reg = <0x0 0xfdb70f00 0x0 0x100>;
+		interrupts = <GIC_SPI 115 IRQ_TYPE_LEVEL_HIGH 0>;
+		clocks = <&cru ACLK_RGA3_1>, <&cru HCLK_RGA3_1>;
+		clock-names = "aclk", "iface";
+		power-domains = <&power RK3588_PD_RGA31>;
+		#iommu-cells = <0>;
+	};
+
+	rkvdec0_mmu: iommu@fdc38700 {
+		compatible = "rockchip,rk3588-iommu", "rockchip,rk3568-iommu";
+		reg = <0x0 0xfdc38700 0x0 0x40>, <0x0 0xfdc38740 0x0 0x40>;
+		interrupts = <GIC_SPI 96 IRQ_TYPE_LEVEL_HIGH 0>;
+		clocks = <&cru ACLK_RKVDEC0>, <&cru HCLK_RKVDEC0>;
+		clock-names = "aclk", "iface";
+		rockchip,disable-mmu-reset;
+		#iommu-cells = <0>;
+		power-domains = <&power RK3588_PD_RKVDEC0>;
+	};
+
+	/* as mainline describes it, for vsi-iommu */
+	av1d_mmu: iommu@fdca0000 {
+		compatible = "rockchip,rk3588-av1-iommu", "verisilicon,iommu-1.2";
+		reg = <0x0 0xfdca0000 0x0 0x600>;
+		interrupts = <GIC_SPI 109 IRQ_TYPE_LEVEL_HIGH 0>;
+		clocks = <&cru ACLK_AV1>, <&cru PCLK_AV1>;
+		clock-names = "core", "iface";
+		#iommu-cells = <0>;
+		power-domains = <&power RK3588_PD_AV1>;
+	};
+
 	mpp_srv: mpp-srv {
 		compatible = "rockchip,mpp-service";
 		rockchip,taskqueue-count = <12>;
@@ -377,5 +418,4 @@
 		rockchip,taskqueue-node = <11>;
 		power-domains = <&power RK3588_PD_AV1>;
 	};
-
 };

@@ -1,0 +1,37 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 7 Nov 2026 08:00:00 +0000
+Subject: [PATCH] mpp: load vsi_iommu before the codecs probe
+
+Calling it makes module dependency resolution load vsi_iommu first, so the AV1
+decoder finds its IOMMU driver when it probes. Otherwise a decoder that probes
+after the deferred-probe timeout binds without one.
+---
+diff --git a/drivers/video/rockchip/mpp/mpp_service.c b/drivers/video/rockchip/mpp/mpp_service.c
+--- a/drivers/video/rockchip/mpp/mpp_service.c
++++ b/drivers/video/rockchip/mpp/mpp_service.c
+@@ -539,7 +539,23 @@
+ 	},
+ };
+ 
+-module_platform_driver(mpp_service_driver);
++/* exported by vsi_iommu */
++void vsi_iommu_dep(void);
++
++static int __init mpp_service_init(void)
++{
++	/* loads vsi_iommu first: the AV1 decoder must find its IOMMU driver when it probes */
++	vsi_iommu_dep();
++
++	return platform_driver_register(&mpp_service_driver);
++}
++module_init(mpp_service_init);
++
++static void __exit mpp_service_exit(void)
++{
++	platform_driver_unregister(&mpp_service_driver);
++}
++module_exit(mpp_service_exit);
+ 
+ MODULE_IMPORT_NS("DMA_BUF");
+ MODULE_LICENSE("Dual MIT/GPL");
