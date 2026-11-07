@@ -3,7 +3,7 @@
 clusterName: cluster-1
 clusterEndpoint: https://192.168.1.200:6443
 # renovate: datasource=github-releases depName=kubernetes/kubernetes
-kubernetesVersion: 1.36.6
+kubernetesVersion: 1.37.2
 # renovate: datasource=github-releases depName=siderolabs/talos
 talosVersion: 1.14.5
 nodes:
