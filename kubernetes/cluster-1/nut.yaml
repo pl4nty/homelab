@@ -1,7 +1,8 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/app-template-5.3.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
-# Network UPS Tools server for the Eaton 3S 850. Each home node's nut-client extension
-# (talos/hardware/home.yaml) powers itself off on low battery. Once they have logged out, this
-# primary upsmon has the UPS cut then restore its outlets, so the nodes boot again when mains returns
+# Network UPS Tools server for the Eaton 3S 850. After 10 minutes on battery, or on low battery,
+# this primary upsmon tells every home node's nut-client extension (talos/hardware/home.yaml) to
+# power off. Once they have logged out it schedules the UPS to cut then restore its outlets, so the
+# router stays up and the nodes boot again when mains returns
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -146,12 +147,23 @@ spec:
               override.battery.charge.low = 50
               override.battery.runtime.low = 480
               # shutdown.return cuts the outlets after offdelay seconds, then restores them ondelay
-              # seconds after the command once mains is back. both count from the command.
-              # Talos drains before it powers off, and gives up on a drain after 5 minutes
-              offdelay = 420
-              ondelay = 480
+              # seconds after the command once mains is back. both count from the command. The
+              # router shares the outlets, so it gets 3 hours, about what the battery holds once
+              # the nodes are off. If mains returns sooner, the cut still power-cycles the halted nodes
+              offdelay = 10800
+              ondelay = 10860
           upsd.conf: |
             LISTEN 0.0.0.0 3493
+          # upsmon.conf runs upssched on ONBATT and ONLINE, so an outage that outlasts the timer
+          # shuts the nodes down while most of the battery is left for the router
+          upssched.conf: |
+            CMDSCRIPT "/bin/sh /etc/nut/upssched.sh"
+            PIPEFN /run/nut/upssched.pipe
+            LOCKFN /run/nut/upssched.lock
+            AT ONBATT * START-TIMER shutdown 600
+            AT ONLINE * CANCEL-TIMER shutdown
+          upssched.sh: |
+            [ "$1" = shutdown ] && exec upsmon -c fsd
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
@@ -169,14 +181,14 @@ spec:
             severity: warning
           annotations:
             summary: The UPS lost mains power.
-            description: The Eaton UPS is on battery at {{ $value }}% charge. The home nodes power off at 50% charge or 8 minutes of runtime left.
+            description: The Eaton UPS is on battery at {{ $value }}% charge. The home nodes power off after 10 minutes on battery, or sooner at 50% charge or 8 minutes of runtime left.
         - alert: UpsLowBattery
           expr: network_ups_tools_ups_status{flag=~"LB|FSD"} == 1
           labels:
             severity: critical
           annotations:
-            summary: The UPS battery is low, so the cluster is shutting down.
-            description: Every home node is powering off. The UPS cuts its outlets 7 minutes later and restores them once mains returns.
+            summary: The home nodes are shutting down on battery.
+            description: Every home node is powering off. The router stays up until the battery runs out or the UPS cuts its outlets 3 hours later, then everything restarts once mains returns.
         - alert: UpsReplaceBattery
           expr: network_ups_tools_ups_status{flag="RB"} == 1
           for: 1h
