@@ -34,7 +34,7 @@ spec:
   # container limit lifts the pod to 1Gi without a per-app override. the cpu and memory
   # values are the operator's defaults, which it only fills in when limits/requests are unset
   java:
-    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-java:2.32.0
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-java:2.32.0@sha256:9dad1c6e3e2ecee48fc164a19bcfde703510bee972c8cb421689fde89b5f89e9
     # java names this field resources, the other languages resourceRequirements
     resources: &agent-resources
       limits:
@@ -50,7 +50,7 @@ spec:
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
         value: http://k8s-monitoring-alloy-receiver.monitoring-system:4318
   nodejs:
-    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-nodejs:0.82.0
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-nodejs:0.82.0@sha256:eec2b930eaf9ae25747f31ee343cbb45e379c49a4d2d31842dfdfc109943155f
     resourceRequirements: *agent-resources
     env:
       # the sdk-node register hook exports http/protobuf by default
@@ -58,7 +58,7 @@ spec:
         value: http://k8s-monitoring-alloy-receiver.monitoring-system:4318
   python:
     # 0.39b0 had no musl build (hyperglass uses otel-python-platform: musl)
-    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-python:0.66b1
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-python:0.66b1@sha256:499211ecc0b6237d955c77a6972c85ee9857153090e5356d5a1e13ccaff7fed9
     resourceRequirements: *agent-resources
     env:
       # Required if endpoint is set to 4317.
@@ -70,7 +70,7 @@ spec:
         value: none
   dotnet:
     # multi-arch since 1.x, so arm64 nodes work without the old custom image
-    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-dotnet:1.17.0
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-dotnet:1.17.0@sha256:642e740b926ce7a736d674df40f7d9796451b9b018130e5dbeb2d4dd5a0f9323
     resourceRequirements: *agent-resources
     env:
       # Required if endpoint is set to 4317.
