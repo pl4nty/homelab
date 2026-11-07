@@ -2,7 +2,6 @@
 customization:
   systemExtensions:
     officialExtensions:
-      - siderolabs/fuse3
       - siderolabs/i915
       - siderolabs/intel-ucode
       - siderolabs/iscsi-tools
