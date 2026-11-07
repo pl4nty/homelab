@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/app-template-5.3.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
-# Network UPS Tools server for the Eaton 3S 850. After 10 minutes on battery, or on low battery,
+# Network UPS Tools server for the Eaton 3S 850. After 30 minutes on battery, or on low battery,
 # this primary upsmon tells every home node's nut-client extension (talos/hardware/home.yaml) to
 # power off. Once they have logged out it schedules the UPS to cut then restore its outlets, so the
 # router stays up and the nodes boot again when mains returns
@@ -142,16 +142,17 @@ spec:
               driver = usbhid-ups
               port = auto
               vendorid = 0463
-              # NUT decides low battery from these instead of the UPS's own, much lower, threshold
+              # NUT decides low battery from these instead of the UPS's own, much lower, threshold.
+              # A backstop for the upssched timer, low enough not to beat it at today's load
               ignorelb
-              override.battery.charge.low = 50
+              override.battery.charge.low = 20
               override.battery.runtime.low = 480
               # shutdown.return cuts the outlets after offdelay seconds, then restores them ondelay
               # seconds after the command once mains is back. both count from the command. The
-              # router shares the outlets, so it gets 3 hours, about what the battery holds once
-              # the nodes are off. If mains returns sooner, the cut still power-cycles the halted nodes
-              offdelay = 10800
-              ondelay = 10860
+              # router shares the outlets, so it gets another 30 minutes, an hour into the outage.
+              # If mains returns sooner, the cut still power-cycles the halted nodes
+              offdelay = 1800
+              ondelay = 1860
           upsd.conf: |
             LISTEN 0.0.0.0 3493
           # upsmon.conf runs upssched on ONBATT and ONLINE, so an outage that outlasts the timer
@@ -160,7 +161,7 @@ spec:
             CMDSCRIPT "/bin/sh /etc/nut/upssched.sh"
             PIPEFN /run/nut/upssched.pipe
             LOCKFN /run/nut/upssched.lock
-            AT ONBATT * START-TIMER shutdown 600
+            AT ONBATT * START-TIMER shutdown 1800
             AT ONLINE * CANCEL-TIMER shutdown
           upssched.sh: |
             [ "$1" = shutdown ] && exec upsmon -c fsd
@@ -181,14 +182,14 @@ spec:
             severity: warning
           annotations:
             summary: The UPS lost mains power.
-            description: The Eaton UPS is on battery at {{ $value }}% charge. The home nodes power off after 10 minutes on battery, or sooner at 50% charge or 8 minutes of runtime left.
+            description: The Eaton UPS is on battery at {{ $value }}% charge. The home nodes power off after 30 minutes on battery, or sooner at 20% charge or 8 minutes of runtime left.
         - alert: UpsLowBattery
           expr: network_ups_tools_ups_status{flag=~"LB|FSD"} == 1
           labels:
             severity: critical
           annotations:
             summary: The home nodes are shutting down on battery.
-            description: Every home node is powering off. The router stays up until the battery runs out or the UPS cuts its outlets 3 hours later, then everything restarts once mains returns.
+            description: Every home node is powering off. The router stays up until the UPS cuts its outlets 30 minutes later, then everything restarts once mains returns.
         - alert: UpsReplaceBattery
           expr: network_ups_tools_ups_status{flag="RB"} == 1
           for: 1h
