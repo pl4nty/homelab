@@ -5,7 +5,7 @@
 #   without an OCI provider ID, including the node being initialised, so nodes never got one (#522). They now
 #   skip non-OCI nodes, find the uninitialised node by name, and read the compartment from the instance
 # The Makefile defaults ARCH to amd64, so cross-compile per TARGETARCH rather than build under QEMU
-FROM --platform=$BUILDPLATFORM golang:1.26.6 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.27.2@sha256:820153096fda4de6ac1b7194d12e416b7dd8f4e9a33d17e0345b111b945162d8 AS builder
 ARG TARGETARCH VERSION
 WORKDIR /go/src/github.com/oracle/oci-cloud-controller-manager
 COPY --from=src . .
