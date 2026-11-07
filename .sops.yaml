@@ -1,6 +1,8 @@
 creation_rules:
 - path_regex: private-[0-9]+\.sops\.yaml$
   encrypted_regex: ^(image|env|args|advancedMounts)$
+- path_regex: talos/.+\.sops\.yaml$
+  encrypted_regex: ^content$
 - path_regex: .+\.sops\.yaml$
   encrypted_regex: ^(data|stringData)$
 - path_regex: talos/secrets\.yaml$

@@ -1,0 +1,23 @@
+# The home nodes' NUT client (siderolabs/nut-client). It watches upsd in kubernetes/cluster-1/nut.yaml
+# and powers this node off when the UPS reaches low battery. Symlinked from control-plane/ and node/talos-ivx-yqq/.
+apiVersion: v1alpha1
+kind: ExtensionServiceConfig
+name: nut-client
+configFiles:
+  - mountPath: /usr/local/etc/nut/upsmon.conf
+    content: ENC[AES256_GCM,data:Oa/6yDA3USjjkwQNp5eh7kb7UVWovscgpYIEMyAUM95YMvqvmJuLD29vl2abQglhIxIzlVau+IOOZlLnNgzGAEs8GaEjif57IV1KXwkRQzEDYOeOOLNEOa4TQDPqHfhg5Y0P1K3oAaM=,iv:MGeLGSX/9tQV3deqivVMOBOccwrxMNlI97oL19hSrLU=,tag:kwTh/XnVb5009BHPU1upyg==,type:str]
+sops:
+  age:
+    - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSB1UFJ1M1RhdnROSFNwa2VI
+        RHJ5bXNocU5PUTJXR3BQSDh6cURUUUhOVkZjCkRIWis2akp3NXB4aEFrQi9vYU5q
+        aENQYko0MTJObDI0MXRFN1RIKzFuek0KLS0tIEVac29DUEZ3bWJNVlJna3lwTTA5
+        Nldya3Ayc2RIZmh3aFNZa2lyL2xkTzAKZTezaEgssBm69zDW7bBH8AbwwVOVcaY8
+        6SGvuNUkxa6seqUK7wGhZMCKNebZW2Bjo4JqvzdyKqLAGHLR0xbwRg==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2026-11-07T01:47:02Z"
+  mac: ENC[AES256_GCM,data:uhCaD9BM3U0M4mJqVtrxcvUOo4u7KQX0iZWhG0OXHbYOoDSMfcI/jZZxCfNd3cUmvyuHgYx/pA5OIwbdAAe5+bRXC0rfFvZlnknY3fH1YsfCbpeqPK/R0qrm+t6/Qwm0hVe82MPV1MkrMT7c58uTF647PasT4TQuXNzpKRl3WfA=,iv:Tt907KZ0WY5b7MNr9F1jZku5sqovYeLkmzTbICqcjsA=,tag:lyxvLbKG/l3OaOK2EyUpdw==,type:str]
+  encrypted_regex: ^content$
+  version: 3.10.2
