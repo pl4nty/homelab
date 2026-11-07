@@ -5,14 +5,14 @@
 #   without an OCI provider ID, including the node being initialised, so nodes never got one (#522). They now
 #   skip non-OCI nodes, find the uninitialised node by name, and read the compartment from the instance
 # The Makefile defaults ARCH to amd64, so cross-compile per TARGETARCH rather than build under QEMU
-FROM --platform=$BUILDPLATFORM golang:1.26.6 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.26.6@sha256:0d1d3a794be25f809dd2cb3160d8c73276c4056a9f8242a138e908ddeee7b6b6 AS builder
 ARG TARGETARCH VERSION
 WORKDIR /go/src/github.com/oracle/oci-cloud-controller-manager
 COPY --from=src . .
 COPY *.patch /tmp/
 RUN git apply /tmp/*.patch && make build ARCH="$TARGETARCH" VERSION="$VERSION" BUILD="$VERSION"
 
-FROM ghcr.io/oracle/oraclelinux:8-slim-fips
+FROM ghcr.io/oracle/oraclelinux:8-slim-fips@sha256:bdf2c4b2dd2fec6a656c78606cd1efa13c1c739e9c3e5f7daf7405eb9ce74602
 RUN microdnf -y install util-linux e2fsprogs xfsprogs python2 && \
     microdnf update && \
     microdnf clean all
