@@ -1,27 +1,37 @@
 # SPDX-License-Identifier: (GPL-2.0+ OR MIT)
-# The RK3588 MPP, RGA and AV1 device tree nodes, as an overlay linked into the
+# The RK3588 MPP, RGA and AV1 device tree nodes, as overlays linked into the
 # module and applied when it loads.
 
 obj-m += rk3588_mpp_dt.o
-rk3588_mpp_dt-y := rk3588_mpp_dt_main.o rk3588_mpp_dtbo.o
+rk3588_mpp_dt-y := rk3588_mpp_dt_main.o rk3588_mpp_dtbo.o rk3588_mpp_iommu_dtbo.o
 
 MPP_DTC ?= $(if $(wildcard $(objtree)/scripts/dtc/dtc),$(objtree)/scripts/dtc/dtc,dtc)
 
 quiet_cmd_mpp_dtbo = DTCO    $@
       cmd_mpp_dtbo = $(CPP) -nostdinc -I$(srctree)/include -I$(srctree)/arch/arm64/boot/dts \
 		-undef -D__DTS__ -x assembler-with-cpp -o $@.pp $< && \
-		$(MPP_DTC) -q -I dts -O dtb -o $@ $@.pp
+		$(MPP_DTC) -q $(MPP_DTC_FLAGS) -I dts -O dtb -o $@ $@.pp
 
 $(obj)/rk3588-mpp.dtbo: $(src)/rk3588-mpp.dtso FORCE
 	$(call if_changed,mpp_dtbo)
 
+# -@: its labels go into /__symbols__, for rk3588-mpp.dtbo
+$(obj)/rk3588-mpp-iommu.dtbo: MPP_DTC_FLAGS := -@
+$(obj)/rk3588-mpp-iommu.dtbo: $(src)/rk3588-mpp-iommu.dtso FORCE
+	$(call if_changed,mpp_dtbo)
+
 quiet_cmd_mpp_wrap = WRAP    $@
       cmd_mpp_wrap = { echo '.section .rodata,"a"'; echo '.balign 8'; \
-		echo '.global mpp_dtbo_begin'; echo 'mpp_dtbo_begin:'; \
+		echo '.global $(MPP_SYM)_begin'; echo '$(MPP_SYM)_begin:'; \
 		echo '.incbin "$(abspath $<)"'; \
-		echo '.global mpp_dtbo_end'; echo 'mpp_dtbo_end:'; } > $@
+		echo '.global $(MPP_SYM)_end'; echo '$(MPP_SYM)_end:'; } > $@
 
+$(obj)/rk3588_mpp_dtbo.S: MPP_SYM := mpp_dtbo
 $(obj)/rk3588_mpp_dtbo.S: $(obj)/rk3588-mpp.dtbo FORCE
 	$(call if_changed,mpp_wrap)
 
-targets += rk3588-mpp.dtbo rk3588_mpp_dtbo.S
+$(obj)/rk3588_mpp_iommu_dtbo.S: MPP_SYM := mpp_iommu_dtbo
+$(obj)/rk3588_mpp_iommu_dtbo.S: $(obj)/rk3588-mpp-iommu.dtbo FORCE
+	$(call if_changed,mpp_wrap)
+
+targets += rk3588-mpp.dtbo rk3588-mpp-iommu.dtbo rk3588_mpp_dtbo.S rk3588_mpp_iommu_dtbo.S

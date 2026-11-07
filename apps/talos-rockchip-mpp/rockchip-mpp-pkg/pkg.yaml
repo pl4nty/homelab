@@ -62,7 +62,8 @@ steps:
         for m in vsi_iommu rk3588_mpp_dt rk_vcodec rga3; do
           ko=$(find /rootfs/usr/lib/modules/${KERNELRELEASE}/extras -name "${m}.ko")
           test -n "${ko}"
-          grep -aq "vermagic=${KERNELRELEASE} SMP mod_unload modversions aarch64" "${ko}"
+          # the rest of vermagic comes from the config, which kernel-tree checks is the released one
+          grep -aq "vermagic=${KERNELRELEASE} " "${ko}"
         done
         ! grep -Fq '~Module signature appended~' $(find /rootfs -name '*.ko')
         # only the modules, no index files from the kernel tree

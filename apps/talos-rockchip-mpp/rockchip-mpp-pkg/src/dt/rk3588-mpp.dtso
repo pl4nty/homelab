@@ -7,9 +7,11 @@
  * - the AV1 decoder's IOMMU as mainline describes it, for the vsi-iommu driver
  * - rockchip,core-id instead of aliases, which overlays can't add
  * - no OPP tables: the vendor OPP/leakage framework isn't in mainline
+ * - node names that differ from mainline's, so nothing merges into a mainline node
  *
- * External references (cru, power, vpu121_mmu) resolve through /__symbols__,
+ * External references (cru, power and the IOMMUs) resolve through /__symbols__,
  * which the module adds before applying this, as board DTBs are built without.
+ * The IOMMUs mainline only has since Linux 7.x are in rk3588-mpp-iommu.dtso.
  */
 
 /dts-v1/;
@@ -49,7 +51,7 @@
 		compatible = "rockchip,rkv-encoder-v2-ccu";
 	};
 
-	rga3_core0: rga@fdb60000 {
+	rga3_core0: rga3-core0@fdb60000 {
 		compatible = "rockchip,rga3_core0";
 		reg = <0x0 0xfdb60000 0x0 0x1000>;
 		interrupts = <GIC_SPI 114 IRQ_TYPE_LEVEL_HIGH 0>;
@@ -60,17 +62,7 @@
 		iommus = <&rga3_0_mmu>;
 	};
 
-	rga3_0_mmu: iommu@fdb60f00 {
-		compatible = "rockchip,rk3588-iommu", "rockchip,rk3568-iommu";
-		reg = <0x0 0xfdb60f00 0x0 0x100>;
-		interrupts = <GIC_SPI 114 IRQ_TYPE_LEVEL_HIGH 0>;
-		clocks = <&cru ACLK_RGA3_0>, <&cru HCLK_RGA3_0>;
-		clock-names = "aclk", "iface";
-		power-domains = <&power RK3588_PD_RGA30>;
-		#iommu-cells = <0>;
-	};
-
-	rga3_core1: rga@fdb70000 {
+	rga3_core1: rga3-core1@fdb70000 {
 		compatible = "rockchip,rga3_core1";
 		reg = <0x0 0xfdb70000 0x0 0x1000>;
 		interrupts = <GIC_SPI 115 IRQ_TYPE_LEVEL_HIGH 0>;
@@ -79,16 +71,6 @@
 		clock-names = "aclk_rga3_1", "hclk_rga3_1", "clk_rga3_1";
 		power-domains = <&power RK3588_PD_RGA31>;
 		iommus = <&rga3_1_mmu>;
-	};
-
-	rga3_1_mmu: iommu@fdb70f00 {
-		compatible = "rockchip,rk3588-iommu", "rockchip,rk3568-iommu";
-		reg = <0x0 0xfdb70f00 0x0 0x100>;
-		interrupts = <GIC_SPI 115 IRQ_TYPE_LEVEL_HIGH 0>;
-		clocks = <&cru ACLK_RGA3_1>, <&cru HCLK_RGA3_1>;
-		clock-names = "aclk", "iface";
-		power-domains = <&power RK3588_PD_RGA31>;
-		#iommu-cells = <0>;
 	};
 
 	/* replaces mainline's rga@fdb80000, which has the same block */
@@ -325,17 +307,6 @@
 		power-domains = <&power RK3588_PD_RKVDEC0>;
 	};
 
-	rkvdec0_mmu: iommu@fdc38700 {
-		compatible = "rockchip,rk3588-iommu", "rockchip,rk3568-iommu";
-		reg = <0x0 0xfdc38700 0x0 0x40>, <0x0 0xfdc38740 0x0 0x40>;
-		interrupts = <GIC_SPI 96 IRQ_TYPE_LEVEL_HIGH 0>;
-		clocks = <&cru ACLK_RKVDEC0>, <&cru HCLK_RKVDEC0>;
-		clock-names = "aclk", "iface";
-		rockchip,disable-mmu-reset;
-		#iommu-cells = <0>;
-		power-domains = <&power RK3588_PD_RKVDEC0>;
-	};
-
 	rkvdec1: rkvdec-core@fdc48000 {
 		compatible = "rockchip,rkv-decoder-v2";
 		reg = <0x0 0xfdc48100 0x0 0x400>, <0x0 0xfdc48000 0x0 0x100>;
@@ -407,14 +378,4 @@
 		power-domains = <&power RK3588_PD_AV1>;
 	};
 
-	/* as mainline (Linux 7.x) describes it, for vsi-iommu */
-	av1d_mmu: iommu@fdca0000 {
-		compatible = "rockchip,rk3588-av1-iommu", "verisilicon,iommu-1.2";
-		reg = <0x0 0xfdca0000 0x0 0x600>;
-		interrupts = <GIC_SPI 109 IRQ_TYPE_LEVEL_HIGH 0>;
-		clocks = <&cru ACLK_AV1>, <&cru PCLK_AV1>;
-		clock-names = "core", "iface";
-		#iommu-cells = <0>;
-		power-domains = <&power RK3588_PD_AV1>;
-	};
 };

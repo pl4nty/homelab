@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """
 Writes the vmlinux part of Module.symvers from a released kernel: the export
-tables (__ksymtab, __ksymtab_gpl) and their CRCs (__kcrctab, __kcrctab_gpl) in
-the arm64 Image, located with System.map. Then checks the CRCs against the
-__versions sections of the kernel's own modules.
+table and its CRCs in the arm64 Image, located with System.map. Linux 7.x has
+one table (__ksymtab, __kcrctab) and marks GPL-only exports in __kflagstab;
+older kernels have a second table for them (__ksymtab_gpl, __kcrctab_gpl).
+Then checks the CRCs against the __versions sections of the kernel's own
+modules.
 
 usage: symvers.py <Image> <System.map> <modules dir> > Module.symvers
 """
@@ -27,8 +29,9 @@ def cstring(image, off):
 
 def exports(image, syms):
     text = syms["_text"]
+    flags = syms.get("__start___kflagstab")
     out = {}
-    for gpl in ("", "_gpl"):
+    for gpl in ("",) if flags else ("", "_gpl"):
         start = syms[f"__start___ksymtab{gpl}"]
         stop = syms[f"__stop___ksymtab{gpl}"]
         crcs = syms[f"__start___kcrctab{gpl}"] - text
@@ -39,7 +42,9 @@ def exports(image, syms):
             name = cstring(image, off + 4 + name_off)
             ns = cstring(image, off + 8 + ns_off)
             (crc,) = struct.unpack_from("<I", image, crcs + 4 * i)
-            out[name] = (crc, "EXPORT_SYMBOL_GPL" if gpl else "EXPORT_SYMBOL", ns)
+            # KSYM_FLAG_GPL_ONLY
+            gpl_only = image[flags - text + i] & 1 if flags else gpl
+            out[name] = (crc, "EXPORT_SYMBOL_GPL" if gpl_only else "EXPORT_SYMBOL", ns)
     return out
 
 

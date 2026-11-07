@@ -48,16 +48,21 @@ deferred-probe timeout, and finds no IOMMU driver, binds without one.
   page faults are only logged by the IOMMU driver. The private dma-iommu cookie
   layout the decoder needs to reserve its fixed RCB IOVA window is updated for
   6.15+.
-- **Device tree**: the board DTB has no nodes for these blocks, and isn't built
-  with `__symbols__`. When `rk3588_mpp_dt` loads, it adds `/__symbols__` entries for
-  the three nodes it refers to (`cru`, `power`, `vpu121_mmu`), then applies the
-  overlay in `rockchip-mpp-pkg/src/dt/rk3588-mpp.dtso`. That overlay holds the vendor
-  nodes, translated to mainline: 4-cell GIC specifiers, mainline IOMMU
-  compatibles, `rockchip,core-id` in place of aliases, and no vendor OPP tables.
-  It leaves mainline's hantro `vpu121` and `rga` nodes for the same blocks alone:
-  Talos doesn't build those drivers, and disabling a populated node removes its
-  device, which oopses the mainline IOMMU driver. The overlay stays applied until
-  reboot for the same reason.
+- **Device tree**: the board DTB has no nodes for these blocks. On Talos v1.14,
+  sbc-rockchip builds it without `__symbols__`; from v1.15, sbc-rockchip copies the
+  Talos kernel's DTB, which has them. When `rk3588_mpp_dt` loads, it adds any
+  missing `/__symbols__` entries for the nodes it refers to (`cru`, `power` and the
+  IOMMUs), then applies the overlay in `rockchip-mpp-pkg/src/dt/rk3588-mpp.dtso`.
+  That overlay holds the vendor nodes, translated to mainline: 4-cell GIC
+  specifiers, mainline IOMMU compatibles, `rockchip,core-id` in place of aliases,
+  and no vendor OPP tables. Linux 7.x DTBs have four of the IOMMUs it uses
+  (`rga3_0_mmu`, `rga3_1_mmu`, `vdec0_mmu`, `av1d_mmu`), which the mainline IOMMU
+  driver binds at boot, so the overlay refers to those. For older DTBs the module
+  first applies `rk3588-mpp-iommu.dtso`, which adds them. The overlay leaves
+  mainline's nodes for the same blocks (hantro, rga, rkvdec) alone, and its nodes have
+  other names, so nothing merges into them: Talos doesn't build those drivers, and
+  disabling a populated node removes its device, which oopses the mainline IOMMU
+  driver. The overlays stay applied until reboot for the same reason.
 - **Signing**: Talos signs modules with a key it throws away after its build, so
   these modules can't carry a signature Talos trusts. Talos v1.14's kernel
   enforces signatures only through the `module.sig_enforce=1` boot argument, so
@@ -155,6 +160,13 @@ Each of these needs checking on hardware:
   which is the only heap mainline has. It is cached memory, so every buffer is
   synced on map. That is correct but slower than the vendor's uncached DMA32
   heaps.
+- **Linux 7.x IOMMUs**: on DTBs that have them, the decoder and RGA3 cores use
+  mainline's IOMMU nodes. Mainline's `vdec0_mmu` lacks the vendor's
+  `rockchip,disable-mmu-reset`, so the IOMMU driver resets that MMU when it
+  enables it.
+- **rkvdec core1**: mainline places the second decoder core at `fdc40000`, the
+  vendor tree at `fdc48000`. The overlay keeps the vendor address. Core1 hasn't
+  run a job here yet.
 - **Module unloading**: the overlay can't be removed, because the mainline IOMMU
   driver can't unbind. Reload the modules by rebooting.
 - **RGA user pointers**: for user memory `get_user_pages` can't pin, the vendor
