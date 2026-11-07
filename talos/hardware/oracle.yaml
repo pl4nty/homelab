@@ -39,3 +39,11 @@ rules:
   - KERNEL=="sd*", ENV{DEVTYPE}=="disk", ENV{ID_PATH}=="*-scsi-0:0:0:15", SYMLINK+="oracleoci/oraclevdo"
   - KERNEL=="sd*", ENV{DEVTYPE}=="disk", ENV{ID_PATH}=="*-scsi-0:0:0:16", SYMLINK+="oracleoci/oraclevdp"
   - KERNEL=="sd*", ENV{DEVTYPE}=="disk", ENV{ID_PATH}=="*-scsi-0:0:0:17", SYMLINK+="oracleoci/oraclevdq"
+---
+# OCI DHCP adds the VCN search domain talos.oraclevcn.com, which pods inherit. CoreDNS answers SERVFAIL
+# for it, and musl images give up at the first SERVFAIL, so they couldn't resolve external names.
+# An empty list clears DHCP and platform search domains
+apiVersion: v1alpha1
+kind: ResolverConfig
+searchDomains:
+  domains: []
