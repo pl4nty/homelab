@@ -9,9 +9,11 @@ modules.
 
 usage: symvers.py <Image> <System.map> <modules dir> > Module.symvers
 """
+
 import os
 import struct
 import sys
+from pathlib import Path
 
 
 def symbols(path):
@@ -24,7 +26,7 @@ def symbols(path):
 
 
 def cstring(image, off):
-    return image[off:image.index(b"\0", off)].decode()
+    return image[off : image.index(b"\0", off)].decode()
 
 
 def exports(image, syms):
@@ -50,25 +52,28 @@ def exports(image, syms):
 
 def versions(ko):
     """CRCs a module recorded for the symbols it imports (BASIC_MODVERSIONS)."""
-    data = open(ko, "rb").read()
+    data = Path(ko).read_bytes()
     if data[:4] != b"\x7fELF" or data[4] != 2:
         return {}
-    shoff, = struct.unpack_from("<Q", data, 0x28)
+    (shoff,) = struct.unpack_from("<Q", data, 0x28)
     shentsize, shnum, shstrndx = struct.unpack_from("<HHH", data, 0x3A)
-    sections = [struct.unpack_from("<IIQQQQIIQQ", data, shoff + i * shentsize) for i in range(shnum)]
+    sections = [
+        struct.unpack_from("<IIQQQQIIQQ", data, shoff + i * shentsize) for i in range(shnum)
+    ]
     strtab = sections[shstrndx][4]
     for s in sections:
         if cstring(data, strtab + s[0]) == "__versions":
-            body = data[s[4]:s[4] + s[5]]
+            body = data[s[4] : s[4] + s[5]]
             return {
-                body[i + 8:i + 64].split(b"\0")[0].decode(): struct.unpack_from("<Q", body, i)[0] & 0xFFFFFFFF
+                body[i + 8 : i + 64].split(b"\0")[0].decode(): struct.unpack_from("<Q", body, i)[0]
+                & 0xFFFFFFFF
                 for i in range(0, len(body), 64)
             }
     return {}
 
 
 def main():
-    image = open(sys.argv[1], "rb").read()
+    image = Path(sys.argv[1]).read_bytes()
     table = exports(image, symbols(sys.argv[2]))
 
     checked = 0
@@ -79,11 +84,16 @@ def main():
             for name, crc in versions(os.path.join(root, f)).items():
                 if name in table:
                     if table[name][0] != crc:
-                        sys.exit(f"CRC mismatch for {name} in {f}: {table[name][0]:#010x} != {crc:#010x}")
+                        sys.exit(
+                            f"CRC mismatch for {name} in {f}: {table[name][0]:#010x} != {crc:#010x}"
+                        )
                     checked += 1
     if checked == 0:
         sys.exit("no module CRCs to check against")
-    print(f"{len(table)} exports, {checked} CRCs checked against the kernel's modules", file=sys.stderr)
+    print(
+        f"{len(table)} exports, {checked} CRCs checked against the kernel's modules",
+        file=sys.stderr,
+    )
 
     for name, (crc, kind, ns) in sorted(table.items()):
         print(f"0x{crc:08x}\t{name}\tvmlinux\t{kind}\t{ns}")
