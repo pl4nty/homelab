@@ -13,3 +13,8 @@ name: snd_hda_intel
 apiVersion: v1alpha1
 kind: KernelModuleConfig
 name: thunderbolt
+---
+# the iGPU's HDMI audio codec
+apiVersion: v1alpha1
+kind: KernelModuleConfig
+name: snd_hda_codec_intelhdmi
