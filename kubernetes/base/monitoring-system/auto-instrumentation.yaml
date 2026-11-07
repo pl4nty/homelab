@@ -34,7 +34,7 @@ spec:
   # container limit lifts the pod to 1Gi without a per-app override. the cpu and memory
   # values are the operator's defaults, which it only fills in when limits/requests are unset
   java:
-    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-java:2.32.0
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-java:2.33.1@sha256:9f44e319d84bfa1cb9b7f711916a0169e185f5eedee0a8f74cb23affc2953f00
     # java names this field resources, the other languages resourceRequirements
     resources: &agent-resources
       limits:
@@ -58,7 +58,7 @@ spec:
         value: http://k8s-monitoring-alloy-receiver.monitoring-system:4318
   python:
     # 0.39b0 had no musl build (hyperglass uses otel-python-platform: musl)
-    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-python:0.66b1
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-python:0.66b2@sha256:f0eb2c59acb53cea7e9bca8d6bf98f813cecb4776ea3129f487e1cf8db2f2adb
     resourceRequirements: *agent-resources
     env:
       # Required if endpoint is set to 4317.
@@ -70,7 +70,7 @@ spec:
         value: none
   dotnet:
     # multi-arch since 1.x, so arm64 nodes work without the old custom image
-    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-dotnet:1.17.0
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-dotnet:1.19.0@sha256:13f03de90e107250f167e38e341114f1a1efb00e5c071ee345962ba5e79d58b1
     resourceRequirements: *agent-resources
     env:
       # Required if endpoint is set to 4317.
