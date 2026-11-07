@@ -15,14 +15,13 @@ kernel.
 | `rk_vcodec` | `/dev/mpp_service` | rkvdec2 ×2 (H.264, HEVC, VP9), rkvenc2 ×2 (H.264, HEVC), AV1 decoder, VDPU/VEPU 121, JPEG decoder, IEP2 |
 | `rga3` | `/dev/rga` | RGA3 ×2, RGA2 |
 | `vsi_iommu` | | the Verisilicon IOMMU in front of the AV1 decoder |
-| `rk3588_mpp_dt` | | the device tree nodes for all of the above |
 
 Not ported: the JPEG encoder cores.
 
 `vsi-iommu` is the mainline driver from Linux 7.3 (`torvalds/linux` `4da9ded`),
 unchanged. The vendor AV1 decoder only uses the DMA API through it, as mainline's
-hantro does. `rk3588_mpp_dt` depends on it through an exported symbol, so it loads before
-the AV1 decoder's node is added. Otherwise a codec that probes after the
+hantro does. `rk_vcodec` depends on it through an exported symbol, so it loads before
+the AV1 decoder probes. Otherwise a codec that probes after the
 deferred-probe timeout, and finds no IOMMU driver, binds without one.
 
 ## How it works on mainline
@@ -33,7 +32,7 @@ deferred-probe timeout, and finds no IOMMU driver, binds without one.
   they include from it, and applies `rockchip-mpp-pkg/patches`. Those patches are
   every change made to the vendor code for mainline. `rockchip-mpp-pkg/src` holds
   the files written for the port and is copied on top: the build files, two
-  headers, IOMMU shims and the device tree module. `vsi-iommu.c` comes from
+  headers and IOMMU shims. `rockchip-mpp-pkg/dt` holds the device tree nodes. `vsi-iommu.c` comes from
   git.kernel.org at a pinned commit.
 - **Vendor kernel APIs**: the vendor headers declare stubs when their vendor
   Kconfig options are off, as they are here, for the OPP, IPA, system monitor,
@@ -48,21 +47,20 @@ deferred-probe timeout, and finds no IOMMU driver, binds without one.
   page faults are only logged by the IOMMU driver. The private dma-iommu cookie
   layout the decoder needs to reserve its fixed RCB IOVA window is updated for
   6.15+.
-- **Device tree**: the board DTB has no nodes for these blocks. On Talos v1.14,
-  sbc-rockchip builds it without `__symbols__`; from v1.15, sbc-rockchip copies the
-  Talos kernel's DTB, which has them. When `rk3588_mpp_dt` loads, it adds any
-  missing `/__symbols__` entries for the nodes it refers to (`cru`, `power` and the
-  IOMMUs), then applies the overlay in `rockchip-mpp-pkg/src/dt/rk3588-mpp.dtso`.
-  That overlay holds the vendor nodes, translated to mainline: 4-cell GIC
-  specifiers, mainline IOMMU compatibles, `rockchip,core-id` in place of aliases,
-  and no vendor OPP tables. Linux 7.x DTBs have four of the IOMMUs it uses
-  (`rga3_0_mmu`, `rga3_1_mmu`, `vdec0_mmu`, `av1d_mmu`), which the mainline IOMMU
-  driver binds at boot, so the overlay refers to those. For older DTBs the module
-  first applies `rk3588-mpp-iommu.dtso`, which adds them. The overlay leaves
-  mainline's nodes for the same blocks (hantro, rga, rkvdec) alone, and its nodes have
-  other names, so nothing merges into them: Talos doesn't build those drivers, and
-  disabling a populated node removes its device, which oopses the mainline IOMMU
-  driver. The overlays stay applied until reboot for the same reason.
+- **Device tree**: the board DTB has no nodes for these blocks, so the RK1
+  installer build adds them. `rockchip-mpp-pkg/dt/rk3588-mpp.dtsi` holds the vendor
+  nodes, translated to mainline: 4-cell GIC specifiers, mainline IOMMU compatibles,
+  `rockchip,core-id` in place of aliases, and no vendor OPP tables. The extension
+  ships it preprocessed in `/usr/local/share/rockchip-mpp`. `talos/Dockerfile`
+  decompiles the DTB the sbc-rockchip overlay installs, appends the nodes, compiles
+  it again, and hands the imager that overlay. A decompiled DTB has no labels, so
+  the nodes the file refers to (`cru`, `power`, `vpu121_mmu`, the SRAM) get them by
+  path. Linux 7.x DTBs, which sbc-rockchip copies from v1.15, also have four of the
+  IOMMUs (`rga3_0_mmu`, `rga3_1_mmu`, `vdec0_mmu`, `av1d_mmu`) and the two decoder
+  SRAM pools. The file uses mainline's node names for those, so they merge into
+  mainline's nodes there and are added on v1.14's DTB. The codec and RGA nodes have
+  other names than mainline's hantro, rga and rkvdec nodes for the same blocks, so
+  nothing merges into those: Talos builds none of their drivers.
 - **Signing**: Talos signs modules with a key it throws away after its build, so
   these modules can't carry a signature Talos trusts. Talos v1.14's kernel
   enforces signatures only through the `module.sig_enforce=1` boot argument, so
@@ -79,7 +77,7 @@ kernel, so they can't be signed with its key.
 | Stage | Like | What it does |
 | --- | --- | --- |
 | `kernel-tree` | pkgs `kernel-build` | Linux 6.18.58 source and `modules_prepare` with Sidero's LLVM image. The config (`CONFIG_IKCONFIG`) and `Module.symvers` come from the released `ghcr.io/siderolabs/kernel` image. `symvers.py` reads the export tables and CRCs out of its `Image`, and checks them against the `__versions` of the kernel's own modules. |
-| `rockchip-mpp-pkg` | pkgs `gasket-driver-pkg` | downloads and patches the vendor drivers, and builds the modules into `/usr/lib/modules/<release>/extras` |
+| `rockchip-mpp-pkg` | pkgs `gasket-driver-pkg` | downloads and patches the vendor drivers, builds the modules into `/usr/lib/modules/<release>/extras`, and preprocesses the device tree nodes into `/usr/local/share/rockchip-mpp` |
 | `rockchip-mpp` | extensions `drivers/gasket` | the extension: `manifest.yaml.tmpl`, `vars.yaml`, and `extensions-validator` |
 
 `PKGS`, `TOOLS` and `ABBREV_TAG` in `docker-bake.hcl` pin Talos v1.14.5, as in
@@ -95,7 +93,7 @@ APP=talos-rockchip-mpp docker buildx bake -f apps/docker-bake.hcl -f apps/talos-
 
 topf installs it on the RK1s. `talos/docker-bake.hcl` builds their installer from
 `talos/hardware/rk1-schematic.yaml`. `talos/control-plane/rk1.yaml` loads
-rk_vcodec and rga3, which pull in vsi_iommu and rk3588_mpp_dt.
+rk_vcodec and rga3, and rk_vcodec pulls in vsi_iommu.
 
 Jellyfin transcodes fully in hardware on d04 (Jellyfin's `rkmpp` acceleration):
 hevc_rkmpp decode, overlay_rkrga subtitle burn-in, h264_rkmpp encode. A 1080p
@@ -160,15 +158,13 @@ Each of these needs checking on hardware:
   which is the only heap mainline has. It is cached memory, so every buffer is
   synced on map. That is correct but slower than the vendor's uncached DMA32
   heaps.
-- **Linux 7.x IOMMUs**: on DTBs that have them, the decoder and RGA3 cores use
-  mainline's IOMMU nodes. Mainline's `vdec0_mmu` lacks the vendor's
-  `rockchip,disable-mmu-reset`, so the IOMMU driver resets that MMU when it
-  enables it.
 - **rkvdec core1**: mainline places the second decoder core at `fdc40000`, the
-  vendor tree at `fdc48000`. The overlay keeps the vendor address. Core1 hasn't
+  vendor tree at `fdc48000`. The nodes keep the vendor address. Core1 hasn't
   run a job here yet.
-- **Module unloading**: the overlay can't be removed, because the mainline IOMMU
-  driver can't unbind. Reload the modules by rebooting.
+- **Boot DTB**: the nodes are in the DTB the RK1s boot, so a DTB that compiles
+  but upsets an early driver affects boot, not just the modules. The built-in
+  `rockchip-iommu` driver binds the codec IOMMUs at boot, where it used to bind
+  them when the modules loaded. Upgrade one node first.
 - **RGA user pointers**: for user memory `get_user_pages` can't pin, the vendor
   driver walks the page tables with `__pte_offset_map_lock()`, which mainline
   doesn't export. Here it uses `follow_pfnmap_start()` instead, which accepts

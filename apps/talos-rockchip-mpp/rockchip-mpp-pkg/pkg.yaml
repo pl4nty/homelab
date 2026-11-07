@@ -1,9 +1,10 @@
 # The modules, built against the released Talos kernel as siderolabs/pkgs builds
 # out-of-tree modules: the Rockchip BSP drivers from Rockchip's kernel with
 # patches/ applied, the mainline vsi-iommu driver, and src/ (build files,
-# the pm_domains and IOMMU headers, the device tree module) on top. They aren't signed: the Talos
+# the pm_domains and IOMMU headers) on top. They aren't signed: the Talos
 # key is thrown away after its kernel build, so nodes boot with
-# -module.sig_enforce.
+# -module.sig_enforce. Also dt/rk3588-mpp.dtsi, preprocessed: the device tree
+# nodes for the RK1 installer build.
 name: rockchip-mpp-pkg
 variant: scratch
 shell: /bin/bash
@@ -56,10 +57,15 @@ steps:
         make -C /src M=/build modules_install \
           INSTALL_MOD_PATH=/rootfs/usr INSTALL_MOD_DIR=extras INSTALL_MOD_STRIP=1 DEPMOD=true \
           CONFIG_MODULE_SIG_ALL=
+      - |
+        # the device tree nodes, which talos/Dockerfile adds to the RK1 installer's DTB
+        mkdir -p /rootfs/usr/local/share/rockchip-mpp
+        clang -E -nostdinc -undef -D__DTS__ -x assembler-with-cpp -P -I /src/include \
+          -o /rootfs/usr/local/share/rockchip-mpp/rk3588-mpp.dtsi /pkg/dt/rk3588-mpp.dtsi
     test:
       - |
         export KERNELRELEASE=$(cat /src/include/config/kernel.release)
-        for m in vsi_iommu rk3588_mpp_dt rk_vcodec rga3; do
+        for m in vsi_iommu rk_vcodec rga3; do
           ko=$(find /rootfs/usr/lib/modules/${KERNELRELEASE}/extras -name "${m}.ko")
           test -n "${ko}"
           # the rest of vermagic comes from the config, which kernel-tree checks is the released one

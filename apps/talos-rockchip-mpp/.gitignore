@@ -7,8 +7,5 @@
 Module.symvers
 modules.order
 .tmp*
-*.dtbo
-*.pp
-mpp_dtbo.S
 .*.d
 *.d
