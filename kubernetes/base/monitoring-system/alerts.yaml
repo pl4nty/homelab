@@ -136,9 +136,9 @@ spec:
   groups:
     - name: kubernetes-jobs
       rules:
-        # KubeJobFailed resolves once the failed Job is cleaned up, so a CronJob can fail every
-        # night without a lasting alert. the expected period is the gap between its last and next
-        # schedule. the second branch covers CronJobs that have never succeeded
+        # the CronJob alert, since k8s-monitoring.yaml drops kube_job_failed for CronJob Jobs (a kept
+        # failed Job fired KubeJobFailed until the next failure). the expected period is the gap between
+        # its last and next schedule. the second branch covers CronJobs that have never succeeded
         - alert: KubeCronJobNotSucceeded
           expr: |
             (

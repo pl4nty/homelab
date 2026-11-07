@@ -173,12 +173,21 @@ spec:
             - container_network_(receive|transmit)_packets(_dropped)?_total
       kube-state-metrics:
         # Unknown pod phase is deprecated, and the "true" series already reads 0 for an unknown status.
-        # KubePersistentVolumeErrors only reads Failed and Pending volumes
+        # KubePersistentVolumeErrors only reads Failed and Pending volumes.
+        # A CronJob keeps its last failed Job until the next failure, so kubernetes-mixin's KubeJobFailed
+        # kept firing after later runs succeeded. CronJob Jobs are named <cronjob>-<minutes since epoch>
+        # and KubeCronJobNotSucceeded in alerts.yaml covers them, so drop kube_job_failed for those only
         extraMetricProcessingRules: |-
           rule {
             source_labels = ["__name__","phase","condition","status"]
             separator = "@"
             regex = "kube_pod_status_phase@Unknown@.*|kube_pod_status_ready@.*@unknown@.*|kube_deployment_status_condition@.*@unknown|kube_persistentvolume_status_phase@(Available|Released)@.*|kube_persistentvolumeclaim_status_phase@Lost@.*"
+            action = "drop"
+          }
+          rule {
+            source_labels = ["__name__","job_name"]
+            separator = "@"
+            regex = "kube_job_failed@.+-[0-9]{8,}"
             action = "drop"
           }
         metricsTuning:

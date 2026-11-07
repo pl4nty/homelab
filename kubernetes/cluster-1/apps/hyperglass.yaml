@@ -30,6 +30,13 @@ spec:
           securityContext:
             fsGroup: 2000
             fsGroupChangePolicy: OnRootMismatch
+          # the frontend build fetches from registry.yarnpkg.com on every start. musl gives up at the first
+          # SERVFAIL in the search list, and Oracle nodes searched talos.oraclevcn.com, which CoreDNS answers
+          # SERVFAIL, so it crash-looped. it only resolves external names, so skip the search list
+          dnsConfig:
+            options:
+              - name: ndots
+                value: "1"
         containers:
           main:
             image:
