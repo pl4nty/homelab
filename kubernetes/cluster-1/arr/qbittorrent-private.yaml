@@ -66,6 +66,9 @@ spec:
         runAsGroup: 568
         fsGroup: 568
         fsGroupChangePolicy: OnRootMismatch
+        # private-0-data/Downloads/qbittorrent is 1000:1000 setgid g+w (Whisparr's uid), so
+        # downloads saved there need group 1000
+        supplementalGroups: [1000]
     #     seccompProfile: { type: RuntimeDefault }
     service:
       main:
