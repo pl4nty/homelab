@@ -100,6 +100,8 @@ type server struct {
 	store       Store
 	ttl         time.Duration
 	searchLimit int64
+	// offline never signs in to Apple and serves only cached versions (PR previews)
+	offline bool
 
 	// downloads purchase and fetch whole IPAs, so run one at a time
 	downloadMu sync.Mutex
@@ -120,7 +122,12 @@ func (s *server) login() error {
 	return err
 }
 
+var errOffline = statusError{http.StatusServiceUnavailable, errors.New("this instance doesn't sign in to Apple, so it only serves cached apps")}
+
 func (s *server) account() (appstore.Account, error) {
+	if s.offline {
+		return appstore.Account{}, errOffline
+	}
 	info, err := s.appStore.AccountInfo()
 	if err == nil {
 		return info.Account, nil
@@ -397,8 +404,12 @@ func main() {
 		store:       Store{dir: dataDir},
 		ttl:         ttl,
 		searchLimit: int64(envInt("SEARCH_LIMIT", 15)),
+		// any value turns it on, so a manifest can pass its preview suffix
+		offline: os.Getenv("OFFLINE") != "",
 	}
-	if _, err := s.account(); err != nil {
+	if s.offline {
+		log.Println("offline: serving cached apps only")
+	} else if _, err := s.account(); err != nil {
 		log.Println(err)
 	}
 

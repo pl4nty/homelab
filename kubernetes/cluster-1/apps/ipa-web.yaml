@@ -31,6 +31,8 @@ spec:
               # inject-sdk points at :4317 (gRPC); the Go SDK exports http/protobuf by default
               OTEL_EXPORTER_OTLP_ENDPOINT: http://k8s-monitoring-alloy-receiver.monitoring-system:4318
               GIN_MODE: release
+              # previews never sign in to Apple (fresh PVCs look like new devices), so they serve cached apps only
+              OFFLINE: "${APP_SUFFIX:=}"
               DATA_DIR: /data
               XDG_CACHE_HOME: /data/.cache
               # Store hardware identity the Apple account already knows

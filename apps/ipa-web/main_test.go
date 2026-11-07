@@ -3,6 +3,7 @@ package main
 import (
 	"archive/zip"
 	"bytes"
+	"errors"
 	"html/template"
 	"os"
 	"path/filepath"
@@ -153,5 +154,28 @@ func TestBundleTemplate(t *testing.T) {
 		if !strings.Contains(out.String(), want) {
 			t.Errorf("bundle page is missing %s", want)
 		}
+	}
+}
+
+func TestOfflineServesCache(t *testing.T) {
+	s := &server{store: Store{dir: t.TempDir()}, offline: true}
+	if _, err := s.latest(t.Context(), "com.example.app"); !errors.Is(err, errOffline) {
+		t.Fatalf("uncached app: got %v, want errOffline", err)
+	}
+	v := Version{App: appstore.App{BundleID: "com.example.app", Version: "1.0"}}
+	dir, _ := s.store.versionDir("com.example.app", "1.0")
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err := writeJSON(filepath.Join(dir, "version.json"), v); err != nil {
+		t.Fatal(err)
+	}
+	// a stale check would normally ask the App Store; offline serves the cache instead
+	if err := s.store.SetLatest("com.example.app", Latest{Version: "1.0"}); err != nil {
+		t.Fatal(err)
+	}
+	got, err := s.latest(t.Context(), "com.example.app")
+	if err != nil || got.App.Version != "1.0" {
+		t.Fatalf("cached app: got %v, %v", got, err)
 	}
 }
