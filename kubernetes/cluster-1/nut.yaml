@@ -1,0 +1,248 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/app-template-5.3.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# Network UPS Tools for the Eaton 3S 850. On low battery, upsmon halts every home node through the
+# Talos API and has the UPS cut then restore its outlets, so the nodes boot again when mains returns
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: nut
+  namespace: default
+spec:
+  interval: 15m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    global:
+      createDefaultServiceAccount: false
+    defaultPodOptions:
+      # the UPS USB cable is in the Turing Pi's rear ports, which only slot 4 drives
+      nodeSelector:
+        kubernetes.io/hostname: talos-uj3-t5w
+    controllers:
+      nut:
+        # the driver holds the USB device exclusively
+        strategy: Recreate
+        containers:
+          driver:
+            image: &image
+              repository: instantlinux/nut-upsd
+              tag: 2.8.5-r1@sha256:a186d74a586ec4e10494270f6a52e26bb5e50663d2f8570865f5bd38273e096e
+            command: [/usr/lib/nut/usbhid-ups, -a, eaton, -F, -u, root]
+            # restarts the driver when its data goes stale, e.g. after a USB glitch
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command: [upsc, eaton@localhost, ups.status]
+                  initialDelaySeconds: 60
+                  periodSeconds: 30
+                  failureThreshold: 4
+            securityContext:
+              # raw USB access to a device that can be replugged under a new path
+              privileged: true
+            resources:
+              requests:
+                cpu: 5m
+                memory: 16Mi
+              limits:
+                memory: 64Mi
+          upsd:
+            image: *image
+            command: [/usr/sbin/upsd, -F, -u, root]
+            securityContext: &securityContext
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: [ALL]
+                # both call initgroups even when staying root
+                add: [SETUID, SETGID]
+            resources: &resources
+              requests:
+                cpu: 5m
+                memory: 8Mi
+              limits:
+                memory: 32Mi
+          upsmon:
+            image: *image
+            command: [/usr/sbin/upsmon, -F]
+            env:
+              TALOSCONFIG: /var/run/secrets/talos.dev/config
+              NODE_IP:
+                valueFrom:
+                  fieldRef:
+                    fieldPath: status.hostIP
+              # talos-ivx-yqq, talos-d04-4hs, talos-vpz-3a1. talos-oci-a1 isn't on this UPS
+              OTHER_NODES: 192.168.1.131,192.168.1.133,192.168.1.136
+            securityContext: *securityContext
+            resources: *resources
+          exporter:
+            image:
+              repository: ghcr.io/druggeri/nut_exporter
+              tag: 3.3.0@sha256:276460d141c732772f8b1fcd785a7de272473e6d39fd85c32b163efc2999cb9a
+            args:
+              - --nut.vars_enable=battery.charge,battery.runtime,input.voltage,ups.load,ups.status
+              - --nut.statuses=OL,OB,LB,RB,CHRG,DISCHRG,BYPASS,OVER,FSD
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: [ALL]
+              runAsNonRoot: true
+              runAsUser: 65534
+              readOnlyRootFilesystem: true
+            resources: *resources
+    service:
+      nut:
+        controller: nut
+        ports:
+          metrics:
+            port: 9199
+    serviceMonitor:
+      nut:
+        service:
+          identifier: nut
+        endpoints:
+          - port: metrics
+            path: /ups_metrics
+            params:
+              ups: [eaton]
+    persistence:
+      config:
+        type: configMap
+        identifier: config
+        advancedMounts:
+          nut:
+            driver: &config
+              - path: /etc/nut
+                readOnly: true
+            upsd: *config
+            upsmon: *config
+      run:
+        type: emptyDir
+        advancedMounts:
+          nut:
+            driver: &run
+              - path: /run/nut
+            upsd: *run
+            upsmon: *run
+      usb:
+        type: hostPath
+        hostPath: /dev/bus/usb
+        advancedMounts:
+          nut:
+            driver:
+              - path: /dev/bus/usb
+      talosctl:
+        type: image
+        image:
+          repository: ghcr.io/siderolabs/talosctl
+          tag: v1.14.5@sha256:0b852e35c1f513ee5eacc22183d6193486012420569fde39fcd5260c51938443
+        advancedMounts:
+          nut:
+            upsmon:
+              - path: /opt/talos
+      talosconfig:
+        type: secret
+        name: nut-shutdown
+        advancedMounts:
+          nut:
+            upsmon:
+              - path: /var/run/secrets/talos.dev
+                readOnly: true
+    configMaps:
+      config:
+        data:
+          nut.conf: |
+            MODE=netserver
+          ups.conf: |
+            [eaton]
+              driver = usbhid-ups
+              port = auto
+              vendorid = 0463
+              # NUT decides low battery from these instead of the UPS's own, much lower, threshold
+              ignorelb
+              override.battery.charge.low = 50
+              override.battery.runtime.low = 600
+              # shutdown.return cuts the outlets after offdelay seconds, then restores them ondelay
+              # seconds after the command once mains is back. both count from the command
+              offdelay = 180
+              ondelay = 240
+          upsd.conf: |
+            LISTEN 127.0.0.1 3493
+          # upsd only listens inside the pod, so this password guards nothing
+          upsd.users: |
+            [upsmon]
+              password = upsmon
+              upsmon primary
+              instcmds = shutdown.return
+          upsmon.conf: |
+            MONITOR eaton@localhost 1 upsmon upsmon primary
+            RUN_AS_USER root
+            SHUTDOWNCMD "/bin/sh /etc/nut/shutdown.sh"
+          # the other nodes first, since talosctl reaches them through this node's apid
+          shutdown.sh: |
+            set -x
+            /opt/talos/talosctl -e "$NODE_IP" -n "$OTHER_NODES" shutdown --force --wait=false
+            upscmd -u upsmon -p upsmon eaton@localhost shutdown.return
+            /opt/talos/talosctl -e "$NODE_IP" -n "$NODE_IP" shutdown --force --wait=false
+---
+# Talos creates the nut-shutdown Secret with a talosconfig. Needs os:operator in
+# KubeTalosAPIAccessConfig (talos/control-plane/control-plane.yaml)
+apiVersion: talos.dev/v1alpha1
+kind: ServiceAccount
+metadata:
+  name: nut-shutdown
+  namespace: default
+spec:
+  roles:
+    - os:operator
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: nut
+  namespace: default
+spec:
+  groups:
+    - name: nut
+      rules:
+        - alert: UpsOnBattery
+          expr: network_ups_tools_battery_charge and on() network_ups_tools_ups_status{flag="OB"} == 1
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: The UPS lost mains power.
+            description: The Eaton UPS is on battery at {{ $value }}% charge. The home nodes shut down at 50% or 10 minutes of runtime left.
+        - alert: UpsLowBattery
+          expr: network_ups_tools_ups_status{flag=~"LB|FSD"} == 1
+          labels:
+            severity: critical
+          annotations:
+            summary: The UPS battery is low, so the cluster is shutting down.
+            description: upsmon has started halting every home node. The UPS cuts its outlets 3 minutes later and restores them once mains returns.
+        - alert: UpsReplaceBattery
+          expr: network_ups_tools_ups_status{flag="RB"} == 1
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: The UPS battery needs replacing.
+            description: The Eaton UPS failed its battery self-test, so its runtime is shorter than reported.
+        - alert: UpsOverloaded
+          expr: network_ups_tools_ups_load and on() network_ups_tools_ups_status{flag="OVER"} == 1
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: The UPS is overloaded.
+            description: The Eaton UPS load is {{ $value }}%.
+        # the alerts above, and the automatic shutdown, go quiet when the UPS is unreachable
+        - alert: UpsMissing
+          expr: absent(network_ups_tools_ups_status{flag="OL"})
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: No UPS data.
+            description: No UPS status for 15 minutes, so a power cut won't shut the cluster down. Check the nut pod on talos-uj3-t5w and the UPS USB cable.

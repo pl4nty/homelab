@@ -13,10 +13,10 @@ kind: KubeProxyConfig
 mode: nftables
 image: quay.io/k0sproject/kube-proxy:v1.36.6@sha256:89ab5ebd6edf5d6409c09d17287134299ec53395340fbf80f2158a11a502a1e3
 ---
-# for kubernetes/cluster-1/backups/etcd.yaml
+# for kubernetes/cluster-1/backups/etcd.yaml, and kubernetes/cluster-1/nut.yaml to shut nodes down
 apiVersion: v1alpha1
 kind: KubeTalosAPIAccessConfig
-allowedRoles: [os:etcd:backup]
+allowedRoles: [os:etcd:backup, os:operator]
 allowedKubernetesNamespaces: [default]
 ---
 # allow scheduling on control planes
