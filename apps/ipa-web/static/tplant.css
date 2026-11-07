@@ -218,6 +218,6 @@ code,
 }
 
 .bundle textarea {
-  resize: none;
+  resize: vertical;
   word-break: break-all;
 }
