@@ -8,11 +8,11 @@ vars:
   linux_sha256: 069b19f9032c4dac8149ae4b6520c35debca0f42a9f6d52ee55ba6ca9b818013
   linux_sha512: 9ee621783588881dff0032ea6ef2a555869efe541e9a00b6702561bcc107a3f986b691140c7374c9cecf989d7ccb5b526ead3ac67906c88223840380f3f8effa
 
-  # drivers/video/rockchip/{mpp,rga3} come from Armbian's Rockchip BSP tree
-  # renovate: datasource=git-refs versioning=git depName=https://github.com/armbian/linux-rockchip.git currentValue=rk-6.12-rkr1
-  linux_rockchip_ref: 6bdc00dfa94e1ca52c2fac66253ed00fcaab52b8
-  linux_rockchip_sha256: 3c9a6e505733a1f7e8ba5cd8c0c375ca47933d504e017d4a4ba69373039cfc17
-  linux_rockchip_sha512: 7689e410138b5345e74258786b2a2f29a52e03696c5b5437ea2b30ba3f7fb2ff83f26cfd6378cb28740e20ed7105dec9089b9651b34845554e6c4fb606f58e9d
+  # drivers/video/rockchip/{mpp,rga3} come from Rockchip's BSP kernel
+  # renovate: datasource=git-refs versioning=git depName=https://github.com/rockchip-linux/kernel.git currentValue=develop-6.12
+  linux_rockchip_ref: 470f9dccbdc42e7b8a824d0a5c5640a10e9457d2
+  linux_rockchip_sha256: 3b6da867142d24b7d0282763debc072992f5d3bccc8c3dd7c9e68186b0284990
+  linux_rockchip_sha512: 867b9994f52bc4546bc3ebc54db1088e17b18abed5ddd3fe1c3b82aa8c734c9785eebd167ba02dcb4cb32ef3f955d013b11c5d1a2f9ff985a9e5dd55e55fc84f
 
   # the mainline Verisilicon IOMMU driver, from Linux 7.3
   vsi_iommu_ref: 4da9dedf3fc59137fd86d664693776aa38cb97f5

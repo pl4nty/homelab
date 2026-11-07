@@ -28,8 +28,8 @@ deferred-probe timeout, and finds no IOMMU driver, binds without one.
 ## How it works on mainline
 
 - **Source**: the build downloads
-  [armbian/linux-rockchip](https://github.com/armbian/linux-rockchip) `rk-6.12-rkr1`
-  at `6bdc00d`, takes `drivers/video/rockchip/{mpp,rga3}` and the vendor headers
+  Rockchip's BSP kernel, [rockchip-linux/kernel](https://github.com/rockchip-linux/kernel)
+  `develop-6.12` at `470f9dc`, takes `drivers/video/rockchip/{mpp,rga3}` and the vendor headers
   they include from it, and applies `rockchip-mpp-pkg/patches`. Those patches are
   every change made to the vendor code for mainline. `rockchip-mpp-pkg/src` holds
   the files written for the port and is copied on top: the build files, two
