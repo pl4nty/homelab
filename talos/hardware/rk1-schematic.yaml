@@ -9,9 +9,10 @@ customization:
   systemExtensions:
     # digests from ghcr.io/siderolabs/extensions:v<talosVersion>: Sidero re-pushes tags for newer Talos releases
     officialExtensions:
-      - ghcr.io/siderolabs/fuse3:3.18.3@sha256:8b48ce5eaa16d452bafa46a570684325cc807ecb0f4c8351da1a37c52468d6ca
       - ghcr.io/siderolabs/iscsi-tools:v0.2.0@sha256:584e1d106e424d3e17ddd43bddf892b386748f10d11a9fd024a358f0d42c0a2e
+      - ghcr.io/siderolabs/nut-client:2.8.5@sha256:075e39d4c837ba07bdd97d7cd9aee444e5fe0d17515ee15dd07851827f117802
       - ghcr.io/siderolabs/panfrost:20260916-v1.14.5@sha256:ffd2926079a78339e75374f59bad1e83264341d36b977af854c15c3762a8c3b1
+      - ghcr.io/siderolabs/rockchip-rknn:v1.14.5@sha256:380ee3a075367be2942d5ee1d23e437601130b8e4e02a9122d5c61bee8971c28
       - ghcr.io/siderolabs/util-linux-tools:2.42.2@sha256:f93f23e96b28e00228cf9a006a15c1648bd5975be989adb1bee6c05c046001a1
       # built for one Talos kernel, so rebuild it with talosVersion. Its digest is in the
       # schematic ID, so a rebuild gets a new installer

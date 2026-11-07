@@ -1,0 +1,29 @@
+# upsd users for kubernetes/cluster-1/nut.yaml. secondary is the home nodes' nut-client
+# (talos/hardware/home.yaml). primary is the pod's upsmon, which also cuts the UPS outlets
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nut
+  namespace: default
+type: Opaque
+# upsmon logs a failed SHUTDOWNCMD's command line, so the password stays in shutdown.sh. On success
+# it holds there, so a restarted upsmon doesn't send it again and reset the UPS countdown
+stringData:
+  upsd.users: ENC[AES256_GCM,data:bG7v6Ky+dIDrMWNMYWCd+/1uRBbYStPfzxNgOzx2LPsD976Ka4z7uK8+pk1GUXQzw3QGZWWmLv3gcbl0Wo7LguoW0CsNNPuzsDX1CW9/2H1+LqfCXw4Sg3rPp7WNzqwuGfOaBU715o76auRhT0wzmefVJTpBZ+cnOPo/hvXDvcTB8r1dIDmKRVNo3MG4HcTVloKERw==,iv:go1ifECv2cp58HKadJvBSywc74NpfQLLs9e+oPkE9c4=,tag:CvFFnklKrq0uOCIoVoksEw==,type:str]
+  upsmon.conf: ENC[AES256_GCM,data:HYWDoeZimTB/H9PRkzKAtPXc7ZB4ycQw7RL+dr8WOUCeLs9js9m+9Wp6jATSozS231mnlU9dUT/mrRYp+os8CxUKkK8EsblnwlMlRilpiovffjZu/9ZcIxyqt0JqArNwvfCVEcO5xQRVp+h49zrJzLs43VmeRcWvoHJRo3izxw==,iv:KtlBh+0ZntarKL0TbZQzecnTpWCDDdollJIysPQUZ20=,tag:V/cGFK6q2F8BFXPiC/IpSw==,type:str]
+  shutdown.sh: ENC[AES256_GCM,data:sqVRDXLjcN+3vUwnwPfUo0XALvQHmOG6bsUjD8zQtz3nQA5Lp/lNK2P37sGzl5G6o0mF46Z+5DXuIYUYdvSbyI1YeqAljMoo+aAidTFbk7OZ2s3NTDzNbZK7v/sZYOAxJ9HiJ6JEDsU=,iv:u2kt15/lqUolqSR4w5MGJx4OjfVxQn5irQ/Ou39Bwl8=,tag:Yo6wAWmgM7x/7aR6viXnIw==,type:str]
+sops:
+  age:
+    - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA0UFZaeGFXSHNiRk5pcTJC
+        d3VLOEZGclI4NnRJQy9zZjFrRlA4Y3pjdEJJCmp6L0JiaXVyOC9mQUg3cWxhUnVz
+        aURPLzB2ZVFpL1VXUVVIQjdnQWFvc1kKLS0tIGp4Sk9kVHZ2YmdJYThsajdySGEv
+        UDg1Z1owd3IyTWozNGF2aXpZUHQ3L1kKFF0iC9bSb2xeoJcafSFYNcYkCywrRdxw
+        OKuGM5wLgoLbHdgVJf+lfIsFn37rwFBbGkKaWoKYB2UpuWtec6siXQ==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2026-11-07T02:03:22Z"
+  mac: ENC[AES256_GCM,data:wMU0G5tRI3SMualpNaNKbHLytl82dqm0ZAYGZQ87Sf3cW92x2m3Vfy/fQpcYUTn2BOtZMEkWZND2g+fUzny0+fA23lLu6FlIvE8FXPNqn3wcaK4SBvncQ1Z7PEXVkiDtzeGnrT2Am70eNgK2eEyYeMLtTNIXQQanuHQi/YuZ5lc=,iv:a5zNSs1lz2Q/ce5n6VCmjwthZ3P3N8a+9aL3uSqB7TI=,tag:Wr4q/ETG2eg7uTKL4V0Qfg==,type:str]
+  encrypted_regex: ^(data|stringData)$
+  version: 3.10.2
