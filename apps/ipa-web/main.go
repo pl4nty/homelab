@@ -39,6 +39,46 @@ type BundleInformation struct {
 	}
 }
 
+// exemptSchemes lists an app's URL schemes once each, in Info.plist order, for the
+// Intune "Select apps to exempt" value (joined with ";"). http and https are left out:
+// exempting them would send org data to any browser.
+func exemptSchemes(info BundleInformation) []string {
+	seen := map[string]bool{"http": true, "https": true}
+	schemes := []string{}
+	for _, t := range info.CFBundleURLTypes {
+		for _, scheme := range t.CFBundleURLSchemes {
+			key := strings.ToLower(scheme)
+			if scheme == "" || seen[key] {
+				continue
+			}
+			seen[key] = true
+			schemes = append(schemes, scheme)
+		}
+	}
+	return schemes
+}
+
+// universalLinks turns applinks associated domains into Intune universal link
+// patterns (http and https). Other services, such as webcredentials, aren't links.
+func universalLinks(domains []string) []string {
+	links := []string{}
+	seen := map[string]bool{}
+	for _, d := range domains {
+		host, ok := strings.CutPrefix(d, "applinks:")
+		if !ok {
+			continue
+		}
+		// drop the alternate mode, eg applinks:example.com?mode=developer
+		host, _, _ = strings.Cut(host, "?")
+		if host == "" || seen[host] {
+			continue
+		}
+		seen[host] = true
+		links = append(links, "http://"+host+"/*", "https://"+host+"/*")
+	}
+	return links
+}
+
 // TODO Apple Watch subfolder eg Payload/Passbook.app/Watch/PassbookWatchApp.app/
 
 type Bundle struct {
@@ -413,18 +453,17 @@ func main() {
 			fail(c, err)
 			return
 		}
-		domains := []string{}
-		for _, domain := range b.Entitlements.AssociatedDomains {
-			domains = append(domains, strings.TrimPrefix(domain, "applinks:"))
-		}
-		b.Entitlements.AssociatedDomains = domains
 		_, privacyErr := s.store.File(c.Param("id"), v.App.Version, privacyInfo)
+		schemes := exemptSchemes(b.Information)
 		c.HTML(http.StatusOK, "views/bundle.html", gin.H{
-			"Id":       c.Param("id"),
-			"Bundle":   b,
-			"Version":  v,
-			"Versions": versions,
-			"Privacy":  privacyErr == nil,
+			"Id":          c.Param("id"),
+			"Bundle":      b,
+			"Version":     v,
+			"Versions":    versions,
+			"Privacy":     privacyErr == nil,
+			"Schemes":     schemes,
+			"SchemeValue": strings.Join(schemes, ";"),
+			"Links":       universalLinks(b.Entitlements.AssociatedDomains),
 		})
 	})
 
