@@ -164,3 +164,60 @@ code,
 pre {
   color: var(--tp-dark);
 }
+
+.list-group {
+  --bs-list-group-bg: transparent;
+  --bs-list-group-color: var(--tp-darkgray);
+  --bs-list-group-border-color: var(--bs-border-color);
+}
+
+.card-header {
+  border-bottom-color: var(--bs-border-color);
+}
+
+/* bundle page: left-aligned reading width inside the centred layout */
+.bundle {
+  max-width: 880px;
+}
+
+.bundle .card {
+  background-color: transparent;
+}
+
+.bundle .list-group-item code {
+  font-size: 0.9rem;
+}
+
+.btn-link.copy-icon {
+  --bs-btn-color: var(--tp-darkgray);
+  --bs-btn-hover-color: var(--tp-secondary);
+  line-height: 1;
+}
+
+.btn.copied {
+  --bs-btn-color: var(--tp-secondary);
+  --bs-btn-border-color: var(--tp-secondary);
+  --bs-btn-hover-color: var(--tp-secondary);
+  --bs-btn-hover-border-color: var(--tp-secondary);
+}
+
+.btn-primary.copied {
+  --bs-btn-color: var(--tp-on-accent);
+  --bs-btn-bg: var(--tp-tertiary);
+}
+
+/* Fira Code ligatures turn "www" and "://" into symbols, which misleads when copying */
+code,
+.font-monospace {
+  font-variant-ligatures: none;
+}
+
+.bundle h1,
+.bundle h2 {
+  font-weight: 600;
+}
+
+.bundle textarea {
+  resize: vertical;
+  word-break: break-all;
+}
