@@ -27,3 +27,10 @@ configFiles:
     content: |
       MONITOR eaton@192.168.1.134 1 secondary secondary secondary
       SHUTDOWNCMD "/sbin/poweroff"
+---
+# Hardware watchdog: iTCO_wdt on the NUC, the DesignWare watchdog on the RK1s. The RK1's
+# watchdog can't count much past 44s, so stay under that
+apiVersion: v1alpha1
+kind: WatchdogTimerConfig
+device: /dev/watchdog0
+timeout: 30s
