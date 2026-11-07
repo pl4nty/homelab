@@ -13,7 +13,7 @@ authors = [{ name = "Tom Plant" }]
 dependencies = [
   "numpy==2.5.4",
   "opencv-python-headless==5.0.0.93",
-  "pillow>=10",
+  "pillow==13.0.0",
   "anthropic==2.3.0",
   "pydantic==2.14.2",
   "fastapi==0.162.0",

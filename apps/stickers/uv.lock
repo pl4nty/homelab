@@ -633,7 +633,7 @@ requires-dist = [
     { name = "httpx", marker = "extra == 'dev'", specifier = "==0.28.1" },
     { name = "numpy", specifier = "==2.5.4" },
     { name = "opencv-python-headless", specifier = "==5.0.0.93" },
-    { name = "pillow", specifier = ">=10" },
+    { name = "pillow", specifier = "==13.0.0" },
     { name = "pydantic", specifier = "==2.14.2" },
     { name = "pytest", marker = "extra == 'dev'", specifier = "==9.2.0" },
     { name = "python-multipart", specifier = "==0.0.32" },
