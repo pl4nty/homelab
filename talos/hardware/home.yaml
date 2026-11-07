@@ -16,3 +16,14 @@ kind: KubeNodeConfig
 labels:
   topology.kubernetes.io/region: home
   topology.kubernetes.io/zone: home
+---
+# NUT client (siderolabs/nut-client) for the upsd in kubernetes/cluster-1/nut.yaml. Powers the node off
+# on low battery. A secondary login can only watch the UPS, so its password needn't be secret
+apiVersion: v1alpha1
+kind: ExtensionServiceConfig
+name: nut-client
+configFiles:
+  - mountPath: /usr/local/etc/nut/upsmon.conf
+    content: |
+      MONITOR eaton@192.168.1.134 1 secondary secondary secondary
+      SHUTDOWNCMD "/sbin/poweroff"

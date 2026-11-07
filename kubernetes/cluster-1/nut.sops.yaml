@@ -1,5 +1,5 @@
 # upsd users for kubernetes/cluster-1/nut.yaml. secondary is the home nodes' nut-client
-# (talos/hardware/nut.sops.yaml). primary is the pod's upsmon, which also cuts the UPS outlets
+# (talos/hardware/home.yaml). primary is the pod's upsmon, which also cuts the UPS outlets
 apiVersion: v1
 kind: Secret
 metadata:
@@ -9,21 +9,21 @@ type: Opaque
 # upsmon logs a failed SHUTDOWNCMD's command line, so the password stays in shutdown.sh. On success
 # it holds there, so a restarted upsmon doesn't send it again and reset the UPS countdown
 stringData:
-  upsd.users: ENC[AES256_GCM,data:7qOCylRhKZWA8Qw/pOttxQ6sBGkdRFi6BxnWHZWcebTHHL2z3BGmzMJhJWiExXjXPLjbTPEA57VndtW3WGh8F84/Qhg/JQj8wPF7EE5NRX9NIe7c1qKKeHgTNLyhkhIPva3afAfvlK4K2ZrBMXGPN5Qm1xYPqmPZ4egR0YRrJLJ0d/FbRDC7b2jCVbGnPB482uORiFohFmgqHGdfgRVHlrT/Zw==,iv:pilkVR6RzJGLp1ryVkAxL9cONdGwEt/428ERX9SNDXk=,tag:wjoYf4l6gsARG2AlfJnjMA==,type:str]
-  upsmon.conf: ENC[AES256_GCM,data:sHdB5+97imaEAyYwwzt9grjuFkC2WVNoi8a+wp85pW9H+SaM6j/QS1I8aKVBTuh3XSVExkX0mr9S58gG4D80wcIgVMDnrm72NCtIQ1KUpElTO5trHPRF/NmLc3VOfzPzamuIQb5xbrjFXM/MykV7RTnMT848OhLs0IbUODQLTg==,iv:KzihQzizRNi15TE85wGYyym0L47Zg0uLgP+cmycMLeU=,tag:ib52m3B8CjjKvrnwPr7MQQ==,type:str]
-  shutdown.sh: ENC[AES256_GCM,data:gav8QgC5fLGpPEDyKTn86KTwPOBOkEO+Jra+zdB6Fbhy1iJn+5GV23dpeY23Ul1jZ47PvxChGXwDs51aqjBcxM51hicc0B6XkhQWDPFnZEx6gH6cWAIZaTq4wQ5Z7iEYiiaX9QNOhKs=,iv:B8yxvZgCdYxw+F6IJaemoaYJtAbZPH5heomcc5meTeY=,tag:r+dnY/g4Pp9FpCCsBI66ow==,type:str]
+  upsd.users: ENC[AES256_GCM,data:bG7v6Ky+dIDrMWNMYWCd+/1uRBbYStPfzxNgOzx2LPsD976Ka4z7uK8+pk1GUXQzw3QGZWWmLv3gcbl0Wo7LguoW0CsNNPuzsDX1CW9/2H1+LqfCXw4Sg3rPp7WNzqwuGfOaBU715o76auRhT0wzmefVJTpBZ+cnOPo/hvXDvcTB8r1dIDmKRVNo3MG4HcTVloKERw==,iv:go1ifECv2cp58HKadJvBSywc74NpfQLLs9e+oPkE9c4=,tag:CvFFnklKrq0uOCIoVoksEw==,type:str]
+  upsmon.conf: ENC[AES256_GCM,data:HYWDoeZimTB/H9PRkzKAtPXc7ZB4ycQw7RL+dr8WOUCeLs9js9m+9Wp6jATSozS231mnlU9dUT/mrRYp+os8CxUKkK8EsblnwlMlRilpiovffjZu/9ZcIxyqt0JqArNwvfCVEcO5xQRVp+h49zrJzLs43VmeRcWvoHJRo3izxw==,iv:KtlBh+0ZntarKL0TbZQzecnTpWCDDdollJIysPQUZ20=,tag:V/cGFK6q2F8BFXPiC/IpSw==,type:str]
+  shutdown.sh: ENC[AES256_GCM,data:sqVRDXLjcN+3vUwnwPfUo0XALvQHmOG6bsUjD8zQtz3nQA5Lp/lNK2P37sGzl5G6o0mF46Z+5DXuIYUYdvSbyI1YeqAljMoo+aAidTFbk7OZ2s3NTDzNbZK7v/sZYOAxJ9HiJ6JEDsU=,iv:u2kt15/lqUolqSR4w5MGJx4OjfVxQn5irQ/Ou39Bwl8=,tag:Yo6wAWmgM7x/7aR6viXnIw==,type:str]
 sops:
   age:
     - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
       enc: |
         -----BEGIN AGE ENCRYPTED FILE-----
-        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA2TFVNaVVaa2MyM01jWEVk
-        a3RzWTZWQmlyTjhBL2dmSWJNMXFjSTRwY1g0Cm5Ca1ROVFBLWjRKOHMvZytaRUtW
-        UWRJaG5Hdkk0UkRnbUlyTFlORlFxTVkKLS0tIHd4NnFxNTdBNWpBUVZ6L1pnWC9B
-        MGQvaXRwdWRoV3dNbGpub0RVQ3BFdTgKgIiH+O0swMWqLv0Uvy0mPD4UcYKFeCBC
-        vuxXygW+RTOW21vGDNmUB2mXlaJ+Gg5a5TULXfWF5W6tsKJTITXxXQ==
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA0UFZaeGFXSHNiRk5pcTJC
+        d3VLOEZGclI4NnRJQy9zZjFrRlA4Y3pjdEJJCmp6L0JiaXVyOC9mQUg3cWxhUnVz
+        aURPLzB2ZVFpL1VXUVVIQjdnQWFvc1kKLS0tIGp4Sk9kVHZ2YmdJYThsajdySGEv
+        UDg1Z1owd3IyTWozNGF2aXpZUHQ3L1kKFF0iC9bSb2xeoJcafSFYNcYkCywrRdxw
+        OKuGM5wLgoLbHdgVJf+lfIsFn37rwFBbGkKaWoKYB2UpuWtec6siXQ==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2026-11-07T01:49:17Z"
-  mac: ENC[AES256_GCM,data:kMXiPKuIAwnVzvuhvU19HirYyQMHrde/jPevoKozlBw3pXQXD+KYTJVMVBhU1gG3zMJO4FqePkMJ86OOH1gb/VwGiquFGqpto6jpfE8ZXjN0xnr1fHy9BdQxDAeb3U7M2okv4fWOHnIY5iP2SPY6O3YHIDwlbztFPsCRpeVQ9+I=,iv:ILseNszczdmuKeyJDV/iw3sglWbL7O6Q1U/TmXwz7zQ=,tag:Zs0V2HrQhMMqXM1lUsXMtg==,type:str]
+  lastmodified: "2026-11-07T02:03:22Z"
+  mac: ENC[AES256_GCM,data:wMU0G5tRI3SMualpNaNKbHLytl82dqm0ZAYGZQ87Sf3cW92x2m3Vfy/fQpcYUTn2BOtZMEkWZND2g+fUzny0+fA23lLu6FlIvE8FXPNqn3wcaK4SBvncQ1Z7PEXVkiDtzeGnrT2Am70eNgK2eEyYeMLtTNIXQQanuHQi/YuZ5lc=,iv:a5zNSs1lz2Q/ce5n6VCmjwthZ3P3N8a+9aL3uSqB7TI=,tag:Wr4q/ETG2eg7uTKL4V0Qfg==,type:str]
   encrypted_regex: ^(data|stringData)$
   version: 3.10.2

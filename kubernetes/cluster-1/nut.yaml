@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/app-template-5.3.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 # Network UPS Tools server for the Eaton 3S 850. Each home node's nut-client extension
-# (talos/hardware/nut.sops.yaml) powers itself off on low battery. Once they have logged out, this
+# (talos/hardware/home.yaml) powers itself off on low battery. Once they have logged out, this
 # primary upsmon has the UPS cut then restore its outlets, so the nodes boot again when mains returns
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
@@ -136,8 +136,6 @@ spec:
     configMaps:
       config:
         data:
-          nut.conf: |
-            MODE=netserver
           ups.conf: |
             [eaton]
               driver = usbhid-ups
