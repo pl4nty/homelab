@@ -34,6 +34,8 @@ jobs:
           yq '.nodes |= map(select(.factory))' topf.yaml > rk1-topf.yaml
           echo "SCHEMATIC_ID=$(go run github.com/postfinance/topf/cmd/topf@v0.6.2 --topfconfig rk1-topf.yaml schematic-ids)" >> "$GITHUB_ENV"
           echo "TALOS_VERSION=v$(yq .talosVersion topf.yaml)" >> "$GITHUB_ENV"
+      # rockchip-mpp only loads on the Talos kernel it was built for, so a talosVersion bump needs an mpp rebuild first
+      - run: grep -qF "default = \"$TALOS_VERSION\"" apps/talos-rockchip-mpp/docker-bake.hcl
       - uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
         with:
           source: .

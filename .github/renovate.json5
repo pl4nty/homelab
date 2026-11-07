@@ -96,6 +96,28 @@
       datasourceTemplate: 'github-releases',
       versioningTemplate: 'semver',
     },
+    {
+      customType: 'regex',
+      description: 'Talos and Kubernetes versions in topf.yaml',
+      managerFilePatterns: [
+        '/^talos/topf\\.yaml$/',
+      ],
+      matchStrings: [
+        '# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\n\\w+: (?<currentValue>\\S+)\n',
+      ],
+      extractVersionTemplate: '^v(?<version>.+)$',
+    },
+    {
+      customType: 'regex',
+      description: 'riscv64-capable kube-proxy in the Talos config',
+      managerFilePatterns: [
+        '/^talos/control-plane/control-plane\\.yaml$/',
+      ],
+      matchStrings: [
+        'image: (?<depName>quay\\.io/k0sproject/kube-proxy):(?<currentValue>[^@\\s]+)@(?<currentDigest>sha256:[a-f0-9]{64})',
+      ],
+      datasourceTemplate: 'docker',
+    },
   ],
   // hostRules: [
   //   {
@@ -198,6 +220,28 @@
       ],
       groupName: 'longhorn',
       separateMultipleMinor: true,
+    },
+    {
+      description: 'Talos and Kubernetes upgrade one minor at a time, and are applied to the cluster by hand',
+      matchFileNames: [
+        'talos/**',
+      ],
+      separateMultipleMinor: true,
+      automerge: false,
+    },
+    {
+      matchPackageNames: [
+        'siderolabs/talos',
+      ],
+      groupName: 'talos',
+    },
+    {
+      description: 'kube-proxy must not be newer than the apiserver',
+      matchPackageNames: [
+        'kubernetes/kubernetes',
+        'quay.io/k0sproject/kube-proxy',
+      ],
+      groupName: 'kubernetes',
     },
     {
       description: 'One PR per app, named after it, so each gets its own preview',
