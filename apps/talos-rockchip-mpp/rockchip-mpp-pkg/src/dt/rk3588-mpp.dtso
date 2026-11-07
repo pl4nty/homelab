@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 /*
  * RK3588 MPP codec and RGA blocks for a mainline device tree, from the
- * vendor rk3588s.dtsi (armbian/linux-rockchip rk-6.12-rkr1), with:
+ * vendor rk3588s.dtsi (rockchip-linux/kernel develop-6.12), with:
  * - 4-cell GIC specifiers, as mainline's GIC has ppi-partitions
  * - mainline IOMMU compatibles; vdpu/vepu share mainline's vpu121_mmu
  * - the AV1 decoder's IOMMU as mainline describes it, for the vsi-iommu driver
