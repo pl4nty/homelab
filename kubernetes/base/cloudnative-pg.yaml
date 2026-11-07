@@ -118,11 +118,13 @@ spec:
           annotations:
             summary: Latest Postgres backup failed.
             description: The most recent backup of {{ $labels.namespace }}/{{ $labels.cnpg_io_cluster }} failed. Check `kubectl get backups -n {{ $labels.namespace }}`.
-        # archive_timeout is 5m, so an hour without an archived WAL file means archiving is broken.
+        # archive_timeout only switches WAL that has writes, so a quiet database (miniflux: gaps of 2-7h)
+        # goes hours without archiving. Failures show up in failed_count; the age check only catches
+        # a hung archiver, and the daily base backup forces a WAL switch, so allow a day.
         # the archiver metrics only come from the primary
         - alert: CNPGWALArchivingFailing
           expr: |
-            max by (cluster, namespace, cnpg_io_cluster) (cnpg_pg_stat_archiver_seconds_since_last_archival) > 3600
+            max by (cluster, namespace, cnpg_io_cluster) (cnpg_pg_stat_archiver_seconds_since_last_archival) > 86400
             or
             sum by (cluster, namespace, cnpg_io_cluster) (increase(cnpg_pg_stat_archiver_failed_count[15m])) > 0
           for: 15m
