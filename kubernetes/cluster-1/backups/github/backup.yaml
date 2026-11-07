@@ -25,7 +25,9 @@ spec:
         type: cronjob
         cronjob:
           schedule: "0 0 * * *"
-          activeDeadlineSeconds: 21600  # 6h, prevents stuck jobs
+          # a full run takes ~4.5-5h, so with 6h a single retry (DNS blip, GitHub 422)
+          # restarted from scratch and always hit the deadline. 20h still ends before the next run
+          activeDeadlineSeconds: 72000
         containers:
           main:
             image:
