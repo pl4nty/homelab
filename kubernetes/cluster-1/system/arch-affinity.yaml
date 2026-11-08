@@ -46,7 +46,7 @@ spec:
       priorityClassName: system-cluster-critical
       containers:
       - name: arch-affinity
-        image: ghcr.io/pl4nty/arch-affinity:latest@sha256:2d3d8f7643b41bfa6439d75f98b1162e932900ca580f8a9b5a0218a84f021b59
+        image: ghcr.io/pl4nty/arch-affinity:latest@sha256:d68cb348fe4d9a297aaf15396597a9ab15f73bd60f5556c94d42b15c924d21a9
         ports:
         - name: https
           containerPort: 8443
