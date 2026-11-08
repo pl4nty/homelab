@@ -13,6 +13,14 @@ spec:
   image: ghcr.io/pl4nty/wanderlog-mcp:latest@sha256:PENDING
   transport: streamable-http
   mcpPort: 3000
+  # Upstream's image has no USER; run as the node image's node user
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
 ---
 # The server takes the connect.sid session cookie from wanderlog.com as its Bearer token
 apiVersion: toolhive.stacklok.dev/v1beta1
