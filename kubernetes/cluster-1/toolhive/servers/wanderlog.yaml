@@ -25,6 +25,6 @@ spec:
           emptyDir: {}
   secrets:
     # connect.sid session cookie from wanderlog.com (HttpOnly, lasts ~1 year)
-    - name: wanderlog
-      key: cookie
+    - name: toolhive
+      key: wanderlog-cookie
       targetEnvName: WANDERLOG_COOKIE
