@@ -8,7 +8,7 @@ under its own path prefix, sharing the protocol implementation in `WinGet.RestSo
 | `/xbox` | `XboxStore` | Xbox store games the built-in `msstore` source does not index | [winget-cli#5818](https://github.com/microsoft/winget-cli/issues/5818) |
 | `/features` | `WindowsFeatures` | Windows optional features and capabilities (Telnet, Hyper-V, WSL, RSAT, OpenSSH…) | [winget-cli#5986](https://github.com/microsoft/winget-cli/issues/5986) |
 | `/updatecatalog` | `WindowsUpdateCatalog` | Patches and drivers from the Microsoft Update Catalog | [winget-cli#5332](https://github.com/microsoft/winget-cli/issues/5332) |
-| `/msstore-versioned` | `StoreVersions` | Older versions of Store MSIX/APPX apps, which `msstore` cannot install | |
+| `/msstore-versioned` | `StoreVersions` | Store MSIX/APPX apps with real versions, older ones included, and a source for inbox/Store apps in `winget list` | `msstore` opts out of installed-package correlation |
 
 Each prefix answers the full protocol — `GET /information`, `POST /manifestSearch`,
 `GET /packageManifests/{PackageIdentifier}` — so each is added to WinGet as its own source:
@@ -23,7 +23,7 @@ winget search roblox --source xbox
 winget install Microsoft.Windows.Feature.TelnetClient --source features
 winget install 84d8dd32-6250-435c-8884-133c1daa4464 --source updatecatalog  # a catalog update GUID
 winget install KB5078885 --source updatecatalog --architecture x64
-winget install 9WZDNCRFHVN5 --source msstore-versioned --version 2021.2607.0.0  # a Store product ID
+winget install 9WZDNCRFHVN5 --source msstore-versioned --version 11.2606.0.0  # a Store product ID
 ```
 
 The URL **must** be `https://` — WinGet's `RestSourceFactory` rejects plain HTTP (loopback with a trusted
@@ -62,10 +62,25 @@ the KB package and keep their GUIDs.
 client uses (as do [StoreLib](https://github.com/StoreDev/StoreLib) and [StoreWeb](https://github.com/pl4nty/storeweb)).
 The display catalog gives a product's `WuCategoryId`; a `SyncUpdates` filtered to it returns every package in
 the product's live package set, older versions included; `GetExtendedUpdateInfo2` signs a download URL for each.
-Package identifiers are Store product IDs. Manifests carry one `msix`/`appx` installer per architecture, with the
-package's SHA-256 from the FE3 metadata. The signed URLs expire within minutes, so they are fetched for every
-manifest request; the package lists are cached. They are plain HTTP (the CDN host has no certificate for its
-name), which the SHA-256 check covers.
+Package identifiers are Store product IDs. Versions are the ones Windows reports once a package is installed — for a
+bundle, the version of the packages inside it (Calculator's 2021.2607.0.0 bundle installs as 11.2607.0.0) — so they
+compare with `winget list`. Packages that only target other device families (Xbox, HoloLens) are left out, and each
+installer carries `MinimumOSVersion` from the package's desktop or universal target.
+
+The latest version has one `msstore` installer, so `winget install` and `winget upgrade` hand the work to the Store
+client as the `msstore` source does: it resolves framework dependencies and picks the package for the device. Older
+versions, for `--version`, carry one `msix`/`appx` installer per architecture, with the package's SHA-256 from the FE3
+metadata. Their signed URLs expire within minutes, so they are fetched for every manifest request; the package lists
+are cached. They are plain HTTP (the CDN host has no certificate for its name), which the SHA-256 check covers.
+
+**Installed-package correlation.** `winget list` maps each installed package to a source by searching every source
+for its package family name. WinGet hardcodes the built-in `msstore` source to skip that search
+([`SupportInstalledSearchCorrelation = false`](https://github.com/microsoft/winget-cli/blob/afc9a471496c4cd80ac363df269362f84ea5a457/src/AppInstallerRepositoryCore/SourceList.cpp#L385)),
+and its server returns nothing for one, so apps WinGet did not install itself — inbox apps such as Calculator, or
+apps the Store installed — show no source. This source answers that search: the display catalog's
+`products/lookup?alternateId=PackageFamilyName` gives the product, and FE3 its versions. WinGet sends one search per
+installed package per source on every `winget list`, so lookups, not-found answers included, are cached for
+`VersionsSource:LookupCacheDuration`.
 
 What FE3 serves (tested 2026-10-28): the packages the publisher keeps in the current submission, for older OS
 builds and other device families — not a full release history. Calculator `9WZDNCRFHVN5` has 26 versions,
@@ -135,6 +150,9 @@ the shim's URL and hash. The Xbox source needs no shim.
 | `UpdatesSource:ShimPath` | `shim/winget-update-shim.exe` | Update shim, relative to the content root |
 | `UpdatesSource:MaximumResults` | `25` | Cap on update search results |
 | `UpdatesSource:CacheDuration` | `01:00:00` | Update Catalog response cache lifetime |
+| `VersionsSource:MaximumResults` | `5` | Cap on Store version search results; each costs one FE3 sync |
+| `VersionsSource:CacheDuration` | `00:15:00` | FE3 package list cache lifetime |
+| `VersionsSource:LookupCacheDuration` | `1.00:00:00` | Package family to Store product cache lifetime |
 
 ## Test it
 
@@ -156,3 +174,9 @@ Windows. The shims themselves only truly run on Windows (DISM, wusa, pnputil, re
   not installable; checkpoint cumulative updates may need the checkpoint installed first; only the
   catalog's first results page (25 rows) is searched; drivers are matched by text, not hardware IDs;
   installed updates are not tracked by `winget list`.
+* **Versions**: FE3's versions span OS builds; WinGet skips a version whose `MinimumOSVersion` the machine does not
+  meet, but other applicability (device memory, region) is the Store's to judge, so `winget upgrade` can offer a
+  version the Store then reports as not applicable. If the latest version is skipped, an upgrade falls back to an
+  older version's direct `msix`/`appx` install, whose framework dependencies are not resolved. A cold `winget list`
+  costs one display catalog lookup (~0.5 s) per installed MSIX package the cache has not seen. Frameworks the Store
+  lists (VCLibs) are mapped too.

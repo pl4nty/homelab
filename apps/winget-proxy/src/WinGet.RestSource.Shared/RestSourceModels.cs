@@ -69,7 +69,8 @@ public sealed record Installer(
     string? ProductCode = null,
     string? ReleaseDate = null,
     IReadOnlyList<string>? Platform = null,
-    IReadOnlyList<ExpectedReturnCode>? ExpectedReturnCodes = null);
+    IReadOnlyList<ExpectedReturnCode>? ExpectedReturnCodes = null,
+    string? MinimumOSVersion = null);
 
 public sealed record InstallerSwitches(string? Silent = null, string? SilentWithProgress = null, string? Custom = null);
 

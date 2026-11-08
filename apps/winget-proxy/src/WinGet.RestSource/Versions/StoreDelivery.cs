@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using System.Text.Json;
 using System.Security.Cryptography.X509Certificates;
 using System.Xml.Linq;
 using Microsoft.Extensions.Caching.Memory;
@@ -13,6 +14,12 @@ public sealed class VersionsSourceOptions
 
     /// <summary>How long FE3 package lists are reused. File URLs are signed for minutes, so they are never cached.</summary>
     public TimeSpan CacheDuration { get; set; } = TimeSpan.FromMinutes(15);
+
+    /// <summary>
+    /// How long a package family's Store product is remembered, including families the Store does not list.
+    /// WinGet asks once per installed MSIX package on every <c>winget list</c>, and the mapping rarely changes.
+    /// </summary>
+    public TimeSpan LookupCacheDuration { get; set; } = TimeSpan.FromDays(1);
 }
 
 /// <summary>
@@ -177,7 +184,8 @@ public sealed class StoreDelivery(HttpClient http, IMemoryCache cache, IOptions<
     private static DeliveryPackage? ToPackage(XElement info, XElement? files)
     {
         var identity = info.Element("UpdateIdentity");
-        var moniker = (string?)info.Descendants("AppxMetadata").FirstOrDefault()?.Attribute("PackageMoniker");
+        var metadata = info.Descendants("AppxMetadata").FirstOrDefault();
+        var moniker = (string?)metadata?.Attribute("PackageMoniker");
 
         // Delta patches and block maps sit beside the package itself.
         var file = files?.Element("Files")?.Elements("File").FirstOrDefault(file =>
@@ -199,6 +207,8 @@ public sealed class StoreDelivery(HttpClient http, IMemoryCache cache, IOptions<
         var sha256 = (string?)file.Elements("AdditionalDigest")
             .FirstOrDefault(digest => (string?)digest.Attribute("Algorithm") == "SHA256");
 
+        var applicability = Applicability.Parse((string?)metadata?.Element("ApplicabilityBlob"));
+
         return new DeliveryPackage(
             UpdateId: (string)identity.Attribute("UpdateID")!,
             RevisionNumber: (string)identity.Attribute("RevisionNumber")!,
@@ -209,7 +219,78 @@ public sealed class StoreDelivery(HttpClient http, IMemoryCache cache, IOptions<
             FileExtension: Path.GetExtension((string?)file.Attribute("FileName") ?? "").ToLowerInvariant(),
             Sha1Digest: (string?)file.Attribute("Digest"),
             Sha256: sha256 is null ? null : Convert.ToHexString(Convert.FromBase64String(sha256)),
-            Modified: (DateTimeOffset?)file.Attribute("Modified"));
+            Modified: (DateTimeOffset?)file.Attribute("Modified"))
+        {
+            PackageVersion = applicability.BundledVersion ?? parts[1],
+            TargetsDesktop = applicability.TargetsDesktop,
+            MinimumOSVersion = applicability.MinimumOSVersion,
+        };
+    }
+
+    /// <summary>
+    /// What the package's applicability blob says about where it installs. A bundle's own version is not the
+    /// version Windows reports once it is installed (Calculator bundle 2021.2607.0.0 installs as
+    /// 11.2607.0.0), so the version WinGet compares against comes from the packages the bundle carries.
+    /// </summary>
+    private sealed record Applicability(string? BundledVersion, bool TargetsDesktop, string? MinimumOSVersion)
+    {
+        // platform.target values: 0 is Windows.Universal (frameworks such as VCLibs), 3 is Windows.Desktop
+        // (Windows Terminal). Other device families (Xbox, HoloLens, Team) never install on a PC.
+        private static readonly int[] DesktopTargets = [0, 3];
+
+        private static readonly Applicability Unknown = new(null, true, null);
+
+        public static Applicability Parse(string? blob)
+        {
+            if (string.IsNullOrWhiteSpace(blob))
+            {
+                return Unknown;
+            }
+
+            try
+            {
+                using var json = JsonDocument.Parse(blob);
+                var root = json.RootElement;
+
+                string? bundledVersion = null;
+                if (root.TryGetProperty("content.bundledPackages", out var bundled) && bundled.ValueKind == JsonValueKind.Array)
+                {
+                    bundledVersion = bundled.EnumerateArray()
+                        .Select(package => package.GetString()?.Split('_'))
+                        .Where(packageParts => packageParts is { Length: >= 5 })
+                        .Select(packageParts => packageParts![1])
+                        .FirstOrDefault();
+                }
+
+                if (!root.TryGetProperty("content.targetPlatforms", out var platforms) || platforms.ValueKind != JsonValueKind.Array ||
+                    platforms.GetArrayLength() == 0)
+                {
+                    return Unknown with { BundledVersion = bundledVersion };
+                }
+
+                var minimum = platforms.EnumerateArray()
+                    .Where(platform => platform.TryGetProperty("platform.target", out var target) &&
+                        target.TryGetInt32(out var value) && DesktopTargets.Contains(value))
+                    .Select(platform => platform.TryGetProperty("platform.minVersion", out var version) &&
+                        version.TryGetUInt64(out var packed) ? packed : (ulong?)null)
+                    .ToArray();
+
+                return new Applicability(
+                    bundledVersion,
+                    TargetsDesktop: minimum.Length > 0,
+                    MinimumOSVersion: minimum.All(version => version is not null) && minimum.Length > 0
+                        ? Unpack(minimum.Min()!.Value)
+                        : null);
+            }
+            catch (JsonException)
+            {
+                return Unknown;
+            }
+        }
+
+        // Package versions are four 16-bit fields packed into a ulong, major first.
+        private static string Unpack(ulong packed) =>
+            $"{(packed >> 48) & 0xFFFF}.{(packed >> 32) & 0xFFFF}.{(packed >> 16) & 0xFFFF}.{packed & 0xFFFF}";
     }
 
     // The update fragments are XML without a single root element.
@@ -257,6 +338,15 @@ public sealed record DeliveryPackage(
     string? Sha256,
     DateTimeOffset? Modified)
 {
+    /// <summary>The version Windows reports once the package is installed: for a bundle, its packages' version.</summary>
+    public string PackageVersion { get; init; } = Version;
+
+    /// <summary>False when the package only targets device families other than a PC (Xbox, HoloLens…).</summary>
+    public bool TargetsDesktop { get; init; } = true;
+
+    /// <summary>The lowest Windows build the package installs on, from its desktop or universal target.</summary>
+    public string? MinimumOSVersion { get; init; }
+
     /// <summary>Encrypted packages (<c>.eappx</c>, <c>.emsixbundle</c>, …) install only with a Store licence.</summary>
     public bool IsEncrypted => FileExtension.StartsWith(".e", StringComparison.Ordinal);
 }

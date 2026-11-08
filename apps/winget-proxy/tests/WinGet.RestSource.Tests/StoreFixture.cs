@@ -9,6 +9,8 @@ public sealed class FakeStoreHandler : HttpMessageHandler
 {
     public List<Uri> Requests { get; } = [];
 
+    public IEnumerable<Uri> LookupRequests => Requests.Where(uri => uri.AbsolutePath.EndsWith("products/lookup"));
+
     public IEnumerable<Uri> SuggestRequests => Requests.Where(uri => uri.AbsolutePath.EndsWith("autosuggest"));
 
     /// <summary>Store IDs the display catalog was asked for details about.</summary>
@@ -25,6 +27,8 @@ public sealed class FakeStoreHandler : HttpMessageHandler
         var content = request.Method == HttpMethod.Post
             ? StoreFixture.StorefrontResponse(
                 (await request.Content!.ReadFromJsonAsync<StorefrontRequest>(RestSourceFactory.Json, cancellationToken))!.ProductIds)
+            : uri.AbsolutePath.EndsWith("products/lookup")
+                ? StoreFixture.LookupResponse(HttpUtility.ParseQueryString(uri.Query)["value"] ?? string.Empty)
             : uri.AbsolutePath.EndsWith("autosuggest")
                 ? HttpUtility.ParseQueryString(uri.Query)["productFamilyNames"] == "Apps"
                     ? StoreFixture.AppSuggestResponse
@@ -162,6 +166,12 @@ public static class StoreFixture
 
     public static string ProductsResponse(IEnumerable<string> productIds) =>
         $$"""{"Products":[{{string.Join(',', productIds.Where(Products.ContainsKey).Select(id => Products[id]))}}]}""";
+
+    public const string TerminalFamily = "Microsoft.WindowsTerminal_8wekyb3d8bbwe";
+
+    /// <summary>The display catalog's package family lookup: the products that ship the family, if any.</summary>
+    public static string LookupResponse(string packageFamilyName) => ProductsResponse(
+        string.Equals(packageFamilyName, TerminalFamily, StringComparison.OrdinalIgnoreCase) ? [TerminalId] : []);
 
     public static string StorefrontResponse(IEnumerable<string> productIds) =>
         JsonSerializer.Serialize(new

@@ -17,6 +17,38 @@ public sealed class VersionsSourceTests(RestSourceFactory factory) : IClassFixtu
 
         Assert.Equal("StoreVersions", response!.Data.SourceIdentifier);
         Assert.Contains("Moniker", response.Data.UnsupportedPackageMatchFields);
+        Assert.DoesNotContain(PackageMatchFields.PackageFamilyName, response.Data.UnsupportedPackageMatchFields);
+    }
+
+    [Fact]
+    public async Task Search_ByPackageFamilyName_CorrelatesTheInstalledPackage()
+    {
+        // What WinGet sends for each installed MSIX package when `winget list` maps it to a source.
+        var results = await _client.SearchAsync(Prefix, new ManifestSearchRequest(
+            Inclusions: [new SearchRequestPackageMatchFilter(
+                PackageMatchFields.PackageFamilyName, new SearchRequestMatch(StoreFixture.TerminalFamily, "Exact"))]));
+
+        var app = Assert.Single(results.Data);
+        Assert.Equal(StoreFixture.TerminalId, app.PackageIdentifier);
+        Assert.Equal(DeliveryFixture.Latest, app.Versions[0].PackageVersion);
+        Assert.Equal([StoreFixture.TerminalFamily], app.Versions[0].PackageFamilyNames!);
+    }
+
+    [Fact]
+    public async Task Search_ByPackageFamilyName_TheStoreDoesNotList_IsEmptyAndCached()
+    {
+        using var factory = new RestSourceFactory();
+        var client = factory.CreateClient();
+        var request = new ManifestSearchRequest(
+            Inclusions: [new SearchRequestPackageMatchFilter(
+                PackageMatchFields.PackageFamilyName, new SearchRequestMatch("Microsoft.AAD.BrokerPlugin_cw5n1h2txyewy", "Exact"))]);
+
+        Assert.Empty((await client.SearchAsync(Prefix, request)).Data);
+        Assert.Empty((await client.SearchAsync(Prefix, request)).Data);
+
+        // Asked on every `winget list`, so not found is remembered too, and FE3 is never reached.
+        Assert.Single(factory.Store.LookupRequests);
+        Assert.Empty(factory.Delivery.Actions);
     }
 
     [Fact]
@@ -67,7 +99,34 @@ public sealed class VersionsSourceTests(RestSourceFactory factory) : IClassFixtu
         Assert.Equal(DeliveryFixture.PreviousSha256, installer.InstallerSha256);
         Assert.Equal("Microsoft.WindowsTerminal_8wekyb3d8bbwe", installer.PackageFamilyName);
         Assert.Equal("2026-07-13", installer.ReleaseDate);
-        Assert.Equal(DeliveryFixture.LatestSha256, manifest.Versions[0].Installers[0].InstallerSha256);
+        Assert.Equal("10.0.19041.0", installer.MinimumOSVersion);
+    }
+
+    [Fact]
+    public async Task Manifest_LatestVersion_InstallsThroughTheStore()
+    {
+        var manifest = await _client.GetManifestAsync(Prefix, StoreFixture.TerminalId);
+
+        var installer = Assert.Single(manifest!.Versions[0].Installers);
+        Assert.Equal("msstore", installer.InstallerType);
+        Assert.Equal(StoreFixture.TerminalId, installer.MSStoreProductIdentifier);
+        Assert.Equal(StoreFixture.TerminalFamily, installer.PackageFamilyName);
+        Assert.Equal("user", installer.Scope);
+        Assert.Equal("10.0.19041.0", installer.MinimumOSVersion);
+        Assert.Null(installer.InstallerUrl);
+    }
+
+    [Fact]
+    public async Task Manifest_LatestVersionOnly_SignsNoUrls()
+    {
+        using var factory = new RestSourceFactory();
+        var client = factory.CreateClient();
+
+        var response = await client.GetFromJsonAsync<Response<Manifest?>>(
+            $"{Prefix}/packageManifests/{StoreFixture.TerminalId}?Version={DeliveryFixture.Latest}", RestSourceFactory.Json);
+
+        Assert.Equal("msstore", Assert.Single(Assert.Single(response!.Data!.Versions).Installers).InstallerType);
+        Assert.DoesNotContain("GetExtendedUpdateInfo2", factory.Delivery.Actions);
     }
 
     [Fact]
@@ -94,7 +153,7 @@ public sealed class VersionsSourceTests(RestSourceFactory factory) : IClassFixtu
         await client.GetManifestAsync(Prefix, StoreFixture.TerminalId);
         await client.GetManifestAsync(Prefix, StoreFixture.TerminalId);
 
-        // One sync, but fresh file URLs each time: FE3 signs them for minutes.
+        // One sync, but fresh file URLs for the pinned versions each time: FE3 signs them for minutes.
         Assert.Equal(
             ["GetCookie", "SyncUpdates", "GetExtendedUpdateInfo2", "GetExtendedUpdateInfo2"],
             factory.Delivery.Actions);

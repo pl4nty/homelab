@@ -102,10 +102,31 @@ public sealed class StoreCatalog(HttpClient http, IMemoryCache cache, IOptions<X
         return [.. (response?.Products ?? []).OrderBy(product => Array.IndexOf(productIds, product.ProductId))];
     }
 
-    private Task<T?> SendAsync<T>(string cacheKey, Func<CancellationToken, Task<HttpResponseMessage>> send, CancellationToken ct) =>
+    /// <summary>
+    /// The store IDs of the products that ship the given package family, inbox apps such as Calculator included.
+    /// Families the Store does not list (system packages, sideloaded apps) have none. The answer rarely changes
+    /// and WinGet asks once per installed package on every <c>winget list</c>, so it is kept for
+    /// <paramref name="cacheDuration"/>, not found included.
+    /// </summary>
+    public async Task<IReadOnlyList<string>> LookupPackageFamilyAsync(
+        string packageFamilyName, string market, TimeSpan cacheDuration, CancellationToken ct)
+    {
+        var url = $"{Catalog}products/lookup?alternateId=PackageFamilyName" +
+                  $"&value={Uri.EscapeDataString(packageFamilyName)}" +
+                  $"&market={Uri.EscapeDataString(market)}" +
+                  $"&languages={Uri.EscapeDataString(_options.Language)}&fieldsTemplate=Details";
+
+        var response = await SendAsync<CatalogResponse>(
+            url.ToLowerInvariant(), token => http.GetAsync(url, token), ct, cacheDuration);
+
+        return [.. (response?.Products ?? []).Select(product => product.ProductId).Distinct()];
+    }
+
+    private Task<T?> SendAsync<T>(
+        string cacheKey, Func<CancellationToken, Task<HttpResponseMessage>> send, CancellationToken ct, TimeSpan? cacheDuration = null) =>
         cache.GetOrCreateAsync(cacheKey, async entry =>
         {
-            entry.AbsoluteExpirationRelativeToNow = _options.CacheDuration;
+            entry.AbsoluteExpirationRelativeToNow = cacheDuration ?? _options.CacheDuration;
 
             using var response = await send(ct);
             if (response.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.BadRequest)

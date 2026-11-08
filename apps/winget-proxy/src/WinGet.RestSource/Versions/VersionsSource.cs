@@ -36,20 +36,42 @@ public sealed class VersionsSource(StoreCatalog catalog, StoreDelivery delivery,
             .FirstOrDefault(keyword => !string.IsNullOrWhiteSpace(keyword))?
             .Trim();
 
-        if (keyword is null)
+        // WinGet maps installed MSIX packages to available ones by searching for their package family name
+        // alone, once per installed package. The built-in msstore source opts out of that, so inbox and
+        // Store-installed apps otherwise show no source in `winget list`.
+        string[] families =
+        [
+            .. PackageMatchFields.Values(request, PackageMatchFields.PackageFamilyName)
+                .Where(family => !string.IsNullOrWhiteSpace(family))
+                .Select(family => family!.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase),
+        ];
+
+        if (keyword is null && families.Length == 0)
         {
             return [];
         }
 
         var limit = Math.Clamp(request.MaximumResults ?? _options.MaximumResults, 1, _options.MaximumResults);
-        string[] ids = StoreCatalog.IsProductId(keyword.ToUpperInvariant())
-            ? [keyword.ToUpperInvariant()]
-            : [.. (await catalog.SuggestAsync(keyword, Market, "Apps", "Application", ct)).Take(limit)];
+        List<string> ids = [];
+        if (keyword is not null)
+        {
+            ids.AddRange(StoreCatalog.IsProductId(keyword.ToUpperInvariant())
+                ? [keyword.ToUpperInvariant()]
+                : (await catalog.SuggestAsync(keyword, Market, "Apps", "Application", ct)).Take(limit));
+        }
+
+        foreach (var family in families)
+        {
+            ids.AddRange(await catalog.LookupPackageFamilyAsync(family, Market, _options.LookupCacheDuration, ct));
+        }
 
         List<ManifestSearchResult> results = [];
-        foreach (var app in await AppsAsync(ids, ct))
+        foreach (var app in await AppsAsync([.. ids], ct))
         {
-            if (app.Versions.Count > 0)
+            // A product found by family must ship that family, or the match is not a strong one.
+            if (app.Versions.Count > 0 &&
+                (keyword is not null || families.Contains(app.PackageFamilyName, StringComparer.OrdinalIgnoreCase)))
             {
                 results.Add(new ManifestSearchResult(
                     app.Product.ProductId,
@@ -65,6 +87,7 @@ public sealed class VersionsSource(StoreCatalog catalog, StoreDelivery delivery,
     public async Task<Manifest?> GetManifestAsync(ManifestRequest request, CancellationToken ct)
     {
         var app = (await AppsAsync([request.PackageIdentifier.ToUpperInvariant()], ct)).FirstOrDefault();
+        var latest = app?.Versions.FirstOrDefault()?.Key;
         var versions = app?.Versions
             .Where(version => request.Version is null || version.Key == request.Version)
             .ToArray();
@@ -75,7 +98,11 @@ public sealed class VersionsSource(StoreCatalog catalog, StoreDelivery delivery,
         }
 
         // FE3 signs each URL for minutes, so they are fetched for every manifest request rather than cached.
-        var urls = await delivery.GetFileUrlsAsync(versions.SelectMany(version => version), ct);
+        // The latest version installs through the Store, so it needs none.
+        var pinned = versions.Where(version => version.Key != latest).ToArray();
+        var urls = pinned.Length > 0
+            ? await delivery.GetFileUrlsAsync(pinned.SelectMany(version => version), ct)
+            : new Dictionary<string, string>();
 
         ManifestVersion[] manifestVersions =
         [
@@ -83,12 +110,35 @@ public sealed class VersionsSource(StoreCatalog catalog, StoreDelivery delivery,
                 .Select(version => new ManifestVersion(
                     version.Key,
                     Locale(app.Product),
-                    [.. version.Select(package => ToInstaller(package, urls)).OfType<Installer>()]))
+                    version.Key == latest
+                        ? [StoreInstaller(app, version)]
+                        : [.. version.Select(package => ToInstaller(package, urls)).OfType<Installer>().DistinctBy(installer => installer.Architecture)]))
                 .Where(version => version.Installers.Count > 0),
         ];
 
         return manifestVersions.Length > 0 ? new Manifest(app.Product.ProductId, manifestVersions) : null;
     }
+
+    /// <summary>
+    /// The latest version is handed to the Store client, as the msstore source does: the Store resolves framework
+    /// dependencies and picks the package for the device, which the bare FE3 files leave to the caller. The
+    /// version is still FE3's, so `winget upgrade` can compare it with what is installed.
+    /// </summary>
+    private static Installer StoreInstaller(StoreApp app, IGrouping<string, DeliveryPackage> version) => new(
+        InstallerType: "msstore",
+        Architecture: "neutral",
+        MSStoreProductIdentifier: app.Product.ProductId,
+        PackageFamilyName: app.PackageFamilyName,
+        Scope: "user",
+        ReleaseDate: version.Max(package => package.Modified)?.ToString("yyyy-MM-dd"),
+        MinimumOSVersion: MinimumOSVersion(version));
+
+    private static string? MinimumOSVersion(IEnumerable<DeliveryPackage> packages) => packages
+        .Select(package => System.Version.TryParse(package.MinimumOSVersion, out var parsed) ? parsed : null)
+        .OfType<System.Version>()
+        .DefaultIfEmpty()
+        .Min()?
+        .ToString();
 
     /// <summary>The products' own packages, grouped by version, newest first. Dependencies and encrypted packages are left out.</summary>
     private async Task<IReadOnlyList<StoreApp>> AppsAsync(string[] productIds, CancellationToken ct)
@@ -120,9 +170,9 @@ public sealed class VersionsSource(StoreCatalog catalog, StoreDelivery delivery,
                 fulfillment.PackageFamilyName,
                 [
                     .. packages
-                        .Where(package => !package.IsEncrypted &&
+                        .Where(package => !package.IsEncrypted && package.TargetsDesktop &&
                             string.Equals(package.PackageFamilyName, fulfillment.PackageFamilyName, StringComparison.OrdinalIgnoreCase))
-                        .GroupBy(package => package.Version)
+                        .GroupBy(package => package.PackageVersion)
                         .OrderByDescending(version => System.Version.TryParse(version.Key, out var parsed) ? parsed : new System.Version()),
                 ]));
         }
@@ -138,7 +188,8 @@ public sealed class VersionsSource(StoreCatalog catalog, StoreDelivery delivery,
                 InstallerUrl: url,
                 InstallerSha256: package.Sha256,
                 PackageFamilyName: package.PackageFamilyName,
-                ReleaseDate: package.Modified?.ToString("yyyy-MM-dd"))
+                ReleaseDate: package.Modified?.ToString("yyyy-MM-dd"),
+                MinimumOSVersion: package.MinimumOSVersion)
             : null;
 
     private static Locale Locale(CatalogProduct product)

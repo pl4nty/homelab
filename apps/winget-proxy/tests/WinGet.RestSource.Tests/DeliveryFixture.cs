@@ -27,8 +27,9 @@ public sealed class FakeDeliveryHandler : HttpMessageHandler
 
 public static class DeliveryFixture
 {
-    public const string Latest = "3001.24.12741.0";
-    public const string Previous = "3001.24.11911.0";
+    // The versions Windows reports for the installed packages; the msixbundles themselves are 3001.24.x.
+    public const string Latest = "1.24.12741.0";
+    public const string Previous = "1.24.11911.0";
 
     public const string LatestUrl = "http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice/files/latest?P1=1";
     public const string PreviousUrl = "http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice/files/previous?P1=1";
