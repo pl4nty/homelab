@@ -8,6 +8,8 @@
     "test": "node --test"
   },
   "dependencies": {
+    "@fontsource/fira-code": "5.3.0",
+    "@fontsource/titillium-web": "5.3.0",
     "age-encryption": "0.3.1",
     "yaml": "2.9.1"
   },
