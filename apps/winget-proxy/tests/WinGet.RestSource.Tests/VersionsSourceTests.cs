@@ -35,6 +35,20 @@ public sealed class VersionsSourceTests(RestSourceFactory factory) : IClassFixtu
     }
 
     [Fact]
+    public async Task Search_ByPackageFamilyName_LeavesFrameworksUncorrelated()
+    {
+        var byFamily = await _client.SearchAsync(Prefix, new ManifestSearchRequest(
+            Inclusions: [new SearchRequestPackageMatchFilter(
+                PackageMatchFields.PackageFamilyName, new SearchRequestMatch(StoreFixture.FrameworkFamily, "Exact"))]));
+
+        Assert.Empty(byFamily.Data);
+
+        // Still searchable by its Store ID.
+        var byId = await _client.SearchAsync(Prefix, new ManifestSearchRequest(Query: new SearchRequestMatch(StoreFixture.FrameworkId, "Exact")));
+        Assert.Equal([StoreFixture.FrameworkId], byId.Data.Select(result => result.PackageIdentifier));
+    }
+
+    [Fact]
     public async Task Search_ByPackageFamilyName_TheStoreDoesNotList_IsEmptyAndCached()
     {
         using var factory = new RestSourceFactory();

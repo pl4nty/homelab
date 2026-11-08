@@ -69,9 +69,13 @@ public sealed class VersionsSource(StoreCatalog catalog, StoreDelivery delivery,
         List<ManifestSearchResult> results = [];
         foreach (var app in await AppsAsync([.. ids], ct))
         {
-            // A product found by family must ship that family, or the match is not a strong one.
+            // A product found by family must ship that family, or the match is not a strong one. Frameworks
+            // (VCLibs, UI.Xaml, WindowsAppRuntime) are left to the sources that already version them: they install
+            // side by side, the Store updates them for the apps that need them, and winget-pkgs maps their
+            // Apps & Features versions differently, so correlating them here only mixes version schemes.
             if (app.Versions.Count > 0 &&
-                (keyword is not null || families.Contains(app.PackageFamilyName, StringComparer.OrdinalIgnoreCase)))
+                (keyword is not null ||
+                    (families.Contains(app.PackageFamilyName, StringComparer.OrdinalIgnoreCase) && !app.Product.IsFramework)))
             {
                 results.Add(new ManifestSearchResult(
                     app.Product.ProductId,

@@ -163,6 +163,9 @@ public sealed record CatalogProduct(
 {
     /// <summary>The Games family also carries add-ons, bundles and currency, which are not installable packages.</summary>
     public bool IsGame => ProductKind == "Game";
+
+    /// <summary>Framework packages (VCLibs, UI.Xaml, WindowsAppRuntime) that apps depend on.</summary>
+    public bool IsFramework => ProductKind == "Framework";
 }
 
 public sealed record LocalizedProperties(

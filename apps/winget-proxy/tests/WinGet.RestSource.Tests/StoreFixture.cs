@@ -53,6 +53,7 @@ public static class StoreFixture
     public const string ConsumableId = "C3S80L2NKZCZ";
     public const string ApplicationId = "9WZDNCRFJ3TJ";
     public const string TerminalId = "9N0DX20HK701";        // an MSIX app FE3 delivers
+    public const string FrameworkId = "9NBLGGH4RV3K";       // a framework whose package is in the same FE3 sync
 
     /// <summary>What the Store storefront reports as installable for deviceFamily=Windows.Desktop.</summary>
     private static readonly HashSet<string> Installable = [WindowsGameId, PlayAnywhereGameId, ApplicationId, ConsumableId];
@@ -79,6 +80,21 @@ public static class StoreFixture
 
     private static readonly Dictionary<string, string> Products = new()
     {
+        [FrameworkId] = """
+            {
+              "ProductId": "9NBLGGH4RV3K",
+              "ProductKind": "Framework",
+              "LocalizedProperties": [{ "ProductTitle": "Microsoft.VCLibs.140.00.UWPDesktop", "PublisherName": "Microsoft Corporation" }],
+              "DisplaySkuAvailabilities": [{ "Sku": { "Properties": {
+                "Packages": [{
+                  "FulfillmentData": {
+                    "PackageFamilyName": "Microsoft.VCLibs.140.00.UWPDesktop_8wekyb3d8bbwe",
+                    "WuCategoryId": "b5105a40-6423-4c74-9c74-49610e83bc05"
+                  }
+                }]
+              }}}]
+            }
+            """,
         [TerminalId] = """
             {
               "ProductId": "9N0DX20HK701",
@@ -170,8 +186,12 @@ public static class StoreFixture
     public const string TerminalFamily = "Microsoft.WindowsTerminal_8wekyb3d8bbwe";
 
     /// <summary>The display catalog's package family lookup: the products that ship the family, if any.</summary>
+    public const string FrameworkFamily = "Microsoft.VCLibs.140.00.UWPDesktop_8wekyb3d8bbwe";
+
     public static string LookupResponse(string packageFamilyName) => ProductsResponse(
-        string.Equals(packageFamilyName, TerminalFamily, StringComparison.OrdinalIgnoreCase) ? [TerminalId] : []);
+        string.Equals(packageFamilyName, TerminalFamily, StringComparison.OrdinalIgnoreCase) ? [TerminalId]
+        : string.Equals(packageFamilyName, FrameworkFamily, StringComparison.OrdinalIgnoreCase) ? [FrameworkId]
+        : []);
 
     public static string StorefrontResponse(IEnumerable<string> productIds) =>
         JsonSerializer.Serialize(new
