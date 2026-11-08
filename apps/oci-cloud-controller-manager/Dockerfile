@@ -12,7 +12,7 @@ COPY --from=src . .
 COPY *.patch /tmp/
 RUN git apply /tmp/*.patch && make build ARCH="$TARGETARCH" VERSION="$VERSION" BUILD="$VERSION"
 
-FROM ghcr.io/oracle/oraclelinux:8-slim-fips@sha256:bdf2c4b2dd2fec6a656c78606cd1efa13c1c739e9c3e5f7daf7405eb9ce74602
+FROM ghcr.io/oracle/oraclelinux:9-slim-fips@sha256:b473d89b395cae11bfcb06a0501e3ede90f389ca66d6935b7eb2829822817d2e
 RUN microdnf -y install util-linux e2fsprogs xfsprogs python2 && \
     microdnf update && \
     microdnf clean all
