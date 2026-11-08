@@ -170,13 +170,14 @@ RUN wget https://archives.boost.io/release/${BOOST_VERSION}/source/${BOOST_FILEN
     && ./b2 install define=BOOST_ERROR_CODE_HEADER_ONLY link=static threading=multi cxxflags="-fvisibility=hidden -fPIC" cflags="-fvisibility=hidden -fPIC" \
     && cd .. && rm -rf ${BOOST_FILENAME} && rm ${BOOST_FILENAME}.tar.gz
 
-# install pcre (also into /usr/local: Ubuntu 26.04 has no libpcre3-dev, and the nginx module links -lpcre)
+# install pcre (also into /usr/local: Ubuntu 26.04 has no libpcre3-dev; httpd configure needs pcre-config and the nginx module links -lpcre)
 RUN mkdir -p dependencies/pcre/${PCRE_VERSION}/ \
     && wget https://ftp.exim.org/pub/pcre/pcre-${PCRE_VERSION}.tar.gz --no-check-certificate \
     && tar -xvf pcre-${PCRE_VERSION}.tar.gz \
     && cd pcre-${PCRE_VERSION} \
     && ./configure --prefix=/dependencies/pcre/${PCRE_VERSION} --enable-jit \
     && make && make install \
+    && cp -a /dependencies/pcre/${PCRE_VERSION}/bin/pcre-config /usr/local/bin/ \
     && cp -a /dependencies/pcre/${PCRE_VERSION}/lib/libpcre.* /usr/local/lib/ \
     && cp -a /dependencies/pcre/${PCRE_VERSION}/include/pcre*.h /usr/local/include/ && ldconfig \
     && cd .. && rm -rf ${PCRE_VERSION}.tar.gz && rm -rf pcre-${PCRE_VERSION}
