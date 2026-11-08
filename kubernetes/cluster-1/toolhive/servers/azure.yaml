@@ -1,0 +1,29 @@
+# Azure Resource Manager MCP: https://github.com/Azure/Azure-Resource-Manager-MCP
+# Hosted by Microsoft, so no ToolHive proxy pods. The vMCP calls it directly
+# with the user's token from the "azure" upstream (virtualserver.yaml).
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServerEntry
+metadata:
+  name: azure
+  namespace: toolhive-system
+spec:
+  groupRef:
+    name: toolhive
+  externalAuthConfigRef:
+    name: azure-upstream
+  remoteUrl: https://mcp.management.azure.com
+  transport: streamable-http
+  headerForward:
+    addPlaintextHeaders:
+      # Opt-in cost tools: forecasts, budgets, alerts, reservations
+      x-mcp-toolset: CostManagement
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPExternalAuthConfig
+metadata:
+  name: azure-upstream
+  namespace: toolhive-system
+spec:
+  type: upstreamInject
+  upstreamInject:
+    providerName: azure

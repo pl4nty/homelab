@@ -31,6 +31,23 @@ spec:
             - https://graph.microsoft.com/MailboxSettings.Read
             - https://graph.microsoft.com/Contacts.ReadWrite
             - https://graph.microsoft.com/Files.ReadWrite
+      # Second login leg for the Azure Resource Manager MCP (servers/azure.yaml).
+      # Same multi-tenant app; Entra issues one resource per token, so ARM
+      # needs its own leg. The tenant must have the ARM MCP service principal
+      # (az ad sp create --id 22bfbae3-f4e7-485f-be43-8cee15065084).
+      - name: azure
+        type: oidc
+        oidcConfig:
+          # tplant.com.au tenant
+          issuerUrl: https://login.microsoftonline.com/7ba4d371-2109-4d8d-8aec-b5d2f0c06646/v2.0
+          clientId: 5c3c299e-f61f-41cc-b4e1-f12018b84afa
+          clientSecretRef:
+            name: toolhive
+            key: entra-client-secret
+          scopes:
+            - openid
+            - offline_access
+            - api://22bfbae3-f4e7-485f-be43-8cee15065084/MCP.Access
   incomingAuth:
     type: oidc
     oidcConfigRef:
@@ -81,6 +98,23 @@ spec:
             - https://graph.microsoft.com/MailboxSettings.Read
             - https://graph.microsoft.com/Contacts.ReadWrite
             - https://graph.microsoft.com/Files.ReadWrite
+      # Second login leg for the Azure Resource Manager MCP (servers/azure.yaml).
+      # Same multi-tenant app; Entra issues one resource per token, so ARM
+      # needs its own leg. The tenant must have the ARM MCP service principal
+      # (az ad sp create --id 22bfbae3-f4e7-485f-be43-8cee15065084).
+      - name: azure
+        type: oidc
+        oidcConfig:
+          # tplant.com.au tenant
+          issuerUrl: https://login.microsoftonline.com/7ba4d371-2109-4d8d-8aec-b5d2f0c06646/v2.0
+          clientId: 5c3c299e-f61f-41cc-b4e1-f12018b84afa
+          clientSecretRef:
+            name: toolhive
+            key: entra-client-secret
+          scopes:
+            - openid
+            - offline_access
+            - api://22bfbae3-f4e7-485f-be43-8cee15065084/MCP.Access
   incomingAuth:
     type: oidc
     oidcConfigRef:
@@ -155,6 +189,26 @@ spec:
             - list_mail_folders
             - read_attachment
             - search_emails
+        # create_template_deployment, cancel_arm_template_deployment and create_budget left out
+        - workload: azure
+          filter:
+            - execute_query
+            - forecast_costs
+            - generate_query
+            - get_arm_template_deployment_status
+            - get_benefit_recommendations
+            - get_budget
+            - get_pricesheet_status
+            - get_retail_prices
+            - list_alerts
+            - list_benefit_utilization
+            - list_budgets
+            - list_dimensions
+            - list_reservation_transactions
+            - query_aks_costs
+            - query_costs
+            - start_pricesheet_download
+            - validate_query
         - workload: google-maps
         - workload: youtube-transcript
         # read-only; search_hotels is left out because its currency argument changes the account's currency setting
