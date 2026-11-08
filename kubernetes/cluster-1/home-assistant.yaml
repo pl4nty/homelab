@@ -27,8 +27,10 @@ spec:
               repository: ghcr.io/home-assistant/home-assistant
               tag: 2026.11.0@sha256:c6c1ca9931036bf3a2c4cc088d8db25dfea3b33935a5ecc83c40349462e2f69e
             env:
-              # the recorder writes every state change to SQLite, which would flood the traces
-              OTEL_PYTHON_DISABLED_INSTRUMENTATIONS: sqlite3,sqlalchemy
+              # the recorder writes every state change to SQLite, which would flood the traces.
+              # 2026.11 aliases httpx to httpx2 on startup and exits if httpx is already imported,
+              # and the httpx instrumentor (entry points httpx and httpx2) imports it first
+              OTEL_PYTHON_DISABLED_INSTRUMENTATIONS: sqlite3,sqlalchemy,httpx,httpx2
             probes:
               liveness:
                 enabled: true
