@@ -32,7 +32,7 @@
     "@babel/preset-env": "8.0.7",
     "@babel/preset-typescript": "8.0.7",
     "@types/mathjax": "0.0.40",
-    "@types/office-js": "1.0.615",
+    "@types/office-js": "1.0.616",
     "@types/office-runtime": "1.0.40",
     "acorn": "8.19.0",
     "babel-loader": "10.1.1",
