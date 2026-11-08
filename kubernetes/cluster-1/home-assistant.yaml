@@ -20,7 +20,10 @@ spec:
             instrumentation.opentelemetry.io/otel-python-platform: musl
           nodeSelector:
             node.longhorn.io/create-default-disk: config
-        type: statefulset
+        # a Deployment, not a StatefulSet: an OrderedReady StatefulSet never replaces a
+        # crash-looping pod, so a broken release stays broken after the fix merges.
+        # Recreate because the RWO volume can't attach to two pods during a rollout
+        strategy: Recreate
         containers:
           main:
             image:
