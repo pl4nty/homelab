@@ -120,26 +120,22 @@ jobs:
         # tag main's head: GITHUB_TOKEN can't tag a commit whose workflows differ from it
         run: gh release create "$APP/sha-$COMMIT" dist/* --target "$GITHUB_REF_NAME" --title "$APP" --latest=false
       # the apps ResourceSet (kubernetes/cluster-1/system/apps) deploys these artifacts, main and PR previews
-      - id: publish
+      - uses: fluxcd/flux2/action@3fa784edd773d56630bb9f62645e08f70c2cff0a # v2.10.0
         if: &manifest env.PUBLISH == 'true' && hashFiles(format('kubernetes/cluster-1/apps/{0}.yaml', matrix.app))
+        # without a token it finds the latest version from github.com's redirect, which times out
+        # at times; it then downloads "vlatest" and fails
+        with:
+          token: ${{ github.token }}
+      - id: publish
+        if: *manifest
         env:
           APP_SUFFIX: ${{ github.event.pull_request && format('-{0}', env.TAG) || '' }}
           PUBLIC_DOMAIN: tplant.com.au
         run: |
           sed -i "s/\${APP_IMAGE_TAG:=}/sha-$COMMIT/" kubernetes/cluster-1/apps/"$APP".yaml
-          # flux-cli runs as nobody, and writes its tarball beside the manifest
-          chmod a+w kubernetes/cluster-1/apps
+          flux push artifact "oci://ghcr.io/$GITHUB_REPOSITORY/apps:$APP.$TAG" --path kubernetes/cluster-1/apps/"$APP".yaml \
+            --source="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" --revision="$TAG@sha1:$COMMIT"
           yq '.. | select(tag == "!!map") | select(has("hostnames")) | "url=https://" + (.hostnames[0] | envsubst)' kubernetes/cluster-1/apps/"$APP".yaml >> "$GITHUB_OUTPUT"
-      # the flux CLI from its image: fluxcd/flux2/action downloads a GitHub release, which 504s at times
-      - uses: docker://ghcr.io/fluxcd/flux-cli:v2.10.0@sha256:1a5178b1770052d6e88ab1c7c8434c5ac9bca8a8ab984dcaf6b9df31814ce9f2
-        if: *manifest
-        with:
-          args: >-
-            push artifact oci://ghcr.io/${{ github.repository }}/apps:${{ matrix.app }}.${{ env.TAG }}
-            --path=kubernetes/cluster-1/apps/${{ matrix.app }}.yaml
-            --source=${{ github.server_url }}/${{ github.repository }}
-            --revision=${{ env.TAG }}@sha1:${{ env.COMMIT }}
-            --creds=${{ github.actor }}:${{ github.token }}
 
   # every app any push published, since the final diff can drop an app that still has a preview
   cleanup:
