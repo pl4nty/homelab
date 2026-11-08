@@ -8,8 +8,8 @@ spec:
     name: toolhive
   telemetryConfigRef:
     name: toolhive
-  # apps/wanderlog-mcp, stdio
-  image: ghcr.io/pl4nty/wanderlog-mcp:IMAGE_PENDING
+  # apps/wanderlog-mcp (stdio); first digest is the PR build, Renovate moves it to main's latest
+  image: ghcr.io/pl4nty/wanderlog-mcp:latest@sha256:db473f3092c1a96b139abe4abaf960c192722a0bc42cee8d1f2c35caea7878a5
   env:
     - name: HOME
       value: /tmp
