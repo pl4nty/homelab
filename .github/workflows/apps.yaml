@@ -127,6 +127,8 @@ jobs:
           PUBLIC_DOMAIN: tplant.com.au
         run: |
           sed -i "s/\${APP_IMAGE_TAG:=}/sha-$COMMIT/" kubernetes/cluster-1/apps/"$APP".yaml
+          # flux-cli runs as nobody, and writes its tarball beside the manifest
+          chmod a+w kubernetes/cluster-1/apps
           yq '.. | select(tag == "!!map") | select(has("hostnames")) | "url=https://" + (.hostnames[0] | envsubst)' kubernetes/cluster-1/apps/"$APP".yaml >> "$GITHUB_OUTPUT"
       # the flux CLI from its image: fluxcd/flux2/action downloads a GitHub release, which 504s at times
       - uses: docker://ghcr.io/fluxcd/flux-cli:v2.10.0@sha256:1a5178b1770052d6e88ab1c7c8434c5ac9bca8a8ab984dcaf6b9df31814ce9f2
