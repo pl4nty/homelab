@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wanderlog
+  namespace: toolhive-system
+type: Opaque
+stringData:
+  cookie: ENC[AES256_GCM,data:7ITDBgM7/7XCDassivcdfgq2B7CZZ5yq,iv:xmkFhxcPpP+roNkfmnJNavBvH056AENSfKyhVivyoR8=,tag:pEz8U33EFBeKvvtQbbRz7A==,type:str]
+sops:
+  age:
+    - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBINGl0TUhEeENnRDNXSjNz
+        VDhXQkFMb3AwQ0haOC9vT1pYUW9kN1pNUTFFCldhS1d3YTlGaUVkZk91cDRUajNz
+        WHlkWkk1Q1lReUw1VE45V1BiZlcweDAKLS0tIHFwdDRaVUtLMXAycjhGdnNpTW5T
+        UThNUlZTb0hGU1Q2Yk16TmMwczdvcVUKQUeyW1E8X0AFfD7CErdBkR4zeahlpF+h
+        +KXFVQf/vQqovDstDWTWuFGYM22cKrRwQ/ZHmbCcRug8lECmQZ0DEA==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2026-11-08T12:17:51Z"
+  mac: ENC[AES256_GCM,data:jqbpNvu//YANkbauHydmVb3+aXw3l1J3GCI6VAd/b2L9+lk9ESNi8HhhlsPNEHujlt2uBOFGD++EaLxoSyGol66X1og2nhE0G3+0FgyqsndXVvsRKef+/g7yvndrH1/ONQlnx+M2wTASAbesmr25PieyPrfv8ITii/B8B2UTyRY=,iv:txiW5LLaMuw6UxrVbcrzaXhwmKIyvaHC+T1mytnMxNM=,tag:iMyS8YghA5npmKfXU6hSpg==,type:str]
+  encrypted_regex: ^(data|stringData)$
+  version: 3.12.2
