@@ -66,11 +66,11 @@ spec:
           redis:
             image:
               repository: docker.io/redis
-              tag: 8.10.1@sha256:8a1efc5f479551822b47424ccae982026b633f28818eab0387348120a61e10e2
+              tag: 8.10.2@sha256:97ec88159e6d7cfb5ddef9015386087d58a912de80112f06ebdfa78fa5989901
           ssh:
             image:
               repository: ghcr.io/pl4nty/ubuntu-ssh
-              tag: latest@sha256:79ee74a99902e8a8ea0005f9ee077f586198f41a3dd506c73c12cece3f8c850d
+              tag: latest@sha256:fb8453933cff15d436e9136327cad16c499540fcc489d66c63d631b5b722f651
             # allow ICMP access. net.ipv4.ping_group_range="0 [the uid ie 1000]" may still be required on the node
             # note that Azure loadbalancers (node egress) don't support ICMP
             securityContext:
