@@ -1,8 +1,8 @@
 # https://github.com/open-telemetry/opentelemetry-cpp-contrib/blob/webserver/v1.1.0/instrumentation/otel-webserver-module/docker/ubuntu20.04/Dockerfile
 FROM ubuntu:26.04@sha256:6a06111c3b0a8600feadb270aec771dc239bf407b25625f93f44ab00e11f4d3c AS build
 ENV DEBIAN_FRONTEND=noninteractive
-# the pinned 2020-era deps predate CMake 4 (drops <3.5 policies) and GCC 15 (C23 by default; no transitive <cstdint>)
-ENV CMAKE_POLICY_VERSION_MINIMUM=3.5 CFLAGS="-std=gnu17" CXXFLAGS="-include cstdint"
+# the pinned 2020-era deps predate CMake 4 (drops <3.5 policies) and GCC 14/15 (C23 by default, implicit int/declarations are errors, no transitive <cstdint>)
+ENV CMAKE_POLICY_VERSION_MINIMUM=3.5 CFLAGS="-std=gnu17 -fpermissive" CXXFLAGS="-include cstdint"
 
 RUN apt-get -y update && apt-get -y upgrade && apt-get -y dist-upgrade
 RUN apt-get install -qq -y --ignore-missing \
