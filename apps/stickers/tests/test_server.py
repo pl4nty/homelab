@@ -229,6 +229,43 @@ def test_upload_rejects_bad_and_huge_files(client, tmp_path):
     assert client.get("/api/scans", headers=ADM).json() == []
 
 
+def test_chunked_upload_resumes_and_checks_size(client, app, tmp_path):
+    """Scans over Cloudflare's 100 MB request limit go up in chunks."""
+    scan = make_scan(tmp_path / "scan.png").read_bytes()
+    uid, n = "0123456789abcdef-chunks", len(scan) // 3
+    put = lambda off, b, h=SUB: client.put(f"/api/uploads/{uid}?offset={off}", headers=h, content=b)
+    assert put(0, scan[:n], {}).status_code == 403
+    assert client.put("/api/uploads/x?offset=0", headers=SUB, content=b"").status_code == 400
+    assert put(0, scan[:n]).json() == {"size": n}
+    r = put(0, scan[:n])  # a retry of a chunk that did arrive: told where to resume
+    assert r.status_code == 409 and r.json()["size"] == n
+    assert put(2 * n, scan[2 * n :]).status_code == 409  # a lost chunk
+    assert put(n, scan[n : 2 * n]).json() == {"size": 2 * n}
+    assert put(2 * n, scan[2 * n :]).json() == {"size": len(scan)}
+    form = {"upload": uid, "name": "big scan.png", "size": str(len(scan)), "creator": "Ana"}
+    r = client.post("/api/scans", headers=SUB, data=form)
+    assert r.status_code == 200 and r.json()["name"] == "big scan.png"
+    assert not list((app.state.store.root / "uploads").iterdir())
+    wait(lambda: client.get(f"/api/scans/{r.json()['id']}", headers=SUB).json()["status"] == "done")
+    assert len(client.get("/api/stickers?state=pending", headers=ADM).json()) == len(SHAPES)
+
+    assert client.post("/api/scans", headers=SUB, data=form).status_code == 400  # used up
+    put(0, scan[:n])
+    r = client.post("/api/scans", headers=SUB, data=form)  # short: a chunk went missing
+    assert r.status_code == 400 and "missing" in r.json()["detail"]
+
+
+def test_chunked_upload_is_capped(tmp_path):
+    app = create_app(tmp_path / "data", "s", "a", max_bytes=1000)
+    c, h = TestClient(app), {"X-Token": "s"}
+    assert c.put("/api/uploads/0123456789abcdef?offset=0", headers=h, content=b"x" * 600).is_success
+    r = c.put("/api/uploads/0123456789abcdef?offset=600", headers=h, content=b"x" * 600)
+    assert r.status_code == 413
+    assert c.put(
+        "/api/uploads/0123456789abcdef?offset=600", headers=h, content=b"x" * 400
+    ).is_success
+
+
 def test_queued_scan_survives_restart(tmp_path):
     data = tmp_path / "data"
     (data / "scans").mkdir(parents=True)

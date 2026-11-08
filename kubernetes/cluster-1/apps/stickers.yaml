@@ -42,7 +42,7 @@ spec:
               requests:
                 cpu: 50m
                 memory: 256Mi
-              # an A3 scan at 600 dpi takes ~1.3GB to split; uploads spool to /tmp
+              # an A3 scan at 600 dpi takes ~1.3GB to split. single-request uploads spool to /tmp; the page chunks into /data
               limits:
                 memory: 2Gi
                 ephemeral-storage: 1Gi
