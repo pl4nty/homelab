@@ -26,6 +26,7 @@ There is no database. Each sticker is one PNG, its folder is its state, and its 
 data/pending/<id>.png     split from a scan, waiting for review
 data/approved/<id>.png    public
 data/scans/               uploads waiting to be processed (with a .json sidecar), so a restart resumes them
+data/uploads/             scans still arriving in chunks; deleted after a day if abandoned
 data/cache/               WebP thumbnails at 256/512/1024/2048 px; safe to delete
 ```
 
@@ -42,6 +43,8 @@ Size is not stored. It is the bounding box of the sticker's alpha outline divide
 ## Processing
 
 One worker thread takes scans one at a time, so several people uploading at once cannot run the server out of memory. An A3 scan at 600 dpi takes 1 to 1.5 minutes and about 1.3 GB. Uploads over `MAX_MEGAPIXELS` (default 150) are refused. Each sticker appears for review as soon as it has been tagged. If tagging fails, the sticker is still queued, untitled.
+
+Cloudflare refuses request bodies over 100 MB, and an uncompressed 600 dpi A4 TIFF is about 105 MB. So the page sends each scan in 32 MiB chunks (`PUT /api/uploads/<random id>?offset=<n>`, appended in `data/uploads/`), then queues it with `POST /api/scans` (`upload`, `name`, `size`, `creator`). A chunk that fails is retried. If the server already has it, a 409 gives the size it holds, and the page resumes from there. Abandoned uploads are deleted after a day. Scripts can still `POST /api/scans` with the file itself, up to 100 MB through Cloudflare.
 
 The rotation and colour you set in the editor are applied once, on save, so the PNG is resampled at most once per edit. Quarter turns are lossless.
 

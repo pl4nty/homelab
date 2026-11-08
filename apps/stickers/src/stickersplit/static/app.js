@@ -645,6 +645,40 @@ async function publicPage() {
   if (k >= 0) viewer(active.items, k);
 }
 
+// Cloudflare refuses request bodies over 100 MB, and scans can be bigger, so a scan goes up in
+// chunks. A chunk that fails is retried; if the server already has it, it says where to resume.
+const CHUNK = 32 * 2 ** 20;
+async function sendChunks(f, onProgress) {
+  const id = crypto.randomUUID();
+  let offset = 0,
+    tries = 0;
+  for (;;) {
+    const end = Math.min(offset + CHUNK, f.size);
+    const xhr = new XMLHttpRequest(); // fetch has no upload progress
+    xhr.open('PUT', `/api/uploads/${id}?offset=${offset}`);
+    xhr.setRequestHeader('X-Token', token);
+    xhr.upload.onprogress = (ev) => onProgress(offset + ev.loaded);
+    await new Promise((done) => {
+      xhr.onloadend = done;
+      xhr.send(f.slice(offset, end));
+    });
+    let data = {};
+    try {
+      data = JSON.parse(xhr.responseText);
+    } catch {}
+    if ((xhr.status === 200 || xhr.status === 409) && Number.isInteger(data.size)) {
+      if (xhr.status === 200) tries = 0;
+      offset = data.size;
+      onProgress(offset);
+      if (offset >= f.size) return id;
+    } else if (xhr.status && xhr.status < 500) {
+      throw new Error(typeof data.detail === 'string' ? data.detail : `${xhr.status} ${xhr.statusText}`);
+    } else if (++tries > 5) {
+      throw new Error('Upload failed. Check your connection and try again.');
+    } else await new Promise((r) => setTimeout(r, 1000 * 2 ** tries));
+  }
+}
+
 function uploadPanel(onProgress) {
   const p = h(`<section class="panel">
     <h2>Add a scan</h2>
@@ -675,35 +709,33 @@ function uploadPanel(onProgress) {
     file.files = e.dataTransfer.files;
     file.onchange();
   };
-  form.onsubmit = (e) => {
+  form.onsubmit = async (e) => {
     e.preventDefault();
     try {
       localStorage.setItem('creator', form.creator.value);
     } catch {}
-    const xhr = new XMLHttpRequest(); // fetch has no upload progress
-    xhr.open('POST', '/api/scans');
-    xhr.setRequestHeader('X-Token', token);
-    xhr.upload.onprogress = (ev) => (btn.textContent = `Uploading ${Math.round((100 * ev.loaded) / ev.total)}%`);
-    xhr.onloadend = () => {
-      btn.disabled = false;
-      btn.textContent = 'Upload scan';
-      if (xhr.status === 200) {
-        toast(
-          mode === 'admin' ? 'Uploaded. Its stickers will appear in To review as they are found.' : 'Uploaded. Thanks!',
-        );
-        mine.push(JSON.parse(xhr.responseText).id);
-        store('scans', JSON.stringify(mine.slice(-20)));
-        form.file.value = '';
-        file.onchange();
-      } else
-        toast(
-          JSON.parse(xhr.responseText || '{}').detail ?? 'Upload failed. Check your connection and try again.',
-          7000,
-        );
-      poll();
-    };
     btn.disabled = true;
-    xhr.send(new FormData(form));
+    try {
+      const f = form.file.files[0];
+      const upload = await sendChunks(f, (n) => (btn.textContent = `Uploading ${Math.round((100 * n) / f.size)}%`));
+      btn.textContent = 'Checking the scan';
+      const body = new FormData();
+      for (const [k, v] of Object.entries({ upload, name: f.name, size: f.size, creator: form.creator.value }))
+        body.append(k, v);
+      const job = await api('/api/scans', { body });
+      toast(
+        mode === 'admin' ? 'Uploaded. Its stickers will appear in To review as they are found.' : 'Uploaded. Thanks!',
+      );
+      mine.push(job.id);
+      store('scans', JSON.stringify(mine.slice(-20)));
+      form.file.value = '';
+      file.onchange();
+    } catch (err) {
+      toast(err.message || 'Upload failed. Check your connection and try again.', 7000);
+    }
+    btn.disabled = false;
+    btn.textContent = 'Upload scan';
+    poll();
   };
   let timer,
     seen = '';
