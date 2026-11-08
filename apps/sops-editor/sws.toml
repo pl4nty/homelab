@@ -1,0 +1,10 @@
+# Cloudflare caches responses, so the page must revalidate to pick up new builds
+[advanced]
+
+[[advanced.headers]]
+source = "**"
+headers = { Cache-Control = "no-cache" }
+
+[[advanced.headers]]
+source = "/assets/**"
+headers = { Cache-Control = "public, max-age=31536000, immutable" }
