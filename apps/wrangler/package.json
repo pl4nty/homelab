@@ -1,6 +1,6 @@
 {
   "private": true,
   "dependencies": {
-    "wrangler": "4.157.0"
+    "wrangler": "4.158.0"
   }
 }
