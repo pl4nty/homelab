@@ -1,0 +1,30 @@
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: wanderlog
+  namespace: toolhive-system
+spec:
+  groupRef:
+    name: toolhive
+  telemetryConfigRef:
+    name: toolhive
+  # apps/wanderlog-mcp, stdio
+  image: ghcr.io/pl4nty/wanderlog-mcp:IMAGE_PENDING
+  env:
+    - name: HOME
+      value: /tmp
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+  secrets:
+    # connect.sid session cookie from wanderlog.com (HttpOnly, lasts ~1 year)
+    - name: wanderlog
+      key: cookie
+      targetEnvName: WANDERLOG_COOKIE
