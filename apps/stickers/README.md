@@ -3,7 +3,7 @@
 One web app for a sticker collection:
 
 - **Browse** (`/`, public, read-only): justified rows that fill the width, as in Immich and Google Photos, in the colours and type of tplant.com.au. Search across title, tags, comment and name. Filter by tags; several tags must all match. Open a sticker to see its size in mm, its details, a PNG download and reverse image search. The search, the tags and the open sticker are kept in the URL, so you can share a link.
-- **Submit** (`/submit#<SUBMIT_TOKEN>`): upload a scan of many stickers, with your name. How each sticker was acquired is added per sticker in review. The server splits it into stickers, straightens them, and has Claude title and tag them. Submitters see only the progress of their own scans.
+- **Submit** (`/submit#<SUBMIT_TOKEN>`): upload a scan of many stickers, with your name. How each sticker was acquired is added per sticker in review. The server splits it into stickers, straightens them, turns them upright by reading their text, and has Claude title and tag them. Submitters see only the progress of their own scans.
 - **Admin** (`/admin#<ADMIN_TOKEN>`):
   - **To review:** each sticker from an uploaded scan. Rotate, zoom, level, fix the colour, and edit the title, tags and comment. Possible duplicates are shown alongside. Then publish or reject.
   - **Published:** edit the title, tags, comment, name, rotation or colour, unpublish, or delete. On a browser that has opened the admin link, the public viewer also has an **Edit** button.
@@ -47,6 +47,14 @@ One worker thread takes scans one at a time, so several people uploading at once
 Cloudflare refuses request bodies over 100 MB, and an uncompressed 600 dpi A4 TIFF is about 105 MB. So the page sends each scan in 32 MiB chunks (`PUT /api/uploads/<random id>?offset=<n>`, appended in `data/uploads/`), then queues it with `POST /api/scans` (`upload`, `name`, `size`, `creator`). A chunk that fails is retried. If the server already has it, a 409 gives the size it holds, and the page resumes from there. Abandoned uploads are deleted after a day. Scripts can still `POST /api/scans` with the file itself, up to 100 MB through Cloudflare.
 
 The rotation and colour you set in the editor are applied once, on save, so the PNG is resampled at most once per edit. Quarter turns are lossless.
+
+## Turning upright
+
+Rectangular stickers are straightened as they are split, so each is the right way up or a quarter or half turn out. `orient.py` then reads its text with [RapidOCR](https://github.com/RapidAI/RapidOCR) (PP-OCR on ONNX Runtime, models bundled in the wheel, CPU only). It finds the text lines once, then reads each line at every quarter turn under which it lies flat. The right way up reads with high confidence, and sideways or upside-down reads as low-confidence noise. The turn with the most confidently read characters wins, if it beats the runner-up clearly. PP-OCR's own direction classifier is off, because it flips upside-down lines before reading them, so every turn would read alike.
+
+Measured on the 128 published stickers, each turned all four ways (512 cases): 239 were turned upright, none were turned wrong, and 273 were left as scanned. A sticker is left as scanned when it has no text (45 of the 128 never decide), too little text, or text on a curve such as a ring of words around a round sticker, which reads well both ways up. Lines tilted more than 10° are ignored for that reason, which also skips text on a die-cut that lay crooked on the scanner. It takes about 0.4 s a sticker on x86 in a dev container; the arm64 nodes are probably slower.
+
+In the editor, **Read text** (<kbd>U</kbd>) runs the same check on demand. On the first start with this feature, stickers already waiting for review are turned upright once (`data/.oriented` records that it ran). Published stickers are left alone.
 
 ## Tagging
 

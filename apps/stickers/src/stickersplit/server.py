@@ -31,10 +31,10 @@ from fastapi.staticfiles import StaticFiles
 from PIL import Image
 from pydantic import BaseModel
 
-from . import colour
+from . import colour, orient
 from .core import Options, split_scan
 from .store import STATES, Store
-from .tag import DEFAULT_MODEL, symmetry_angle, tag_one
+from .tag import DEFAULT_MODEL, rotate_png, symmetry_angle, tag_one
 
 log = logging.getLogger("stickers")
 STATIC = Path(__file__).with_name("static")
@@ -56,6 +56,38 @@ class Edit(BaseModel):
     warmth: float = 0.0
     tint: float = 0.0
     state: Literal["pending", "approved"] | None = None
+
+
+def upright(folder: Path, rec: dict) -> dict:
+    """Turn a freshly split sticker upright in place, if its text says which way that is."""
+    try:
+        with Image.open(folder / rec["file"]) as im:
+            o = orient.detect(im)
+    except Exception as e:  # the sticker is still worth reviewing as scanned
+        log.warning("orienting %s failed: %s", rec["file"], e)
+        return rec
+    log.info("orient %s: turn %d confident %s %s", rec["file"], o.turn, o.confident, o.scores)
+    return rotate_png(rec, folder / rec["file"], o.turn) if o.turn else rec
+
+
+def orient_pending(store: Store) -> None:
+    """Once per data folder: turn upright the stickers that were waiting for review before
+    scans were oriented. Published stickers were already checked by eye, so are left alone."""
+    done = store.root / ".oriented"
+    if done.exists():
+        return
+    for m in [m for m in list(store.items.values()) if m.state == "pending"]:
+        try:
+            with Image.open(store.path(m)) as im:
+                o = orient.detect(im)
+            log.info(
+                "orient pending %s: turn %d confident %s %s", m.id, o.turn, o.confident, o.scores
+            )
+            if o.turn:
+                store.update(m.id, rotate=o.turn, expect_v=m.v)
+        except Exception as e:  # deleted, edited meanwhile, or unreadable: leave it
+            log.warning("orienting pending %s failed: %s", m.id, e)
+    done.touch()
 
 
 class Worker:
@@ -80,6 +112,7 @@ class Worker:
         return queued
 
     def run(self) -> None:
+        orient_pending(self.store)
         while True:
             job = self.jobs[self.q.get()]
             try:
@@ -104,6 +137,8 @@ class Worker:
             ]
             for k, s in enumerate(stickers, 1):
                 rec = s.to_dict()
+                job["status"] = f"turning upright {k} of {len(stickers)}"
+                rec = upright(Path(tmp), rec)
                 if self.claude:
                     job["status"] = f"titling and tagging {k} of {len(stickers)}"
                     try:
@@ -202,6 +237,13 @@ def create_app(
         with Image.open(store.path(get(id))) as im:
             a, s, s0 = symmetry_angle(im)
         return {"angle": a, "score": s, "score0": s0}
+
+    @app.get("/api/stickers/{id}/upright")
+    def upright_turn(id: str, r=Depends(role)):
+        need(r, "admin")
+        with Image.open(store.thumb(get(id).id, 1024)) as im:
+            o = orient.detect(im)
+        return {"turn": o.turn, "confident": o.confident, "text": o.text}
 
     @app.get("/api/stickers/{id}/balance")
     def balance(id: str, r=Depends(role)):

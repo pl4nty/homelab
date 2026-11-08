@@ -168,11 +168,15 @@ class Store:
         warmth: float = 0.0,
         tint: float = 0.0,
         state: str | None = None,
+        expect_v: int | None = None,
         **fields,
     ) -> Meta:
-        """Edit metadata, white-balance, rotate clockwise by `rotate` degrees, and/or change state."""
+        """Edit metadata, white-balance, rotate clockwise by `rotate` degrees, and/or change state.
+        With `expect_v`, refuse (ValueError) if the sticker changed since that version was read."""
         with self.lock:
             old = self.items[id]
+            if expect_v is not None and old.v != expect_v:
+                raise ValueError(f"{id} changed meanwhile")
             with Image.open(self.path(old)) as im:
                 im.load()
             dpi = dpi_of(im)

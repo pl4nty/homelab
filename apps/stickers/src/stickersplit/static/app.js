@@ -313,6 +313,7 @@ function editor(list, i, changed) {
           <button type="button" class="btn" data-turn="-1">−1°</button>
           <button type="button" class="btn" data-turn="1">+1°</button>
           <button type="button" class="btn" data-turn="90" aria-label="Turn 90° clockwise">↻ 90°</button>
+          <button type="button" class="btn" data-act="upright" title="Turn so its text reads the right way up">Read text</button>
           <button type="button" class="btn" data-act="symmetry" title="Level a design that is symmetric left to right">Symmetry</button>
           <span class="gap"></span>
           <button type="button" class="btn" data-zoom="0.8" aria-label="Zoom out">−</button>
@@ -338,7 +339,7 @@ function editor(list, i, changed) {
           <button type="button" class="btn danger" data-act="delete">${{ pending: 'Reject', approved: 'Delete' }[m.state]}</button>
         </div>
         <p class="hint">Drag the sticker to rotate it, or twist with two fingers. Scroll or pinch to zoom.
-          Keys: <kbd>←</kbd> <kbd>→</kbd> 1°, with <kbd>Shift</kbd> 15°; <kbd>Q</kbd> <kbd>E</kbd> 90°; <kbd>Enter</kbd> ${label.toLowerCase()}.</p>
+          Keys: <kbd>←</kbd> <kbd>→</kbd> 1°, with <kbd>Shift</kbd> 15°; <kbd>Q</kbd> <kbd>E</kbd> 90°; <kbd>U</kbd> read text; <kbd>Enter</kbd> ${label.toLowerCase()}.</p>
       </aside></form>`,
     );
     img().onload = paint;
@@ -546,7 +547,23 @@ function editor(list, i, changed) {
         recolour();
       }
     } else if (b.dataset.act === 'unpublish') save('pending');
-    else if (b.dataset.act === 'symmetry') {
+    else if (b.dataset.act === 'upright') {
+      b.disabled = true;
+      try {
+        const o = await api(`/api/stickers/${m.id}/upright`);
+        if (!o.confident) toast('Not enough straight text to tell which way is up');
+        else {
+          rot = o.turn;
+          paint();
+          const how = { 90: 'Turned 90° clockwise', 180: 'Turned upside down', 270: 'Turned 90° anticlockwise' };
+          toast(o.turn ? `${how[o.turn]} to read “${o.text}”` : `Already the right way up: “${o.text}”`);
+        }
+      } catch (err) {
+        toast(err.message, 6000);
+      } finally {
+        b.disabled = false;
+      }
+    } else if (b.dataset.act === 'symmetry') {
       b.disabled = true;
       try {
         const s = await api(`/api/stickers/${m.id}/symmetry`);
@@ -597,6 +614,7 @@ function editor(list, i, changed) {
     const k = e.key.toLowerCase();
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') turn((e.key === 'ArrowLeft' ? -1 : 1) * (e.shiftKey ? 15 : 1));
     else if (k === 'q' || k === 'e') turn(k === 'q' ? -90 : 90);
+    else if (k === 'u') $('[data-act="upright"]', d).click();
     else if (k === '+' || k === '=' || k === '-') $(`[data-zoom="${k === '-' ? 0.8 : 1.25}"]`, d).click();
     else if (k === '0') $(`[data-act="fit"]`, d).click();
     else if (e.key === 'Enter') {

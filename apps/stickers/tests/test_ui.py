@@ -317,3 +317,22 @@ def test_editor_gestures(page, server):
     )
     assert page.inner_text(".readout") == "46°"
     page.screenshot(path=f"/tmp/ui-{page.kind}-gestures.png")
+
+
+def test_read_text_turns_upright(page, server):
+    from test_orient import text_sticker
+
+    url, app = server
+    st = app.state.store
+    m = st.add(text_sticker().rotate(-90, expand=True), "pending", title="Sideways")
+    try:
+        page.goto(f"{url}/admin?s={m.id}#adm-token")
+        page.wait_for_function("document.querySelector('.stage img')?.style.transform")
+        no_sideways_scroll(page)
+        page.click("[data-act=upright]")
+        page.wait_for_selector(".toast.on")
+        assert page.inner_text(".readout") == "-90°"  # shown as the shorter way round
+        assert "anticlockwise" in page.inner_text(".toast") and "HUMAN" in page.inner_text(".toast")
+        page.screenshot(path=f"/tmp/ui-{page.kind}-upright.png")
+    finally:
+        st.delete(m.id)

@@ -308,3 +308,35 @@ def test_auto_colour_fixes_blue_foil_only():
     ink = sticker(color=(20, 30, 70, 255))  # dark navy ink is not shifted
     assert balance(ink, 0.8, 0.3).convert("RGB").getpixel((100, 100)) == (20, 30, 70)
     assert balance(blue, 0.5, 0).info["dpi"] == (600, 600)
+
+
+def test_pending_stickers_are_turned_upright_once(tmp_path):
+    from test_orient import text_sticker
+
+    store = Store(tmp_path / "data")
+    sideways = store.add(text_sticker().rotate(-90, expand=True), "pending")
+    published = store.add(text_sticker().rotate(-90, expand=True), "approved")
+    plain = store.add(sticker(), "pending")
+    app = create_app(tmp_path / "data", "s", "a")
+    wait(lambda: (app.state.store.root / ".oriented").exists())
+    items = app.state.store.items
+    assert items[sideways.id].w > items[sideways.id].h  # turned back to landscape
+    assert items[published.id].v == published.v  # published stickers are left alone
+    assert items[plain.id].v == plain.v
+
+    c = TestClient(app)
+    assert c.get(f"/api/stickers/{sideways.id}/upright").status_code == 403
+    assert (
+        c.get(f"/api/stickers/{published.id}/upright", headers={"X-Token": "a"}).json()["turn"]
+        == 270
+    )
+    assert (
+        c.get(f"/api/stickers/{sideways.id}/upright", headers={"X-Token": "a"}).json()["turn"] == 0
+    )
+
+    # a restart doesn't turn anything again
+    app.state.store.update(sideways.id, rotate=180)
+    v = app.state.store.items[sideways.id].v
+    again = create_app(tmp_path / "data", "s", "a")
+    time.sleep(1)
+    assert again.state.store.items[sideways.id].v == v
