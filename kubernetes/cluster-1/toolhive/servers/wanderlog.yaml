@@ -1,0 +1,38 @@
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: wanderlog
+  namespace: toolhive-system
+spec:
+  groupRef:
+    name: toolhive
+  telemetryConfigRef:
+    name: toolhive
+  externalAuthConfigRef:
+    name: wanderlog
+  image: ghcr.io/pl4nty/wanderlog-mcp:latest@sha256:84b3541f46282e6beeddbcbb65918eb8a4bbacddb45647b78519d6dd4bc5ee28
+  transport: streamable-http
+  mcpPort: 3000
+  # Upstream's image has no USER; run as the node image's node user
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+---
+# The server takes the connect.sid session cookie from wanderlog.com as its Bearer token
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPExternalAuthConfig
+metadata:
+  name: wanderlog
+  namespace: toolhive-system
+spec:
+  type: headerInjection
+  headerInjection:
+    headerName: Authorization
+    valueSecretRef:
+      name: toolhive
+      # "Bearer <connect.sid>"
+      key: wanderlog-cookie

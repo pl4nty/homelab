@@ -157,3 +157,15 @@ spec:
             - search_emails
         - workload: google-maps
         - workload: youtube-transcript
+        # read-only; search_hotels is left out because its currency argument changes the account's currency setting
+        - workload: wanderlog
+          filter:
+            - wanderlog_get_guide
+            - wanderlog_get_trip
+            - wanderlog_get_trip_forwarding_email
+            - wanderlog_get_trip_url
+            - wanderlog_list_expenses
+            - wanderlog_list_journal
+            - wanderlog_list_trips
+            - wanderlog_search_guides
+            - wanderlog_search_places
