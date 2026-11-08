@@ -1,6 +1,6 @@
 target "default" {
   contexts = {
     # renovate: branch=main
-    src = "https://github.com/open-telemetry/opentelemetry-cpp-contrib.git#eab86acead3d32fe8b8040ed4f6a5cf0c5811520"
+    src = "https://github.com/open-telemetry/opentelemetry-cpp-contrib.git#9892a278ae4fcfbe970ac72295b9c56415370a89"
   }
 }
