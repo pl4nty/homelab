@@ -8,23 +8,23 @@ spec:
     name: toolhive
   telemetryConfigRef:
     name: toolhive
-  # apps/wanderlog-mcp (stdio); first digest is the PR build, Renovate moves it to main's latest
-  image: ghcr.io/pl4nty/wanderlog-mcp:latest@sha256:db473f3092c1a96b139abe4abaf960c192722a0bc42cee8d1f2c35caea7878a5
-  env:
-    - name: HOME
-      value: /tmp
-  podTemplateSpec:
-    spec:
-      containers:
-        - name: mcp
-          volumeMounts:
-            - name: tmp
-              mountPath: /tmp
-      volumes:
-        - name: tmp
-          emptyDir: {}
-  secrets:
-    # connect.sid session cookie from wanderlog.com (HttpOnly, lasts ~1 year)
-    - name: toolhive
+  externalAuthConfigRef:
+    name: wanderlog
+  image: ghcr.io/pl4nty/wanderlog-mcp:latest@sha256:PENDING
+  transport: streamable-http
+  mcpPort: 3000
+---
+# The server takes the connect.sid session cookie from wanderlog.com as its Bearer token
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPExternalAuthConfig
+metadata:
+  name: wanderlog
+  namespace: toolhive-system
+spec:
+  type: headerInjection
+  headerInjection:
+    headerName: Authorization
+    valueSecretRef:
+      name: toolhive
+      # "Bearer <connect.sid>"
       key: wanderlog-cookie
-      targetEnvName: WANDERLOG_COOKIE
