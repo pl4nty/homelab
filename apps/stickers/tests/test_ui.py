@@ -132,9 +132,9 @@ def test_search_tags_and_viewer(page, server):
     assert order != [f"Sticker {i}" for i in range(23, -1, -1)]  # shuffled, not newest first
     page.reload()
     page.wait_for_selector(".tile")
-    assert (
-        page.eval_on_selector_all(".tile img", "els => els.map(e => e.alt)") == order
-    )  # same tab, same order
+    again = page.eval_on_selector_all(".tile img", "els => els.map(e => e.alt)")
+    assert sorted(again) == sorted(order) and again != order  # every load reshuffles
+    order = again
 
     page.click(".tile >> nth=0")
     page.wait_for_selector("dialog .view img")
@@ -149,7 +149,7 @@ def test_search_tags_and_viewer(page, server):
         page.locator(".count").count() == 0
         and page.get_attribute("#q", "placeholder") == "Search 24 stickers"
     )
-    assert page.locator("dialog .find a").count() == 1
+    assert page.locator("dialog .find a").count() == 2  # Download PNG, Google Lens
     lens = page.get_attribute("dialog a[href*=lens]", "href")
     assert lens.startswith("https://lens.google.com/uploadbyurl?url=http%3A%2F%2F127.0.0.1")
     page.keyboard.press("ArrowRight")

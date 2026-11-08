@@ -613,20 +613,10 @@ function editor(list, i, changed) {
 const main = $('#main');
 let refresh = async () => {};
 
-// A new random order for each visit, kept while the tab is open, so a reload or the viewer's
-// next/previous doesn't reshuffle. Ranking by a hash of (seed, id), not shuffling the list,
-// keeps everyone else in place when a sticker is added or removed.
+// A new random order on every page load. Ranking by a hash of (seed, id), not shuffling the
+// list, keeps everyone else in place when the list refreshes with a sticker added or removed.
+const seed = 1 + Math.floor(Math.random() * 2 ** 31);
 function shuffled(items) {
-  let seed;
-  try {
-    seed = +sessionStorage.getItem('order') || 0;
-  } catch {}
-  if (!seed) {
-    seed = 1 + Math.floor(Math.random() * 2 ** 31);
-    try {
-      sessionStorage.setItem('order', seed);
-    } catch {}
-  }
   const rank = (id) => {
     let x = seed;
     for (const c of id) x = Math.imul(x ^ c.charCodeAt(0), 2654435761);
