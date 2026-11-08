@@ -3,7 +3,7 @@
 # The installer Image Factory would build from hardware/rk1-schematic.yaml, if it took unofficial extensions
 ARG TALOS_VERSION
 
-FROM --platform=$BUILDPLATFORM busybox:1.37.0-musl@sha256:f6a95d611e0a8780fabdb2aec43e31275b2720dfefa3e41b16835bfc42454478 AS busybox
+FROM --platform=$BUILDPLATFORM busybox:1.38.0-musl@sha256:80e38f9a1b39188b8bdb28879178edb322a4402b081a9aedda1924609decd6f6 AS busybox
 FROM --platform=$BUILDPLATFORM gcr.io/go-containerregistry/crane:v0.22.1@sha256:1f968817b95790bed063f71175aa6b8ff879fa17064020415f3e18bb6e6a36e1 AS crane
 
 FROM --platform=$BUILDPLATFORM mikefarah/yq:4.54.1@sha256:4b3d9475d65571d28cbb19544d3820ec2945e4c8b2f18279394282b8dc3a592e AS profile
