@@ -27,3 +27,37 @@ spec:
     crds: CreateReplace
   upgrade:
     crds: CreateReplace
+  values:
+    web:
+      # https://fluxoperator.dev/docs/web-ui/user-management/
+      # Cloudflare Access (private domain) gates the host, so every visitor
+      # shares one identity, bound to flux-web-admin below
+      config:
+        authentication:
+          type: Anonymous
+          anonymous:
+            username: flux-web
+            groups:
+            - flux-web-admins
+      httpRoute:
+        enabled: true
+        parentRefs:
+        - name: ${CLUSTER_NAME}
+          namespace: default
+        hostnames:
+        - flux.${PRIVATE_DOMAIN}
+---
+# read everything, plus reconcile/suspend/resume on Flux objects and
+# restart on workloads (predefined by the chart, web.rbac.createRoles)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: flux-web-admins
+subjects:
+- kind: Group
+  name: flux-web-admins
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: flux-web-admin
+  apiGroup: rbac.authorization.k8s.io
