@@ -50,7 +50,7 @@ spec:
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
         value: http://k8s-monitoring-alloy-receiver.monitoring-system:4318
   nodejs:
-    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-nodejs:0.82.0
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-nodejs:0.82.0@sha256:eec2b930eaf9ae25747f31ee343cbb45e379c49a4d2d31842dfdfc109943155f
     resourceRequirements: *agent-resources
     env:
       # the sdk-node register hook exports http/protobuf by default
