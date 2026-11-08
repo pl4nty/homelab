@@ -27,7 +27,7 @@ RUN apt-get install -y \
     autoconf                                \
     automake                                \
     libtool                                 \
-    default-jre
+    openjdk-17-jre-headless  # upstream Gradle 7.6 runs on Java <= 19; default-jre is 25
 
 # The following arguments would be passed from docker-compose.yml
 # upstream eab86ac builds opentelemetry-cpp with abseil from gRPC 1.47 (docker/ubuntu22.04)
