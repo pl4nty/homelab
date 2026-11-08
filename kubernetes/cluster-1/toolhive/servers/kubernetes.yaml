@@ -35,7 +35,7 @@ spec:
         memory: 512Mi
 ---
 # Registers the chart's Service with the vMCP without a ToolHive proxy.
-# The name stays "kubernetes" so tool names and the toolhive-safe filter keep working.
+# The name stays "kubernetes" so tool names keep working.
 apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPServerEntry
 metadata:
