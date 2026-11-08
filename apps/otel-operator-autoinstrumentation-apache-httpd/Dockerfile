@@ -200,6 +200,11 @@ RUN echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] \
     && apt update -y && apt install nginx -y
 
 # Build Webserver Module
+# its gradle build runs gyp r1919, which needs python2.7; Ubuntu 26.04 has none
+COPY --from=python:2.7.18-slim /usr/local/ /opt/python2/
+RUN ln -s /opt/python2/bin/python2.7 /usr/local/bin/python2.7 \
+    && echo /opt/python2/lib > /etc/ld.so.conf.d/python2.conf && ldconfig \
+    && python2.7 -c 'import sys; print(sys.version)'
 COPY --from=src instrumentation/otel-webserver-module /otel-webserver-module
 COPY *.gradle /otel-webserver-module/
 COPY Makefile /otel-webserver-module/src/nginx/Makefile
