@@ -1,0 +1,11 @@
+# Cloudflare caches responses, so the page must revalidate to pick up new builds
+[advanced]
+
+[[advanced.headers]]
+source = "**"
+headers = { Cache-Control = "no-cache" }
+
+# data URLs carry a content hash in the query string
+[[advanced.headers]]
+source = "/{assets,data}/**"
+headers = { Cache-Control = "public, max-age=31536000, immutable" }

@@ -1,0 +1,86 @@
+--- a/kconfiglib.py
++++ b/kconfiglib.py
+@@ -3151,8 +3151,15 @@
+                 if not self._check_token(_T_ON):
+                     self._parse_error("expected 'on' after 'depends'")
+ 
+-                node.dep = self._make_and(node.dep,
+-                                          self._expect_expr_and_eol())
++                dep = self._parse_expr(True)
++                if self._check_token(_T_IF):
++                    cond = self._expect_expr_and_eol()
++                    dep = self._make_or(dep, (EQUAL, cond, self.n)
++                                        if cond.__class__ is Symbol else
++                                        (NOT, cond))
++                elif self._tokens[self._tokens_i] is not None:
++                    self._trailing_tokens_error()
++                node.dep = self._make_and(node.dep, dep)
+ 
+             elif t0 is _T_HELP:
+                 self._parse_help(node)
+@@ -3263,6 +3270,12 @@
+                 else:
+                     self._parse_error("unrecognized option")
+ 
++            elif t0 is _T_MODULES:
++                pass
++
++            elif t0 is _T_TRANSITIONAL:
++                node.item.is_transitional = True
++
+             elif t0 is _T_OPTIONAL:
+                 if node.item.__class__ is not Choice:
+                     self._parse_error('"optional" is only valid for choices')
+@@ -4254,6 +4267,7 @@
+         "env_var",
+         "implies",
+         "is_allnoconfig_y",
++        "is_transitional",
+         "is_constant",
+         "kconfig",
+         "name",
+@@ -4530,7 +4544,7 @@
+         # _write_to_conf is determined when the value is calculated. This is a
+         # hidden function call due to property magic.
+         val = self.str_value
+-        if not self._write_to_conf:
++        if not self._write_to_conf or self.is_transitional:
+             return ""
+ 
+         if self.orig_type in _BOOL_TRISTATE:
+@@ -4804,6 +4818,7 @@
+         # Symbol gets a .config entry.
+ 
+         self.is_allnoconfig_y = \
++        self.is_transitional = \
+         self._was_set = \
+         self._write_to_conf = False
+ 
+@@ -6289,6 +6304,9 @@
+     # e.g. 'make menuconfig'. This function calculates the visibility for the
+     # Symbol or Choice 'sc' -- the logic is nearly identical.
+ 
++    if sc.__class__ is Symbol and sc.is_transitional:
++        return 2
++
+     vis = 0
+ 
+     for node in sc.nodes:
+@@ -6899,7 +6917,8 @@
+     _T_TRISTATE,
+     _T_UNEQUAL,
+     _T_VISIBLE,
+-) = range(1, 51)
++    _T_TRANSITIONAL,
++) = range(1, 52)
+ 
+ # Keyword to token map, with the get() method assigned directly as a small
+ # optimization
+@@ -6945,6 +6964,7 @@
+     "select":         _T_SELECT,
+     "source":         _T_SOURCE,
+     "string":         _T_STRING,
++    "transitional":   _T_TRANSITIONAL,
+     "tristate":       _T_TRISTATE,
+     "visible":        _T_VISIBLE,
+ }.get

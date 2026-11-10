@@ -1,0 +1,8 @@
+[project]
+name = "kconfig-index"
+version = "0.1.0"
+requires-python = ">=3.14"
+dependencies = ["kconfiglib==14.1.0"]
+
+[tool.uv]
+package = false
