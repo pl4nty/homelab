@@ -9,6 +9,9 @@ from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
 import kconfiglib
+import kernel_hardening_checker.checks as khc_checks
+import kernel_hardening_checker.cli as khc_cli
+import kernel_hardening_checker.engine as khc
 from kconfiglib import (
     AND,
     BOOL,
@@ -56,8 +59,16 @@ def fetch(src, dest):
     dest.mkdir(parents=True)
     subprocess.run([*git, "init", "-q"], check=True)
     subprocess.run([*git, "sparse-checkout", "set", "--no-cone", *SPARSE], check=True)
-    subprocess.run([*git, "fetch", "-q", "--depth=1", "--filter=blob:none", url, ref], check=True)
-    subprocess.run([*git, "checkout", "-q", "FETCH_HEAD"], check=True)
+    fetch = [*git, "fetch", "-q", "--depth=1", "--filter=blob:none", url, ref]
+    checkout = [*git, "checkout", "-q", "FETCH_HEAD"]
+    for _ in range(3):
+        if (
+            not subprocess.run(fetch, check=False).returncode
+            and not subprocess.run(checkout, check=False).returncode
+        ):
+            break
+    else:
+        raise RuntimeError(f"couldn't fetch {src}")
     commit = subprocess.run(
         [*git, "rev-parse", "HEAD"], check=True, capture_output=True, text=True
     ).stdout.strip()
@@ -218,6 +229,40 @@ def write_gz(path, data):
     return hashlib.sha256(raw).hexdigest()[:16]
 
 
+def check_json(o):
+    if isinstance(o, khc.VersionCheck):
+        return {"v": list(o.ver_expected)}
+    if isinstance(o, khc.ComplexOptCheck):
+        return {"op": o.__class__.__name__.lower(), "opts": [check_json(c) for c in o.opts]}
+    return {"n": o.name, "r": o.reason, "d": o.decision, "e": o.expected}
+
+
+def hardening():
+    out = {}
+    for arch in khc_cli.SUPPORTED_ARCHS:
+        checklist = []
+        khc_checks.add_kconfig_checks(checklist, arch)
+        out[arch] = [check_json(o) for o in checklist]
+    return {"version": khc_cli.__version__, "checks": out}
+
+
+def harden(path):
+    arch, _ = khc_cli.detect_arch_by_kconfig(path)
+    version, _ = khc_cli.detect_kernel_version(path)
+    if not arch or not version:
+        return None
+    checklist = []
+    khc_checks.add_kconfig_checks(checklist, arch)
+    khc.populate_with_data(checklist, version, "version")
+    parsed = {}
+    khc_cli.parse_kconfig_file("json", parsed, path)
+    khc.populate_with_data(checklist, parsed, "kconfig")
+    for target in ("CONFIG_ARCH_MMAP_RND_BITS", "CONFIG_ARCH_MMAP_RND_COMPAT_BITS"):
+        khc_cli.refine_check("json", checklist, parsed, target, f"{target}_MAX")
+    khc.perform_checks(checklist)
+    return [[o.name, o.result] for o in checklist]
+
+
 HEADER = "#\n# Automatically generated file; DO NOT EDIT.\n# {}\n#\n"
 
 
@@ -240,6 +285,9 @@ def index_arch(job):
     for name in ["alldefconfig", *(n for n in names if n.endswith("defconfig"))]:
         kconf.load_config(str(configs / name) if name in names else os.devnull)
         (arch_ref / f"{name}.config").write_text(kconf._config_contents(header))
+        results = harden(str(arch_ref / f"{name}.config"))
+        if results:
+            (arch_ref / f"{name}.khc.json").write_text(json.dumps(results))
         (arch_ref / f"{name}.min").write_text(kconf._min_config_contents(""))
     return tree, arch, digest, [s["n"] for s in data["syms"] if "k" not in s], names
 
@@ -268,7 +316,9 @@ def main():
                 names.setdefault(name, []).append(len(keys))
             keys.append(f"{tree}/{arch}")
     digest = write_gz(out / "names.json.gz", {"keys": keys, "names": names})
-    (out / "trees.json").write_text(json.dumps({"trees": manifest, "names": digest}, indent=1))
+    (out / "trees.json").write_text(
+        json.dumps({"trees": manifest, "names": digest, "hardening": hardening()}, indent=1)
+    )
 
 
 if __name__ == "__main__":

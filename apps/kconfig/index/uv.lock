@@ -8,10 +8,14 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "kconfiglib" },
+    { name = "kernel-hardening-checker" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "kconfiglib", specifier = "==14.1.0" }]
+requires-dist = [
+    { name = "kconfiglib", specifier = "==14.1.0" },
+    { name = "kernel-hardening-checker", git = "https://github.com/a13xp0p0v/kernel-hardening-checker?rev=b2acfd4f8fba4e91996224b29c992cf83be30904" },
+]
 
 [[package]]
 name = "kconfiglib"
@@ -21,3 +25,8 @@ sdist = { url = "https://files.pythonhosted.org/packages/59/29/d557718c84ef1a8f2
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8a/f1/d98a89231e779b079b977590efcc31249d959c8f1d4b5858cad69695ff9c/kconfiglib-14.1.0-py2.py3-none-any.whl", hash = "sha256:edcd35a20e7e138a9a9e96149027f805f785e818d2eae400b6fa8b0c8845114a", size = 145875, upload-time = "2020-01-31T06:40:47.252Z" },
 ]
+
+[[package]]
+name = "kernel-hardening-checker"
+version = "0.6.17.1"
+source = { git = "https://github.com/a13xp0p0v/kernel-hardening-checker?rev=b2acfd4f8fba4e91996224b29c992cf83be30904#b2acfd4f8fba4e91996224b29c992cf83be30904" }

@@ -188,6 +188,15 @@ h2 {
   border: 0;
 }
 
+#url-form {
+  display: flex;
+  gap: 6px;
+}
+
+#url {
+  width: 28ch;
+}
+
 .spacer {
   flex: 1;
 }
@@ -499,6 +508,28 @@ button.tri.on.v-n {
   color: var(--gray);
   border-style: dashed;
   text-decoration: line-through;
+}
+
+.v-fail {
+  background: var(--error);
+  color: var(--on-accent);
+}
+
+.khc {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 4px 0;
+  border-top: 1px solid var(--lightgray);
+}
+
+.khc .badge {
+  min-width: 5ch;
+  text-align: center;
+}
+
+.why {
+  font-size: 13px;
 }
 
 @media (max-width: 760px) {

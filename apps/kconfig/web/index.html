@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https:; img-src 'self' data:; base-uri 'none'; form-action 'none'" />
     <meta name="referrer" content="no-referrer" />
     <title>Kconfig</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>🐧</text></svg>" />
@@ -20,7 +20,12 @@
       <label>Start from <select id="base"></select></label>
       <label>Add fragment <select id="fragment"></select></label>
       <label class="file">Load .config <input id="upload" type="file" /></label>
+      <form id="url-form">
+        <input id="url" type="url" placeholder="or from a URL" aria-label=".config URL" required />
+        <button type="submit">Load</button>
+      </form>
       <span class="spacer"></span>
+      <button id="hardening" type="button">Hardening</button>
       <button id="reset" type="button">Reset</button>
       <button id="save-defconfig" type="button">defconfig</button>
       <button id="save-config" type="button" class="primary">.config</button>

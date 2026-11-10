@@ -1,3 +1,4 @@
+import { checkConfig, names as checkNames } from './hardening.js';
 import { Kconfig, TRI_STR } from './kconfig.js';
 import manifest from './trees.json';
 
@@ -24,6 +25,7 @@ const el = (tag, props = {}, ...children) => {
   return e;
 };
 const NUMBER = /^[nmy]$|^-?(0x)?[0-9a-f]+$/i;
+const HARDENING = ':hardening';
 
 const PREC = { '|': 1, '&': 2, '!': 3, C: 5 };
 const OPS = { '&': ' && ', '|': ' || ' };
@@ -36,6 +38,9 @@ let baseline = [];
 let baselineText = '';
 let current = null;
 let names;
+let hardened = null;
+let failuresOnly = true;
+let pendingUrl = new URLSearchParams(location.search).get('config');
 
 async function fetchJson(url) {
   const res = await fetch(url);
@@ -277,8 +282,99 @@ async function availability(name) {
   );
 }
 
+function hardening() {
+  hardened ??= checkConfig(manifest.hardening, kconf.write());
+  return hardened;
+}
+
+function optLink(name) {
+  const bare = name.replace(/^CONFIG_/, '');
+  const s = kconf.byName.get(bare);
+  return s === undefined
+    ? el('span', { className: 'undef', title: 'Not defined in this tree', textContent: bare })
+    : symLink(s);
+}
+
+function expected(e) {
+  if (e === 'is not set' || e === 'is present' || e === 'is not off') return ` ${e}`;
+  if (e.startsWith('*') && e.endsWith('*')) return ` contains "${e.slice(1, -1)}"`;
+  return ` = ${e}`;
+}
+
+function renderCheck(check, nested = false) {
+  if (check.v) return el('span', { className: 'const', textContent: `kernel >= ${check.v.join('.')}` });
+  if (!check.opts) return el('span', {}, optLink(check.n), expected(check.e));
+  const parts = check.opts.map((o, i) => [i ? (check.op === 'or' ? ' || ' : ' && ') : null, renderCheck(o, true)]);
+  return el('span', {}, nested ? ['(', parts, ')'] : parts);
+}
+
+function checkRow(r) {
+  return el(
+    'div',
+    { className: 'khc' },
+    el('span', { className: `badge ${r.ok ? 'v-y' : 'v-fail'}`, textContent: r.ok ? 'OK' : 'FAIL' }),
+    el(
+      'div',
+      {},
+      el('div', { className: 'expr' }, renderCheck(r.check)),
+      el('div', { className: 'why', textContent: `${r.decision} · ${r.reason} · ${r.result}` }),
+    ),
+  );
+}
+
+function renderHardening() {
+  const h = hardening();
+  const detail = $('detail');
+  const title = el('div', { className: 'title' }, el('h2', { textContent: 'Hardening' }));
+  const source = el(
+    'p',
+    {},
+    'Checks from ',
+    el('a', {
+      href: 'https://github.com/a13xp0p0v/kernel-hardening-checker',
+      target: '_blank',
+      rel: 'noopener',
+      textContent: `kernel-hardening-checker ${manifest.hardening.version}`,
+    }),
+    ', run against the current .config.',
+  );
+  if (h.error) {
+    detail.replaceChildren(
+      title,
+      source,
+      el('p', { className: 'note', textContent: `Can't check this config: ${h.error}.` }),
+    );
+    return;
+  }
+  const fails = h.results.filter((r) => !r.ok).length;
+  const only = el('input', {
+    type: 'checkbox',
+    checked: failuresOnly,
+    onchange: () => {
+      failuresOnly = only.checked;
+      renderHardening();
+    },
+  });
+  detail.replaceChildren(
+    title,
+    source,
+    el(
+      'p',
+      { className: 'row' },
+      el('span', { className: 'badge v-y', textContent: `${h.results.length - fails} OK` }),
+      el('span', { className: 'badge v-fail', textContent: `${fails} FAIL` }),
+      el('label', { className: 'check' }, only, 'Failures only'),
+    ),
+    ...h.results.filter((r) => !failuresOnly || !r.ok).map(checkRow),
+  );
+}
+
 function renderDetail() {
   const detail = $('detail');
+  if (current === HARDENING) {
+    renderHardening();
+    return;
+  }
   if (current === null) {
     detail.replaceChildren(
       el(
@@ -290,6 +386,7 @@ function renderDetail() {
         el('p', {
           textContent: 'Search for a symbol, pick a defconfig to start from, then download the .config or defconfig.',
         }),
+        el('p', {}, el('a', { href: `#${tree.id}/${arch}/${HARDENING}`, textContent: 'Check hardening' })),
       ),
     );
     return;
@@ -310,6 +407,7 @@ function renderDetail() {
   const promptConds = nodes.filter((n) => n.p !== undefined && n.pc !== sym.d).map((n) => exprBlock(n.pc));
   const selected = splitOr(sym.r).sort((a, b) => kconf.ev(b) - kconf.ev(a));
   const implied = splitOr(sym.w).sort((a, b) => kconf.ev(b) - kconf.ev(a));
+  const checks = (hardening().results ?? []).filter((r) => checkNames(r.check).includes(`CONFIG_${sym.n}`));
   const avail = el('div', { className: 'avail' }, 'Loading…');
   availability(sym.n).then(
     (chips) => avail.replaceChildren(...chips),
@@ -368,12 +466,14 @@ function renderDetail() {
       ),
       section('Selects', condList(s, sym.sel ?? [], false)),
       section('Implies', condList(s, sym.imp ?? [], false)),
+      section('Hardening', checks.map(checkRow)),
       section('Available in', avail),
     ]),
   );
 }
 
 function persist() {
+  hardened = null;
   store.set(storeKey(), { baseline: baselineText, config: kconf.minConfig() });
 }
 
@@ -398,6 +498,36 @@ function startFrom(text) {
   persist();
   renderAll();
   return missing;
+}
+
+async function readConfig(blob) {
+  const magic = new Uint8Array(await blob.slice(0, 2).arrayBuffer());
+  const gzip = magic[0] === 0x1f && magic[1] === 0x8b;
+  return new Response(gzip ? blob.stream().pipeThrough(new DecompressionStream('gzip')) : blob).text();
+}
+
+function rawUrl(url) {
+  const u = new URL(url);
+  const gh = u.hostname === 'github.com' && /^\/([^/]+\/[^/]+)\/(?:blob|raw)\/(.+)$/.exec(u.pathname);
+  if (gh) return `https://raw.githubusercontent.com/${gh[1]}/${gh[2]}`;
+  u.pathname = u.pathname.replace('/-/blob/', '/-/raw/');
+  return u.href;
+}
+
+function loaded(name, missing) {
+  status(`Loaded ${name}${missing.length ? `, ${missing.length} symbols not in this tree` : ''}`);
+}
+
+async function loadUrl(url) {
+  const src = rawUrl(url);
+  let res;
+  try {
+    res = await fetch(src);
+  } catch {
+    throw new Error(`Couldn't fetch ${src}: the server may not allow cross-origin requests`);
+  }
+  if (!res.ok) throw new Error(`${src}: ${res.status}`);
+  loaded(src, startFrom(await readConfig(await res.blob())));
 }
 
 async function fetchConfig(name) {
@@ -442,9 +572,12 @@ async function open(treeId, archId) {
     configs.some((c) => c.endsWith('.config')) ? 'choose…' : 'none',
   );
   status(`Loading ${tree.name} ${arch}…`);
+  $('toolbar').inert = true;
   kconf = null;
+  hardened = null;
   const db = await fetchJson(dataUrl(`${arch}.json.gz`));
   kconf = new Kconfig(db);
+  $('toolbar').inert = false;
   buildIndex();
   const saved = store.get(storeKey());
   baselineText = saved?.baseline ?? '';
@@ -458,6 +591,8 @@ function navigate(name) {
   location.hash = `${tree.id}/${arch}/${name}`;
 }
 
+const here = () => (current === null || current === HARDENING ? (current ?? '') : kconf.syms[current].n);
+
 async function route() {
   const [treeId, archId, name] = decodeURIComponent(location.hash.slice(1)).split('/');
   try {
@@ -466,9 +601,20 @@ async function route() {
     status(String(e), true);
     return;
   }
-  const s = name ? kconf.byName.get(name.replace(/^CONFIG_/, '')) : undefined;
-  current = s ?? null;
-  if (name && s === undefined) status(`${name} is not defined in ${tree.name} ${arch}`, true);
+  const s = name && name !== HARDENING ? kconf.byName.get(name.replace(/^CONFIG_/, '')) : undefined;
+  current = name === HARDENING ? HARDENING : (s ?? null);
+  if (name && current === null) status(`${name} is not defined in ${tree.name} ${arch}`, true);
+  if (pendingUrl) {
+    const url = pendingUrl;
+    pendingUrl = null;
+    history.replaceState(null, '', location.pathname + location.hash);
+    $('url').value = url;
+    try {
+      await loadUrl(url);
+    } catch (e) {
+      status(String(e), true);
+    }
+  }
   renderAll();
   if (current !== null) $('detail').scrollTop = 0;
 }
@@ -478,10 +624,10 @@ fillSelect(
   manifest.trees.map((t) => [t.id, t.name]),
 );
 $('tree').addEventListener('change', () => {
-  location.hash = `${$('tree').value}/${arch}/${current === null ? '' : kconf.syms[current].n}`;
+  location.hash = `${$('tree').value}/${arch}/${here()}`;
 });
 $('arch').addEventListener('change', () => {
-  location.hash = `${tree.id}/${$('arch').value}/${current === null ? '' : kconf.syms[current].n}`;
+  location.hash = `${tree.id}/${$('arch').value}/${here()}`;
 });
 let timer;
 $('search').addEventListener('input', () => {
@@ -514,10 +660,18 @@ $('fragment').addEventListener('change', async () => {
 $('upload').addEventListener('change', async () => {
   const file = $('upload').files[0];
   if (!file) return;
-  const missing = startFrom(await file.text());
-  status(`Loaded ${file.name}${missing.length ? `, ${missing.length} symbols not in this tree` : ''}`, false);
+  loaded(file.name, startFrom(await readConfig(file)));
   $('upload').value = '';
 });
+$('url-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  try {
+    await loadUrl($('url').value);
+  } catch (err) {
+    status(String(err), true);
+  }
+});
+$('hardening').addEventListener('click', () => navigate(HARDENING));
 $('reset').addEventListener('click', () => {
   $('base').value = '';
   startFrom('');
