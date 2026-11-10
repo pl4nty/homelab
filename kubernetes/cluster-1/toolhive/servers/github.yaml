@@ -12,8 +12,8 @@ spec:
   transport: streamable-http
   headerForward:
     addPlaintextHeaders:
-      X-MCP-Toolsets: notifications
-      X-MCP-Tools: issue_read,list_issues,search_issues,pull_request_read,list_pull_requests,search_pull_requests
+      X-MCP-Toolsets: notifications,issues,pull_requests
+      X-MCP-Readonly: "true"
     addHeadersFromSecret:
       - headerName: Authorization
         valueSecretRef:
