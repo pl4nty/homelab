@@ -47,3 +47,48 @@ spec:
           annotations:
             summary: Flux object keeps failing to reconcile.
             description: '{{ $labels.kind }} {{ $labels.namespace }}/{{ $labels.name }} on {{ $labels.cluster }} logged {{ $value }} Warning events in the last hour. Check its events or `flux get all -A --status-selector ready=false`.'
+---
+# Flux events as spans. a source revision is the root span, and the Kustomizations that apply it are
+# its children. no-op reconciles are commit status updates, which the otel provider drops
+apiVersion: notification.toolkit.fluxcd.io/v1
+kind: Provider
+metadata:
+  name: otel
+  namespace: flux-system
+spec:
+  type: otel
+  address: http://k8s-monitoring-alloy-receiver.monitoring-system:4318/v1/traces
+---
+apiVersion: notification.toolkit.fluxcd.io/v1
+kind: Alert
+metadata:
+  name: flux
+  namespace: flux-system
+spec:
+  providerRef:
+    name: otel
+  eventSeverity: info
+  eventSources:
+    - kind: GitRepository
+      name: "*"
+    - kind: OCIRepository
+      name: "*"
+    - kind: Kustomization
+      name: "*"
+    - kind: HelmRelease
+      name: "*"
+    - kind: HelmRelease
+      name: "*"
+      namespace: default
+    - kind: HelmRelease
+      name: "*"
+      namespace: kube-system
+    - kind: HelmRelease
+      name: "*"
+      namespace: longhorn
+    - kind: HelmRelease
+      name: "*"
+      namespace: monitoring-system
+    - kind: HelmRelease
+      name: "*"
+      namespace: toolhive-system
