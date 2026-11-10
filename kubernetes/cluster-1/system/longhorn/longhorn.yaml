@@ -13,19 +13,10 @@ spec:
         kind: HelmRepository
         name: longhorn
         namespace: flux-system
-  maxHistory: 3
   install:
-    createNamespace: true
-    remediation:
-      retries: 3
     timeout: 15m
   upgrade:
-    cleanupOnFail: true
     timeout: 15m
-    remediation:
-      retries: 3
-  uninstall:
-    keepHistory: false
   # chart only supports a nodeSelector. Skip nodes without the Talos iscsi-tools extension (custom images)
   postRenderers:
     - kustomize:
