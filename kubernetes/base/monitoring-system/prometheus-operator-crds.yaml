@@ -10,16 +10,7 @@ spec:
     kind: OCIRepository
     name: prometheus-operator-crds
     namespace: flux-system
-  maxHistory: 3
   install:
-    createNamespace: true
-    remediation:
-      retries: 3
     crds: CreateReplace
   upgrade:
-    cleanupOnFail: true
-    remediation:
-      retries: 3
     crds: CreateReplace
-  uninstall:
-    keepHistory: false

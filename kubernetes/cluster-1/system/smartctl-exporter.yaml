@@ -12,12 +12,6 @@ spec:
     kind: OCIRepository
     name: prometheus-smartctl-exporter
     namespace: flux-system
-  install:
-    remediation:
-      retries: 3
-  upgrade:
-    remediation:
-      retries: 3
   values:
     # Longhorn v1 volumes attach to each node as iSCSI disks (sdX, model IET VIRTUAL-DISK), ~15 per
     # RK1. they have no SMART, and their series churn on every attach

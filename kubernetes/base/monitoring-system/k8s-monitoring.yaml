@@ -10,19 +10,10 @@ spec:
     kind: OCIRepository
     name: k8s-monitoring
     namespace: flux-system
-  maxHistory: 3
   install:
-    createNamespace: true
-    remediation:
-      retries: 3
     crds: CreateReplace
   upgrade:
-    cleanupOnFail: true
-    remediation:
-      retries: 3
     crds: CreateReplace
-  uninstall:
-    keepHistory: false
   values:
     cluster:
       name: ${CLUSTER_NAME:=bootstrap}

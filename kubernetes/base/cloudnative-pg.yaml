@@ -11,17 +11,6 @@ spec:
     kind: OCIRepository
     name: cloudnative-pg
     namespace: flux-system
-  maxHistory: 3
-  install:
-    createNamespace: true
-    remediation:
-      retries: 3
-  upgrade:
-    cleanupOnFail: true
-    remediation:
-      retries: 3
-  uninstall:
-    keepHistory: false
 ---
 # yaml-language-server: $schema=https://flux-helm-schema.tplant.com.au?values=https://raw.githubusercontent.com/cloudnative-pg/charts/refs/heads/main/charts/plugin-barman-cloud/values.schema.json
 # replaces the operator's in-tree barmanObjectStore, which CNPG 1.31 removes. must share its namespace
@@ -41,16 +30,6 @@ spec:
     kind: OCIRepository
     name: plugin-barman-cloud
     namespace: flux-system
-  maxHistory: 3
-  install:
-    remediation:
-      retries: 3
-  upgrade:
-    cleanupOnFail: true
-    remediation:
-      retries: 3
-  uninstall:
-    keepHistory: false
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor

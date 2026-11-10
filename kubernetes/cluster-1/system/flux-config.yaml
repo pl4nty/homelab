@@ -12,8 +12,7 @@ spec:
     kind: GitRepository
     name: home-kubernetes
   patches:
-  # release defaults, hoisted out of every HelmRelease. scoped to the default
-  # namespace so longhorn and toolhive keep their own.
+  # release defaults, hoisted out of every HelmRelease.
   # spec.interval stays per-release: it is a required field, so a HelmRelease
   # without one fails the API dry-run before any patch is applied
   - patch: |-
@@ -31,11 +30,8 @@ spec:
           cleanupOnFail: true
           remediation:
             retries: 3
-        uninstall:
-          keepHistory: false
     target:
       kind: HelmRelease
-      namespace: default
   decryption:
     provider: sops
     secretRef:
