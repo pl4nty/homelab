@@ -31,6 +31,8 @@ spec:
               PYTHONPATH: /etc/linkding
               # ~13 sqlite spans per request (~18k per 10 min from the crawler); keep the Django server spans
               OTEL_PYTHON_DISABLED_INSTRUMENTATIONS: sqlite3
+              # uWSGI logs every crawler request, ~110MB/day. 4xx/5xx still log, the gateway traces the rest
+              LD_DISABLE_REQUEST_LOGS: "true"
     service:
       main:
         controller: main

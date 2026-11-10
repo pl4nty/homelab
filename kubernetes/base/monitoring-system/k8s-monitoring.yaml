@@ -516,6 +516,24 @@ spec:
             listen_address = "0.0.0.0:5044"
 
             output {
+              logs = [otelcol.processor.filter.tcplog.input]
+            }
+          }
+
+          // auditd sends an SELinux AVC denial for each write to an unlabeled Longhorn volume, ~600MB/day and ~40GB
+          // during the 11-03 upgrades, which used up the 50GB/month free tier. machined logs the console dashboard's
+          // gRPC polls every 5s
+          otelcol.processor.filter "tcplog" {
+            error_mode = "ignore"
+
+            logs {
+              log_record = [
+                `IsMatch(body, "\"talos-service\":\"auditd\"")`,
+                `IsMatch(body, "match with service \\\\\"dashboard\\\\\"")`,
+              ]
+            }
+
+            output {
               logs = [otelcol.processor.transform.tcplog.input]
             }
           }
