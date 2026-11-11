@@ -219,27 +219,27 @@ namespace WindowsVmMcp
         class Exec
         {
             public Process Process;
-            public readonly StringBuilder Stdout = new StringBuilder();
-            public readonly StringBuilder Stderr = new StringBuilder();
+            public readonly List<byte> Stdout = new List<byte>();
+            public readonly List<byte> Stderr = new List<byte>();
             public int StdoutRead;
             public int StderrRead;
             public Task Pumps;
         }
 
-        static Task Pump(Stream stream, StringBuilder sink)
+        static readonly Encoding StrictUtf8 = new UTF8Encoding(false, true);
+        static readonly Encoding Oem = Encoding.GetEncoding(System.Globalization.CultureInfo.CurrentCulture.TextInfo.OEMCodePage);
+
+        static Task Pump(Stream stream, List<byte> sink)
         {
             return Task.Run(() =>
             {
-                var decoder = Encoding.UTF8.GetDecoder();
                 var bytes = new byte[8192];
-                var chars = new char[8192];
                 int n;
                 while ((n = stream.Read(bytes, 0, bytes.Length)) > 0)
                 {
-                    var c = decoder.GetChars(bytes, 0, n, chars, 0);
                     lock (sink)
                     {
-                        if (sink.Length < MaxOutput) sink.Append(chars, 0, c);
+                        if (sink.Count < MaxOutput) sink.AddRange(bytes.Take(n));
                     }
                 }
             });
@@ -254,8 +254,6 @@ namespace WindowsVmMcp
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
-                StandardOutputEncoding = Encoding.UTF8,
-                StandardErrorEncoding = Encoding.UTF8,
                 WorkingDirectory = string.IsNullOrEmpty(cwd) ? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) : cwd,
             };
             var exec = new Exec { Process = Process.Start(psi) };
@@ -278,13 +276,32 @@ namespace WindowsVmMcp
             return exec;
         }
 
-        static string Drain(StringBuilder sink, ref int read)
+        static string Drain(List<byte> sink, ref int read, bool final)
         {
+            byte[] bytes;
             lock (sink)
             {
-                var text = sink.ToString(read, sink.Length - read);
-                read = sink.Length;
-                return text;
+                bytes = sink.GetRange(read, sink.Count - read).ToArray();
+            }
+            var length = bytes.Length;
+            if (!final)
+            {
+                var lead = length - 1;
+                while (lead >= 0 && lead > length - 4 && (bytes[lead] & 0xC0) == 0x80) lead--;
+                if (lead >= 0 && bytes[lead] >= 0xC0)
+                {
+                    var size = bytes[lead] >= 0xF0 ? 4 : bytes[lead] >= 0xE0 ? 3 : 2;
+                    if (length - lead < size) length = lead;
+                }
+            }
+            read += length;
+            try
+            {
+                return StrictUtf8.GetString(bytes, 0, length);
+            }
+            catch (DecoderFallbackException)
+            {
+                return Oem.GetString(bytes, 0, length);
             }
         }
 
@@ -296,8 +313,8 @@ namespace WindowsVmMcp
             var result = new Dictionary<string, object> {
                 { "exec_id", id },
                 { "running", !exited },
-                { "stdout", Drain(exec.Stdout, ref exec.StdoutRead) },
-                { "stderr", Drain(exec.Stderr, ref exec.StderrRead) },
+                { "stdout", Drain(exec.Stdout, ref exec.StdoutRead, exited) },
+                { "stderr", Drain(exec.Stderr, ref exec.StderrRead, exited) },
             };
             if (exited)
             {

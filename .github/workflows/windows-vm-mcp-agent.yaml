@@ -36,6 +36,7 @@ jobs:
           Start-Process -FilePath powershell.exe -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File',"$dir\run.ps1" -RedirectStandardOutput "$env:RUNNER_TEMP\agent.out" -RedirectStandardError "$env:RUNNER_TEMP\agent.err"
           cmd /c "query user & exit 0"
           New-Item -ItemType Directory "$env:RUNNER_TEMP\shots" | Out-Null
+          $env:PYTHONIOENCODING = 'utf-8'
           uv run python test/e2e.py "$env:RUNNER_TEMP\shots"
       - if: always()
         shell: powershell
