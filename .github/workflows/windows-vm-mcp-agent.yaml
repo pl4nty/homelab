@@ -26,27 +26,22 @@ jobs:
           [System.Management.Automation.Language.Parser]::ParseFile("$PWD\bootstrap-test.ps1", [ref]$null, [ref]$errors) | Out-Null
           if ($errors) { $errors; exit 1 }
           $PSVersionTable
-      - name: start server and agent
+      - name: drive the MCP tools against a real agent
         shell: powershell
         run: |
           $env:AGENT_SECRET = 'test'
           Start-Process -FilePath uv -ArgumentList 'run','windows-vm-mcp' -RedirectStandardOutput "$env:RUNNER_TEMP\server.log" -RedirectStandardError "$env:RUNNER_TEMP\server.err" -WindowStyle Hidden
           $dir = "$env:RUNNER_TEMP\agent"
           uv run python test/setup_agent.py $dir
-          Get-Content "$dir\run.ps1", "$dir\agent.ps1"
-          Start-Process -FilePath powershell.exe -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File',"$dir\run.ps1"
-          Start-Sleep 10
+          Start-Process -FilePath powershell.exe -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File',"$dir\run.ps1" -RedirectStandardOutput "$env:RUNNER_TEMP\agent.out" -RedirectStandardError "$env:RUNNER_TEMP\agent.err"
           cmd /c "query user & exit 0"
-      - name: drive the MCP tools
-        run: |
-          mkdir -p "$RUNNER_TEMP/shots"
-          uv run python test/e2e.py "$RUNNER_TEMP/shots"
-        shell: bash
+          New-Item -ItemType Directory "$env:RUNNER_TEMP\shots" | Out-Null
+          uv run python test/e2e.py "$env:RUNNER_TEMP\shots"
       - if: always()
         shell: powershell
         run: |
           Get-Content "$env:RUNNER_TEMP\server.log", "$env:RUNNER_TEMP\server.err" -ErrorAction SilentlyContinue
-          Get-Content "$env:RUNNER_TEMP\agent\agent.log" -ErrorAction SilentlyContinue
+          Get-Content "$env:RUNNER_TEMP\agent.out", "$env:RUNNER_TEMP\agent.err", "$env:RUNNER_TEMP\agent\agent.log" -ErrorAction SilentlyContinue
       - if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
