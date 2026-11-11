@@ -3,10 +3,14 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
     <title>Tenant Lookup</title>
     <!-- data-cfasync: keep Cloudflare Rocket Loader from deferring the theme past first paint -->
     <script data-cfasync="false">
-        document.documentElement.dataset.bsTheme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        const colorScheme = matchMedia("(prefers-color-scheme: dark)");
+        const applyColorScheme = () => document.documentElement.dataset.bsTheme = colorScheme.matches ? "dark" : "light";
+        applyColorScheme();
+        colorScheme.addEventListener("change", applyColorScheme);
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -96,7 +100,8 @@
             <!-- /.box-title -->
             <h4 class="card-header">
                 <div class="float-end">
-                    <button type="button" class="btn btn-outline-secondary btn-sm float-end" onclick="copyResults();"><i class="far fa-clipboard"></i> Copy Results</button>
+                    <span id="copyStatus" class="small text-body-secondary me-2" role="status"></span>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="copyResults();"><i class="far fa-clipboard"></i> Copy Results</button>
                 </div>
                 Lookup Results
             </h4>

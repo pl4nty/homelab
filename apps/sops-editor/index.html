@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://api.github.com; img-src 'self' data:; base-uri 'none'; form-action 'none'" />
     <meta name="referrer" content="no-referrer" />
     <title>sops editor</title>
@@ -44,6 +45,16 @@
         </div>
       </section>
     </main>
+    <dialog id="new-dialog" aria-labelledby="new-title">
+      <form method="dialog">
+        <h2 id="new-title">New encrypted file</h2>
+        <label>Path <input id="new-path" required spellcheck="false" autocomplete="off" autofocus /></label>
+        <div class="row">
+          <button id="new-cancel" type="button">Cancel</button>
+          <button type="submit" value="create" class="primary">Create</button>
+        </div>
+      </form>
+    </dialog>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

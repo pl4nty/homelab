@@ -481,6 +481,8 @@ dialog.sheet {
 }
 dialog.sheet::backdrop {
   background: var(--mat);
+  overflow: hidden;
+  overscroll-behavior: contain;
 }
 .sheet .layout {
   display: grid;
