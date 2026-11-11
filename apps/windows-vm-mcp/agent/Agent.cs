@@ -95,7 +95,7 @@ namespace WindowsVmMcp
                     var message = await Receive(ws);
                     if (message == null) break;
                     var request = Json.Deserialize<Dictionary<string, object>>(message);
-                    Task.Run(() => Handle(request));
+                    var handling = Task.Run(() => Handle(request));
                 }
             }
         }

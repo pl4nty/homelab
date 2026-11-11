@@ -49,6 +49,12 @@ class Azure:
     async def token(self) -> str:
         if self._token and time.time() < self._expires - 300:
             return self._token
+        if not self.configured:
+            raise AzureError(
+                0,
+                "NotConfigured",
+                "set AZURE_TENANT_ID, AZURE_CLIENT_ID and AZURE_SUBSCRIPTION_ID",
+            )
         data = {
             "grant_type": "client_credentials",
             "client_id": self.client_id,
@@ -63,8 +69,11 @@ class Azure:
         resp = await self.http.post(
             f"https://login.microsoftonline.com/{self.tenant}/oauth2/v2.0/token", data=data
         )
-        resp.raise_for_status()
         body = resp.json()
+        if resp.status_code != 200:
+            raise AzureError(
+                resp.status_code, body.get("error", ""), body.get("error_description", "")
+            )
         self._token = body["access_token"]
         self._expires = time.time() + int(body["expires_in"])
         return self._token
