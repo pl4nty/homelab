@@ -197,8 +197,8 @@ const fill = (d, html) => {
   d.prepend(h(html));
 };
 
-function sheet() {
-  const d = h(`<dialog class="sheet"></dialog>`);
+function sheet(label) {
+  const d = h(`<dialog class="sheet" aria-label="${label}"></dialog>`);
   document.body.append(d);
   d.showModal();
   d.addEventListener('close', () => {
@@ -206,7 +206,7 @@ function sheet() {
     d.remove();
     setParams((p) => p.delete('s'));
   });
-  d.addEventListener('click', (e) => e.target.closest('.close') && d.close());
+  d.addEventListener('click', (e) => e.target.closest('.close') && (d.requestClose ? d.requestClose() : d.close()));
   return d;
 }
 
@@ -218,7 +218,7 @@ const detail = (label, value) => (value ? `<div><dt>${label}</dt><dd>${esc(value
 const viewPx = () => Math.max(innerWidth * 0.7, innerHeight) * devicePixelRatio;
 
 function viewer(list, i) {
-  const d = sheet();
+  const d = sheet('Sticker');
   const go = (k) => {
     i = (k + list.length) % list.length;
     const m = list[i];
@@ -267,7 +267,7 @@ function viewer(list, i) {
 // server-side once, on save; the colour preview comes from the same server code.
 function editor(list, i, changed) {
   list = [...list];
-  const d = sheet();
+  const d = sheet('Edit sticker');
   let m,
     rot,
     zoom,
@@ -276,9 +276,12 @@ function editor(list, i, changed) {
     tint,
     tool = 'rotate',
     busy = false,
-    shade;
+    shade,
+    saved,
+    warned;
   const stage = () => $('.stage', d),
-    img = () => $('.stage img', d);
+    img = () => $('.stage img', d),
+    fields = () => new URLSearchParams(new FormData($('.layout', d))).toString();
   const fitter = new ResizeObserver(() => paint());
 
   function load(k) {
@@ -341,6 +344,8 @@ function editor(list, i, changed) {
           Keys: <kbd>←</kbd> <kbd>→</kbd> 1°, with <kbd>Shift</kbd> 15°; <kbd>Q</kbd> <kbd>E</kbd> 90°; <kbd>Enter</kbd> ${label.toLowerCase()}.</p>
       </aside></form>`,
     );
+    saved = fields();
+    warned = false;
     img().onload = paint;
     fitter.disconnect();
     fitter.observe(stage());
@@ -518,6 +523,12 @@ function editor(list, i, changed) {
   d.addEventListener('submit', (e) => {
     e.preventDefault();
     save(e.submitter?.dataset.state ?? $('.primary', d).dataset.state);
+  });
+  d.addEventListener('cancel', (e) => {
+    if (e.target !== d || warned || (!norm(rot) && fields() === saved)) return;
+    e.preventDefault();
+    warned = true;
+    toast('Unsaved changes. Close again to discard them.');
   });
   d.addEventListener('click', async (e) => {
     const b = e.target.closest('button');

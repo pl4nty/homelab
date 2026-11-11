@@ -4,6 +4,7 @@
 {{ template "layouts/header.html" .}}
 
 <main class="container text-start pb-4 bundle">
+  <span id="copy-status" class="visually-hidden" role="status"></span>
   <div class="d-flex flex-wrap align-items-end gap-3 mb-4">
     <div class="me-auto">
       <h1 class="h2 mb-1">{{ .Bundle.App.Name }}</h1>
@@ -113,14 +114,25 @@
     input.addEventListener("focus", () => input.select());
   }
 
-  const copied = (button) => {
+  const copyStatus = document.getElementById("copy-status");
+  const copyTimers = new WeakMap();
+  let lastMessage = "";
+  const report = (button, ok) => {
     const icon = button.querySelector(".bi");
-    button.classList.add("copied");
-    icon?.classList.replace("bi-clipboard", "bi-check2");
-    setTimeout(() => {
+    clearTimeout(copyTimers.get(button));
+    button.classList.toggle("copied", ok);
+    icon?.classList.remove("bi-clipboard", "bi-check2", "bi-x-lg");
+    icon?.classList.add(ok ? "bi-check2" : "bi-x-lg");
+    let message = ok ? "Copied" : "Copy failed";
+    if (message === lastMessage) message += "\u00A0";
+    lastMessage = message;
+    copyStatus.textContent = message;
+    copyTimers.set(button, setTimeout(() => {
       button.classList.remove("copied");
-      icon?.classList.replace("bi-check2", "bi-clipboard");
-    }, 1500);
+      icon?.classList.remove("bi-check2", "bi-x-lg");
+      icon?.classList.add("bi-clipboard");
+      copyStatus.textContent = "";
+    }, 1500));
   };
 
   document.addEventListener("click", async (e) => {
@@ -133,9 +145,9 @@
     }
     try {
       await navigator.clipboard.writeText(text);
-      copied(button);
+      report(button, true);
     } catch {
-      button.title = "Copy failed. Select the text and copy it instead.";
+      report(button, false);
     }
   });
 </script>
