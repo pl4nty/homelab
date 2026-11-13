@@ -25,6 +25,25 @@ spec:
   sourceRef:
     kind: GitRepository
     name: home-kubernetes
+  # same release defaults as the cluster-1 Kustomization
+  patches:
+  - patch: |-
+      apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      metadata:
+        name: not-used
+      spec:
+        maxHistory: 3
+        install:
+          createNamespace: true
+          remediation:
+            retries: 3
+        upgrade:
+          cleanupOnFail: true
+          remediation:
+            retries: 3
+    target:
+      kind: HelmRelease
   decryption:
     provider: sops
     secretRef:

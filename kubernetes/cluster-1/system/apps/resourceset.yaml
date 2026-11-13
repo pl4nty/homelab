@@ -71,8 +71,6 @@ spec:
                 cleanupOnFail: true
                 remediation:
                   retries: 3
-              uninstall:
-                keepHistory: false
           target:
             kind: HelmRelease
       postBuild:

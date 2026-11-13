@@ -11,10 +11,3 @@ spec:
     kind: OCIRepository
     name: toolhive-operator
     namespace: flux-system
-  install:
-    createNamespace: true
-    remediation:
-      retries: 3
-  upgrade:
-    remediation:
-      retries: 3

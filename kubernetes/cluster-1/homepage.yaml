@@ -12,17 +12,6 @@ spec:
         kind: HelmRepository
         name: homepage
         namespace: flux-system
-  maxHistory: 3
-  install:
-    createNamespace: true
-    remediation:
-      retries: 3
-  upgrade:
-    cleanupOnFail: true
-    remediation:
-      retries: 3
-  uninstall:
-    keepHistory: false
   values:
     tolerations:
     - key: topology.kubernetes.io/region
