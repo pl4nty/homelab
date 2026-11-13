@@ -34,7 +34,7 @@ spec:
   # container limit lifts the pod to 1Gi without a per-app override. the cpu and memory
   # values are the operator's defaults, which it only fills in when limits/requests are unset
   java:
-    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-java:2.33.1@sha256:9f44e319d84bfa1cb9b7f711916a0169e185f5eedee0a8f74cb23affc2953f00
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-java:2.33.1@sha256:383a36e8d63a96435a04f2a32f0bf065f211f9ef0c6e75e9e895f0f7d272659a
     # java names this field resources, the other languages resourceRequirements
     resources: &agent-resources
       limits:
