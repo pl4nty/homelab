@@ -58,7 +58,7 @@ spec:
         value: http://k8s-monitoring-alloy-receiver.monitoring-system:4318
   python:
     # 0.39b0 had no musl build (hyperglass uses otel-python-platform: musl)
-    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-python:0.66b2@sha256:f0eb2c59acb53cea7e9bca8d6bf98f813cecb4776ea3129f487e1cf8db2f2adb
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-python:0.66b2@sha256:07b31dd459eac3556f8c8c9afc5fe03e90a8fd06c58f79d9a727bfb9add9a3af
     resourceRequirements: *agent-resources
     env:
       # Required if endpoint is set to 4317.
