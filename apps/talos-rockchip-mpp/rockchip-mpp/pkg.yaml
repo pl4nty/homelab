@@ -8,9 +8,10 @@ dependencies:
 steps:
   - install:
       - |
-        mkdir -p /rootfs/usr/lib/modules
+        mkdir -p /rootfs/usr/lib/modules /rootfs/usr/local/share
 
         cp -R /usr/lib/modules/* /rootfs/usr/lib/modules
+        cp -R /usr/local/share/rockchip-mpp /rootfs/usr/local/share/
   - test:
       - |
         mkdir -p /extensions-validator-rootfs

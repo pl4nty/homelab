@@ -9,6 +9,8 @@ The modules aren't signed with the Talos key, so the installer also needs
 ## Usage
 
 The modules don't autoload: load `rk_vcodec` (`/dev/mpp_service`) and `rga3` (`/dev/rga`).
+They need the device tree nodes in `/usr/local/share/rockchip-mpp/rk3588-mpp.dtsi`
+in the board DTB, which `talos/Dockerfile` adds when it builds the RK1 installer.
 
 ```yaml
 apiVersion: v1alpha1
@@ -26,7 +28,6 @@ name: rga3
 ❯ talosctl -n <node> read /proc/modules
 rga3 ... - Live ... (OE)
 rk_vcodec ... - Live ... (OE)
-rk3588_mpp_dt ... - Live ... (OE)
 vsi_iommu ... - Live ... (OE)
 ❯ talosctl -n <node> ls /dev | grep -E 'mpp_service|rga'
 ```
