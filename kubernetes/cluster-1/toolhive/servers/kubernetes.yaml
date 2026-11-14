@@ -30,6 +30,10 @@ spec:
       # https://github.com/containers/kubernetes-mcp-server/blob/main/docs/scaling.md
       # 128Mi + 2 * max_in_flight * 72Mi of default caps stays under the limit
       max_in_flight: 2
+      telemetry:
+        endpoint: http://k8s-monitoring-alloy-receiver.monitoring-system:4317
+        logs_exporter: none
+        metrics_exporter: none
     resources:
       limits:
         memory: 512Mi
