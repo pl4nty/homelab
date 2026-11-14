@@ -1,0 +1,50 @@
+name: windows-vm-mcp-agent
+
+on:
+  pull_request:
+    paths: [apps/windows-vm-mcp/**, .github/workflows/windows-vm-mcp-agent.yaml]
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: windows-2025
+    defaults:
+      run:
+        working-directory: apps/windows-vm-mcp
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
+      - run: uv sync --frozen
+      - name: bootstrap script parses
+        shell: powershell
+        run: |
+          $env:AGENT_SECRET = 'test'
+          uv run python -c "import main, base64; open('bootstrap-test.ps1','wb').write(base64.b64decode(main.vm_body('test','x','windows-server-2025',False,True,'/nic')['properties']['osProfile']['customData']))"
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile("$PWD\bootstrap-test.ps1", [ref]$null, [ref]$errors) | Out-Null
+          if ($errors) { $errors; exit 1 }
+          $PSVersionTable
+      - name: drive the MCP tools against a real agent
+        shell: powershell
+        run: |
+          $env:AGENT_SECRET = 'test'
+          Start-Process -FilePath uv -ArgumentList 'run','windows-vm-mcp' -RedirectStandardOutput "$env:RUNNER_TEMP\server.log" -RedirectStandardError "$env:RUNNER_TEMP\server.err" -WindowStyle Hidden
+          $dir = "$env:RUNNER_TEMP\agent"
+          uv run python test/setup_agent.py $dir
+          Start-Process -FilePath powershell.exe -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File',"$dir\run.ps1" -RedirectStandardOutput "$env:RUNNER_TEMP\agent.out" -RedirectStandardError "$env:RUNNER_TEMP\agent.err"
+          cmd /c "query user & exit 0"
+          New-Item -ItemType Directory "$env:RUNNER_TEMP\shots" | Out-Null
+          $env:PYTHONIOENCODING = 'utf-8'
+          uv run python test/e2e.py "$env:RUNNER_TEMP\shots"
+      - if: always()
+        shell: powershell
+        run: |
+          Get-Content "$env:RUNNER_TEMP\server.log", "$env:RUNNER_TEMP\server.err" -ErrorAction SilentlyContinue
+          Get-Content "$env:RUNNER_TEMP\agent.out", "$env:RUNNER_TEMP\agent.err", "$env:RUNNER_TEMP\agent\agent.log" -ErrorAction SilentlyContinue
+      - if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: shots
+          path: ${{ runner.temp }}/shots
