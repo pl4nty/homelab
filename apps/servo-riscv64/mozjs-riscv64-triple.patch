@@ -1,0 +1,20 @@
+--- a/makefile.cargo
++++ b/makefile.cargo
+@@ -94,6 +94,17 @@
+ 		TARGET = aarch64-linux-gnu
+ 	endif
+ 
++	ifeq (riscv64gc-unknown-linux-gnu,$(TARGET))
++		# Reset TARGET variable because the riscv64 target name used by Rust
++		# ("riscv64gc") is not a triple that autoconf's config.sub recognises,
++		# nor the name used by the CXX toolchain.
++		TARGET = riscv64-linux-gnu
++	endif
++
++	ifeq (riscv64gc-unknown-linux-musl,$(TARGET))
++		TARGET = riscv64-linux-musl
++	endif
++
+     ifneq (,$(findstring -wasi,$(TARGET)))
+         ifeq (,$(WASI_SDK_PATH))
+             $(error WASI_SDK_PATH environment variable must be set when building for wasm32)
