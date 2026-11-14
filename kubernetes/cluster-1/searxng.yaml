@@ -22,7 +22,7 @@ spec:
           main:
             image:
               repository: ghcr.io/searxng/searxng
-              tag: latest@sha256:a3439a98b10ed29a6b36538c8589a63f488fb30d953dfb5826c8c208c16e960f
+              tag: latest@sha256:eb8b09ffa83aebbe8b8d3ded23cfd224b2d3b01db4f3af9eb03876ef6def6dda
             # the image user. the entrypoint only needs root to chown volumes
             securityContext:
               runAsUser: 977
