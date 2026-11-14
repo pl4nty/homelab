@@ -8,9 +8,12 @@ spec:
     name: toolhive
   telemetryConfigRef:
     name: toolhive
-  remoteUrl: https://api.githubcopilot.com/mcp/x/notifications
+  remoteUrl: https://api.githubcopilot.com/mcp/
   transport: streamable-http
   headerForward:
+    addPlaintextHeaders:
+      X-MCP-Toolsets: notifications,issues,pull_requests
+      X-MCP-Readonly: "true"
     addHeadersFromSecret:
       - headerName: Authorization
         valueSecretRef:
