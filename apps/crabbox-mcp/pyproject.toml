@@ -1,0 +1,19 @@
+[project]
+name = "crabbox-mcp"
+version = "0.1.0"
+description = "Namespace devbox-style MCP tools on crabbox, for Azure, Namespace and Sprites devboxes"
+requires-python = ">=3.12"
+dependencies = [
+    "mcp==2.3.0",
+    "uvicorn[standard]==0.54.0",
+]
+
+[project.scripts]
+crabbox-mcp = "main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+include = ["main.py"]

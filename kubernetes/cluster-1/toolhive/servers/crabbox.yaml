@@ -1,0 +1,80 @@
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: crabbox
+  namespace: toolhive-system
+spec:
+  groupRef:
+    name: toolhive
+  telemetryConfigRef:
+    name: toolhive
+  image: ghcr.io/pl4nty/crabbox-mcp:latest
+  transport: streamable-http
+  mcpPort: 8000
+  podTemplateSpec:
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: mcp
+          # optional, so the server runs with whichever backends have credentials
+          env:
+            - name: SPRITES_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: toolhive
+                  key: sprites-token
+                  optional: true
+            - name: AZURE_TENANT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: toolhive
+                  key: crabbox-azure-tenant-id
+                  optional: true
+            - name: AZURE_SUBSCRIPTION_ID
+              valueFrom:
+                secretKeyRef:
+                  name: toolhive
+                  key: crabbox-azure-subscription-id
+                  optional: true
+            - name: AZURE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: toolhive
+                  key: crabbox-azure-client-id
+                  optional: true
+            - name: AZURE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: toolhive
+                  key: crabbox-azure-client-secret
+                  optional: true
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: data
+          persistentVolumeClaim:
+            claimName: crabbox
+  env:
+    - name: CRABBOX_AZURE_LOCATION
+      value: australiaeast
+    - name: CRABBOX_AZURE_RESOURCE_GROUP
+      value: crabbox
+---
+# lease state, Namespace login and suspended box records survive restarts
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: crabbox
+  namespace: toolhive-system
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
