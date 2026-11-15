@@ -10,5 +10,5 @@ spec:
     mediaType: 'application/vnd.cncf.helm.chart.content.v1.tar+gzip'
     operation: copy
   ref:
-    tag: 4.6.0
-    digest: sha256:b5162c22048457f84ea55f0d08c2e034261bf7a09ac4db2086c48b1e794f5410
+    tag: 4.6.1
+    digest: sha256:71491492d9c6479f3802cd8bf71ea23e6955d8240fc31164654935a03c33ec28
