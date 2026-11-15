@@ -7,7 +7,7 @@ COPY devx-api.patch .
 RUN git apply --numstat devx-api.patch | cut -f3 | xargs sed -i 's/\r$//' \
   && git apply devx-api.patch
 # upstream targets .NET 8, which reaches end of support on 2026-11-10
-RUN find . -name '*.csproj' -exec sed -i 's#<TargetFramework>net8.0<#<TargetFramework>net10.0<#' {} +
+RUN find . -name '*.csproj' -exec sed -i 's#<TargetFramework>net8.0<#<TargetFramework>net11.0<#' {} +
 
 # opt-in: docker build --target test
 FROM source AS test
