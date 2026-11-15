@@ -1,4 +1,4 @@
-FROM gradle:9.8.1-jdk17@sha256:47f780b3062115192d991c37276702c515a1349be5c288fd5ee422b408503fa9 AS build
+FROM gradle:9.8.2-jdk17@sha256:55af4a989cc9188c19668b32e52bbd2a0c801da3b849a6e8f5a25e2134845bf5 AS build
 WORKDIR /app
 
 # only the paths the old .dockerignore allowed
