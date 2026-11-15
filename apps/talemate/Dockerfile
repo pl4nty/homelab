@@ -32,7 +32,7 @@ RUN pnpm build
 FROM node:26.12.1@sha256:97fa0f1b59035c6072721a88d55be1371c7cb1cc942b521e1cc5c72ec87655f4 AS node
 
 # Stage 2: Backend build
-FROM python:3.11-slim@sha256:db3ff2e1800a8581e2c48a27c3995339d47bdf046da21c7627accd3d51053a93 AS backend-build
+FROM python:3.11-slim@sha256:07d4824036af339fa1b6ef769cc99d9c10a141769538b52b3b597c84f7a7b535 AS backend-build
 
 WORKDIR /app
 
@@ -68,7 +68,7 @@ RUN find /app/docs -type f ! -name "*.md" -delete && \
     find /app/docs -depth -type d -empty -delete
 
 # Stage 3: Final image
-FROM python:3.11-slim@sha256:db3ff2e1800a8581e2c48a27c3995339d47bdf046da21c7627accd3d51053a93
+FROM python:3.11-slim@sha256:07d4824036af339fa1b6ef769cc99d9c10a141769538b52b3b597c84f7a7b535
 
 WORKDIR /app
 
