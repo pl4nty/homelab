@@ -4,6 +4,7 @@
 # - LD_LIBRARY_PATH and PYTHONPATH are set outright instead of appending to unset variables
 # - arm64 takes torchcodec's CPU build, because PyPI's aarch64 wheels need CUDA 13
 # - uv and pnpm downloads use cache mounts
+# - uv installs the Python from upstream's .python-version, so the venv doesn't follow the base image's Python
 
 # The backend-build stage creates the virtual environment and the final stage
 # runs it, so both must install the same uv.
@@ -44,12 +45,13 @@ RUN apt-get update && apt-get install -y \
 ARG UV_VERSION
 RUN pip install uv==${UV_VERSION}
 
-COPY --from=src pyproject.toml uv.lock /app/
+COPY --from=src pyproject.toml uv.lock .python-version /app/
 # the source is needed for the editable install
 COPY --from=src src /app/src
 
 # torch and torchaudio come from the cu128 index, which has aarch64 wheels as well
 ENV UV_LINK_MODE=copy
+ENV UV_PYTHON_INSTALL_DIR=/opt/python UV_PYTHON_PREFERENCE=only-managed
 RUN --mount=type=cache,id=uv,target=/root/.cache/uv uv sync --frozen
 
 # PyPI's aarch64 torchcodec wheels are CUDA 13 builds, which can't load next to cu128 torch,
@@ -99,6 +101,7 @@ RUN npm install -g @earendil-works/pi-coding-agent@${PI_VERSION} && \
 ENV PI_CODING_AGENT_DIR=/app/pi
 RUN mkdir -p /app/pi
 
+COPY --from=backend-build /opt/python /opt/python
 COPY --from=backend-build /app/.venv /app/.venv
 
 # FFmpeg shared libraries for torchcodec, which loads FFmpeg 4 to 8 only.
