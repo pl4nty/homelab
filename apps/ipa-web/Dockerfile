@@ -15,7 +15,7 @@ COPY . .
 RUN CGO_ENABLED=1 go test ./... && go build -o /usr/local/bin/otelc go.opentelemetry.io/otelc/tool/cmd/otelc \
   && xx-go --wrap && CGO_ENABLED=1 otelc go build -o /ipa-web . && xx-verify /ipa-web
 
-FROM alpine:latest@sha256:3f4d6b32e26703c6082839234f43769d5046b3ac7c910033911d1e71d8cd630a
+FROM alpine:latest@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf
 RUN apk add --no-cache ca-certificates
 COPY --from=builder /ipa-web /usr/local/bin/ipa-web
 ENTRYPOINT ["ipa-web"]
