@@ -41,7 +41,7 @@ spec:
           main:
             image:
               repository: docker.io/freikin/dawarich
-              tag: 1.20.1@sha256:0640f5adafd7acfcd8a3c79bb3bd0162d5df9108ebcde8734785f8925d2a01a4
+              tag: 1.22.0@sha256:b8ee8d9fdff92a9d6ca570f98e0e875624f4bfb24b61363f8246bba124d5849d
             # the image entrypoint is only `bundle exec`. this one also migrates and seeds
             command: [web-entrypoint.sh]
             args: [bin/rails, server, -p, "3000", -b, "::"]
