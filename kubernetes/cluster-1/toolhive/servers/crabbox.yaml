@@ -8,7 +8,7 @@ spec:
     name: toolhive
   telemetryConfigRef:
     name: toolhive
-  image: ghcr.io/pl4nty/crabbox-mcp:latest
+  image: ghcr.io/pl4nty/crabbox-mcp:latest@sha256:ea8a0cf7f28b69c17c0eff5908274ea284ec71598fcbc1cccb0d55653d544f4b
   transport: streamable-http
   mcpPort: 8000
   podTemplateSpec:
