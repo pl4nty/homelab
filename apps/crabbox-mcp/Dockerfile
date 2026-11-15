@@ -1,7 +1,7 @@
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim@sha256:e5b65587bce7de595f299855d7385fe7fca39b8a74baa261ba1b7147afa78e58
 ARG TARGETARCH
 # renovate: datasource=github-releases depName=openclaw/crabbox extractVersion=^v(?<version>.+)$
-ARG CRABBOX_VERSION=0.83.1
+ARG CRABBOX_VERSION=0.83.0
 # devbox and sprite have no release feed Renovate can read: bump the version and checksums together
 ARG DEVBOX_VERSION=0.0.213
 ARG DEVBOX_SHA256_amd64=7fba7260f2152f2e6830aff699ad3cb9eccb182cc6ace92fe4f2acea81456aaf
