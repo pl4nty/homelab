@@ -50,7 +50,7 @@ spec:
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
         value: http://k8s-monitoring-alloy-receiver.monitoring-system:4318
   nodejs:
-    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-nodejs:0.82.0@sha256:fec6d251e1d6de952c4e2f913378a9f3566d3daacca86b44900f3625f39bb297
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-nodejs:0.83.0@sha256:95eab2e69371bfd867206a95704cc5c87713f26315497fd0d0d27c4b102d70f0
     resourceRequirements: *agent-resources
     env:
       # the sdk-node register hook exports http/protobuf by default
@@ -70,7 +70,7 @@ spec:
         value: none
   dotnet:
     # multi-arch since 1.x, so arm64 nodes work without the old custom image
-    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-dotnet:1.19.0@sha256:13f03de90e107250f167e38e341114f1a1efb00e5c071ee345962ba5e79d58b1
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-dotnet:1.19.1@sha256:1978ec9b72d2faccee7b7504190374284e7979c280780d2df51a0f953ec95456
     resourceRequirements: *agent-resources
     env:
       # Required if endpoint is set to 4317.
