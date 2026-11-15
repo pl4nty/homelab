@@ -1,1435 +1,866 @@
-diff --git a/client/src/api/members.js b/client/src/api/members.js
-index 4000084..16fb480 100644
---- a/client/src/api/members.js
-+++ b/client/src/api/members.js
-@@ -23,6 +23,14 @@ export const addMember = async ({ email }) => {
+diff --git a/apps/api/src/lib/app-env.ts b/apps/api/src/lib/app-env.ts
+index 9536c274..41a1927a 100644
+--- a/apps/api/src/lib/app-env.ts
++++ b/apps/api/src/lib/app-env.ts
+@@ -12,6 +12,8 @@ export type AppEnv = {
+     logger: PinoLogger
+     redis: TypedRedis
+     ip: string
++    // undefined when the client sent no browser cookie
++    browserId: string | undefined
+     dynamicChallenge?: DynamicChallengeContext
    }
  }
+diff --git a/apps/api/src/middlewares/app-env.ts b/apps/api/src/middlewares/app-env.ts
+index 46cc4dd1..69e16ea7 100644
+--- a/apps/api/src/middlewares/app-env.ts
++++ b/apps/api/src/middlewares/app-env.ts
+@@ -2,6 +2,7 @@ import { config } from '@rctf/config'
+ import { createDatabase } from '@rctf/db'
+ import type { MiddlewareHandler } from 'hono'
+ import type { AppEnv } from '../lib/app-env'
++import { getBrowserId } from '../util/browser-id'
+ import { getIp } from '../util/ip'
+ import { createRedis } from '../util/redis'
  
-+export const getMemberToken = async ({ id }) => {
-+  const resp = await request('GET', `/users/me/members/${encodeURIComponent(id)}/token`)
-+  if (resp.kind !== 'goodMemberToken') {
-+    return { error: resp.message }
-+  }
-+  return { data: resp.data.memberToken }
-+}
-+
- export const removeMember = async ({ id }) => {
-   return (await request('DELETE', `/users/me/members/${encodeURIComponent(id)}`)).data
+@@ -15,7 +16,9 @@ export const appEnvMiddleware: MiddlewareHandler<AppEnv> = async (c, next) => {
+ 
+   const ip = getIp(c)
+   c.set('ip', ip)
+-  c.set('logger', c.var.logger.assign({ ip }))
++  const browserId = getBrowserId(c)
++  c.set('browserId', browserId)
++  c.set('logger', c.var.logger.assign({ ip, browserId }))
+ 
+   await next()
  }
-diff --git a/client/src/components/pending-token.js b/client/src/components/pending-token.js
-index 0e822ed..8ff4713 100644
---- a/client/src/components/pending-token.js
-+++ b/client/src/components/pending-token.js
-@@ -23,7 +23,7 @@ const PendingToken = ({ authToken }) => {
-   return (
-     <Fragment>
-       <div class='row u-center'>
--        <h3>Login as {user.name}?</h3>
-+        <h3>Login as {user.name}{user.member ? ` (${user.member.email})` : ''}?</h3>
-       </div>
-       <div class='row u-center'>
-         <button class='btn-info' onClick={handleLoginClick}>Login</button>
-diff --git a/client/src/components/profile/members-card.js b/client/src/components/profile/members-card.js
-index d851be4..6d23343 100644
---- a/client/src/components/profile/members-card.js
-+++ b/client/src/components/profile/members-card.js
-@@ -1,9 +1,10 @@
- import withStyles from '../jss'
--import { getMembers, addMember, removeMember } from '../../api/members'
-+import { getMembers, addMember, removeMember, getMemberToken } from '../../api/members'
- import { useState, useCallback, useEffect } from 'preact/hooks'
- import Form from '../form'
- import EnvelopeOpen from '../../icons/envelope-open.svg'
- import { useToast } from '../toast'
-+import config from '../../config'
- 
- const MemberRow = withStyles({
-   root: {
-@@ -11,10 +12,28 @@ const MemberRow = withStyles({
-     width: '100%',
-     display: 'flex',
-     justifyContent: 'space-between'
-+  },
-+  copyLogin: {
-+    margin: '0 10px 0 0 !important'
-   }
--}, ({ classes, id, email, setMembers }) => {
-+}, ({ classes, id, email, setMembers, isMember, isCurrentMember }) => {
-   const { toast } = useToast()
- 
-+  const handleCopyLogin = useCallback(async () => {
-+    const { error, data } = await getMemberToken({ id })
-+    if (error) {
-+      toast({ body: error, type: 'error' })
-+      return
-+    }
-+    const loginUrl = `${location.origin}/login?token=${encodeURIComponent(data)}`
-+    try {
-+      await navigator.clipboard.writeText(loginUrl)
-+      toast({ body: `Copied ${email}'s login URL to clipboard` })
-+    } catch {
-+      toast({ body: 'Could not copy to the clipboard', type: 'error' })
-+    }
-+  }, [id, email, toast])
-+
-   const handleDelete = useCallback(() => {
-     removeMember({ id })
-       .then(() => {
-@@ -26,10 +45,13 @@ const MemberRow = withStyles({
- 
-   return (
-     <div class={classes.root} key={id}>
--      <p class='u-no-margin'>{email}</p>
--      <div class='btn-container u-vertical-center'>
--        <input onClick={handleDelete} type='submit' class='btn-small btn-danger u-no-margin' value='Delete' />
--      </div>
-+      <p class='u-no-margin'>{email}{isCurrentMember ? ' (you)' : ''}</p>
-+      {!isMember && (
-+        <div class='btn-container u-vertical-center'>
-+          <input onClick={handleCopyLogin} type='submit' class={`btn-small btn-info ${classes.copyLogin}`} value='Copy Login' />
-+          <input onClick={handleDelete} type='submit' class='btn-small btn-danger u-no-margin' value='Delete' />
-+        </div>
-+      )}
-     </div>
-   )
- })
-@@ -43,8 +65,9 @@ const MembersCard = withStyles({
-       marginTop: '10px'
-     }
-   }
--}, ({ classes }) => {
-+}, ({ classes, member }) => {
-   const { toast } = useToast()
-+  const isMember = member != null
- 
-   const [email, setEmail] = useState('')
-   const handleEmailChange = useCallback(e => setEmail(e.target.value), [])
-@@ -80,26 +103,35 @@ const MembersCard = withStyles({
-     <div class='card'>
-       <div class='content'>
-         <p>Team Information</p>
--        <p class='font-thin u-no-margin'>Please enter a separate email for each team member. This data is collected for informational purposes only. Ensure that this section is up to date in order to remain prize eligible.</p>
-+        <p class='font-thin u-no-margin'>Please enter a separate email for each team member. Ensure that this section is up to date in order to remain prize eligible.</p>
-+        {!isMember && (
-+          <p class='font-thin u-no-margin'>
-+            Each member can log in as themselves, so the team can see who solved what.
-+            {config.emailEnabled ? ' Members can get a login link by email from the account recovery page, or you can copy their login link here.' : ' Copy each member\'s personal login link and send it to them.'}
-+            {' '}Deleting a member logs them out.
-+          </p>
-+        )}
-         <div class='row u-center'>
--          <Form class={`col-12 ${classes.form}`} onSubmit={handleSubmit} disabled={buttonDisabled} buttonText='Add Member'>
--            <input
--              required
--              autocomplete='email'
--              autocorrect='off'
--              icon={<EnvelopeOpen />}
--              name='email'
--              placeholder='Email'
--              type='email'
--              value={email}
--              onChange={handleEmailChange}
--            />
--          </Form>
-+          {!isMember && (
-+            <Form class={`col-12 ${classes.form}`} onSubmit={handleSubmit} disabled={buttonDisabled} buttonText='Add Member'>
-+              <input
-+                required
-+                autocomplete='email'
-+                autocorrect='off'
-+                icon={<EnvelopeOpen />}
-+                name='email'
-+                placeholder='Email'
-+                type='email'
-+                value={email}
-+                onChange={handleEmailChange}
-+              />
-+            </Form>
-+          )}
-           {
-             members.length !== 0 &&
-               <div class='row'>
-                 {
--                  members.map(data => <MemberRow setMembers={setMembers} { ...data } />)
-+                  members.map(data => <MemberRow setMembers={setMembers} isMember={isMember} isCurrentMember={data.id === member?.id} { ...data } />)
-                 }
-               </div>
-           }
-diff --git a/client/src/components/profile/solves-card.js b/client/src/components/profile/solves-card.js
-index e687a10..03db51a 100644
---- a/client/src/components/profile/solves-card.js
-+++ b/client/src/components/profile/solves-card.js
-@@ -8,7 +8,7 @@ const makeSolvesCard = isPrivate => withStyles({
-     display: 'grid',
-     padding: '20px',
-     paddingTop: '0',
--    gridTemplateColumns: 'repeat(4, minmax(max-content, 1fr))',
-+    gridTemplateColumns: `repeat(${isPrivate ? 5 : 4}, minmax(max-content, 1fr))`,
-     '& div': {
-       margin: 'auto',
-       padding: '10px'
-@@ -65,6 +65,7 @@ const makeSolvesCard = isPrivate => withStyles({
-           <div class={classes.label}>Challenge</div>
-           <div class={classes.label}>Solve time</div>
-           <div class={classes.label}>Points</div>
-+          {isPrivate && <div class={classes.label}>Solved by</div>}
-           {solves.map((solve) => (
-             <Fragment key={solve.id}>
-               <div class={`${classes.inlineLabel} ${classes.category}`}>Category</div>
-@@ -75,6 +76,12 @@ const makeSolvesCard = isPrivate => withStyles({
-               <div>{formatRelativeTime(solve.createdAt)}</div>
-               <div class={classes.inlineLabel}>Points</div>
-               <div>{solve.points}</div>
-+              {isPrivate && (
-+                <Fragment>
-+                  <div class={classes.inlineLabel}>Solved by</div>
-+                  <div>{solve.memberEmail ?? (solve.memberRemoved ? 'Removed member' : 'Team login')}</div>
-+                </Fragment>
-+              )}
-             </Fragment>
-           ))}
-         </Fragment>
-diff --git a/client/src/routes/login.js b/client/src/routes/login.js
-index 068e428..1aa0840 100644
---- a/client/src/routes/login.js
-+++ b/client/src/routes/login.js
-@@ -89,13 +89,13 @@ export default withStyles({
-             autocorrect='off'
-             name='teamToken'
-             icon={<IdCard />}
--            placeholder='Team Token'
-+            placeholder={config.userMembers ? 'Team or Member Token' : 'Team Token'}
-             type='text'
-             value={teamToken}
-             onChange={this.linkState('teamToken')}
-           />
-           {config.emailEnabled && (
--            <Link href='/recover' class={classes.link}>Lost your team token?</Link>
-+            <Link href='/recover' class={classes.link}>{config.userMembers ? 'Lost your token, or log in as a team member?' : 'Lost your team token?'}</Link>
-           )}
-         </Form>
-         {config.ctftime && (
-diff --git a/client/src/routes/profile.js b/client/src/routes/profile.js
-index dbd4b8a..112c6b0 100644
---- a/client/src/routes/profile.js
-+++ b/client/src/routes/profile.js
-@@ -105,6 +105,16 @@ const SummaryCard = memo(withStyles({
-   </div>
- ))
- 
-+const MemberSessionCard = ({ member }) => (
-+  <div class='card'>
-+    <div class='content'>
-+      <p>Team Member</p>
-+      <p class='font-thin'>You are logged in as {member.email}. Your team sees the flags you solve under this email.</p>
-+      <p class='font-thin u-no-margin'>To manage the team, log in with the team token.</p>
-+    </div>
-+  </div>
-+)
-+
- const TeamCodeCard = withStyles({
-   btn: {
-     marginRight: '10px'
-@@ -134,7 +144,11 @@ const TeamCodeCard = withStyles({
-     <div class='card'>
-       <div class='content'>
-         <p>Team Invite</p>
--        <p class='font-thin'>Send this team invite URL to your teammates so they can login.</p>
-+        <p class='font-thin'>
-+          Send this team invite URL to your teammates so they can login.
-+          {config.userMembers && ' It logs in as the whole team, so its solves aren\'t attributed to a member.'}
-+          {config.requireMemberLogin && ' Flags can only be submitted from a member login.'}
-+        </p>
- 
-         <button onClick={onCopyClick} class={`${classes.btn} btn-info u-center`} name='btn' value='submit' type='submit'>Copy</button>
- 
-@@ -302,6 +316,7 @@ const Profile = ({ uuid, classes }) => {
-     score,
-     solves,
-     teamToken,
-+    member,
-     ctftimeId,
-     allowedDivisions
-   } = data
-@@ -367,7 +382,12 @@ const Profile = ({ uuid, classes }) => {
- 
-   return (
-     <div class={classes.root}>
--      {isPrivate && (
-+      {isPrivate && member && (
-+        <div class={classes.privateCol}>
-+          <MemberSessionCard {...{ member }} />
-+        </div>
-+      )}
-+      {isPrivate && !member && (
-         <div class={classes.privateCol}>
-           <TeamCodeCard {...{ teamToken }} />
-           <UpdateCard {...{ name, email, divisionId, allowedDivisions, onUpdate: onProfileUpdate }} />
-@@ -379,7 +399,7 @@ const Profile = ({ uuid, classes }) => {
-       <div class={classes.col}>
-         <SummaryCard {...{ name, score, division, divisionPlace, globalPlace, ctftimeId, isPrivate }} />
-         {isPrivate && config.userMembers && (
--          <MembersCard />
-+          <MembersCard {...{ member }} />
-         )}
-         {isPrivate ? (
-           <PrivateSolvesCard solves={solves} />
-diff --git a/client/src/routes/recover.js b/client/src/routes/recover.js
-index b5941e4..d52aac9 100644
---- a/client/src/routes/recover.js
-+++ b/client/src/routes/recover.js
-@@ -31,7 +31,7 @@ const Recover = ({ classes }) => {
-   if (verifySent) {
-     return (
-       <div class='row u-center'>
--        <h3>Recovery email sent</h3>
-+        <h3>{config.userMembers ? 'Login email sent' : 'Recovery email sent'}</h3>
-       </div>
-     )
-   }
-@@ -39,6 +39,9 @@ const Recover = ({ classes }) => {
-   return (
-     <div class={`row u-center ${classes.root}`}>
-       <h4 class={classes.title}>Recover your {config.ctfName} account</h4>
-+      {config.userMembers && (
-+        <p class='font-thin'>Team members: enter the email your team added to get a personal login link.</p>
-+      )}
-       <Form class={`${classes.form} col-6`} onSubmit={handleSubmit} disabled={disabled} errors={errors} buttonText='Recover'>
-         <input
-           class={classes.input}
-diff --git a/migrations/1794700800000_member-attribution.js b/migrations/1794700800000_member-attribution.js
-new file mode 100644
-index 0000000..76cd942
---- /dev/null
-+++ b/migrations/1794700800000_member-attribution.js
-@@ -0,0 +1,55 @@
-+// memberid has no foreign key: deleting a member revokes their sessions but keeps their audit records
-+exports.up = function (pgm) {
-+  pgm.addColumn('solves', {
-+    memberid: { type: 'string' }
-+  })
-+  pgm.createIndex('solves', ['memberid'])
-+
-+  const userFkey = {
-+    foreignKeys: {
-+      columns: 'userid',
-+      references: 'users("id")',
-+      onDelete: 'cascade',
-+      onUpdate: 'cascade'
-+    }
-+  }
-+
-+  pgm.createTable('submissions', {
-+    id: { type: 'string', primaryKey: true },
-+    userid: { type: 'string', notNull: true },
-+    memberid: { type: 'string' },
-+    memberemail: { type: 'string' },
-+    challengeid: { type: 'string', notNull: true },
-+    flag: { type: 'string', notNull: true },
-+    result: { type: 'string', notNull: true },
-+    ip: { type: 'string' },
-+    createdat: { type: 'timestamptz', notNull: true }
-+  })
-+  pgm.addConstraint('submissions', 'submissions_userid_fkey', userFkey)
-+  pgm.createIndex('submissions', ['userid'])
-+  pgm.createIndex('submissions', ['memberid'])
-+  pgm.createIndex('submissions', ['challengeid'])
-+  pgm.createIndex('submissions', ['createdat'])
-+
-+  pgm.createTable('logins', {
-+    id: { type: 'string', primaryKey: true },
-+    userid: { type: 'string', notNull: true },
-+    memberid: { type: 'string' },
-+    memberemail: { type: 'string' },
-+    method: { type: 'string', notNull: true },
-+    ip: { type: 'string' },
-+    useragent: { type: 'string' },
-+    createdat: { type: 'timestamptz', notNull: true }
-+  })
-+  pgm.addConstraint('logins', 'logins_userid_fkey', userFkey)
-+  pgm.createIndex('logins', ['userid'])
-+  pgm.createIndex('logins', ['memberid'])
-+  pgm.createIndex('logins', ['createdat'])
-+}
-+
-+exports.down = function (pgm) {
-+  pgm.dropTable('logins')
-+  pgm.dropTable('submissions')
-+  pgm.dropIndex('solves', ['memberid'])
-+  pgm.dropColumn('solves', 'memberid')
-+}
-diff --git a/server/api/admin/audit/index.js b/server/api/admin/audit/index.js
-new file mode 100644
-index 0000000..5a6cbdc
---- /dev/null
-+++ b/server/api/admin/audit/index.js
-@@ -0,0 +1,4 @@
-+export default [
-+  require('./submissions').default,
-+  require('./logins').default
-+]
-diff --git a/server/api/admin/audit/logins.js b/server/api/admin/audit/logins.js
-new file mode 100644
-index 0000000..e634fa0
---- /dev/null
-+++ b/server/api/admin/audit/logins.js
-@@ -0,0 +1,25 @@
-+import * as database from '../../../database'
-+import { responses } from '../../../responses'
-+import perms from '../../../util/perms'
-+
-+export default {
-+  method: 'GET',
-+  path: '/admin/logins',
-+  requireAuth: true,
-+  perms: perms.challsRead,
-+  schema: {
-+    querystring: {
-+      type: 'object',
-+      properties: {
-+        userid: { type: 'string' },
-+        memberid: { type: 'string' },
-+        limit: { type: 'integer', minimum: 1, maximum: 1000, default: 100 },
-+        offset: { type: 'integer', minimum: 0, default: 0 }
-+      }
-+    }
-+  },
-+  handler: async ({ req }) => {
-+    const logins = await database.logins.getLogins(req.query)
-+    return [responses.goodLogins, logins]
-+  }
-+}
-diff --git a/server/api/admin/audit/submissions.js b/server/api/admin/audit/submissions.js
-new file mode 100644
-index 0000000..679af43
---- /dev/null
-+++ b/server/api/admin/audit/submissions.js
-@@ -0,0 +1,27 @@
-+import * as database from '../../../database'
-+import { responses } from '../../../responses'
-+import perms from '../../../util/perms'
-+
-+// submissions hold flags, so they need the permission that already exposes flags
-+export default {
-+  method: 'GET',
-+  path: '/admin/submissions',
-+  requireAuth: true,
-+  perms: perms.challsRead,
-+  schema: {
-+    querystring: {
-+      type: 'object',
-+      properties: {
-+        userid: { type: 'string' },
-+        memberid: { type: 'string' },
-+        challengeid: { type: 'string' },
-+        limit: { type: 'integer', minimum: 1, maximum: 1000, default: 100 },
-+        offset: { type: 'integer', minimum: 0, default: 0 }
-+      }
-+    }
-+  },
-+  handler: async ({ req }) => {
-+    const submissions = await database.submissions.getSubmissions(req.query)
-+    return [responses.goodSubmissions, submissions]
-+  }
-+}
-diff --git a/server/api/admin/index.js b/server/api/admin/index.js
-index 9ceb1ff..4baa26a 100644
---- a/server/api/admin/index.js
-+++ b/server/api/admin/index.js
-@@ -1,4 +1,5 @@
- export default [
-   ...require('./challs').default,
--  ...require('./upload').default
-+  ...require('./upload').default,
-+  ...require('./audit').default
- ]
-diff --git a/server/api/auth/login.js b/server/api/auth/login.js
-index d5ba72c..db91a67 100644
---- a/server/api/auth/login.js
-+++ b/server/api/auth/login.js
-@@ -1,6 +1,7 @@
- import * as database from '../../database'
- import * as auth from '../../auth'
- import { responses } from '../../responses'
-+import config from '../../config/server'
- 
- export default {
-   method: 'POST',
-@@ -26,23 +27,39 @@ export default {
-   },
-   handler: async ({ req }) => {
-     let user
-+    let member = null
-+    let method
-     if (req.body.ctftimeToken !== undefined) {
-+      method = 'ctftime'
-       const ctftimeData = await auth.token.getData(auth.token.tokenKinds.ctftimeAuth, req.body.ctftimeToken)
-       if (ctftimeData === null) {
-         return responses.badCtftimeToken
-       }
-       user = await database.users.getUserByCtftimeId({ ctftimeId: ctftimeData.ctftimeId })
-     } else {
-+      // a member's personal login link uses the same /login?token= form as the team token
-       const uuid = await auth.token.getData(auth.token.tokenKinds.team, req.body.teamToken)
--      if (uuid === null) {
-+      const memberData = uuid === null && config.userMembers
-+        ? await auth.token.getData(auth.token.tokenKinds.member, req.body.teamToken)
-+        : null
-+      if (uuid !== null) {
-+        method = 'teamToken'
-+        user = await database.users.getUserById({ id: uuid })
-+      } else if (memberData !== null) {
-+        method = 'memberToken'
-+        member = await database.members.getMemberByIdAndUserId({ id: memberData.m, userid: memberData.u }) ?? null
-+        if (member === null) {
-+          return responses.badTokenVerification
-+        }
-+        user = await database.users.getUserById({ id: memberData.u })
-+      } else {
-         return responses.badTokenVerification
-       }
--      user = await database.users.getUserById({ id: uuid })
-     }
-     if (user === undefined) {
-       return responses.badUnknownUser
-     }
--    const authToken = await auth.token.getToken(auth.token.tokenKinds.auth, user.id)
-+    const authToken = await auth.session.startSession({ req, userId: user.id, member, method })
-     return [responses.goodLogin, {
-       authToken
-     }]
-diff --git a/server/api/auth/recover.js b/server/api/auth/recover.js
-index 05a6eed..2506db9 100644
---- a/server/api/auth/recover.js
-+++ b/server/api/auth/recover.js
-@@ -42,25 +42,49 @@ export default {
-       return responses.badEmail
-     }
- 
--    const user = await database.users.getUserByEmail({ email })
--    if (user === undefined) {
-+    // an email can belong to a team and to one of its members, so it can get both links
-+    const [user, member] = await Promise.all([
-+      database.users.getUserByEmail({ email }),
-+      config.userMembers ? database.members.getMemberByEmail({ email }) : undefined
-+    ])
-+    if (user === undefined && member === undefined) {
-       return responses.badUnknownEmail
-     }
- 
--    const verifyUuid = uuidv4()
--    await cache.login.makeLogin({ id: verifyUuid })
--    const verifyToken = await auth.token.getToken(auth.token.tokenKinds.verify, {
--      verifyId: verifyUuid,
--      kind: 'recover',
--      userId: user.id,
--      email
--    })
-+    if (user !== undefined) {
-+      const verifyUuid = uuidv4()
-+      await cache.login.makeLogin({ id: verifyUuid })
-+      const verifyToken = await auth.token.getToken(auth.token.tokenKinds.verify, {
-+        verifyId: verifyUuid,
-+        kind: 'recover',
-+        userId: user.id,
-+        email
-+      })
- 
--    await sendVerification({
--      email,
--      kind: 'recover',
--      token: verifyToken
--    })
-+      await sendVerification({
-+        email,
-+        kind: 'recover',
-+        token: verifyToken
-+      })
-+    }
-+
-+    if (member !== undefined) {
-+      const verifyUuid = uuidv4()
-+      await cache.login.makeLogin({ id: verifyUuid })
-+      const verifyToken = await auth.token.getToken(auth.token.tokenKinds.verify, {
-+        verifyId: verifyUuid,
-+        kind: 'memberLogin',
-+        userId: member.userid,
-+        memberId: member.id,
-+        email
-+      })
-+
-+      await sendVerification({
-+        email,
-+        kind: 'memberLogin',
-+        token: verifyToken
-+      })
-+    }
- 
-     return responses.goodVerifySent
-   }
-diff --git a/server/api/auth/verify.js b/server/api/auth/verify.js
-index 819c1fe..df9ba86 100644
---- a/server/api/auth/verify.js
-+++ b/server/api/auth/verify.js
-@@ -42,7 +42,18 @@ export default {
-       if (user === undefined) {
-         return responses.badUnknownUser
-       }
--      const authToken = await auth.token.getToken(auth.token.tokenKinds.auth, user.id)
-+      const authToken = await auth.session.startSession({ req, userId: user.id, member: null, method: 'recover' })
-+      return [responses.goodVerify, { authToken }]
-+    } else if (tokenData.kind === 'memberLogin') {
-+      const member = await database.members.getMemberByIdAndUserId({
-+        id: tokenData.memberId,
-+        userid: tokenData.userId
-+      })
-+      // the member was deleted, or re-added with a new id, after the email was sent
-+      if (member === undefined || member.email !== tokenData.email) {
-+        return responses.badUnknownUser
-+      }
-+      const authToken = await auth.session.startSession({ req, userId: member.userid, member, method: 'memberEmail' })
-       return [responses.goodVerify, { authToken }]
-     } else if (tokenData.kind === 'update') {
-       let result
-diff --git a/server/api/challs/submit.js b/server/api/challs/submit.js
-index d9537db..3923950 100644
---- a/server/api/challs/submit.js
-+++ b/server/api/challs/submit.js
-@@ -30,7 +30,7 @@ export default {
-       required: ['id']
-     }
-   },
--  handler: async ({ req, user }) => {
-+  handler: async ({ req, user, member }) => {
-     const uuid = user.id
- 
-     const timeNow = Date.now()
-@@ -55,6 +55,10 @@ export default {
-       return responses.badChallenge
-     }
- 
-+    if (config.userMembers && config.requireMemberLogin && member === null) {
-+      return responses.badMemberRequired
-+    }
-+
-     const passRateLimit = await timeouts.checkRateLimit({
-       type: timeouts.getChallengeType(challengeid),
-       userid: uuid,
-@@ -71,30 +75,58 @@ export default {
-       }]
-     }
- 
--    const bufSubmittedFlag = Buffer.from(submittedFlag)
--    const bufCorrectFlag = Buffer.from(challenge.flag)
--
--    if (bufSubmittedFlag.length !== bufCorrectFlag.length) {
--      return responses.badFlag
--    }
--
--    if (!crypto.timingSafeEqual(bufSubmittedFlag, bufCorrectFlag)) {
--      return responses.badFlag
-+    // after the rate limit, so the table grows no faster than flags are checked
-+    const result = await checkFlag({ challenge, submittedFlag, uuid, member })
-+    // a deleted team can't hold submissions
-+    if (result === responses.badUnknownUser) {
-+      return result
-     }
--
-     try {
--      await db.solves.newSolve({ id: uuidv4(), challengeid: challengeid, userid: uuid, createdat: new Date() })
--      return responses.goodFlag
-+      await db.submissions.newSubmission({
-+        id: uuidv4(),
-+        userid: uuid,
-+        memberid: member?.id ?? null,
-+        memberemail: member?.email ?? null,
-+        challengeid,
-+        flag: submittedFlag.slice(0, maxStoredFlagLength),
-+        result,
-+        ip: req.ip ?? null,
-+        createdat: new Date()
-+      })
-     } catch (e) {
--      if (e.constraint === 'uq') {
--        // not a unique submission, so the user already solved
--        return responses.badAlreadySolvedChallenge
--      }
--      if (e.constraint === 'uuid_fkey') {
--        // the user referenced by the solve isnt in the users table
--        return responses.badUnknownUser
--      }
--      throw e
-+      // the solve is already stored, so report it; the log line above still has the attempt
-+      req.log.error({ err: e }, 'failed to record flag submission')
-+    }
-+    return result
-+  }
-+}
-+
-+const maxStoredFlagLength = 1024
-+
-+const checkFlag = async ({ challenge, submittedFlag, uuid, member }) => {
-+  const bufSubmittedFlag = Buffer.from(submittedFlag)
-+  const bufCorrectFlag = Buffer.from(challenge.flag)
-+
-+  if (bufSubmittedFlag.length !== bufCorrectFlag.length) {
-+    return responses.badFlag
-+  }
-+
-+  if (!crypto.timingSafeEqual(bufSubmittedFlag, bufCorrectFlag)) {
-+    return responses.badFlag
-+  }
-+
-+  try {
-+    await db.solves.newSolve({ id: uuidv4(), challengeid: challenge.id, userid: uuid, memberid: member?.id ?? null, createdat: new Date() })
-+    return responses.goodFlag
-+  } catch (e) {
-+    if (e.constraint === 'uq') {
-+      // not a unique submission, so the user already solved
-+      return responses.badAlreadySolvedChallenge
-+    }
-+    if (e.constraint === 'uuid_fkey') {
-+      // the user referenced by the solve isnt in the users table
-+      return responses.badUnknownUser
-     }
-+    throw e
-   }
- }
-diff --git a/server/api/index.js b/server/api/index.js
-index 0f5d23a..bddaec9 100644
---- a/server/api/index.js
-+++ b/server/api/index.js
-@@ -67,29 +67,46 @@ export default async (fastify) => {
-     const handler = async (req, res) => {
-       const sendResponse = makeSendResponse(res)
-       let user
-+      // set for a team member's session, null for a whole-team session
-+      let member = null
-       if (route.requireAuth) {
-         const authHeader = req.headers.authorization
-         if (authHeader === undefined || !authHeader.startsWith('Bearer ')) {
-           sendResponse(responses.badToken)
-           return
-         }
--        const uuid = await auth.token.getData(auth.token.tokenKinds.auth, authHeader.slice('Bearer '.length))
--        if (uuid === null) {
-+        const tokenData = await auth.token.getData(auth.token.tokenKinds.auth, authHeader.slice('Bearer '.length))
-+        if (tokenData === null) {
-           sendResponse(responses.badToken)
-           return
-         }
-+        const { userId, memberId } = auth.token.parseAuthTokenData(tokenData)
- 
-         user = await db.users.getUserById({
--          id: uuid
-+          id: userId
-         })
-         if (!user) {
-           sendResponse(responses.badToken)
-           return
-         }
--        req.log = req.log.child({ user })
-+        if (memberId !== null) {
-+          // a deleted member's sessions end here
-+          member = await db.members.getMemberByIdAndUserId({ id: memberId, userid: userId }) ?? null
-+          if (member === null) {
-+            sendResponse(responses.badToken)
-+            return
-+          }
-+        }
-+        req.log = req.log.child({ user, member })
-         req.log.info('user authenticated')
-       }
- 
-+      // team management stays with whole-team sessions, so a member can't take over the team or mint other members' logins
-+      if (route.teamOnly && member !== null) {
-+        sendResponse(responses.badMemberSession)
-+        return
-+      }
-+
-       if (route.perms !== undefined) {
-         if (user === undefined) {
-           throw new Error('routes with perms must set requireAuth to true')
-@@ -100,7 +117,7 @@ export default async (fastify) => {
-         }
-       }
- 
--      const response = await route.handler({ req, user })
-+      const response = await route.handler({ req, user, member })
-       if (response instanceof Array) {
-         sendResponse(...response)
-       } else {
-@@ -116,6 +133,7 @@ export default async (fastify) => {
-     delete fastifyRoute.path
-     delete fastifyRoute.requireAuth
-     delete fastifyRoute.perms
-+    delete fastifyRoute.teamOnly
- 
-     fastify.route(fastifyRoute)
-   })
-@@ -130,5 +148,6 @@ export default async (fastify) => {
- }
- 
- export const logSerializers = {
--  user: user => user.id
-+  user: user => user.id,
-+  member: member => member?.id ?? null
- }
-diff --git a/server/api/users/me-auth/ctftime/delete.js b/server/api/users/me-auth/ctftime/delete.js
-index 44ef067..dd27f80 100644
---- a/server/api/users/me-auth/ctftime/delete.js
-+++ b/server/api/users/me-auth/ctftime/delete.js
-@@ -6,6 +6,7 @@ export default {
-   method: 'DELETE',
-   path: '/users/me/auth/ctftime',
-   requireAuth: true,
-+  teamOnly: true,
-   handler: async ({ user }) => {
-     if (!config.ctftime) {
-       return responses.badEndpoint
-diff --git a/server/api/users/me-auth/ctftime/put.js b/server/api/users/me-auth/ctftime/put.js
-index b50ac22..54ec984 100644
---- a/server/api/users/me-auth/ctftime/put.js
-+++ b/server/api/users/me-auth/ctftime/put.js
-@@ -7,6 +7,7 @@ export default {
-   method: 'PUT',
-   path: '/users/me/auth/ctftime',
-   requireAuth: true,
-+  teamOnly: true,
-   schema: {
-     body: {
-       type: 'object',
-diff --git a/server/api/users/me-auth/email/delete.js b/server/api/users/me-auth/email/delete.js
-index 8188ed0..f2ddea0 100644
---- a/server/api/users/me-auth/email/delete.js
-+++ b/server/api/users/me-auth/email/delete.js
-@@ -6,6 +6,7 @@ export default {
-   method: 'DELETE',
-   path: '/users/me/auth/email',
-   requireAuth: true,
-+  teamOnly: true,
-   handler: async ({ user }) => {
-     if (!config.email) {
-       return responses.badEndpoint
-diff --git a/server/api/users/me-auth/email/put.js b/server/api/users/me-auth/email/put.js
-index 5c61a9d..6942bdf 100644
---- a/server/api/users/me-auth/email/put.js
-+++ b/server/api/users/me-auth/email/put.js
-@@ -14,6 +14,7 @@ export default {
-   method: 'PUT',
-   path: '/users/me/auth/email',
-   requireAuth: true,
-+  teamOnly: true,
-   schema: {
-     body: {
-       type: 'object',
-diff --git a/server/api/users/me.js b/server/api/users/me.js
-index 45ab46c..6f795fb 100644
---- a/server/api/users/me.js
-+++ b/server/api/users/me.js
-@@ -2,22 +2,39 @@ import { responses } from '../../responses'
- import { getUserData } from './util'
- import * as util from '../../util'
- import * as auth from '../../auth'
-+import * as database from '../../database'
-+import config from '../../config/server'
- 
- export default {
-   method: 'GET',
-   path: '/users/me',
-   requireAuth: true,
--  handler: async ({ user }) => {
-+  handler: async ({ user, member }) => {
-     const uuid = user.id
--    const userData = await getUserData({ user })
-+    const [userData, members] = await Promise.all([
-+      getUserData({ user, includeMembers: config.userMembers }),
-+      config.userMembers ? database.members.getMembers({ userid: uuid }) : []
-+    ])
- 
--    const teamToken = await auth.token.getToken(auth.token.tokenKinds.team, uuid)
-+    // the team token would let a member log in as the whole team and manage it
-+    const teamToken = member === null ? await auth.token.getToken(auth.token.tokenKinds.team, uuid) : undefined
-+
-+    if (config.userMembers) {
-+      const memberEmails = new Map(members.map(m => [m.id, m.email]))
-+      userData.solves = userData.solves.map(({ memberId, ...solve }) => ({
-+        ...solve,
-+        // null for a whole-team session
-+        memberEmail: memberEmails.get(memberId) ?? null,
-+        memberRemoved: memberId !== null && !memberEmails.has(memberId)
-+      }))
-+    }
- 
-     const allowedDivisions = util.restrict.allowedDivisions(user.email)
- 
-     return [responses.goodUserData, {
-       ...userData,
-       teamToken,
-+      member: member === null ? null : { id: member.id, email: member.email },
-       allowedDivisions,
-       id: uuid,
-       email: user.email
-diff --git a/server/api/users/members/delete.js b/server/api/users/members/delete.js
-index a691855..6334903 100644
---- a/server/api/users/members/delete.js
-+++ b/server/api/users/members/delete.js
-@@ -6,6 +6,7 @@ export default {
-   method: 'DELETE',
-   path: '/users/me/members/:id',
-   requireAuth: true,
-+  teamOnly: true,
-   schema: {
-     params: {
-       type: 'object',
-diff --git a/server/api/users/members/index.js b/server/api/users/members/index.js
-index 72dc273..b117395 100644
---- a/server/api/users/members/index.js
-+++ b/server/api/users/members/index.js
+diff --git a/apps/api/src/routes/v1/challs/routes/submit-flag.ts b/apps/api/src/routes/v1/challs/routes/submit-flag.ts
+index a146a06d..885a23e3 100644
+--- a/apps/api/src/routes/v1/challs/routes/submit-flag.ts
++++ b/apps/api/src/routes/v1/challs/routes/submit-flag.ts
 @@ -1,5 +1,6 @@
- export default [
-   require('./new').default,
-   require('./delete').default,
--  require('./list').default
-+  require('./list').default,
-+  require('./token').default
- ]
-diff --git a/server/api/users/members/new.js b/server/api/users/members/new.js
-index 466dac3..2624ab0 100644
---- a/server/api/users/members/new.js
-+++ b/server/api/users/members/new.js
-@@ -9,6 +9,7 @@ export default {
-   method: 'POST',
-   path: '/users/me/members',
-   requireAuth: true,
-+  teamOnly: true,
-   schema: {
-     body: {
-       type: 'object',
-diff --git a/server/api/users/members/token.js b/server/api/users/members/token.js
-new file mode 100644
-index 0000000..0d22e8c
---- /dev/null
-+++ b/server/api/users/members/token.js
-@@ -0,0 +1,38 @@
-+import * as database from '../../../database'
-+import * as auth from '../../../auth'
-+import { responses } from '../../../responses'
-+import config from '../../../config/server'
-+
-+// a member's personal login link, for CTFs without email. whoever holds the team token can log in as any member,
-+// so this attributes work within a team that trusts its captain; emailed member logins don't have that limit
-+export default {
-+  method: 'GET',
-+  path: '/users/me/members/:id/token',
-+  requireAuth: true,
-+  teamOnly: true,
-+  schema: {
-+    params: {
-+      type: 'object',
-+      properties: {
-+        id: {
-+          type: 'string'
-+        }
-+      },
-+      required: ['id']
-+    }
-+  },
-+  handler: async ({ req, user }) => {
-+    if (!config.userMembers) {
-+      return responses.badEndpoint
-+    }
-+
-+    const member = await database.members.getMemberByIdAndUserId({ id: req.params.id, userid: user.id })
-+    if (member === undefined) {
-+      return responses.badUnknownUser
-+    }
-+
-+    const memberToken = await auth.token.getToken(auth.token.tokenKinds.member, { u: user.id, m: member.id })
-+    req.log.info({ memberId: member.id }, 'member login token issued')
-+    return [responses.goodMemberToken, { memberToken }]
-+  }
-+}
-diff --git a/server/api/users/update.js b/server/api/users/update.js
-index 3d2efbd..a33dd39 100644
---- a/server/api/users/update.js
-+++ b/server/api/users/update.js
-@@ -9,6 +9,7 @@ export default {
-   method: 'PATCH',
-   path: '/users/me',
-   requireAuth: true,
-+  teamOnly: true,
-   schema: {
-     body: {
-       type: 'object',
-diff --git a/server/api/users/util.js b/server/api/users/util.js
-index 3c848ab..abf9d70 100644
---- a/server/api/users/util.js
-+++ b/server/api/users/util.js
-@@ -10,7 +10,8 @@ export const getGenericUserData = async ({ id }) => {
-   return getUserData({ user })
- }
+ import { SubmitFlagRoute } from '@rctf/types'
+ import { submitFlag } from '../../../../services/challenges'
++import { getSubmissionClient } from '../../../../services/submissions'
+ import challsGroup from '../group'
  
--export const getUserData = async ({ user }) => {
-+// includeMembers adds each solve's member id, which only the team itself sees
-+export const getUserData = async ({ user, includeMembers = false }) => {
-   let [
-     { userSolves, challengeInfo },
-     score
-@@ -47,7 +48,8 @@ export const getUserData = async ({ user }) => {
-       points: challengeInfo[i].score,
-       solves: challengeInfo[i].solves,
-       id: chall.id,
--      createdAt: solve.createdat.valueOf()
-+      createdAt: solve.createdat.valueOf(),
-+      ...(includeMembers ? { memberId: solve.memberid ?? null } : {})
+ challsGroup.route(SubmitFlagRoute, async ({ res, ctx, params, body, user }) => {
+@@ -8,5 +9,6 @@ challsGroup.route(SubmitFlagRoute, async ({ res, ctx, params, body, user }) => {
+     challengeId: params.id,
+     flag: body.flag,
+     submissionIp: ctx.var.ip,
++    client: getSubmissionClient(ctx),
+   })
+ })
+diff --git a/apps/api/src/routes/v2/integrations/routes/submit-admin-bot-job.ts b/apps/api/src/routes/v2/integrations/routes/submit-admin-bot-job.ts
+index d9d3ffd0..3430060c 100644
+--- a/apps/api/src/routes/v2/integrations/routes/submit-admin-bot-job.ts
++++ b/apps/api/src/routes/v2/integrations/routes/submit-admin-bot-job.ts
+@@ -14,7 +14,11 @@ import {
+   resolveInstancerName,
+ } from '../../../../services/instancer'
+ import { rateLimitAdminBot } from '../../../../services/rate-limit'
+-import { createSubmission } from '../../../../services/submissions'
++import {
++  clientDetails,
++  createSubmission,
++  getSubmissionClient,
++} from '../../../../services/submissions'
+ import { inferChallengeIntegrationId } from '../../../../util/instancer'
+ import integrationsGroup from '../group'
+ 
+@@ -61,7 +65,10 @@ integrationsGroup.route(
+         userId: user.id,
+         ip: ctx.var.ip,
+         result,
+-        details: details ?? adminBotDetails(),
++        details: {
++          ...clientDetails(getSubmissionClient(ctx)),
++          ...(details ?? adminBotDetails()),
++        },
+       }).catch(err =>
+         ctx.var.logger.error(
+           { err, challengeId: params.id, userId: user.id, result },
+diff --git a/apps/api/src/services/challenges.ts b/apps/api/src/services/challenges.ts
+index 446a1244..3d968edd 100644
+--- a/apps/api/src/services/challenges.ts
++++ b/apps/api/src/services/challenges.ts
+@@ -48,7 +48,11 @@ import {
+ } from './challenge-queries'
+ import { rateLimitFlag } from './rate-limit'
+ import { getCompetitionTiming } from './settings'
+-import { createSubmission } from './submissions'
++import {
++  clientDetails,
++  createSubmission,
++  type SubmissionClient,
++} from './submissions'
+ import { getUser } from './users'
+ 
+ const MAX_GRAPH_POINTS_PER_USER = 500
+@@ -337,6 +341,7 @@ export const createSolveAndGetBloodNumber = async (
+     challengeId: string
+     userId: string
+     submissionIp?: string | null
++    client?: SubmissionClient
+     submittedFlag?: string
+     matchedFlag?: MatchedFlagEntry
+     cheated?: boolean
+@@ -379,6 +384,7 @@ export const createSolveAndGetBloodNumber = async (
+         ? SubmissionResult.CHEATED
+         : SubmissionResult.CORRECT,
+       details: {
++        ...clientDetails(params.client),
+         ...(params.submittedFlag
+           ? { submittedFlag: params.submittedFlag }
+           : {}),
+@@ -1149,6 +1155,7 @@ export const submitFlag = async (
+     challengeId: string
+     flag: string
+     submissionIp: string | undefined
++    client?: SubmissionClient
+   }
+ ): Promise<ReturnType<SubmitResponseHelpers[keyof SubmitResponseHelpers]>> => {
+   // NOTE(es3n1n): Directly querying from the database to bypass any stale cache entries
+@@ -1198,6 +1205,7 @@ export const submitFlag = async (
+       ip: params.submissionIp,
+       result: SubmissionResult.INCORRECT,
+       details: {
++        ...clientDetails(params.client),
+         submittedFlag: params.flag,
+       },
+     }).catch(err =>
+@@ -1237,6 +1245,7 @@ export const submitFlag = async (
+       challengeId: params.challengeId,
+       userId: params.userId,
+       submissionIp: params.submissionIp,
++      client: params.client,
+       submittedFlag: params.flag,
+       matchedFlag: matched,
+       cheated,
+@@ -1251,7 +1260,10 @@ export const submitFlag = async (
+         userId: params.userId,
+         ip: params.submissionIp,
+         result: SubmissionResult.ALREADY_SOLVED,
+-        details: { submittedFlag: params.flag },
++        details: {
++          ...clientDetails(params.client),
++          submittedFlag: params.flag,
++        },
+       }).catch(err =>
+         log.error(
+           { err, challengeId: params.challengeId, userId: params.userId },
+diff --git a/apps/api/src/services/submissions.ts b/apps/api/src/services/submissions.ts
+index 175dd099..973fbcae 100644
+--- a/apps/api/src/services/submissions.ts
++++ b/apps/api/src/services/submissions.ts
+@@ -17,6 +17,31 @@ import { and, asc, count, desc, eq, gte, lte, sql, type SQL } from 'drizzle-orm'
+ import { alias, type PgColumn } from 'drizzle-orm/pg-core'
+ import { setFilter } from '../lib/db-filters'
+ 
++// who sent a submission, beyond the team and IP
++export type SubmissionClient = {
++  browserId: string | undefined
++  userAgent: string | undefined
++}
++
++const MAX_USER_AGENT_LENGTH = 512
++
++export const clientDetails = (
++  client: SubmissionClient | undefined
++): SubmissionDetails => ({
++  ...(client?.browserId ? { browserId: client.browserId } : {}),
++  ...(client?.userAgent
++    ? { userAgent: client.userAgent.slice(0, MAX_USER_AGENT_LENGTH) }
++    : {}),
++})
++
++export const getSubmissionClient = (ctx: {
++  var: { browserId: string | undefined }
++  req: { header: (name: string) => string | undefined }
++}): SubmissionClient => ({
++  browserId: ctx.var.browserId,
++  userAgent: ctx.req.header('user-agent'),
++})
++
+ export const createSubmission = async (
+   db: DatabaseClient,
+   params: {
+@@ -50,6 +75,8 @@ const teamBannedExpr = sql<boolean>`coalesce(${users.banned}, false)`
+ const cheatedFromIdExpr = sql<
+   string | null
+ >`${submissions.details} ->> 'cheatedFrom'`
++// '' for submissions without a browser, so excluding browsers keeps them
++const browserIdExpr = sql<string>`coalesce(${submissions.details} ->> 'browserId', '')`
+ 
+ const likePattern = (value: string) => `%${value.trim().toLowerCase()}%`
+ 
+@@ -71,6 +98,7 @@ const buildSubmissionsFilters = (
+       : undefined,
+     ...setFilter(sql`${submissions.challengeId}`, params.challenge),
+     ...setFilter(sql`${submissions.userId}`, params.team),
++    ...setFilter(browserIdExpr, params.browser),
+     ...setFilter(sql`${submissions.kind}`, params.kind),
+     ...setFilter(sql`${submissions.result}`, params.result),
+     ...setFilter(teamBannedExpr, {
+diff --git a/apps/api/src/util/browser-id.ts b/apps/api/src/util/browser-id.ts
+new file mode 100644
+index 00000000..bcf399e2
+--- /dev/null
++++ b/apps/api/src/util/browser-id.ts
+@@ -0,0 +1,29 @@
++import { config } from '@rctf/config'
++import type { Context } from 'hono'
++import { getCookie, setCookie } from 'hono/cookie'
++
++// NOTE: an opaque random id per browser, so admins can tell apart the browsers that share a team login.
++//   It identifies a cookie jar, not a person: a private window, another browser or cleared cookies get a new id,
++//   and anyone can send any id, so treat it as a hint like the IP.
++export const BROWSER_ID_COOKIE = 'rctf_browser'
++const BROWSER_ID_PATTERN =
++  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
++// browsers cap cookie lifetimes at 400 days
++const BROWSER_ID_MAX_AGE = 400 * 24 * 60 * 60
++
++// returns the id the request's browser sent, or undefined for a client without one (a script, or a browser's
++// first request), which this response then issues one to
++export const getBrowserId = (c: Context): string | undefined => {
++  const existing = getCookie(c, BROWSER_ID_COOKIE)
++  if (existing && BROWSER_ID_PATTERN.test(existing)) {
++    return existing
++  }
++  setCookie(c, BROWSER_ID_COOKIE, crypto.randomUUID(), {
++    path: '/',
++    httpOnly: true,
++    sameSite: 'Lax',
++    secure: config.origin.startsWith('https:'),
++    maxAge: BROWSER_ID_MAX_AGE,
++  })
++  return undefined
++}
+diff --git a/apps/web/src/routes/admin/submissions/+page.svelte b/apps/web/src/routes/admin/submissions/+page.svelte
+index b999e8f5..c4d56368 100644
+--- a/apps/web/src/routes/admin/submissions/+page.svelte
++++ b/apps/web/src/routes/admin/submissions/+page.svelte
+@@ -28,6 +28,7 @@
+   import { createSubmissionValueFilterFamilies } from './submissions-families'
+   import {
+     applyDeepLinkFilters,
++    browserIdOf,
+     buildSubmissionsBody,
+     clearSubmissionFilters,
+     createDeepLinkLatch,
+@@ -127,6 +128,13 @@
+     }))
+   )
+ 
++  const browserOptions = $derived([
++    ...new Set([
++      ...filters.browser.selected,
++      ...submissions.map(submission => browserIdOf(submission) ?? ''),
++    ]),
++  ])
++
+   const families = $derived(
+     createSubmissionValueFilterFamilies({
+       filters,
+@@ -135,6 +143,7 @@
+       teamOptions,
+       categoryOptions,
+       divisionOptions,
++      browserOptions,
+       challengesLoading: () => challengesQuery.isPending,
+       teamOptionsLoading: () =>
+         teamSuggestionsQuery.isFetching && teamOptions.length === 0,
+@@ -145,6 +154,7 @@
+ 
+   const deepLinkTeamId = $derived(page.url.searchParams.get('team'))
+   const deepLinkChallengeId = $derived(page.url.searchParams.get('challenge'))
++  const deepLinkBrowserId = $derived(page.url.searchParams.get('browser'))
+   const deepLinkTeamQuery = useAdminUser(
+     () => deepLinkTeamId,
+     () => canReadSubmissions
+@@ -167,6 +177,7 @@
+     deepLinkLatch = applyDeepLinkFilters(filters, deepLinkLatch, {
+       team: { id: deepLinkTeamId, option: team },
+       challenge: { id: deepLinkChallengeId, option: challenge },
++      browser: deepLinkBrowserId,
      })
    })
  
-diff --git a/server/auth/index.ts b/server/auth/index.ts
-index 4c738ff..a2d85ba 100644
---- a/server/auth/index.ts
-+++ b/server/auth/index.ts
-@@ -1,2 +1,3 @@
- export * as token from './token'
- export * as register from './register'
-+export * as session from './session'
-diff --git a/server/auth/session.ts b/server/auth/session.ts
-new file mode 100644
-index 0000000..28e8f74
---- /dev/null
-+++ b/server/auth/session.ts
-@@ -0,0 +1,29 @@
-+import { v4 as uuidv4 } from 'uuid'
-+import { FastifyRequest } from 'fastify'
-+import { getToken, tokenKinds, Token } from './token'
-+import * as database from '../database'
-+import { User } from '../database/users'
-+import { UserMember } from '../database/members'
-+import { LoginMethod } from '../database/logins'
-+
-+// issues an auth token for the team, or for one of its members, and records the login
-+export const startSession = async ({ req, userId, member, method }: {
-+  req: FastifyRequest
-+  userId: User['id']
-+  member: UserMember | null
-+  method: LoginMethod
-+}): Promise<Token> => {
-+  const authToken = await getToken(tokenKinds.auth, member === null ? userId : { u: userId, m: member.id })
-+  await database.logins.newLogin({
-+    id: uuidv4(),
-+    userid: userId,
-+    memberid: member?.id ?? null,
-+    memberemail: member?.email ?? null,
-+    method,
-+    ip: req.ip,
-+    useragent: req.headers['user-agent'] ?? null,
-+    createdat: new Date()
-+  })
-+  req.log.info({ userId, memberId: member?.id, method }, 'session started')
-+  return authToken
-+}
-diff --git a/server/auth/token.ts b/server/auth/token.ts
-index 8a7b2e6..82ae9ba 100644
---- a/server/auth/token.ts
-+++ b/server/auth/token.ts
-@@ -3,6 +3,7 @@ import crypto from 'crypto'
- import config from '../config/server'
- import { ValueOf } from 'type-fest'
- import { User } from '../database/users'
-+import { UserMember } from '../database/members'
- 
- const randomBytes = promisify(crypto.randomBytes)
- const tokenKey = Buffer.from(config.tokenKey, 'base64')
-@@ -11,12 +12,23 @@ export enum tokenKinds {
-   auth = 0,
-   team = 1,
-   verify = 2,
--  ctftimeAuth = 4
-+  ctftimeAuth = 4,
-+  member = 5
+diff --git a/apps/web/src/routes/admin/submissions/submissions-families.ts b/apps/web/src/routes/admin/submissions/submissions-families.ts
+index 16de3d0b..cb794784 100644
+--- a/apps/web/src/routes/admin/submissions/submissions-families.ts
++++ b/apps/web/src/routes/admin/submissions/submissions-families.ts
+@@ -16,6 +16,7 @@ import {
+ import {
+   IconAwardFilled,
+   IconCheckCircle,
++  IconFingerprint,
+   IconFlagBannerFold,
+   IconGavel,
+   IconLayoutListFilled,
+@@ -26,6 +27,7 @@ import {
+ } from '$lib/icons'
+ import { getCategoryConfig } from '$lib/utils/categories'
+ import {
++  browserLabel,
+   KIND_OPTIONS,
+   kindLabel,
+   RESULT_OPTIONS,
+@@ -33,6 +35,7 @@ import {
+   resultTone,
+   TEAM_STATUS_OPTIONS,
+   teamStatusLabel,
++  type BrowserOption,
+   type CategoryOption,
+   type ChallengeOption,
+   type DivisionOption,
+@@ -47,6 +50,7 @@ export type SubmissionFamiliesContext = {
+   teamOptions: readonly TeamOption[]
+   categoryOptions: readonly CategoryOption[]
+   divisionOptions: readonly DivisionOption[]
++  browserOptions: readonly BrowserOption[]
+   challengesLoading: () => boolean
+   teamOptionsLoading: () => boolean
  }
- 
--export type VerifyTokenKinds = 'update' | 'register' | 'recover'
-+export type VerifyTokenKinds = 'update' | 'register' | 'recover' | 'memberLogin'
- 
--export type AuthTokenData = string
-+// a team member's session: u is the team (user) id, m is the user_members id
-+export interface MemberSessionData {
-+  u: User['id']
-+  m: UserMember['id']
-+}
-+
-+// a string is a whole-team session, from the team token, CTFtime or recovery
-+export type AuthTokenData = User['id'] | MemberSessionData
-+
-+// a member's personal login token, which a team-token session issues
-+export type MemberTokenData = MemberSessionData
- 
- export type TeamTokenData = string
- 
-@@ -45,7 +57,14 @@ export interface RecoverTokenData extends BaseVerifyTokenData {
-   email: User['email']
- }
- 
--export type VerifyTokenData = RegisterVerifyTokenData | UpdateVerifyTokenData | RecoverTokenData
-+export interface MemberLoginTokenData extends BaseVerifyTokenData {
-+  kind: 'memberLogin'
-+  userId: User['id']
-+  memberId: UserMember['id']
-+  email: UserMember['email']
-+}
-+
-+export type VerifyTokenData = RegisterVerifyTokenData | UpdateVerifyTokenData | RecoverTokenData | MemberLoginTokenData
- 
- export interface CtftimeAuthTokenData {
-   name: User['name']
-@@ -59,6 +78,7 @@ type TokenDataTypes = {
-   [tokenKinds.team]: TeamTokenData;
-   [tokenKinds.verify]: VerifyTokenData;
-   [tokenKinds.ctftimeAuth]: CtftimeAuthTokenData;
-+  [tokenKinds.member]: MemberTokenData;
- }
- 
- export type Token = string
-@@ -73,7 +93,9 @@ const tokenExpiries: Record<ValueOf<typeof tokenKinds>, number> = {
-   [tokenKinds.auth]: Infinity,
-   [tokenKinds.team]: Infinity,
-   [tokenKinds.verify]: config.loginTimeout,
--  [tokenKinds.ctftimeAuth]: config.loginTimeout
-+  [tokenKinds.ctftimeAuth]: config.loginTimeout,
-+  // revoked by deleting the member, which the auth middleware checks on every request
-+  [tokenKinds.member]: Infinity
- }
- 
- const timeNow = () => Math.floor(Date.now() / 1000)
-@@ -125,3 +147,6 @@ export const getToken = async <Kind extends tokenKinds>(tokenKind: Kind, data: T
+@@ -57,6 +61,7 @@ export function createSubmissionValueFilterFamilies(
+   return [
+     challengeFamily(context),
+     teamFamily(context),
++    browserFamily(context),
+     kindFamily(context.filters),
+     resultFamily(context.filters),
+     teamStatusFamily(context.filters),
+@@ -245,6 +250,34 @@ function divisionFamily({
    })
-   return token
  }
+ 
++// the options are the browsers in the loaded submissions; a browser's detail pill links to its filter
++function browserFamily({ filters, browserOptions }: SubmissionFamiliesContext) {
++  return defineValueFilterFamily<BrowserOption>({
++    id: 'browser',
++    label: 'Browser',
++    pluralLabel: 'browsers',
++    icon: IconFingerprint,
++    menuSize: 'medium',
++    options: () => browserOptions,
++    optionKey: browser => browser,
++    optionSearchValues: browser => [browser, browserLabel(browser)],
++    optionSelected: browser => filters.browser.selected.includes(browser),
++    toggleOption: browser =>
++      toggleFilterOption(filters.browser, browser, item => item),
++    optionView: browserOptionView,
++    clear: () => clearFilter(filters.browser),
++    emptyLabel: 'No browsers in these submissions',
++  })
++}
 +
-+export const parseAuthTokenData = (data: AuthTokenData): { userId: User['id'], memberId: UserMember['id'] | null } =>
-+  typeof data === 'string' ? { userId: data, memberId: null } : { userId: data.u, memberId: data.m }
-diff --git a/server/config/client.ts b/server/config/client.ts
-index 2613c8d..a52c0da 100644
---- a/server/config/client.ts
-+++ b/server/config/client.ts
-@@ -12,6 +12,7 @@ export type ClientConfig = Pick<ServerConfig,
-   'startTime' |
-   'endTime' |
-   'userMembers' |
-+  'requireMemberLogin' |
-   'faviconUrl'
- > & {
-   emailEnabled: boolean;
-@@ -32,6 +33,7 @@ const config: ClientConfig = {
-   endTime: server.endTime,
-   emailEnabled: server.email != null,
-   userMembers: server.userMembers,
-+  requireMemberLogin: server.userMembers && server.requireMemberLogin,
-   faviconUrl: server.faviconUrl,
-   ctftime: server.ctftime == null ? undefined : {
-     clientId: server.ctftime.clientId
-diff --git a/server/config/server.ts b/server/config/server.ts
-index 90c313f..ae6d472 100644
---- a/server/config/server.ts
-+++ b/server/config/server.ts
-@@ -52,6 +52,8 @@ export type ServerConfig = {
++function browserOptionView(browser: BrowserOption): FilterOptionView {
++  return {
++    textValue: browser || browserLabel(browser),
++    icon: IconFingerprint,
++    segments: [{ text: browserLabel(browser) }],
++  }
++}
++
+ function challengeOptionView(challenge: ChallengeOption): FilterOptionView {
+   return {
+     textValue: `${challenge.category} ${challenge.name}`,
+diff --git a/apps/web/src/routes/admin/submissions/submissions-model.ts b/apps/web/src/routes/admin/submissions/submissions-model.ts
+index e654060d..ad41c291 100644
+--- a/apps/web/src/routes/admin/submissions/submissions-model.ts
++++ b/apps/web/src/routes/admin/submissions/submissions-model.ts
+@@ -31,10 +31,13 @@ export type ChallengeOption = { id: string; name: string; category: string }
+ export type TeamOption = { id: string; name: string; avatarUrl: string | null }
+ export type CategoryOption = { value: string; label: string }
+ export type DivisionOption = { value: string; label: string }
++// a browser id from the rctf_browser cookie; '' is submissions without one
++export type BrowserOption = string
+ 
+ export type SubmissionFilters = {
+   challenge: SearchFilter<ChallengeOption>
+   team: SearchFilter<TeamOption>
++  browser: MultiFilter<BrowserOption>
+   kind: MultiFilter<SubmissionKind>
+   result: MultiFilter<SubmissionResult>
+   teamStatus: MultiFilter<SubmissionTeamStatus>
+@@ -110,6 +113,7 @@ export function createSubmissionFilters(): SubmissionFilters {
+   return {
+     challenge: createSearchFilter<ChallengeOption>(),
+     team: createSearchFilter<TeamOption>(),
++    browser: createFilter<BrowserOption>(),
+     kind: createFilter<SubmissionKind>(),
+     result: createFilter<SubmissionResult>(),
+     teamStatus: createFilter<SubmissionTeamStatus>(),
+@@ -123,6 +127,7 @@ export function hasSubmissionFilters(filters: SubmissionFilters): boolean {
+   return (
+     filters.challenge.selected.length > 0 ||
+     filters.team.selected.length > 0 ||
++    filters.browser.selected.length > 0 ||
+     filters.kind.selected.length > 0 ||
+     filters.result.selected.length > 0 ||
+     filters.teamStatus.selected.length > 0 ||
+@@ -135,6 +140,7 @@ export function hasSubmissionFilters(filters: SubmissionFilters): boolean {
+ export function clearSubmissionFilters(filters: SubmissionFilters): void {
+   clearSearchFilter(filters.challenge)
+   clearSearchFilter(filters.team)
++  clearFilter(filters.browser)
+   clearFilter(filters.kind)
+   clearFilter(filters.result)
+   clearFilter(filters.teamStatus)
+@@ -149,6 +155,7 @@ export function submissionFilterFingerprint(
+   return [
+     filterFingerprint(filters.challenge, option => option.id),
+     filterFingerprint(filters.team, option => option.id),
++    filterFingerprint(filters.browser, browser => browser),
+     filterFingerprint(filters.kind, kind => kind),
+     filterFingerprint(filters.result, result => result),
+     filterFingerprint(filters.teamStatus, status => status),
+@@ -178,6 +185,7 @@ export function buildSubmissionsBody(
+ 
+   addFilterParams(params, 'challenge', filters.challenge, option => option.id)
+   addFilterParams(params, 'team', filters.team, option => option.id)
++  addFilterParams(params, 'browser', filters.browser, browser => browser)
+   addFilterParams(params, 'kind', filters.kind, kind => kind)
+   addFilterParams(params, 'result', filters.result, result => result)
+   addFilterParams(params, 'teamStatus', filters.teamStatus, status => status)
+@@ -248,6 +256,30 @@ export function resultTone(result: string): ResultTone {
+   }
+ }
+ 
++export function browserIdOf(submission: Submission): BrowserOption | null {
++  const details = isRecord(submission.details) ? submission.details : {}
++  return typeof details.browserId === 'string' ? details.browserId : null
++}
++
++export function browserLabel(browser: BrowserOption): string {
++  return browser === '' ? 'No browser cookie' : browser.slice(0, 8)
++}
++
++function clientEntries(details: Record<string, unknown>): DetailEntry[] {
++  const entries: DetailEntry[] = []
++  if (typeof details.browserId === 'string') {
++    entries.push({
++      label: 'browser',
++      value: details.browserId,
++      href: `/admin/submissions?browser=${encodeURIComponent(details.browserId)}`,
++    })
++  }
++  if (typeof details.userAgent === 'string') {
++    entries.push({ label: 'agent', value: details.userAgent, wide: true })
++  }
++  return entries
++}
++
+ export function detailEntries(submission: Submission): DetailEntry[] {
+   const details = isRecord(submission.details) ? submission.details : {}
+ 
+@@ -265,6 +297,7 @@ export function detailEntries(submission: Submission): DetailEntry[] {
+           : {}),
+       })
+     }
++    entries.push(...clientEntries(details))
+     return entries
    }
  
-   userMembers: boolean;
-+  // reject flags from whole-team sessions, so every submission is attributed to a member. requires userMembers
-+  requireMemberLogin: boolean;
-   sponsors: Sponsor[];
-   homeContent: string;
-   ctfName: string;
-@@ -143,6 +145,7 @@ const envConfig: PartialDeep<ServerConfig> = {
-     clientSecret: process.env.RCTF_CTFTIME_CLIENT_SECRET
-   },
-   userMembers: nullsafeParseBoolEnv(process.env.RCTF_USER_MEMBERS),
-+  requireMemberLogin: nullsafeParseBoolEnv(process.env.RCTF_REQUIRE_MEMBER_LOGIN),
-   homeContent: process.env.RCTF_HOME_CONTENT,
-   ctfName: process.env.RCTF_NAME,
-   meta: {
-@@ -177,6 +180,7 @@ const defaultConfig: PartialDeep<ServerConfig> = {
-   },
-   instanceType: 'all',
-   userMembers: true,
-+  requireMemberLogin: false,
-   sponsors: [],
-   homeContent: '',
-   faviconUrl: 'https://redpwn.storage.googleapis.com/branding/rctf-favicon.ico',
-diff --git a/server/database/index.ts b/server/database/index.ts
-index 6d42635..e9f05e1 100644
---- a/server/database/index.ts
-+++ b/server/database/index.ts
-@@ -2,3 +2,5 @@ export * as solves from './solves'
- export * as users from './users'
- export * as members from './members'
- export * as challenges from './challenges'
-+export * as submissions from './submissions'
-+export * as logins from './logins'
-diff --git a/server/database/logins.ts b/server/database/logins.ts
+@@ -289,6 +322,7 @@ export function detailEntries(submission: Submission): DetailEntry[] {
+       value: formatDetailValue(details.instancerInstances),
+     })
+   }
++  entries.push(...clientEntries(details))
+ 
+   return entries
+ }
+@@ -304,6 +338,8 @@ export function ipInfoUrl(ip: string): string {
+ export type DeepLinkLatch = {
+   teamId: string | null
+   challengeId: string | null
++  // only set once a browser deep link applied
++  browserId?: string
+ }
+ 
+ type DeepLinkTarget<T> = {
+@@ -321,6 +357,7 @@ export function applyDeepLinkFilters(
+   targets: {
+     team: DeepLinkTarget<TeamOption>
+     challenge: DeepLinkTarget<ChallengeOption>
++    browser?: string | null
+   }
+ ): DeepLinkLatch {
+   let teamId = latch.teamId === targets.team.id ? latch.teamId : null
+@@ -342,7 +379,15 @@ export function applyDeepLinkFilters(
+     challengeId = targets.challenge.id
+   }
+ 
+-  return { teamId, challengeId }
++  const browser = targets.browser ?? null
++  let browserId = latch.browserId === browser ? latch.browserId : undefined
++  if (browser !== null && browserId !== browser) {
++    filters.browser.mode = 'include'
++    filters.browser.selected = [browser]
++    browserId = browser
++  }
++
++  return { teamId, challengeId, ...(browserId ? { browserId } : {}) }
+ }
+ 
+ function formatDetailValue(value: unknown): string {
+diff --git a/apps/web/tests/routes/admin/submissions/browser-filter.test.ts b/apps/web/tests/routes/admin/submissions/browser-filter.test.ts
 new file mode 100644
-index 0000000..84b2c99
+index 00000000..802d9da1
 --- /dev/null
-+++ b/server/database/logins.ts
-@@ -0,0 +1,42 @@
-+import db from './db'
-+import { User } from './users'
-+import { UserMember } from './members'
++++ b/apps/web/tests/routes/admin/submissions/browser-filter.test.ts
+@@ -0,0 +1,118 @@
++import { SubmissionKind, SubmissionResult } from '@rctf/types'
++import {
++  applyDeepLinkFilters,
++  browserIdOf,
++  browserLabel,
++  buildSubmissionsBody,
++  createDeepLinkLatch,
++  createSubmissionFilters,
++  detailEntries,
++  hasSubmissionFilters,
++  initialSubmissionSort,
++  type Submission,
++} from '$routes/admin/submissions/submissions-model'
++import { describe, expect, test } from 'bun:test'
 +
-+export type LoginMethod = 'teamToken' | 'memberToken' | 'memberEmail' | 'recover' | 'ctftime'
++const browserId = '0b6f2c1e-7d4a-4c1b-9e3f-5a6b7c8d9e0f'
 +
-+// every issued auth token. memberid and memberemail are null for whole-team sessions
-+export interface Login {
-+  id: string;
-+  userid: User['id'];
-+  memberid: UserMember['id'] | null;
-+  memberemail: UserMember['email'] | null;
-+  method: LoginMethod;
-+  ip: string | null;
-+  useragent: string | null;
-+  createdat: Date;
++function submissionWith(overrides: Partial<Submission>): Submission {
++  return {
++    id: 'sub-1',
++    kind: SubmissionKind.FLAG,
++    challengeId: 'baby-rev',
++    challengeName: 'baby-rev',
++    challengeCategory: 'rev',
++    userId: 'team-1',
++    userName: 'otter-sec',
++    userDivision: 'open',
++    userAvatarUrl: null,
++    userCountryCode: null,
++    userStatusText: null,
++    userBanned: false,
++    ip: '203.0.113.7',
++    result: SubmissionResult.INCORRECT,
++    cheatedFromId: null,
++    cheatedFromName: null,
++    details: {},
++    relatedId: null,
++    createdAt: '2024-03-09T00:00:00.000Z',
++    ...overrides,
++  }
 +}
 +
-+export const newLogin = ({ id, userid, memberid, memberemail, method, ip, useragent, createdat }: Login): Promise<Login> => {
-+  return db.query<Login>(
-+    'INSERT INTO logins (id, userid, memberid, memberemail, method, ip, useragent, createdat) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
-+    [id, userid, memberid, memberemail, method, ip, useragent, createdat]
-+  )
-+    .then(res => res.rows[0])
-+}
++describe('browser filter', () => {
++  test('shows the browser and user agent of a flag submission', () => {
++    const entries = detailEntries(
++      submissionWith({
++        details: { submittedFlag: 'flag{x}', browserId, userAgent: 'curl/8' },
++      })
++    )
 +
-+export interface LoginFilter {
-+  userid?: string;
-+  memberid?: string;
-+  limit: number;
-+  offset: number;
-+}
++    expect(entries).toEqual([
++      { label: 'flag', value: 'flag{x}' },
++      {
++        label: 'browser',
++        value: browserId,
++        href: `/admin/submissions?browser=${browserId}`,
++      },
++      { label: 'agent', value: 'curl/8', wide: true },
++    ])
++  })
 +
-+export const getLogins = ({ userid, memberid, limit, offset }: LoginFilter): Promise<Login[]> => {
-+  return db.query<Login>(
-+    `SELECT * FROM logins
-+    WHERE ($1::text IS NULL OR userid = $1) AND ($2::text IS NULL OR memberid = $2)
-+    ORDER BY createdat DESC LIMIT $3 OFFSET $4`,
-+    [userid ?? null, memberid ?? null, limit, offset]
-+  )
-+    .then(res => res.rows)
-+}
-diff --git a/server/database/members.ts b/server/database/members.ts
-index fb5f15d..cf67a82 100644
---- a/server/database/members.ts
-+++ b/server/database/members.ts
-@@ -23,3 +23,13 @@ export const removeMember = ({ id, userid }: Pick<UserMember, 'id' | 'userid'>):
-   return db.query<UserMember>('DELETE FROM user_members WHERE id = $1 and userid = $2 RETURNING *', [id, userid])
-     .then(res => res.rows[0])
- }
++  test('shows the browser of an admin bot submission', () => {
++    const entries = detailEntries(
++      submissionWith({
++        kind: SubmissionKind.ADMIN_BOT,
++        result: SubmissionResult.QUEUED,
++        details: { browserId },
++      })
++    )
 +
-+export const getMemberByIdAndUserId = ({ id, userid }: Pick<UserMember, 'id' | 'userid'>): Promise<UserMember | undefined> => {
-+  return db.query<UserMember>('SELECT * FROM user_members WHERE id = $1 AND userid = $2', [id, userid])
-+    .then(res => res.rows[0])
-+}
++    expect(entries.map(entry => entry.label)).toEqual(['browser'])
++  })
 +
-+export const getMemberByEmail = ({ email }: Pick<UserMember, 'email'>): Promise<UserMember | undefined> => {
-+  return db.query<UserMember>('SELECT * FROM user_members WHERE email = $1', [email])
-+    .then(res => res.rows[0])
-+}
-diff --git a/server/database/solves.ts b/server/database/solves.ts
-index c2b1c39..039d117 100644
---- a/server/database/solves.ts
-+++ b/server/database/solves.ts
-@@ -7,6 +7,8 @@ export interface Solve {
-   id: string;
-   challengeid: Challenge['id'];
-   userid: User['id'];
-+  // the member whose session solved it; null for whole-team sessions and solves from before members could log in
-+  memberid?: string | null;
-   createdat: Date;
- }
- 
-@@ -30,8 +32,8 @@ export const getSolveByUserIdAndChallId = ({ userid, challengeid }: Pick<Solve,
-     .then(res => res.rows[0])
- }
- 
--export const newSolve = ({ id, userid, challengeid, createdat }: Solve): Promise<Solve> => {
--  return db.query<Solve>('INSERT INTO solves (id, challengeid, userid, createdat) VALUES ($1, $2, $3, $4) RETURNING *', [id, challengeid, userid, createdat])
-+export const newSolve = ({ id, userid, memberid, challengeid, createdat }: Solve): Promise<Solve> => {
-+  return db.query<Solve>('INSERT INTO solves (id, challengeid, userid, memberid, createdat) VALUES ($1, $2, $3, $4, $5) RETURNING *', [id, challengeid, userid, memberid ?? null, createdat])
-     .then(res => res.rows[0])
- }
- 
-diff --git a/server/database/submissions.ts b/server/database/submissions.ts
++  test('omits browser pills for submissions without them', () => {
++    expect(
++      detailEntries(submissionWith({ details: { submittedFlag: 'x' } }))
++    ).toEqual([{ label: 'flag', value: 'x' }])
++    expect(browserIdOf(submissionWith({}))).toBeNull()
++  })
++
++  test('labels browsers by their prefix', () => {
++    expect(browserLabel(browserId)).toBe('0b6f2c1e')
++    expect(browserLabel('')).toBe('No browser cookie')
++  })
++
++  test('sends the browser filter in the request body', () => {
++    const filters = createSubmissionFilters()
++    filters.browser.mode = 'exclude'
++    filters.browser.selected = [browserId, '']
++
++    expect(hasSubmissionFilters(filters)).toBe(true)
++    expect(
++      buildSubmissionsBody(filters, initialSubmissionSort()).browser
++    ).toEqual({ exclude: [browserId, ''] })
++  })
++
++  test('applies a browser deep link once', () => {
++    const filters = createSubmissionFilters()
++    const none = { id: null, option: null }
++
++    let latch = applyDeepLinkFilters(filters, createDeepLinkLatch(), {
++      team: none,
++      challenge: none,
++      browser: browserId,
++    })
++    expect(latch.browserId).toBe(browserId)
++    expect(filters.browser).toEqual({ mode: 'include', selected: [browserId] })
++
++    // clearing the chip keeps it cleared while the URL still has the link
++    filters.browser.selected = []
++    latch = applyDeepLinkFilters(filters, latch, {
++      team: none,
++      challenge: none,
++      browser: browserId,
++    })
++    expect(filters.browser.selected).toEqual([])
++  })
++})
+diff --git a/packages/types/src/routes/v2/admin.ts b/packages/types/src/routes/v2/admin.ts
+index d5d320bf..fd428612 100644
+--- a/packages/types/src/routes/v2/admin.ts
++++ b/packages/types/src/routes/v2/admin.ts
+@@ -189,6 +189,13 @@ const AdminSubmissionsFilterBody = z
+     team: z
+       .nullish(searchFilter(z.string()))
+       .check(z.describe('Include/exclude filter on team ID.')),
++    browser: z
++      .nullish(searchFilter(z.string()))
++      .check(
++        z.describe(
++          'Include/exclude filter on browser ID, the `rctf_browser` cookie recorded in `details.browserId`. `""` matches submissions without one.'
++        )
++      ),
+     kind: z
+       .nullish(searchFilter(z.enum(SubmissionKind)))
+       .check(z.describe('Include/exclude filter on submission kind.')),
+diff --git a/tests/server/tests/integration/browser-id.test.ts b/tests/server/tests/integration/browser-id.test.ts
 new file mode 100644
-index 0000000..3acbbc8
+index 00000000..75ee504d
 --- /dev/null
-+++ b/server/database/submissions.ts
-@@ -0,0 +1,45 @@
-+import db from './db'
-+import { Challenge } from '../challenges/types'
-+import { User } from './users'
-+import { UserMember } from './members'
++++ b/tests/server/tests/integration/browser-id.test.ts
+@@ -0,0 +1,210 @@
++import { config } from '@rctf/config'
++import { createDatabase, submissions } from '@rctf/db'
++import {
++  BadFlag,
++  BadAlreadySolvedChallenge,
++  GoodAdminSubmissions,
++  GoodFlag,
++  Permissions,
++} from '@rctf/types'
++import { beforeAll, beforeEach, describe, expect, test } from 'bun:test'
++import { eq } from 'drizzle-orm'
++import type { Hono } from 'hono'
++import { getApp, request } from '../../app'
++import {
++  clearDatabase,
++  expectResponse,
++  generateAuthToken,
++  generateChallenge,
++  generateRealTestUser,
++} from '../../util'
 +
-+// every evaluated flag attempt, correct or not. memberid and memberemail are null for whole-team sessions,
-+// and memberemail is a copy so the record survives the member's deletion
-+export interface Submission {
-+  id: string;
-+  userid: User['id'];
-+  memberid: UserMember['id'] | null;
-+  memberemail: UserMember['email'] | null;
-+  challengeid: Challenge['id'];
-+  flag: string;
-+  result: string;
-+  ip: string | null;
-+  createdat: Date;
++let app: Hono<any>
++const getDb = () => createDatabase(config.database.sql).db
++
++beforeAll(async () => {
++  app = await getApp()
++})
++
++beforeEach(async () => {
++  await clearDatabase()
++})
++
++const BROWSER_COOKIE = /rctf_browser=([0-9a-f-]{36})/
++
++const issuedBrowserId = (res: Response): string | undefined =>
++  BROWSER_COOKIE.exec(res.headers.get('set-cookie') ?? '')?.[1]
++
++const submit = (
++  token: string,
++  challengeId: string,
++  flag: string,
++  { browserId, userAgent }: { browserId?: string; userAgent?: string } = {}
++) =>
++  request(app, `/api/v1/challs/${challengeId}/submit`, {
++    method: 'POST',
++    headers: {
++      'Content-Type': 'application/json',
++      Authorization: `Bearer ${token}`,
++      ...(browserId ? { Cookie: `rctf_browser=${browserId}` } : {}),
++      ...(userAgent ? { 'User-Agent': userAgent } : {}),
++    },
++    body: JSON.stringify({ flag }),
++  })
++
++const detailsFor = async (challengeId: string) => {
++  const rows = await getDb()
++    .select({ result: submissions.result, details: submissions.details })
++    .from(submissions)
++    .where(eq(submissions.challengeId, challengeId))
++  return rows
 +}
 +
-+export const newSubmission = ({ id, userid, memberid, memberemail, challengeid, flag, result, ip, createdat }: Submission): Promise<Submission> => {
-+  return db.query<Submission>(
-+    'INSERT INTO submissions (id, userid, memberid, memberemail, challengeid, flag, result, ip, createdat) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
-+    [id, userid, memberid, memberemail, challengeid, flag, result, ip, createdat]
-+  )
-+    .then(res => res.rows[0])
-+}
++describe('browser id', () => {
++  test('issues an HttpOnly cookie to a client without one', async () => {
++    const res = await request(app, '/api/v1/challs', { method: 'GET' })
++    const cookie = res.headers.get('set-cookie') ?? ''
 +
-+export interface SubmissionFilter {
-+  userid?: string;
-+  memberid?: string;
-+  challengeid?: string;
-+  limit: number;
-+  offset: number;
-+}
++    expect(issuedBrowserId(res)).toBeDefined()
++    expect(cookie).toContain('HttpOnly')
++    expect(cookie).toContain('SameSite=Lax')
++    expect(cookie).toContain('Path=/')
++    expect(cookie).toContain('Max-Age=34560000')
++  })
 +
-+export const getSubmissions = ({ userid, memberid, challengeid, limit, offset }: SubmissionFilter): Promise<Submission[]> => {
-+  // null parameters disable their filter
-+  return db.query<Submission>(
-+    `SELECT * FROM submissions
-+    WHERE ($1::text IS NULL OR userid = $1) AND ($2::text IS NULL OR memberid = $2) AND ($3::text IS NULL OR challengeid = $3)
-+    ORDER BY createdat DESC LIMIT $4 OFFSET $5`,
-+    [userid ?? null, memberid ?? null, challengeid ?? null, limit, offset]
-+  )
-+    .then(res => res.rows)
-+}
-diff --git a/server/email/emails/verify.html b/server/email/emails/verify.html
-index 3af9db2..ac0eb2e 100644
---- a/server/email/emails/verify.html
-+++ b/server/email/emails/verify.html
-@@ -13,6 +13,9 @@
-     {{ #update }}
-       Update your {{ ctf_name }} email
-     {{ /update }}
-+    {{ #memberLogin }}
-+      Team member login for {{ ctf_name }}
-+    {{ /memberLogin }}
-   </title>
-   <meta charset="utf-8">
-   <meta name="viewport" content="width=device-width">
-@@ -79,6 +82,9 @@
-                     {{ #update }}
-                       Update your {{ ctf_name }} email
-                     {{ /update }}
-+                    {{ #memberLogin }}
-+                      Log in to {{ ctf_name }}
-+                    {{ /memberLogin }}
-                   </h1>
-                   {{ #register }}
-                     <p style="margin: 0 0 15px;">Before you and your team start capturing flags, we need a verified email.</p>
-@@ -92,6 +98,9 @@
-                     <p style="margin: 0 0 15px;">Before we update your account, we need to make sure it's actually you.</p>
-                     <p style="margin: 0 0 15px;">Verify this email to add it to your {{ ctf_name }} account.</p>
-                   {{ /update }}
-+                  {{ #memberLogin }}
-+                    <p style="margin: 0 0 15px;">This email is a member of a {{ ctf_name }} team. Use this link to log in as yourself, so your team can see which flags you submit.</p>
-+                  {{ /memberLogin }}
-                 </td>
-               </tr>
-               <tr>
-@@ -110,6 +119,9 @@
-                           {{ #update }}
-                             Update your email
-                           {{ /update }}
-+                          {{ #memberLogin }}
-+                            Log in as a team member
-+                          {{ /memberLogin }}
-                         </a>
-                       </td>
-                     </tr>
-diff --git a/server/email/emails/verify.txt b/server/email/emails/verify.txt
-index 5388a5a..79fd512 100644
---- a/server/email/emails/verify.txt
-+++ b/server/email/emails/verify.txt
-@@ -16,6 +16,12 @@ Update your {{{ ctf_name }}} email
- Before we add this email to your account, we need to make sure it's actually you.
- Verify this email to add it to your {{{ ctf_name }}} account.
- {{ /update }}
-+{{ #memberLogin }}
-+Log in to {{{ ctf_name }}} as a team member
++  test('keeps a valid cookie and replaces an invalid one', async () => {
++    const browserId = crypto.randomUUID()
++    const kept = await request(app, '/api/v1/challs', {
++      method: 'GET',
++      headers: { Cookie: `rctf_browser=${browserId}` },
++    })
++    expect(kept.headers.get('set-cookie')).toBeNull()
 +
-+This email is a member of a {{{ ctf_name }}} team.
-+Use this link to log in as yourself, so your team can see which flags you submit.
-+{{ /memberLogin }}
- 
- {{{ origin }}}/verify?token={{{ token }}}
- 
-diff --git a/server/email/index.ts b/server/email/index.ts
-index 553b025..c04de20 100644
---- a/server/email/index.ts
-+++ b/server/email/index.ts
-@@ -4,7 +4,7 @@ import mustache from 'mustache'
- import config from '../config/server'
- import { ProviderConstructor } from './provider'
- 
--export type VerificationEmailKind = 'register' | 'recover' | 'update'
-+export type VerificationEmailKind = 'register' | 'recover' | 'update' | 'memberLogin'
- 
- let sendVerification: (data: {
-   token: string,
-@@ -34,12 +34,14 @@ if (emailConfig) {
-       token: encodeURIComponent(token),
-       register: kind === 'register',
-       recover: kind === 'recover',
--      update: kind === 'update'
-+      update: kind === 'update',
-+      memberLogin: kind === 'memberLogin'
-     }
-     const subject = {
-       register: `Email verification for ${config.ctfName}`,
-       recover: `Account recovery for ${config.ctfName}`,
--      update: `Update your ${config.ctfName} email`
-+      update: `Update your ${config.ctfName} email`,
-+      memberLogin: `Team member login for ${config.ctfName}`
-     }[kind]
- 
-     await (await provider).send({
-diff --git a/server/responses.ts b/server/responses.ts
-index 9ea66a9..6823ed0 100644
---- a/server/responses.ts
-+++ b/server/responses.ts
-@@ -235,6 +235,26 @@ export const responseList = {
-     status: 401,
-     message: 'The recaptcha code is invalid.'
-   },
-+  badMemberSession: {
-+    status: 403,
-+    message: 'Team members cannot manage the team. Log in with the team token to do this.'
-+  },
-+  badMemberRequired: {
-+    status: 403,
-+    message: 'Log in with your personal team member login to submit flags.'
-+  },
-+  goodMemberToken: {
-+    status: 200,
-+    message: 'The team member login token was retrieved.'
-+  },
-+  goodSubmissions: {
-+    status: 200,
-+    message: 'The submissions were retrieved.'
-+  },
-+  goodLogins: {
-+    status: 200,
-+    message: 'The logins were retrieved.'
-+  },
-   errorInternal: {
-     status: 500,
-     message: 'An internal error occurred.'
++    const replaced = await request(app, '/api/v1/challs', {
++      method: 'GET',
++      headers: { Cookie: 'rctf_browser=not-a-uuid' },
++    })
++    expect(issuedBrowserId(replaced)).toBeDefined()
++  })
++
++  test('records the browser and user agent on each flag result', async () => {
++    const team = await generateRealTestUser()
++    const token = await generateAuthToken(team.user.id)
++    const { challenge } = await generateChallenge()
++    const alice = crypto.randomUUID()
++    const bob = crypto.randomUUID()
++
++    await expectResponse(
++      await submit(token, challenge.id, 'wrong', {
++        browserId: alice,
++        userAgent: 'alice-agent',
++      }),
++      BadFlag
++    )
++    await expectResponse(
++      await submit(token, challenge.id, challenge.flag, {
++        browserId: bob,
++        userAgent: 'bob-agent',
++      }),
++      GoodFlag
++    )
++    await expectResponse(
++      await submit(token, challenge.id, challenge.flag, {
++        browserId: alice,
++        userAgent: 'alice-agent',
++      }),
++      BadAlreadySolvedChallenge
++    )
++
++    const rows = await detailsFor(challenge.id)
++    const byResult = Object.fromEntries(
++      rows.map(row => [row.result, row.details])
++    )
++    expect(byResult.incorrect).toMatchObject({
++      browserId: alice,
++      userAgent: 'alice-agent',
++      submittedFlag: 'wrong',
++    })
++    expect(byResult.correct).toMatchObject({
++      browserId: bob,
++      userAgent: 'bob-agent',
++      submittedFlag: challenge.flag,
++    })
++    expect(byResult.already_solved).toMatchObject({
++      browserId: alice,
++      userAgent: 'alice-agent',
++    })
++  })
++
++  test('records no browser for a client without the cookie', async () => {
++    const team = await generateRealTestUser()
++    const token = await generateAuthToken(team.user.id)
++    const { challenge } = await generateChallenge()
++
++    const res = await submit(token, challenge.id, 'wrong')
++    await expectResponse(res, BadFlag)
++    expect(issuedBrowserId(res)).toBeDefined()
++
++    const [row] = await detailsFor(challenge.id)
++    expect(row!.details).not.toHaveProperty('browserId')
++  })
++
++  test('truncates long user agents', async () => {
++    const team = await generateRealTestUser()
++    const token = await generateAuthToken(team.user.id)
++    const { challenge } = await generateChallenge()
++
++    await submit(token, challenge.id, 'wrong', {
++      browserId: crypto.randomUUID(),
++      userAgent: 'a'.repeat(2000),
++    })
++
++    const [row] = await detailsFor(challenge.id)
++    expect((row!.details.userAgent as string).length).toBe(512)
++  })
++
++  test('admins filter submissions by browser', async () => {
++    const admin = await generateRealTestUser(
++      Permissions.usersWrite | Permissions.challsRead
++    )
++    const adminToken = await generateAuthToken(admin.user.id)
++    const team = await generateRealTestUser()
++    const token = await generateAuthToken(team.user.id)
++    const alice = crypto.randomUUID()
++    const bob = crypto.randomUUID()
++
++    // separate challenges, so the per-challenge rate limit doesn't apply
++    for (const browserId of [alice, alice, bob, undefined]) {
++      const { challenge } = await generateChallenge()
++      await expectResponse(
++        await submit(token, challenge.id, 'wrong', { browserId }),
++        BadFlag
++      )
++    }
++
++    const filter = async (browser: Record<string, string[]>) => {
++      const res = await request(
++        app,
++        '/api/v2/admin/submissions?limit=100&offset=0',
++        {
++          method: 'POST',
++          headers: {
++            'Content-Type': 'application/json',
++            Authorization: `Bearer ${adminToken}`,
++          },
++          body: JSON.stringify({ browser }),
++        }
++      )
++      const body = await expectResponse(res, GoodAdminSubmissions)
++      return body.data.submissions.map(
++        (submission: any) => submission.details.browserId ?? ''
++      )
++    }
++
++    expect(await filter({ include: [alice] })).toEqual([alice, alice])
++    expect((await filter({ exclude: [alice] })).sort()).toEqual(
++      [bob, ''].sort()
++    )
++    expect(await filter({ include: [''] })).toEqual([''])
++  })
++})

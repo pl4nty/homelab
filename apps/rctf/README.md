@@ -1,45 +1,32 @@
 # rctf
 
-[rCTF](https://github.com/redpwn/rctf) with per-member logins. Upstream has one login per team, so every flag, solve and login belongs to the whole team. `rctf.patch` lets each member in a team's member list (the existing prize-eligibility emails) log in as themselves, and records which member did what.
+[otter-sec/rctf](https://github.com/otter-sec/rctf) v2.1.6 with each submission linked to the browser that sent it. Teams share one login, so upstream's submission log can only tell submitters apart by IP. `rctf.patch` adds a browser ID.
 
-## Logins
+## Browser ID
 
-- **Team token:** unchanged. The session is the whole team, and it is the only session that can manage the team: members, name, email, division and CTFtime.
-- **Member, by email** (needs an email provider): on the account recovery page, a member enters their email and gets a single-use login link. An email that is both the team email and a member email gets both links.
-- **Member, by link:** the team's profile has a Copy Login button for each member. The `/login?token=` link does not expire. Anyone with the team token can get any member's link, so this attributes work only within a team that trusts its captain.
+The API gives each client an `rctf_browser` cookie: a random UUID, `HttpOnly`, `SameSite=Lax`, `Secure` when `origin` is HTTPS, kept for 400 days. Each flag and admin bot submission records it, and the user agent (first 512 characters), in `submission_logs.details`, as `browserId` and `userAgent`. It is also in each API log line, as `browserId`.
 
-Member sessions don't get the team token and can't manage the team. They keep the team's `perms`, so an admin team's members are admins. Deleting a member ends their sessions and makes their link invalid, but keeps their records. Login tokens issued before this patch stay valid as team sessions.
+- The ID identifies a cookie jar, not a person. A private window, another browser or cleared cookies get a new ID, and people who share a browser share one.
+- Anyone can send any ID, so treat it as a hint, like the IP.
+- A client that sends no cookie, such as a script, gets no `browserId`. Its responses issue one, which a client that keeps cookies sends from then on.
+- Upstream already records the IP, the submitted flag and a `cheated` result for another team's dynamic flag.
 
-## Records
+## Admin view
 
-| Table | Rows | Member columns |
-| --- | --- | --- |
-| `submissions` | each flag that is checked: `badFlag`, `goodFlag` or `badAlreadySolvedChallenge`, with the flag (first 1024 characters) and IP | `memberid`, `memberemail` (a copy that is kept when the member is deleted) |
-| `logins` | each auth token issued: `teamToken`, `memberToken`, `memberEmail`, `recover` or `ctftime`, with IP and user agent | `memberid`, `memberemail` |
-| `solves` | unchanged, plus a column | `memberid` |
-
-The table does not record attempts that are rejected before the flag is checked: rate limited, unknown challenge, before or after the CTF, or blocked by `requireMemberLogin`. Registration is not recorded as a login. Each authenticated request's log line also has `member`.
-
-The team's own profile shows who solved each challenge. Public profiles don't.
-
-Admins (`challsRead` permission) can query the records:
+On Admin → Submissions, expand a submission to see its browser and user agent. Select the browser to show only its submissions. The **Browser** filter lists the browsers in the loaded submissions; "No browser cookie" matches submissions without one. The API takes the same filter:
 
 ```sh
-curl -H "Authorization: Bearer $ADMIN_AUTH_TOKEN" "$ORIGIN/api/v1/admin/submissions?userid=<team id>&limit=100&offset=0"
-curl -H "Authorization: Bearer $ADMIN_AUTH_TOKEN" "$ORIGIN/api/v1/admin/logins?memberid=<member id>"
+curl -X POST -H "Authorization: Bearer $ADMIN_TOKEN" -H 'Content-Type: application/json' \
+  -d '{"browser": {"include": ["<browser id>"]}}' "$ORIGIN/api/v2/admin/submissions?limit=100&offset=0"
 ```
 
-`/admin/submissions` filters by `userid`, `memberid` and `challengeid`. `/admin/logins` filters by `userid` and `memberid`. Both return the newest rows first, with `limit` up to 1000.
+```sql
+SELECT details->>'browserId' AS browser, user_id, count(*)
+FROM submission_logs GROUP BY 1, 2 ORDER BY 3 DESC;
+```
 
-## Config
+The filter scans `details` without an index, which is fine for one CTF's submissions.
 
-| Key | Env | Default | Effect |
-| --- | --- | --- | --- |
-| `userMembers` | `RCTF_USER_MEMBERS` | `true` | upstream's member list; member logins need it |
-| `requireMemberLogin` | `RCTF_REQUIRE_MEMBER_LOGIN` | `false` | reject flags from team sessions, so every submission has a member |
+## Build
 
-`proxy.cloudflare` or `proxy.trust` must be set for the recorded IPs to be clients, not the proxy.
-
-## Upgrading
-
-The migration only adds a column and tables, and `database.migrate: before` runs it. The client is built on upstream's Node 12, because preact-cli 3 fails on newer Node. The server runs on Node 22 (upstream runs it on Node 12, which reached end of life in 2022).
+The Dockerfile builds the patched API and web app with upstream's steps, and copies them over `ghcr.io/otter-sec/rctf:v2.1.6`, so nginx, supervisord and the CLI are upstream's. The patch adds no dependencies and no migration. To upgrade, bump the `src` commit in `docker-bake.hcl` and the image in the `Dockerfile` together, then rebase the patch.
