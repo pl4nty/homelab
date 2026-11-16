@@ -27,7 +27,7 @@ from xml.sax.saxutils import escape
 from PIL import Image, PngImagePlugin
 
 from . import similar
-from .colour import adjust, balance, dominant
+from .colour import adjust, dominant
 from .tag import rotate_image
 
 STATES = ("pending", "approved")
@@ -165,8 +165,6 @@ class Store:
         self,
         id: str,
         rotate: float = 0.0,
-        warmth: float = 0.0,
-        tint: float = 0.0,
         target: str | None = None,
         hue: float = 0.0,
         saturation: float = 0.0,
@@ -182,7 +180,6 @@ class Store:
             dpi = dpi_of(im)
             if hue or saturation or brightness:
                 im = adjust(im, target or dominant(im), hue, saturation, brightness)
-            im = balance(im, warmth, tint)
             if rotate % 360:
                 im = rotate_image(im, rotate, dpi)
             changes = {k: v for k, v in fields.items() if k in EDITABLE and v is not None}
