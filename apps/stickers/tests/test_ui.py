@@ -225,6 +225,18 @@ def test_upload_review_publish_edit(page, server, tmp_path):
     page.wait_for_function(
         "document.querySelector('.stage img').src.includes('preview.webp?warmth=0.5')"
     )
+    page.eval_on_selector(".target", "e => (e.value = '#000000')")
+    page.click("[data-tool=pick]")
+    box = page.locator(".stage").bounding_box()
+    page.mouse.click(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    page.wait_for_function("document.querySelector('.target').value !== '#000000'")
+    page.eval_on_selector(
+        "[name=saturation]",
+        "e => { e.value = -0.5; e.dispatchEvent(new Event('input', {bubbles: true})) }",
+    )
+    page.wait_for_function(
+        "document.querySelector('.stage img').src.includes('saturation=-0.5&brightness=0&target=%23')"
+    )
     page.screenshot(path=f"/tmp/ui-{page.kind}-editor.png")
     no_sideways_scroll(page)
     page.click("dialog [name=title]")

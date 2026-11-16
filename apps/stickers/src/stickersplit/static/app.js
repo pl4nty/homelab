@@ -10,6 +10,7 @@ const h = (html) => {
 const SIZES = [256, 512, 1024, 2048];
 const src = (m, px) => `/i/${m.id}/${SIZES.find((s) => s >= px) ?? 2048}.webp?v=${m.v}`;
 const pngUrl = (m) => `${location.origin}/i/${m.id}.png?v=${m.v}`;
+const NEUTRAL = { warmth: 0, tint: 0, hue: 0, saturation: 0, brightness: 0 };
 const norm = (a) => Math.round(((((a % 360) + 540) % 360) - 180) * 10) / 10;
 const mode = { '/submit': 'submit', '/admin': 'admin' }[location.pathname.replace(/\/$/, '')] ?? 'public';
 const token = decodeURIComponent(location.hash.slice(1));
@@ -263,7 +264,7 @@ function viewer(list, i) {
 }
 
 // The editor: rotate by dragging (or two-finger twist), zoom with the wheel or a pinch,
-// level by drawing along an edge, and white-balance. Rotation and colour are applied
+// level by drawing along an edge, white-balance, and recolour one picked colour. Rotation and colour are applied
 // server-side once, on save; the colour preview comes from the same server code.
 function editor(list, i, changed) {
   list = [...list];
@@ -272,8 +273,11 @@ function editor(list, i, changed) {
     rot,
     zoom,
     pan,
-    warmth,
-    tint,
+    col,
+    target,
+    main,
+    orig,
+    shown,
     tool = 'rotate',
     busy = false,
     shade,
@@ -291,8 +295,8 @@ function editor(list, i, changed) {
     rot = 0;
     zoom = 1;
     pan = [0, 0];
-    warmth = 0;
-    tint = 0;
+    col = { ...NEUTRAL };
+    target = main = orig = null;
     setParams((p) => p.set('s', m.id));
     const [label, state] = m.state === 'approved' ? ['Save changes', null] : ['Publish', 'approved'];
     fill(
@@ -305,10 +309,10 @@ function editor(list, i, changed) {
           <output class="readout"></output>
         </div>
         <div class="tools">
-          ${['rotate', 'pan', 'level']
+          ${['rotate', 'pan', 'level', 'pick']
             .map(
               (t) => `<button type="button" class="btn" data-tool="${t}" aria-pressed="${t === tool}"
-            ${t === 'level' ? 'title="Drag along an edge that should be level or upright"' : ''}>${{ rotate: 'Rotate', pan: 'Move', level: 'Level' }[t]}</button>`,
+            ${{ level: 'title="Drag along an edge that should be level or upright"', pick: 'title="Click the colour to change with Hue, Saturation and Brightness"' }[t] ?? ''}>${{ rotate: 'Rotate', pan: 'Move', level: 'Level', pick: 'Pick colour' }[t]}</button>`,
             )
             .join('')}
           <span class="gap"></span>
@@ -332,6 +336,11 @@ function editor(list, i, changed) {
         <div class="field colour"><span>Colour, for holo foil that scanned too blue</span>
           <label>Warmth <input type="range" name="warmth" min="-1" max="1" step="0.05" value="0"></label>
           <label>Tint <input type="range" name="tint" min="-1" max="1" step="0.05" value="0"></label>
+          <span>One colour: the main one, or one chosen with Pick colour</span>
+          <label>Colour <input type="color" class="target" value="#808080"></label>
+          <label>Hue <input type="range" name="hue" min="-180" max="180" step="5" value="0"></label>
+          <label>Saturation <input type="range" name="saturation" min="-1" max="1" step="0.05" value="0"></label>
+          <label>Brightness <input type="range" name="brightness" min="-1" max="1" step="0.05" value="0"></label>
           <div class="find"><button type="button" class="btn" data-act="auto">Auto</button><button type="button" class="btn" data-act="neutral">Reset</button></div></div>
         <div class="field dupes" hidden><span>Possible duplicates</span><ul></ul></div>
         ${findOnline(m)}
@@ -369,14 +378,45 @@ function editor(list, i, changed) {
 
   function recolour() {
     // debounced: each change asks the server for a preview
-    $('[name=warmth]', d).value = warmth;
-    $('[name=tint]', d).value = tint;
+    for (const k in col) $(`[name=${k}]`, d).value = col[k];
+    if (target) $('.target', d).value = target;
+    const q = new URLSearchParams({ ...col, ...(target && { target }), v: m.v });
     clearTimeout(shade);
     shade = setTimeout(
-      () =>
-        (img().src = warmth || tint ? `/i/${m.id}/preview.webp?warmth=${warmth}&tint=${tint}&v=${m.v}` : src(m, 2048)),
+      () => (img().src = Object.values(col).some(Boolean) ? `/i/${m.id}/preview.webp?${q}` : src(m, 2048)),
       120,
     );
+  }
+
+  async function pick([x, y]) {
+    const im = img(),
+      r = stage().getBoundingClientRect(),
+      id = m.id;
+    const p = new DOMMatrix(getComputedStyle(im).transform)
+      .inverse()
+      .transformPoint(new DOMPoint(x - r.left - r.width / 2, y - r.top - r.height / 2));
+    const [u, v] = [p.x / shown[0], p.y / shown[1]];
+    if (!orig) {
+      // the scan as it is, not the preview
+      const o = new Image();
+      o.src = src(m, 1024);
+      await o.decode();
+      if (id !== m.id) return;
+      orig = new OffscreenCanvas(o.naturalWidth, o.naturalHeight).getContext('2d', { willReadFrequently: true });
+      orig.drawImage(o, 0, 0);
+    }
+    const { width: w, height: hh } = orig.canvas;
+    const px = orig.getImageData(Math.round(u * w) - 2, Math.round(v * hh) - 2, 5, 5).data;
+    const sum = [0, 0, 0, 0];
+    for (let k = 0; k < px.length; k += 4)
+      if (px[k + 3] > 200) for (let c = 0; c < 4; c++) sum[c] += c < 3 ? px[k + c] : 1;
+    if (!sum[3]) return toast('Click a colour on the sticker');
+    const hex = (c) =>
+      Math.round(c / sum[3])
+        .toString(16)
+        .padStart(2, '0');
+    target = `#${sum.slice(0, 3).map(hex).join('')}`;
+    recolour();
   }
 
   function paint() {
@@ -384,6 +424,7 @@ function editor(list, i, changed) {
       im = img();
     if (!im?.naturalWidth) return;
     const [W, H, w, hh] = [s.clientWidth, s.clientHeight, im.naturalWidth, im.naturalHeight];
+    shown = [w, hh];
     const t = (rot * Math.PI) / 180,
       c = Math.abs(Math.cos(t)),
       sn = Math.abs(Math.sin(t));
@@ -451,7 +492,7 @@ function editor(list, i, changed) {
       } else if (tool === 'pan') {
         pan = [g.pan[0] + p[0][0] - g.p0[0], g.pan[1] + p[0][1] - g.p0[1]];
         paint();
-      } else {
+      } else if (tool === 'level') {
         const r = s.getBoundingClientRect(),
           line = $('line', s);
         [
@@ -477,6 +518,7 @@ function editor(list, i, changed) {
           toast(`Levelled by ${norm(fix)}°`);
         }
       }
+      if (tool === 'pick' && g.n === 1 && Math.hypot(end[0] - g.p0[0], end[1] - g.p0[1]) < 8) pick(end);
       if (pts.size) begin();
     };
     s.onwheel = (e) => {
@@ -502,8 +544,8 @@ function editor(list, i, changed) {
           comment: f.get('comment'),
           creator: f.get('creator'),
           rotate: norm(rot),
-          warmth,
-          tint,
+          ...col,
+          target,
           state: state || null,
         },
       });
@@ -547,13 +589,13 @@ function editor(list, i, changed) {
       paint();
     } else if (b.dataset.act === 'save') save(null);
     else if (b.dataset.act === 'neutral') {
-      warmth = tint = 0;
+      col = { ...NEUTRAL };
       recolour();
     } else if (b.dataset.act === 'auto') {
       const c = await api(`/api/stickers/${m.id}/balance`);
       if (!c.warmth && !c.tint) toast('No blue cast found in the bright parts');
       else {
-        ({ warmth, tint } = c);
+        Object.assign(col, c);
         recolour();
       }
     } else if (b.dataset.act === 'unpublish') save('pending');
@@ -592,10 +634,19 @@ function editor(list, i, changed) {
       }
     }
   });
-  d.addEventListener('input', (e) => {
-    if (e.target.type !== 'range') return;
-    if (e.target.name === 'warmth') warmth = +e.target.value;
-    else tint = +e.target.value;
+  d.addEventListener('input', async (e) => {
+    const k = e.target.name;
+    if (e.target.classList.contains('target')) target = e.target.value;
+    else if (e.target.type === 'range') {
+      col[k] = +e.target.value;
+      if (!target && k !== 'warmth' && k !== 'tint') {
+        main ??= api(`/api/stickers/${m.id}/dominant`).then(
+          (c) => c.colour,
+          () => null,
+        );
+        target = await main;
+      }
+    } else return;
     recolour();
   });
   d.addEventListener('keydown', (e) => {
