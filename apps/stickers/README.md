@@ -65,6 +65,8 @@ Holographic foil scans blue or cyan: the scanner lights it from one fixed angle,
 
 The editor has **Warmth** and **Tint** sliders, **Auto** and **Reset**, with a preview computed by the same code as the save.
 
+**One colour:** **Hue**, **Saturation** and **Brightness** change only the sticker's main colour, or the one clicked with **Pick colour**. Hues within 30° of it change fully, fading out by 60°, and greys don't change. Warmth and tint can't fix a sticker whose foil scanned cyan while its silver edge and white ink scanned right: on the CTF cat, Auto (warmth 1, tint 0.5) turned the edge salmon and the red flag magenta. Saturation −0.9 and brightness +0.3 on the cyan made it silver and left the red, green, black and edge as scanned. Hue-mates change too: the cat's blue-grey stripes went grey.
+
 **Reference test:** PentesterLab's "Read Code Receive Bug" exists in a plain white version and a holo version. Aligning the two (435 matched points) lines up the plain version's white paper with the holo version's foil.
 
 | | Foil colour (CIELAB b*, chroma) | Ink |

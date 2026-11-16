@@ -360,13 +360,17 @@ a.btn {
 }
 .colour label {
   display: grid;
-  grid-template-columns: 64px 1fr;
+  grid-template-columns: 84px 1fr;
   align-items: center;
   font-size: 14px;
 }
 .colour input[type="range"] {
   accent-color: var(--secondary);
   width: 100%;
+}
+.colour input[type="color"] {
+  height: 32px;
+  padding: 2px;
 }
 .dupes ul {
   list-style: none;
@@ -638,7 +642,8 @@ dialog.sheet::backdrop {
 .stage[data-tool="pan"] {
   cursor: move;
 }
-.stage[data-tool="level"] {
+.stage[data-tool="level"],
+.stage[data-tool="pick"] {
   cursor: crosshair;
 }
 .stage img {
