@@ -10,7 +10,7 @@ const h = (html) => {
 const SIZES = [256, 512, 1024, 2048];
 const src = (m, px) => `/i/${m.id}/${SIZES.find((s) => s >= px) ?? 2048}.webp?v=${m.v}`;
 const pngUrl = (m) => `${location.origin}/i/${m.id}.png?v=${m.v}`;
-const NEUTRAL = { warmth: 0, tint: 0, hue: 0, saturation: 0, brightness: 0 };
+const NEUTRAL = { hue: 0, saturation: 0, brightness: 0 };
 const norm = (a) => Math.round(((((a % 360) + 540) % 360) - 180) * 10) / 10;
 const mode = { '/submit': 'submit', '/admin': 'admin' }[location.pathname.replace(/\/$/, '')] ?? 'public';
 const token = decodeURIComponent(location.hash.slice(1));
@@ -264,7 +264,7 @@ function viewer(list, i) {
 }
 
 // The editor: rotate by dragging (or two-finger twist), zoom with the wheel or a pinch,
-// level by drawing along an edge, white-balance, and recolour one picked colour. Rotation and colour are applied
+// level by drawing along an edge, and recolour one colour. Rotation and colour are applied
 // server-side once, on save; the colour preview comes from the same server code.
 function editor(list, i, changed) {
   list = [...list];
@@ -333,10 +333,7 @@ function editor(list, i, changed) {
         <label class="field"><span>Tags, separated by commas</span><input name="tags" value="${esc(m.tags.join(', '))}" autocapitalize="none"></label>
         <label class="field"><span>How it was acquired</span><textarea name="comment" rows="2">${esc(m.comment)}</textarea></label>
         <label class="field"><span>Added by</span><input name="creator" value="${esc(m.creator)}" autocomplete="name"></label>
-        <div class="field colour"><span>Colour, for holo foil that scanned too blue</span>
-          <label>Warmth <input type="range" name="warmth" min="-1" max="1" step="0.05" value="0"></label>
-          <label>Tint <input type="range" name="tint" min="-1" max="1" step="0.05" value="0"></label>
-          <span>One colour: the main one, or one chosen with Pick colour</span>
+        <div class="field colour"><span>Colour: the main one, or one chosen with Pick colour. Auto greys holo foil that scanned blue</span>
           <label>Colour <input type="color" class="target" value="#808080"></label>
           <label>Hue <input type="range" name="hue" min="-180" max="180" step="5" value="0"></label>
           <label>Saturation <input type="range" name="saturation" min="-1" max="1" step="0.05" value="0"></label>
@@ -592,10 +589,10 @@ function editor(list, i, changed) {
       col = { ...NEUTRAL };
       recolour();
     } else if (b.dataset.act === 'auto') {
-      const c = await api(`/api/stickers/${m.id}/balance`);
-      if (!c.warmth && !c.tint) toast('No blue cast found in the bright parts');
+      const c = await api(`/api/stickers/${m.id}/auto`);
+      if (!c) toast('Its main colour is not blue, so Auto left it');
       else {
-        Object.assign(col, c);
+        ({ target, ...col } = c);
         recolour();
       }
     } else if (b.dataset.act === 'unpublish') save('pending');
@@ -639,7 +636,7 @@ function editor(list, i, changed) {
     if (e.target.classList.contains('target')) target = e.target.value;
     else if (e.target.type === 'range') {
       col[k] = +e.target.value;
-      if (!target && k !== 'warmth' && k !== 'tint') {
+      if (!target) {
         main ??= api(`/api/stickers/${m.id}/dominant`).then(
           (c) => c.colour,
           () => null,

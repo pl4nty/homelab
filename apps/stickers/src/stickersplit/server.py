@@ -54,8 +54,6 @@ class Edit(BaseModel):
     comment: str | None = None
     creator: str | None = None
     rotate: float = 0.0
-    warmth: float = 0.0
-    tint: float = 0.0
     target: str | None = Field(None, pattern=HEX)
     hue: float = 0.0
     saturation: float = 0.0
@@ -117,8 +115,8 @@ class Worker:
                         log.warning("tagging %s failed: %s", rec["file"], e)
                 with Image.open(Path(tmp) / rec["file"]) as im:
                     im.load()
-                if "holo" in rec.get("tags", []):
-                    im = colour.balance(im, *colour.auto(im))
+                if "holo" in rec.get("tags", []) and (fix := colour.auto(im)):
+                    im = colour.adjust(im, **fix)
                 self.store.add(
                     im,
                     "pending",
@@ -208,12 +206,11 @@ def create_app(
             a, s, s0 = symmetry_angle(im)
         return {"angle": a, "score": s, "score0": s0}
 
-    @app.get("/api/stickers/{id}/balance")
-    def balance(id: str, r=Depends(role)):
+    @app.get("/api/stickers/{id}/auto")
+    def auto(id: str, r=Depends(role)):
         need(r, "admin")
         with Image.open(store.thumb(get(id).id, 512)) as im:
-            warmth, tint = colour.auto(im)
-        return {"warmth": warmth, "tint": tint}
+            return colour.auto(im)
 
     @app.get("/api/stickers/{id}/dominant")
     def dominant(id: str, r=Depends(role)):
@@ -345,8 +342,6 @@ def create_app(
     @app.get("/i/{id}/preview.webp")
     def preview(
         id: str,
-        warmth: float = 0.0,
-        tint: float = 0.0,
         target: str | None = Query(None, pattern=HEX),
         hue: float = 0.0,
         saturation: float = 0.0,
@@ -354,13 +349,12 @@ def create_app(
     ):
         """The editor's colour preview, computed by the same code as the save."""
         get(id)
-        c = lambda x: max(-2.0, min(2.0, x))
+        c = lambda x: max(-1.0, min(1.0, x))
         with Image.open(store.thumb(id, 1024)) as im:
             out = BytesIO()
-            im = colour.adjust(
+            colour.adjust(
                 im, target, max(-180.0, min(180.0, hue)), c(saturation), c(brightness)
-            )
-            colour.balance(im, c(warmth), c(tint)).save(out, "WEBP", quality=85)
+            ).save(out, "WEBP", quality=85)
         return Response(out.getvalue(), media_type="image/webp")
 
     @app.get("/i/{id}/{px}.webp")

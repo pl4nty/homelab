@@ -59,26 +59,25 @@ It must never tag colours, shapes, objects, characters, the brand or words from 
 
 ## Holo colour
 
-Holographic foil scans blue or cyan: the scanner lights it from one fixed angle, so the foil reflects one band of colour instead of a rainbow. Every sticker tagged `holo` is corrected automatically at ingest:
-- **Estimate:** the cast is measured from the sticker's bright, non-white pixels. If they are not blue, the sticker is left alone.
-- **Correct:** warmth and tint gains are faded in by brightness, so dark ink keeps its colour. The gains are adjusted repeatedly until those pixels average neutral; a single step under-corrected.
+Holographic foil scans blue or cyan: the scanner lights it from one fixed angle, so the foil reflects one band of colour instead of a rainbow.
 
-The editor has **Warmth** and **Tint** sliders, **Auto** and **Reset**, with a preview computed by the same code as the save.
+The editor has **Hue**, **Saturation** and **Brightness** sliders for one colour: the sticker's main colour, or one clicked with **Pick colour**. Colours change fully within 30° of its hue and 25 L* of its lightness, fading out by 60° and 50 L*, and greys don't change. So the foil can be greyed while the silver edge, white and black ink, and other inks keep their scanned colour. The preview is computed by the same code as the save.
 
-**One colour:** **Hue**, **Saturation** and **Brightness** change only the sticker's main colour, or the one clicked with **Pick colour**. Hues within 30° of it change fully, fading out by 60°, and greys don't change. Warmth and tint can't fix a sticker whose foil scanned cyan while its silver edge and white ink scanned right: on the CTF cat, Auto (warmth 1, tint 0.5) turned the edge salmon and the red flag magenta. Saturation −0.9 and brightness +0.3 on the cyan made it silver and left the red, green, black and edge as scanned. Hue-mates change too: the cat's blue-grey stripes went grey.
+**Auto**, and every sticker tagged `holo` at ingest, targets the main light cyan or blue (L* over 52, covering a tenth of the sticker), cuts its chroma to 3 and lifts it to L* 78. A sticker without one is left alone, so printed blue ink (Intel's, L* 45) and warm or green designs keep their colour.
 
-**Reference test:** PentesterLab's "Read Code Receive Bug" exists in a plain white version and a holo version. Aligning the two (435 matched points) lines up the plain version's white paper with the holo version's foil.
+This replaced a whole-sticker warmth/tint gain, faded in by brightness. That gain greyed foil on average, but it pushed every bright neutral the other way. Compared on the published holo stickers:
 
-| | Foil colour (CIELAB b*, chroma) | Ink |
+| Sticker | Warmth/tint gain | One colour |
 |---|---|---|
-| Plain version's white paper (the target) | b* −2.8, chroma 2.8 | unchanged reference |
-| Holo, as scanned | b* −50.5, chroma 50.5 | |
-| Holo, one-step correction (the first version) | b* −23, chroma 23 | |
-| Holo, Auto now | b* −7.4, chroma 7.4 | lightness and colour unchanged |
+| CTF cat (cyan foil, silver edge) | edge salmon, red flag magenta | foil silver, edge and inks unchanged |
+| PentesterLab "Read Code Receive Bug" | orange streaks, foil grey-blue | foil silver-white, like the plain version |
+| Patchstack "Hello, My Password Is" | lime ring turned orange | ring stays lime |
+| Skull with eyepatch | green eye turned orange | eye stays green |
+| Intel Core i7 | unchanged | unchanged |
 
 **Limits:**
-- Neutral on average is not how foil looks: a scanner can't capture the rainbow, so corrected foil looks silver-grey with streaks.
-- A design that really is blue, such as US Cyber Team's Bluey, gets greyed too. Use Reset for those.
+- A scanner can't capture the rainbow, so corrected foil looks silver-grey.
+- Inks near the foil's hue and lightness are greyed too: the CTF cat's blue whiskers, the globe on PentesterLab's "Hack The Planet", and a design that really is light blue, such as US Cyber Team's Bluey. Use Reset, or pick another colour.
 
 ## Duplicates
 
