@@ -32,6 +32,20 @@ spec:
             retries: 3
     target:
       kind: HelmRelease
+  # app-template creates a ServiceAccount per release by default. default holds the
+  # app-template releases, and the other charts there ignore the value
+  - patch: |-
+      apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      metadata:
+        name: not-used
+      spec:
+        values:
+          global:
+            createDefaultServiceAccount: false
+    target:
+      kind: HelmRelease
+      namespace: default
   decryption:
     provider: sops
     secretRef:
