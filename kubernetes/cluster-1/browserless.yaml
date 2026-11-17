@@ -2,16 +2,13 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: browserless${APP_SUFFIX:=}
+  name: browserless
   namespace: default
-  annotations:
-    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chartRef:
     kind: OCIRepository
     name: app-template
-    namespace: default
   values:
     global:
       createDefaultServiceAccount: false
@@ -55,6 +52,5 @@ spec:
 
     persistence:
       tmp:
-        retain: ${APP_RETAIN:=true}
         accessMode: ReadWriteOnce
         size: 4Gi
