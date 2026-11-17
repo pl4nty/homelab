@@ -1,118 +1,104 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-    name: private-0
-    namespace: default
+  name: private-0
+  namespace: default
 spec:
-    interval: 15m
-    chart:
-        spec:
-            chart: app-template
-            version: 3.0.4
-            sourceRef:
-                kind: HelmRepository
-                name: bjw-s
-                namespace: flux-system
-    maxHistory: 3
-    install:
-        createNamespace: true
-        remediation:
-            retries: 3
-    upgrade:
-        cleanupOnFail: true
-        remediation:
-            retries: 3
-    uninstall:
-        keepHistory: false
-    values:
-        controllers:
-            main:
-                strategy: RollingUpdate
-                rollingUpdate:
-                    unavailable: 0
-                containers:
-                    main:
-                        image:
-                            repository: ENC[AES256_GCM,data:WCZ9yC0f6EBGMOtSlKQ=,iv:ANTH4eW5Sp64lrHP6IVsKDImTtJkloKaHVSKxTwNIoo=,tag:i3Uj+geZohFxr9RWNOYT0g==,type:str]
-                            tag: ENC[AES256_GCM,data:xkt5pk3BVA==,iv:uWnZ7wpYqCn2NcAGd6Pqfmg4pHiKo++vt0+L+4n7AT4=,tag:EaaVyDB404eVqJQHEINz5w==,type:str]
-                        env:
-                            - name: ENC[AES256_GCM,data:T/oRGxJQlDsAvV4=,iv:5ZYhuwd6Qdkgw9h9ic+uj2TqKslHrEo/bnIoPaGeszA=,tag:UvMlt2PNgBy3uNZFnj4yuQ==,type:str]
-                              value: ENC[AES256_GCM,data:xlq4a+Rv,iv:fwT2lO8jC7roAdWh90dS5GN0YWi/aKdp+lBZeSlcfww=,tag:PnVsa3fTDqtVPu8BEhAKKQ==,type:str]
-                            - name: ENC[AES256_GCM,data:0sRBxrOV8LDimAnvuLV5,iv:EXX53RY1Iw107yQO+/GJyAK4qDv4Nl+kcnPq1R4SkeQ=,tag:Zunk2y5yXZYtwrE8qe/NQw==,type:str]
-                              value: ENC[AES256_GCM,data:i/umziUR6vGdBxU=,iv:Qkr6+G8lzN2EffQX4KLRdas71z8k+k1Fb8XeaC20Ss8=,tag:UQIHCqHzHHz0mwQ3ywnbYg==,type:str]
-                            - name: ENC[AES256_GCM,data:87fSx+lQAE10Pz3jxxA=,iv:jm7Zqg6hQ3z9QiUzpD+lKIoPUvJoD+/H9WtJVyYBEJI=,tag:d5gIqe20lmZbJCKvbX+tqQ==,type:str]
-                              value: ENC[AES256_GCM,data:/5nyhATOpgxVog==,iv:QG+rBik0cK6HfnTtYTV/DkCK2sR89+RfgmIAWklEVYw=,tag:8oUPfZXq5+bq6Sqd9vrtHQ==,type:str]
-                            - name: ENC[AES256_GCM,data:K3fqIuuw58m2tAg=,iv:6pKFsIxiu5mdbdQE2pGg+r7IbCD86lwbCOMX1Lc1LLA=,tag:xKfbbT71sABCWxnOu3MPMw==,type:str]
-                              value: ENC[AES256_GCM,data:VwI09HBp+A==,iv:n5hq1pCxB6hRBcrJGV4FTVK1V1uFQjako8e+BSGQFXs=,tag:EHIrPNYQYeEmJujLaOtBaw==,type:str]
-                        probes:
-                            liveness:
-                                enabled: true
-                            readiness:
-                                enabled: true
-                            startup:
-                                enabled: true
-                    sidecar-0:
-                        image:
-                            repository: ENC[AES256_GCM,data:z77iI9SWStkt9lcrn0lYAI7Fj+8/uT4=,iv:WfdzEK18LE241kilZ5Od33M2GY+w9WgSUHYA9fiQdZY=,tag:gyKoR0Q+S9wkzEdUzoPMQw==,type:str]
-                            tag: ENC[AES256_GCM,data:6rhESDuXwf3PKw==,iv:LBPdSJeGr0x89R6/VsHpnz08qg0r9++6i+QY1wCzu9o=,tag:dYaSSS230tSsmKjWcrbd8w==,type:str]
-                        env:
-                            DOWNLOAD_DIR: ENC[AES256_GCM,data:O+5w3Uc=,iv:RuOqaiy4zz62wJG3UXO8SGOAdPD4SoE7ypSgHgr05zM=,tag:CgGLBCMwbiDPXAd38fxoIw==,type:str]
-                        probes:
-                            liveness:
-                                enabled: true
-                            readiness:
-                                enabled: true
-                            startup:
-                                enabled: true
-        persistence:
-            config:
-                accessMode: ReadWriteOnce
-                size: 1Gi
-                globalMounts:
-                    - path: /root/.stash
-            data:
-                accessMode: ReadWriteOnce
-                size: 32Gi
-                globalMounts:
-                    - path: /data
-            meta:
-                accessMode: ReadWriteOnce
-                size: 1Gi
-                globalMounts:
-                    - path: /metadata
-            generated:
-                accessMode: ReadWriteOnce
-                size: 1Gi
-                globalMounts:
-                    - path: /generated
-            cache:
-                type: emptyDir
-                globalMounts:
-                    - path: /cache
-        service:
-            main:
-                controller: main
-                type: NodePort
-                ports:
-                    http:
-                        port: 9999
-                        nodePort: 30999
-                    http-1:
-                        port: 8081
-                        nodePort: 30998
+  interval: 15m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    global:
+      createDefaultServiceAccount: false
+    controllers:
+      main:
+        strategy: RollingUpdate
+        rollingUpdate:
+          unavailable: 0
+        containers:
+          main:
+            image:
+              repository: ENC[AES256_GCM,data:rBEO8KRFUVqN2pqhwxw=,iv:j9G2u3PKcd1mLz+DOsR9F/rqr6UkgU6O05wpodecQRs=,tag:F6V7vXc4CXq9RyuOMBmEFA==,type:str]
+              tag: ENC[AES256_GCM,data:dkFbyas6Wg==,iv:+IZvF13ZCmawis79b+9uT+0y5aXp/dIWn1zMdjN0IiY=,tag:TF6a1gmae6uWIb0nNta4zQ==,type:str]
+            env:
+              - name: ENC[AES256_GCM,data:NiN2TXPGig9LYSc=,iv:Xh0RHEA800SZ9K2uwpethR1g5GXY5aIpgItCMempdcg=,tag:6QhRNUE/QFR97habh2HUnQ==,type:str]
+                value: ENC[AES256_GCM,data:jhgqmkhR,iv:IzOgphZaMKd1fTKkxh67x6JMWVLSi2VDSO18nATgPQU=,tag:AoMAuGr8RkKiEYpdBN0+ZQ==,type:str]
+              - name: ENC[AES256_GCM,data:i+huoqjxwPkKC0sng8BF,iv:agR2euetoFU8FSPhu/mCU2OZ+yTN1oZkyFDdng+fYl0=,tag:3mYJqDXLfxQhE/4jw2ZEhQ==,type:str]
+                value: ENC[AES256_GCM,data:IMg9xWw+VcwafUE=,iv:woqkaSCC0U3rk3e9p9aYriFacHRUQSUCX60WTk1IAY4=,tag:+LXpG3xndIE0etBT/pGL5g==,type:str]
+              - name: ENC[AES256_GCM,data:2K2hgKChLEhhcxInotM=,iv:mH+PPlN0a+FspVV0rZ46at0lEYVGiaVwzVUxJyvLzSQ=,tag:4IonXxkUXUUvaT1huLxDDA==,type:str]
+                value: ENC[AES256_GCM,data:tVuhdWRUNbom8A==,iv:6hOEVFm9fM69ay+rzelSTWMr70k3TDLOT5Zg8GaP7w4=,tag:ZJUaWBULNMeqvnyWD4IOXw==,type:str]
+              - name: ENC[AES256_GCM,data:ZOIRIqTSYRa07Fw=,iv:BELmzfo0mDBjPhJkD/picoW87jSNWbaHyjVT8LDtXhQ=,tag:OVeiQuh8VBKbj9cAdxCgZg==,type:str]
+                value: ENC[AES256_GCM,data:/2Y2EFhBoA==,iv:TzNhOy3Sxb+KcWrIo2E+gdtNiRZi6GXeyveSLBGHvN4=,tag:vaFjOOCh4UNLn+MVyRRpNg==,type:str]
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+          sidecar-0:
+            image:
+              repository: ENC[AES256_GCM,data:Jmjhv83g68+qpXEdDV/fstwjJwDWj4o=,iv:HW0DL5IokPeSfa5ELH7X+qa49QM71c0+NV17ynNC1Wo=,tag:dbUJFTM9V0Fx1CaaI27a7g==,type:str]
+              tag: ENC[AES256_GCM,data:NNuZUZLLlFw7hg==,iv:gkBTFi7fTyMsL9R1il69f7HGp78BcnhTx8/mNXUVMOw=,tag:5/197bvLOmuvaq7cOah+Zg==,type:str]
+            env:
+              DOWNLOAD_DIR: ENC[AES256_GCM,data:7ndhqYM=,iv:GTEhzicGGK+cDU0EuT3u7hd0yT6nt9AA3doditvORHU=,tag:L47PmhvuW2l7rUpX0/pmjQ==,type:str]
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+    persistence:
+      config:
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        globalMounts:
+          - path: /root/.stash
+      data:
+        accessMode: ReadWriteOnce
+        size: 32Gi
+        globalMounts:
+          - path: /data
+      meta:
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        globalMounts:
+          - path: /metadata
+      generated:
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        globalMounts:
+          - path: /generated
+      cache:
+        type: emptyDir
+        globalMounts:
+          - path: /cache
+    service:
+      main:
+        controller: main
+        type: NodePort
+        ports:
+          http:
+            port: 9999
+            nodePort: 30999
+          http-1:
+            port: 8081
+            nodePort: 30998
 sops:
-    age:
-        - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
-          enc: |
-              -----BEGIN AGE ENCRYPTED FILE-----
-              YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA4b2dtekNIZUxqK3pRTDYx
-              R01mK0pCOFVzU3BqcjBiamxYcmdERnFsT0dRClR4UHBGS2F4Y2dWMDU0Slp1dHMy
-              NTlPV1N5UlRlUTVWZGVZdjI5b3VBRmMKLS0tIG5BV3YvK3VBMVp3NVVXQXpKb0JD
-              MTRGNEdVem1xcmZuTm1PL2oyNWhJQ0kKtCodFUWHUZQRYBk9jDAWCcl7TjKUKhGb
-              k0zV+9uZTfKhhpg1Zgjt4uu17MlYDAFBi1YK5lG++vhlT2QtRk3xag==
-              -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2026-03-01T07:21:55Z"
-    mac: ENC[AES256_GCM,data:6mlECwgcDRf4ICTREDEmEuEXJeY8vfqlS1u4kXW+v/4H740TJqmE/+X4NCLZXo0aeH+2S9890KYj5pMFzvwCI1qGkSIhlahwMmCZO82X4xEqcQTT0jBlT/94lTNDxGP0LjTcG6kSg9HXTxWahZnlUvuFySscbJmHE6hf8jNhcDk=,iv:Tvzpf9gFAO0vY1dwj/AgM2wYOkh7rCqPutCvTvut0oI=,tag:s/06UpHcWq5NJSCXqqs5Fg==,type:str]
-    encrypted_regex: ^(image|env|args|advancedMounts)$
-    version: 3.12.1
+  age:
+    - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBFVzg4OHlRVFFDQVdWckd6
+        S1hjekgwcHZuejluaVZKVlBPWHdXcGM5cWl3ClE2eHRwczNWbkhhNzFmc3QwNlNF
+        cklkSGlSVjdYNEx3dGZRK3FROVN3R00KLS0tIHZIVytqLzJKRFA4N1d6K04yS0VF
+        ckl3M1ZKRWJNRiszTVpZNVNPMjl5TVEKo5NV+6gDK7yKn66bLwH8154rmh8cpjnk
+        /N3fxyau9j1o9tPhEvp1V99ODexxp068tsOTUpntmeop8zAI4x2rtA==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2026-11-17T13:20:02Z"
+  mac: ENC[AES256_GCM,data:qCiPzo5uPFvay4rhhNH06y167PxGiS06pF9yQZQ7ShBc1FEFzJ54ZZciwwSAGhjIGrjkD9895vZUWUr70668+XSkLT7yZ3Z6iWe33bh0yyuDndGoLUQuRDnRUJDPSBs3eaafOel4i/0KfrWniTywNCm27IqgocatUgn2ExcJ3kc=,iv:iCIpR6QT7iKPWOaJKIVlBK+TrZEL7gUFEuvpYmvQt7s=,tag:xhi+DtHm5Pfj6DRRrdqrPw==,type:str]
+  encrypted_regex: ^(image|env|args|advancedMounts)$
+  version: 3.12.2
