@@ -12,13 +12,12 @@ RUN --mount=type=cache,id=cabal-$TARGETARCH,target=/root/.cabal \
     cabal v2-update && cabal get -d vendor blank-canvas-0.7.5 && \
     patch -d vendor/blank-canvas-0.7.5 -p1 < blank-canvas.patch
 
-COPY --from=src *.cabal .
-COPY cabal.project .
+COPY *.cabal cabal.project .
 RUN --mount=type=cache,id=cabal-$TARGETARCH,target=/root/.cabal \
     cabal v2-update && cabal v2-build --only-dependencies
 
 COPY --from=src . .
-COPY cabal.project .
+COPY *.cabal cabal.project .
 RUN --mount=type=cache,id=cabal-$TARGETARCH,target=/root/.cabal \
     cabal v2-update && cabal v2-build && \
     cp -r /root/.cabal /tmp
