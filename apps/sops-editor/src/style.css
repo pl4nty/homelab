@@ -273,3 +273,41 @@ nav input {
     border-bottom: 1px solid var(--lightgray);
   }
 }
+
+#new-dialog {
+  width: min(480px, calc(100vw - 32px));
+  padding: 16px;
+  color: var(--darkgray);
+  background: var(--light);
+  border: 1px solid var(--lightgray);
+  border-radius: 5px;
+}
+
+#new-dialog:modal {
+  overscroll-behavior: contain;
+}
+
+#new-dialog::backdrop {
+  background: rgb(0 0 0 / 40%);
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+#new-dialog h2 {
+  color: var(--dark);
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+#new-dialog label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-weight: 600;
+}
+
+#new-dialog .row {
+  justify-content: flex-end;
+  margin-top: 16px;
+}

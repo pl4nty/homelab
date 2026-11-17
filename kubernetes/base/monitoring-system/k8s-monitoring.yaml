@@ -1,3 +1,18 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: k8s-monitoring
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: oci://ghcr.io/grafana/helm-charts/k8s-monitoring
+  layerSelector:
+    mediaType: 'application/vnd.cncf.helm.chart.content.v1.tar+gzip'
+    operation: copy
+  ref:
+    tag: 4.6.1
+    digest: sha256:71491492d9c6479f3802cd8bf71ea23e6955d8240fc31164654935a03c33ec28
+---
 # yaml-language-server: $schema=https://flux-helm-schema.tplant.com.au?values=https://raw.githubusercontent.com/grafana/k8s-monitoring-helm/refs/heads/main/charts/k8s-monitoring/values.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
@@ -10,19 +25,10 @@ spec:
     kind: OCIRepository
     name: k8s-monitoring
     namespace: flux-system
-  maxHistory: 3
   install:
-    createNamespace: true
-    remediation:
-      retries: 3
     crds: CreateReplace
   upgrade:
-    cleanupOnFail: true
-    remediation:
-      retries: 3
     crds: CreateReplace
-  uninstall:
-    keepHistory: false
   values:
     cluster:
       name: ${CLUSTER_NAME:=bootstrap}
@@ -309,6 +315,8 @@ spec:
             # real sessions still keep their tools/call spans
             - resource.attributes["k8s.namespace.name"] == "toolhive-system" and IsMatch(attributes["mcp.method.name"], "^(initialize|server/discover|notifications/.*|(tools|prompts|resources|resources/templates)/list)$")
             - resource.attributes["k8s.namespace.name"] == "toolhive-system" and attributes["http.request.method"] == "DELETE" and attributes["url.path"] == "/mcp"
+            # kubernetes-mcp-server wraps each MCP span in a bare POST /mcp span, so its polls would get through
+            - resource.attributes["service.name"] == "kubernetes-mcp-server" and attributes["http.request.method"] != nil
             # Beyla: Go's per-request goroutine queue/processing children, Redis (dawarich's Sidekiq polls its
             # sidecar ~400 times a minute), probe and scrape endpoints, and controllers' Kubernetes API watches
             - resource.attributes["telemetry.sdk.name"] == "beyla" and (name == "in queue" or name == "processing")
@@ -349,6 +357,10 @@ spec:
             discovery:
               instrument:
                 - k8s_namespace: default
+                - k8s_namespace: cert-manager
+                - k8s_namespace: flux-system
+                - k8s_namespace: kube-system
+                  k8s_deployment_name: arch-affinity
               # replaces the chart's default exclusion, so it's repeated first. pods the operator injects
               # are skipped up front, since detecting their OTLP export lets their first spans through twice.
               # CNPG instance managers only poll their own Postgres
@@ -514,6 +526,24 @@ spec:
 
           otelcol.receiver.tcplog "tcplog" {
             listen_address = "0.0.0.0:5044"
+
+            output {
+              logs = [otelcol.processor.filter.tcplog.input]
+            }
+          }
+
+          // auditd sends an SELinux AVC denial for each write to an unlabeled Longhorn volume, ~600MB/day and ~40GB
+          // during the 11-03 upgrades, which used up the 50GB/month free tier. machined logs the console dashboard's
+          // gRPC polls every 5s
+          otelcol.processor.filter "tcplog" {
+            error_mode = "ignore"
+
+            logs {
+              log_record = [
+                `IsMatch(body, "\"talos-service\":\"auditd\"")`,
+                `IsMatch(body, "match with service \\\\\"dashboard\\\\\"")`,
+              ]
+            }
 
             output {
               logs = [otelcol.processor.transform.tcplog.input]

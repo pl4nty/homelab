@@ -123,10 +123,13 @@ async function openFile(path) {
   });
 }
 
-async function newFile() {
+function newFile() {
   if (dirty() && !confirm('Discard unsaved changes?')) return;
-  const path = prompt('Path of the new file', 'kubernetes/oke/app.sops.yaml')?.trim();
-  if (!path) return;
+  $('new-path').value = 'kubernetes/cluster-1/apps/app.sops.yaml';
+  $('new-dialog').showModal();
+}
+
+async function createFile(path) {
   await run(`Creating ${path}`, async () => {
     const recipients = await Promise.all(identities().map(identityToRecipient));
     const ctx = await newContext(path, await sopsConfig(), recipients);
@@ -184,6 +187,12 @@ $('settings').onsubmit = (e) => {
 };
 $('filter').oninput = renderFiles;
 $('new').onclick = newFile;
+$('new-cancel').onclick = () => $('new-dialog').close();
+$('new-dialog').addEventListener('close', (e) => {
+  const path = e.target.returnValue === 'create' ? $('new-path').value.trim() : '';
+  e.target.returnValue = '';
+  if (path) createFile(path);
+});
 $('save').onclick = save;
 $('revert').onclick = () => {
   if (open) $('text').value = open.plain;

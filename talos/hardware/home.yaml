@@ -34,3 +34,12 @@ apiVersion: v1alpha1
 kind: WatchdogTimerConfig
 device: /dev/watchdog0
 timeout: 30s
+---
+# Spegel (kubernetes/cluster-1/system/spegel.yaml) serves image layers to peers, so keep them unpacked.
+# takes effect after a reboot
+apiVersion: v1alpha1
+kind: CRICustomizationConfig
+name: spegel
+content: |
+  [plugins."io.containerd.cri.v1.images"]
+    discard_unpacked_layers = false

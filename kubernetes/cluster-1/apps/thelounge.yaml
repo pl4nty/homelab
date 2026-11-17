@@ -1,17 +1,17 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app thelounge
+  name: thelounge${APP_SUFFIX:=}
   namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 1h
   chartRef:
     kind: OCIRepository
     name: app-template
   values:
-    global:
-      createDefaultServiceAccount: false
     controllers:
       thelounge:
         pod:
@@ -19,9 +19,9 @@ spec:
             instrumentation.opentelemetry.io/inject-nodejs: "true"
         containers:
           app:
-            image:
+            image: &image
               repository: ghcr.io/thelounge/thelounge
-              tag: 4.5.2@sha256:16eaa53fd6bfc648d99f5c38ae391bd5404079e876856ef9793e4397630b27c2
+              tag: 4.5.2@sha256:b19c2ef06efce2a494a7f142e5acba2db3086a591453f25916e204d342e3d194
             env:
               THELOUNGE_HOME: /config
             probes:
@@ -34,9 +34,19 @@ spec:
                 cpu: 10m
               limits:
                 memory: 512Mi
+        initContainers:
+          # the image runs as uid 1000 and chmods its home, so it must own a new volume
+          config:
+            image: *image
+            command:
+              - chown
+              - "1000:1000"
+              - /config
+            securityContext:
+              runAsUser: 0
     service:
       app:
-        controller: *app
+        controller: thelounge
         ports:
           http:
             port: &port 9000
@@ -46,13 +56,14 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - irc.${PRIVATE_DOMAIN}
+          - irc${APP_SUFFIX:=}.${PRIVATE_DOMAIN}
         rules:
           - backendRefs:
-              - name: *app
+              - identifier: app
                 port: *port
     persistence:
       config:
+        retain: ${APP_RETAIN:=true}
         accessMode: ReadWriteOnce
         size: 1Gi
         globalMounts:

@@ -1,8 +1,10 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: homepage
+  name: homepage${APP_SUFFIX:=}
   namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chart:
@@ -12,17 +14,6 @@ spec:
         kind: HelmRepository
         name: homepage
         namespace: flux-system
-  maxHistory: 3
-  install:
-    createNamespace: true
-    remediation:
-      retries: 3
-  upgrade:
-    cleanupOnFail: true
-    remediation:
-      retries: 3
-  uninstall:
-    keepHistory: false
   values:
     tolerations:
     - key: topology.kubernetes.io/region
@@ -30,10 +21,10 @@ spec:
       effect: PreferNoSchedule
     image:
       repository: ghcr.io/gethomepage/homepage
-      tag: v2.7.0@sha256:19c5c09184458a41b7b5915e71463a39f36cd33540f41bdbed008791b8182d5f
+      tag: v2.8.0@sha256:019d8f063a7299e7c1c51ee4a70b692291809af3244894fbec2c2ac7d1f71b18
     env:
     - name: HOMEPAGE_ALLOWED_HOSTS
-      value: lab.${PUBLIC_DOMAIN}
+      value: lab${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
     serviceAccount:
       name: default
     persistence:
@@ -164,3 +155,21 @@ spec:
         - Team Fortress 2:
             href: steam://connect/tf2.${PUBLIC_DOMAIN}:27015
             icon: si-steam
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: homepage${APP_SUFFIX:=}
+  namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
+spec:
+  parentRefs:
+  - name: ${CLUSTER_NAME}
+    namespace: default # TODO patch operator line 93 to detect default ns
+  hostnames:
+  - lab${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
+  rules:
+  - backendRefs:
+    - name: homepage${APP_SUFFIX:=}
+      port: 3000

@@ -1,6 +1,8 @@
 # https://github.com/open-telemetry/opentelemetry-cpp-contrib/blob/webserver/v1.1.0/instrumentation/otel-webserver-module/docker/ubuntu20.04/Dockerfile
-FROM ubuntu:20.04@sha256:8feb4d8ca5354def3d8fce243717141ce31e2c428701f6682bd2fafe15388214 AS build
+FROM ubuntu:26.04@sha256:6a06111c3b0a8600feadb270aec771dc239bf407b25625f93f44ab00e11f4d3c AS build
 ENV DEBIAN_FRONTEND=noninteractive
+# the pinned 2020-era deps predate CMake 4 (drops <3.5 policies) and GCC 14/15 (C23 by default, implicit int/declarations are errors, no transitive <cstdint>)
+ENV CMAKE_POLICY_VERSION_MINIMUM=3.5 CFLAGS="-std=gnu17 -fpermissive" CXXFLAGS="-include cstdint"
 
 RUN apt-get -y update && apt-get -y upgrade && apt-get -y dist-upgrade
 RUN apt-get install -qq -y --ignore-missing \
@@ -12,7 +14,6 @@ RUN apt-get install -qq -y --ignore-missing \
 	protobuf-compiler	                    \
 	libprotobuf-dev                         \
 	python3			                        \
-	python2.7		                        \
 	sudo			                        \
 	tar			                            \
 	zip			                            \
@@ -26,7 +27,7 @@ RUN apt-get install -y \
     autoconf                                \
     automake                                \
     libtool                                 \
-    default-jre
+    openjdk-17-jre-headless  # upstream Gradle 7.6 runs on Java <= 19; default-jre is 25
 
 # The following arguments would be passed from docker-compose.yml
 # upstream eab86ac builds opentelemetry-cpp with abseil from gRPC 1.47 (docker/ubuntu22.04)
@@ -158,7 +159,6 @@ RUN rm -rf apr-util-${APRUTIL_VERSION} && rm -rf apr-util-${APRUTIL_VERSION}.tar
     && rm -rf grpc \
     && rm -rf apr-${APR_VERSION} && rm -rf apr-${APR_VERSION}.tar.gz
 
-RUN apt-get install libpcre3 libpcre3-dev -y
 RUN apt-get install apache2 -y && a2enmod proxy && a2enmod proxy_http \
     && a2enmod proxy_balancer && a2enmod dav
 
@@ -170,13 +170,16 @@ RUN wget https://archives.boost.io/release/${BOOST_VERSION}/source/${BOOST_FILEN
     && ./b2 install define=BOOST_ERROR_CODE_HEADER_ONLY link=static threading=multi cxxflags="-fvisibility=hidden -fPIC" cflags="-fvisibility=hidden -fPIC" \
     && cd .. && rm -rf ${BOOST_FILENAME} && rm ${BOOST_FILENAME}.tar.gz
 
-# install pcre
+# install pcre (also into /usr/local: Ubuntu 26.04 has no libpcre3-dev; httpd configure needs pcre-config and the nginx module links -lpcre)
 RUN mkdir -p dependencies/pcre/${PCRE_VERSION}/ \
     && wget https://ftp.exim.org/pub/pcre/pcre-${PCRE_VERSION}.tar.gz --no-check-certificate \
     && tar -xvf pcre-${PCRE_VERSION}.tar.gz \
     && cd pcre-${PCRE_VERSION} \
     && ./configure --prefix=/dependencies/pcre/${PCRE_VERSION} --enable-jit \
     && make && make install \
+    && cp -a /dependencies/pcre/${PCRE_VERSION}/bin/pcre-config /usr/local/bin/ \
+    && cp -a /dependencies/pcre/${PCRE_VERSION}/lib/libpcre.* /usr/local/lib/ \
+    && cp -a /dependencies/pcre/${PCRE_VERSION}/include/pcre*.h /usr/local/include/ && ldconfig \
     && cd .. && rm -rf ${PCRE_VERSION}.tar.gz && rm -rf pcre-${PCRE_VERSION}
 
 # install nginx
@@ -197,6 +200,11 @@ RUN echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] \
     && apt update -y && apt install nginx -y
 
 # Build Webserver Module
+# its gradle build runs gyp r1919, which needs python2.7; Ubuntu 26.04 has none
+COPY --from=python:2.7.18-slim /usr/local/ /opt/python2/
+RUN ln -s /opt/python2/bin/python2.7 /usr/local/bin/python2.7 \
+    && echo /opt/python2/lib > /etc/ld.so.conf.d/python2.conf && ldconfig \
+    && python2.7 -c 'import sys; print(sys.version)'
 COPY --from=src instrumentation/otel-webserver-module /otel-webserver-module
 COPY *.gradle /otel-webserver-module/
 COPY Makefile /otel-webserver-module/src/nginx/Makefile

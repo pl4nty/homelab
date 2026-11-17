@@ -1,17 +1,17 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: prowlarr
+  name: prowlarr${APP_SUFFIX:=}
   namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chartRef:
     kind: OCIRepository
     name: app-template
   values:
-    global:
-      createDefaultServiceAccount: false
     controllers:
       prowlarr:
         pod:
@@ -30,7 +30,7 @@ spec:
           app:
             image:
               repository: ghcr.io/home-operations/prowlarr
-              tag: 3.0.0@sha256:0954599432e16ccd86129f1eb8eb0247fd0d1591aab400f73e2010a1cda37be8
+              tag: 3.0.1@sha256:83cc967a3b7b754634e31773d4d58ea606714490b7e8592d41b608f7c249afe6
             env:
               TZ: ${TIMEZONE}
               # .NET writes diagnostic pipes to /tmp, which trips readOnlyRootFilesystem. diagnostics stay on
@@ -80,13 +80,14 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - prowlarr.${PRIVATE_DOMAIN}
+          - prowlarr${APP_SUFFIX:=}.${PRIVATE_DOMAIN}
         rules:
           - backendRefs:
-              - name: prowlarr
+              - identifier: main
                 port: *port
     persistence:
       config:
+        retain: ${APP_RETAIN:=true}
         accessMode: ReadWriteOnce
         size: 4Gi
       tmp:

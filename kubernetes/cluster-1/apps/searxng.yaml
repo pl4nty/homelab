@@ -1,17 +1,17 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app searxng
+  name: searxng${APP_SUFFIX:=}
   namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chartRef:
     kind: OCIRepository
     name: app-template
   values:
-    global:
-      createDefaultServiceAccount: false
     controllers:
       main:
         pod:
@@ -22,7 +22,7 @@ spec:
           main:
             image:
               repository: ghcr.io/searxng/searxng
-              tag: latest@sha256:7add5ffe7933e6b46aa3a26bed8a0c342c9a45ec331d9a8cf145e46b04b24f36
+              tag: latest@sha256:932f69dca010db9880bddebb2171f05d8e1a25d04a59149ff65409993d680024
             # the image user. the entrypoint only needs root to chown volumes
             securityContext:
               runAsUser: 977
@@ -361,7 +361,7 @@ spec:
           settings.yml: |
             use_default_settings: true
             server:
-              base_url: https://search.${PRIVATE_DOMAIN}/
+              base_url: https://search${APP_SUFFIX:=}.${PRIVATE_DOMAIN}/
               # only hashes cache keys, which live as long as the pod
               secret_key: ultrasecretkey
               # thumbnails load straight from the engines' CDNs: each took 250-430ms
@@ -418,7 +418,7 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - search.${PRIVATE_DOMAIN}
+          - search${APP_SUFFIX:=}.${PRIVATE_DOMAIN}
         rules:
           - backendRefs:
               - identifier: main

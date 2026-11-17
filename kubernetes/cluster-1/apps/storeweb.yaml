@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -11,15 +11,12 @@ spec:
   chartRef:
     kind: OCIRepository
     name: app-template
-    namespace: default
   values:
     defaultPodOptions:
       tolerations:
       - key: topology.kubernetes.io/region
         operator: Exists
         effect: PreferNoSchedule
-    global:
-      createDefaultServiceAccount: false
     controllers:
       main:
         strategy: RollingUpdate
@@ -30,6 +27,13 @@ spec:
             instrumentation.opentelemetry.io/inject-dotnet: "true"
             # operator maps linux-musl-x64 to the image's arch-agnostic linux-musl dir, so this also covers arm64
             instrumentation.opentelemetry.io/otel-dotnet-auto-runtime: "linux-musl-x64"
+          # musl gives up at the first SERVFAIL in the search list, and Oracle nodes search talos.oraclevcn.com,
+          # which CoreDNS answers SERVFAIL, so displaycatalog.mp.microsoft.com never resolved there.
+          # ndots 2 still searches the cluster for the OTel endpoint
+          dnsConfig:
+            options:
+              - name: ndots
+                value: "2"
         containers:
           main:
             image:

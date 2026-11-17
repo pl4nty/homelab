@@ -119,7 +119,7 @@ def test_permissions(client, app):
     for id in ids.values():
         assert edit(id, SUB, title="x") == 403 and edit(id, {}, title="x") == 403
         assert client.delete(f"/api/stickers/{id}", headers=SUB).status_code == 403
-        for path in ("similar", "balance", "symmetry"):
+        for path in ("similar", "auto", "dominant", "symmetry"):
             assert client.get(f"/api/stickers/{id}/{path}", headers=SUB).status_code == 403
     assert edit(ids["pending"], ADM, state="approved") == 200
     assert edit(ids["approved"], ADM, state="pending") == 200  # unpublish
@@ -142,8 +142,8 @@ def test_admin_edits_title_comment_tags_and_colour(client, app):
             "title": "New",
             "comment": "Swapped",
             "tags": ["Holo", ""],
-            "warmth": 0.5,
-            "tint": 0.2,
+            "target": "#96bef0",
+            "hue": 30,
         },
     )
     assert r.status_code == 200
@@ -159,9 +159,20 @@ def test_admin_edits_title_comment_tags_and_colour(client, app):
         .convert("RGB")
         .getpixel((100, 100))
     )
-    assert r_ > 150 and b_ < 240  # warmer: less blue, more red
-    prev = client.get(f"/i/{m.id}/preview.webp?warmth=0.5&tint=0")
+    assert r_ > 150 and b_ < 240  # turned towards purple: less blue, more red
+    q = "target=%23a0c0f0&hue=40&saturation=-0.5&brightness=0.2"
+    prev = client.get(f"/i/{m.id}/preview.webp?{q}")
     assert prev.status_code == 200 and prev.headers["content-type"] == "image/webp"
+    assert client.get(f"/i/{m.id}/preview.webp?target=blue&saturation=-1").status_code == 422
+    assert client.get(f"/api/stickers/{m.id}/dominant", headers=ADM).json()["colour"]
+    r = client.post(f"/api/stickers/{m.id}", headers=ADM, json={"saturation": -1})
+    assert r.status_code == 200  # no target: the sticker's main colour
+    r_, g, b_ = (
+        Image.open(app.state.store.path(app.state.store.items[m.id]))
+        .convert("RGB")
+        .getpixel((100, 100))
+    )
+    assert max(r_, g, b_) - min(r_, g, b_) < 10
 
 
 def test_scan_is_split_tagged_and_queued_for_review(client, app, tmp_path):
@@ -297,14 +308,32 @@ def test_only_public_responses_are_cacheable(client):
 
 
 def test_auto_colour_fixes_blue_foil_only():
-    from stickersplit.colour import auto, balance
+    from stickersplit.colour import adjust, auto
 
     blue = sticker(color=(120, 200, 245, 255))  # foil that scanned cyan-blue
-    w, t = auto(blue)
-    assert w > 0.3
-    r, g, b = balance(blue, w, t).convert("RGB").getpixel((100, 100))
-    assert abs(b - r) < 25 and abs(g - (r + b) / 2) < 25  # neutral, not just less blue
-    assert auto(sticker(color=(150, 200, 60, 255))) == (0.0, 0.0)  # a green design is left alone
-    ink = sticker(color=(20, 30, 70, 255))  # dark navy ink is not shifted
-    assert balance(ink, 0.8, 0.3).convert("RGB").getpixel((100, 100)) == (20, 30, 70)
-    assert balance(blue, 0.5, 0).info["dpi"] == (600, 600)
+    blue.paste((20, 30, 70, 255), (0, 0, 200, 200))  # dark navy ink
+    fix = auto(blue)
+    assert fix["saturation"] < -0.8
+    out = adjust(blue, **fix).convert("RGB")
+    r, g, b = out.getpixel((600, 400))
+    assert max(r, g, b) - min(r, g, b) < 12  # neutral, not just less blue
+    assert out.getpixel((100, 100)) == (20, 30, 70)
+    assert auto(sticker(color=(150, 200, 60, 255))) is None  # a green design is left alone
+    assert auto(sticker(color=(49, 112, 164, 255))) is None  # printed blue, darker than foil
+
+
+def test_one_colour_is_recoloured_and_the_rest_left_alone():
+    from stickersplit.colour import adjust, dominant
+
+    im = sticker(color=(79, 174, 225, 255))  # the CTF cat's cyan, which Auto turned salmon-edged
+    im.paste((90, 28, 41, 255), (0, 0, 200, 200))  # red flag
+    im.paste((160, 167, 168, 255), (200, 0, 400, 200))  # silver edge
+    assert dominant(im) == "#4faee1"
+    out = adjust(im, "#4faee1", 0, -0.9, 0.3).convert("RGB")
+    r, g, b = out.getpixel((600, 400))
+    assert max(r, g, b) - min(r, g, b) < 25 and r > 150  # grey and lighter
+    assert out.getpixel((100, 100)) == (90, 28, 41)
+    assert out.getpixel((300, 100)) == (160, 167, 168)
+    assert adjust(im, "#808080", 0, -1, 0) is im  # a grey target picks nothing
+    assert adjust(im, "#4faee1", 0, -0.5, 0).info["dpi"] == (600, 600)
+    assert dominant(sticker(color=(128, 128, 128, 255))) is None

@@ -1,17 +1,17 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app linkding
+  name: linkding${APP_SUFFIX:=}
   namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chartRef:
     kind: OCIRepository
     name: app-template
   values:
-    global:
-      createDefaultServiceAccount: false
     controllers:
       main:
         pod:
@@ -31,6 +31,8 @@ spec:
               PYTHONPATH: /etc/linkding
               # ~13 sqlite spans per request (~18k per 10 min from the crawler); keep the Django server spans
               OTEL_PYTHON_DISABLED_INSTRUMENTATIONS: sqlite3
+              # uWSGI logs every crawler request, ~110MB/day. 4xx/5xx still log, the gateway traces the rest
+              LD_DISABLE_REQUEST_LOGS: "true"
     service:
       main:
         controller: main
@@ -43,13 +45,14 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - links.${PUBLIC_DOMAIN}
+          - links${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: *app
+              - identifier: main
                 port: 9090
     persistence:
       config:
+        retain: ${APP_RETAIN:=true}
         accessMode: ReadWriteOnce
         size: 1Gi
         globalMounts:
