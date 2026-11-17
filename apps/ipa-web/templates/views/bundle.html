@@ -16,14 +16,29 @@
         <a target="_blank" rel="noopener noreferrer" href="https://apps.apple.com/app/id{{ .Bundle.App.ID }}">App Store</a>
       </div>
     </div>
-    <form method="get" id="version-form">
-      <label class="form-label small text-muted mb-1" for="version">Version</label>
-      <select class="form-select" id="version" name="version">
-        {{ $current := .Version.App.Version }}
-        {{ range .Versions }}
-        <option value="{{ .App.Version }}" {{ if eq .App.Version $current }}selected{{ end }}>{{ .App.Version }} (seen {{ .Extracted.Format "2006-01-02" }})</option>
-        {{ end }}
-      </select>
+    <form method="get" id="version-form" class="d-flex flex-wrap gap-2">
+      {{ $current := .Version.App.Version }}
+      <div>
+        <label class="form-label small text-muted mb-1" for="version">Version</label>
+        <select class="form-select" id="version" name="version">
+          {{ range .Versions }}
+          <option value="{{ .App.Version }}" {{ if eq .App.Version $current }}selected{{ end }}>{{ .App.Version }} (seen {{ .Extracted.Format "2006-01-02" }})</option>
+          {{ end }}
+        </select>
+      </div>
+      {{ if gt (len .Versions) 1 }}
+      <div>
+        <label class="form-label small text-muted mb-1" for="compare">Compare with</label>
+        <select class="form-select" id="compare" name="compare">
+          <option value="">None</option>
+          {{ range .Versions }}
+          {{ if ne .App.Version $current }}
+          <option value="{{ .App.Version }}" {{ if eq .App.Version $.Compare }}selected{{ end }}>{{ .App.Version }}</option>
+          {{ end }}
+          {{ end }}
+        </select>
+      </div>
+      {{ end }}
     </form>
   </div>
 
@@ -104,11 +119,23 @@
       {{ end }}
     </div>
   </section>
+
+  {{ if .Compare }}
+  <section class="mt-4" aria-labelledby="changes-heading">
+    <h2 class="h5 mb-2" id="changes-heading">Changes from {{ .Compare }} to {{ .Version.App.Version }}</h2>
+    <p class="text-muted" id="changes-status" role="status">Comparing…</p>
+    <div class="d-grid gap-3" id="changes"></div>
+  </section>
+  {{ end }}
 </main>
 
 <!-- data-cfasync: run without waiting for Cloudflare Rocket Loader -->
 <script data-cfasync="false">
-  document.getElementById("version").addEventListener("change", (e) => e.target.form.submit());
+  const compare = document.getElementById("compare");
+  document.getElementById("version-form").addEventListener("change", (e) => {
+    if (compare && !compare.value) compare.disabled = true;
+    e.target.form.submit();
+  });
 
   for (const input of document.querySelectorAll("[readonly]")) {
     input.addEventListener("focus", () => input.select());
@@ -151,6 +178,45 @@
     }
   });
 </script>
+
+{{ if .Compare }}
+<script type="module" data-cfasync="false">
+  import { FileDiff, parseDiffFromFile } from "https://cdn.jsdelivr.net/npm/@pierre/diffs@1.6.4/+esm";
+
+  const id = {{ .Id }};
+  const from = {{ .Compare }};
+  const to = {{ .Version.App.Version }};
+  const status = document.getElementById("changes-status");
+  const read = async (name, version) => {
+    const res = await fetch(`/download/${encodeURIComponent(id)}/${name}?version=${encodeURIComponent(version)}`);
+    if (res.status === 404) return "";
+    if (!res.ok) throw new Error(`${name} returned ${res.status}`);
+    return res.text();
+  };
+  try {
+    let changed = 0;
+    for (const name of ["Info.plist", "entitlements.plist", "PrivacyInfo.xcprivacy"]) {
+      const [a, b] = await Promise.all([read(name, from), read(name, to)]);
+      const fileDiff = parseDiffFromFile({ name, contents: a }, { name, contents: b });
+      if (!fileDiff.hunks.length) continue;
+      changed++;
+      const wrapper = document.createElement("div");
+      document.getElementById("changes").append(wrapper);
+      new FileDiff({
+        theme: { dark: "pierre-dark", light: "pierre-light" },
+        themeType: "system",
+        diffStyle: matchMedia("(max-width: 50rem)").matches ? "unified" : "split",
+        overflow: "scroll",
+        lineDiffType: "word",
+      }).render({ fileDiff, containerWrapper: wrapper });
+    }
+    status.textContent = changed ? "" : "Info.plist, entitlements and the privacy manifest are the same in both versions.";
+    status.hidden = changed > 0;
+  } catch (e) {
+    status.textContent = `Comparison failed: ${e.message}`;
+  }
+</script>
+{{ end }}
 
 <!--Embed the footer.html template at this location-->
 {{ template "layouts/footer.html" .}}

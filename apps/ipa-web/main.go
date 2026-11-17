@@ -196,29 +196,35 @@ func (s *server) latest(ctx context.Context, bundleID string) (*Version, error) 
 	return s.store.Version(bundleID, app.Version)
 }
 
-// refresh checks cached bundles in the background, ending a pass on login failure rather than retrying per bundle
-func (s *server) refresh(pace time.Duration) {
+// refresh spreads checks of cached bundles evenly across each TTL, waiting an hour after a login failure
+func (s *server) refresh() {
 	for {
 		bundles, err := s.store.Bundles()
 		if err != nil {
 			log.Printf("refresh: %v", err)
 		}
+		if len(bundles) == 0 {
+			time.Sleep(time.Hour)
+			continue
+		}
+		// Apple's Search API allows about 20 lookups a minute
+		pace := max(s.ttl/time.Duration(len(bundles)), 3*time.Second)
 		for _, id := range bundles {
+			time.Sleep(pace)
 			if cached, err := s.store.Latest(id); err == nil && time.Since(cached.Checked) < s.ttl {
 				continue
 			}
 			if _, err := s.account(); err != nil {
 				log.Printf("refresh: %v", err)
-				break
+				time.Sleep(time.Hour)
+				continue
 			}
 			ctx, cancel := context.WithTimeout(context.Background(), downloadTimeout)
 			if _, err := s.latest(ctx, id); err != nil {
 				log.Printf("refresh %s: %v", id, err)
 			}
 			cancel()
-			time.Sleep(pace)
 		}
-		time.Sleep(time.Hour)
 	}
 }
 
@@ -429,8 +435,7 @@ func main() {
 	if _, err := s.account(); err != nil {
 		log.Println(err)
 	}
-	// Apple's Search API allows about 20 lookups a minute
-	go s.refresh(3 * time.Second)
+	go s.refresh()
 
 	r := gin.Default()
 	r.SetHTMLTemplate(template.Must(template.New("").ParseFS(content, "templates/**/*")))
@@ -483,6 +488,10 @@ func main() {
 			fail(c, err)
 			return
 		}
+		compare := c.Query("compare")
+		if _, err := s.store.Version(c.Param("id"), compare); err != nil || compare == v.App.Version {
+			compare = ""
+		}
 		_, privacyErr := s.store.File(c.Param("id"), v.App.Version, privacyInfo)
 		schemes := exemptSchemes(b.Information)
 		c.HTML(http.StatusOK, "views/bundle.html", gin.H{
@@ -490,6 +499,7 @@ func main() {
 			"Bundle":      b,
 			"Version":     v,
 			"Versions":    versions,
+			"Compare":     compare,
 			"Privacy":     privacyErr == nil,
 			"Schemes":     schemes,
 			"SchemeValue": strings.Join(schemes, ";"),
