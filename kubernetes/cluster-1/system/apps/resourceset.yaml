@@ -71,8 +71,17 @@ spec:
                 cleanupOnFail: true
                 remediation:
                   retries: 3
-              uninstall:
-                keepHistory: false
+          target:
+            kind: HelmRelease
+        - patch: |-
+            apiVersion: helm.toolkit.fluxcd.io/v2
+            kind: HelmRelease
+            metadata:
+              name: not-used
+            spec:
+              values:
+                global:
+                  createDefaultServiceAccount: false
           target:
             kind: HelmRelease
       postBuild:

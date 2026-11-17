@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/app-template-5.3.0/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 # Network UPS Tools server for the Eaton 3S 850. After 10 minutes on battery, or on low battery,
 # this primary upsmon tells every home node's nut-client extension (talos/hardware/home.yaml) to
 # power off. Once they have logged out it schedules the UPS to cut then restore its outlets, so the
@@ -14,8 +14,6 @@ spec:
     kind: OCIRepository
     name: app-template
   values:
-    global:
-      createDefaultServiceAccount: false
     defaultPodOptions:
       # the UPS USB cable is in the Turing Pi's rear ports, which only slot 4 drives
       nodeSelector:

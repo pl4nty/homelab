@@ -1,3 +1,15 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: kubernetes-mcp-server
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: oci://ghcr.io/containers/charts/kubernetes-mcp-server
+  ref:
+    tag: 0.1.3
+    digest: sha256:14d423e16cca1297ac55c84f3034e7c2ff409d062bab969c838d00fff1c18977
+---
 # yaml-language-server: $schema=https://flux-helm-schema.tplant.com.au?values=https://github.com/containers/kubernetes-mcp-server/raw/refs/heads/main/charts/kubernetes-mcp-server/values.yaml
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
@@ -10,12 +22,6 @@ spec:
     kind: OCIRepository
     name: kubernetes-mcp-server
     namespace: flux-system
-  install:
-    remediation:
-      retries: 3
-  upgrade:
-    remediation:
-      retries: 3
   values:
     ingress:
       enabled: false
