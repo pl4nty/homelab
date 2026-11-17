@@ -20,7 +20,9 @@
     '**/node_modules/**',
     'archive/**',
   ],
-  dependencyDashboardOSVVulnerabilitySummary: 'all',
+  dependencyDashboard: {
+    osvVulnerabilitySummary: 'all',
+  },
   lockFileMaintenance: {
     enabled: true,
     automerge: true,
