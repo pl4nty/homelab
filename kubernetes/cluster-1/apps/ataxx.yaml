@@ -27,6 +27,12 @@ spec:
             image:
               repository: ghcr.io/pl4nty/ataxx
               tag: ${APP_IMAGE_TAG:=}
+            # ataxx doesn't have a "new game" button, so we just restart it regularly
+            command:
+              - bash
+              - -c
+              - while :; do timeout 300 cabal v2-run game -- "$@"; done
+              - --
             args:
               - --p1
               - human
@@ -35,16 +41,6 @@ spec:
             probes:
               liveness:
                 enabled: true
-                custom: true
-                # ataxx doesn't have a "new game" button, so we just restart it regularly
-                spec:
-                  failureThreshold: 1
-                  periodSeconds: 300
-                  exec:
-                    command:
-                      - bash
-                      - -c
-                      - "exit 1"
               readiness:
                 enabled: true
               startup:
