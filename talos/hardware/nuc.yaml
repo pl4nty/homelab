@@ -1,4 +1,4 @@
-# The only worker is the NUC (talos-ivx-yqq)
+# The Intel NUC (talos-ivx-yqq). Symlinked from node/talos-ivx-yqq/, since talos-oci-a1 is a worker too
 apiVersion: v1alpha1
 kind: UnattendedInstallConfig
 provisioning:
