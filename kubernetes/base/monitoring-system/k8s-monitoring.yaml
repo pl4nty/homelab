@@ -309,6 +309,8 @@ spec:
             # real sessions still keep their tools/call spans
             - resource.attributes["k8s.namespace.name"] == "toolhive-system" and IsMatch(attributes["mcp.method.name"], "^(initialize|server/discover|notifications/.*|(tools|prompts|resources|resources/templates)/list)$")
             - resource.attributes["k8s.namespace.name"] == "toolhive-system" and attributes["http.request.method"] == "DELETE" and attributes["url.path"] == "/mcp"
+            # kubernetes-mcp-server wraps each MCP span in a bare POST /mcp span, so its polls would get through
+            - resource.attributes["service.name"] == "kubernetes-mcp-server" and attributes["http.request.method"] != nil
             # Beyla: Go's per-request goroutine queue/processing children, Redis (dawarich's Sidekiq polls its
             # sidecar ~400 times a minute), probe and scrape endpoints, and controllers' Kubernetes API watches
             - resource.attributes["telemetry.sdk.name"] == "beyla" and (name == "in queue" or name == "processing")
@@ -349,6 +351,10 @@ spec:
             discovery:
               instrument:
                 - k8s_namespace: default
+                - k8s_namespace: cert-manager
+                - k8s_namespace: flux-system
+                - k8s_namespace: kube-system
+                  k8s_deployment_name: arch-affinity
               # replaces the chart's default exclusion, so it's repeated first. pods the operator injects
               # are skipped up front, since detecting their OTLP export lets their first spans through twice.
               # CNPG instance managers only poll their own Postgres

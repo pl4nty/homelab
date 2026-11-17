@@ -15,6 +15,9 @@ spec:
     controllers:
       main:
         strategy: Recreate
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-nodejs: "true"
         containers:
           main:
             image:
