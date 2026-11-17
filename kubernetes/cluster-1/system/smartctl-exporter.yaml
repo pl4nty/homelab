@@ -1,3 +1,18 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: prometheus-smartctl-exporter
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: oci://ghcr.io/prometheus-community/charts/prometheus-smartctl-exporter
+  layerSelector:
+    mediaType: 'application/vnd.cncf.helm.chart.content.v1.tar+gzip'
+    operation: copy
+  ref:
+    tag: 0.19.2
+    digest: sha256:46a6b67ffcb30baf6b859aacde6bfd555ba702be1efe4d5912b1b3290f6e18bd
+---
 # yaml-language-server: $schema=https://flux-helm-schema.tplant.com.au?values=https://raw.githubusercontent.com/prometheus-community/helm-charts/refs/heads/main/charts/prometheus-smartctl-exporter/values.yaml
 # SMART for every NVMe drive: the NUC system disk (etcd) and the RK1 Longhorn disks.
 # smartctl can't read eMMC, see the mmc-health sidecar in base/monitoring-system/k8s-monitoring.yaml
