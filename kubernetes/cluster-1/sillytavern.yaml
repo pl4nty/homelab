@@ -11,8 +11,6 @@ spec:
     kind: OCIRepository
     name: app-template
   values:
-    global:
-      createDefaultServiceAccount: false
     controllers:
       sillytavern:
         pod:
