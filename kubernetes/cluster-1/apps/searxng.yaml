@@ -2,13 +2,16 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app searxng
+  name: searxng${APP_SUFFIX:=}
   namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chartRef:
     kind: OCIRepository
     name: app-template
+    namespace: default
   values:
     global:
       createDefaultServiceAccount: false
@@ -361,7 +364,7 @@ spec:
           settings.yml: |
             use_default_settings: true
             server:
-              base_url: https://search.${PRIVATE_DOMAIN}/
+              base_url: https://search${APP_SUFFIX:=}.${PRIVATE_DOMAIN}/
               # only hashes cache keys, which live as long as the pod
               secret_key: ultrasecretkey
               # thumbnails load straight from the engines' CDNs: each took 250-430ms
@@ -418,7 +421,7 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - search.${PRIVATE_DOMAIN}
+          - search${APP_SUFFIX:=}.${PRIVATE_DOMAIN}
         rules:
           - backendRefs:
               - identifier: main
