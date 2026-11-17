@@ -196,7 +196,7 @@ func (s *server) latest(ctx context.Context, bundleID string) (*Version, error) 
 	return s.store.Version(bundleID, app.Version)
 }
 
-// refresh spreads checks of cached bundles evenly across each TTL, waiting an hour after a login failure
+// refresh spreads checks of cached bundles evenly across each TTL
 func (s *server) refresh() {
 	for {
 		bundles, err := s.store.Bundles()
@@ -210,21 +210,26 @@ func (s *server) refresh() {
 		// Apple's Search API allows about 20 lookups a minute
 		pace := max(s.ttl/time.Duration(len(bundles)), 3*time.Second)
 		for _, id := range bundles {
+			s.refreshBundle(id)
 			time.Sleep(pace)
-			if cached, err := s.store.Latest(id); err == nil && time.Since(cached.Checked) < s.ttl {
-				continue
-			}
-			if _, err := s.account(); err != nil {
-				log.Printf("refresh: %v", err)
-				time.Sleep(time.Hour)
-				continue
-			}
-			ctx, cancel := context.WithTimeout(context.Background(), downloadTimeout)
-			if _, err := s.latest(ctx, id); err != nil {
-				log.Printf("refresh %s: %v", id, err)
-			}
-			cancel()
 		}
+	}
+}
+
+// refreshBundle checks a bundle once its last check is older than the TTL, waiting an hour after a login failure
+func (s *server) refreshBundle(id string) {
+	if cached, err := s.store.Latest(id); err == nil && time.Since(cached.Checked) < s.ttl {
+		return
+	}
+	if _, err := s.account(); err != nil {
+		log.Printf("refresh: %v", err)
+		time.Sleep(time.Hour)
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), downloadTimeout)
+	defer cancel()
+	if _, err := s.latest(ctx, id); err != nil {
+		log.Printf("refresh %s: %v", id, err)
 	}
 }
 
