@@ -263,9 +263,27 @@
       commitMessagePrefix: "feat({{lookup (split packageFileDir '/') 1}})!: ",
     },
     {
+      description: 'One PR per kubernetes/cluster-1/apps manifest, named after it, so each gets its own preview',
+      matchFileNames: [
+        'kubernetes/cluster-1/apps/**',
+      ],
+      additionalBranchPrefix: "{{replace '\\.yaml$' '' (lookup (split packageFile '/') 3)}}-",
+      semanticCommitScope: "{{replace '\\.yaml$' '' (lookup (split packageFile '/') 3)}}",
+    },
+    {
+      matchFileNames: [
+        'kubernetes/cluster-1/apps/**',
+      ],
+      matchUpdateTypes: [
+        'major',
+      ],
+      commitMessagePrefix: "feat({{replace '\\.yaml$' '' (lookup (split packageFile '/') 3)}})!: ",
+    },
+    {
       description: 'App CI and previews only run on PRs, so automerge app updates through a PR once checks pass',
       matchFileNames: [
         'apps/**',
+        'kubernetes/cluster-1/apps/**',
       ],
       automergeType: 'pr',
       platformAutomerge: false,

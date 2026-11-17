@@ -33,9 +33,10 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         working-directory: apps
         run: |
-          # only kubernetes/cluster-1/apps/<app>.yaml ships with the app; other cluster-1 manifests take Renovate digest bumps of our own images, so rebuilding on them loops
-          for app in */; do
-            git diff --quiet "$BASE...$COMMIT" -- "$app" "../kubernetes/cluster-1/apps/${app%/}.yaml" || echo "${app%/}"
+          # only kubernetes/cluster-1/apps/<app>.yaml ships with the app; other cluster-1 manifests take Renovate digest bumps of our own images, so rebuilding on them loops.
+          # an app with a manifest and no apps/<app>/ publishes the manifest without a build
+          for app in $(ls -d */ ../kubernetes/cluster-1/apps/*.yaml | grep -v '\.sops\.yaml$' | xargs basename -a -s .yaml | sort -u); do
+            git diff --quiet "$BASE...$COMMIT" -- "$app" "../kubernetes/cluster-1/apps/$app.yaml" || echo "$app"
           done | jq -Rnr '"apps=\([inputs])"' >> "$GITHUB_OUTPUT"
 
   lint:
@@ -76,7 +77,9 @@ jobs:
         with:
           ref: ${{ env.COMMIT }}
       - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+        if: &build hashFiles(format('apps/{0}/**', matrix.app))
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+        if: *build
       - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         if: env.PUBLISH == 'true'
         with:
@@ -85,7 +88,7 @@ jobs:
           password: ${{ github.token }}
       - uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
         # bldr frontends (Pkgfile) don't implement the check subrequest
-        if: ${{ !hashFiles(format('apps/{0}/Pkgfile', matrix.app)) }}
+        if: ${{ hashFiles(format('apps/{0}/**', matrix.app)) && !hashFiles(format('apps/{0}/Pkgfile', matrix.app)) }}
         env: &git-auth
           # BuildKit reads it to fetch private git contexts
           GIT_AUTH_TOKEN: ${{ secrets.GH_PAT || github.token }}
@@ -98,6 +101,7 @@ jobs:
           set: &secrets default.secrets=type=env,id=GIT_AUTH_TOKEN
           vars: APP=${{ matrix.app }}
       - uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        if: *build
         env: *git-auth
         with:
           source: .
