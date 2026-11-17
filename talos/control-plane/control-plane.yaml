@@ -65,6 +65,12 @@ kind: KubeSchedulerConfig
 extraArgs:
   bind-address: 0.0.0.0
 ---
+# Longhorn 1.11 wrote the provisioning nodes into PV nodeAffinity (uj3, d04), so those volumes can't follow pods to vpz
+apiVersion: v1alpha1
+kind: KubeAPIServerConfig
+extraArgs:
+  feature-gates: MutablePVNodeAffinity=true
+---
 # etcd has no 1.14 document yet. plain HTTP, metrics and /health only
 cluster:
   etcd:
