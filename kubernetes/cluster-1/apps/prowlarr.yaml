@@ -2,8 +2,10 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: prowlarr
+  name: prowlarr${APP_SUFFIX:=}
   namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chartRef:
@@ -78,13 +80,14 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - prowlarr.${PRIVATE_DOMAIN}
+          - prowlarr${APP_SUFFIX:=}.${PRIVATE_DOMAIN}
         rules:
           - backendRefs:
-              - name: prowlarr
+              - identifier: main
                 port: *port
     persistence:
       config:
+        retain: ${APP_RETAIN:=true}
         accessMode: ReadWriteOnce
         size: 4Gi
       tmp:

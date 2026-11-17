@@ -70,7 +70,7 @@ spec:
           ssh:
             image:
               repository: ghcr.io/pl4nty/ubuntu-ssh
-              tag: latest@sha256:27fbf929eca69d5dc8c592f35ec009f0084eea8824425acfa1262303423763b5
+              tag: latest@sha256:e3efd8cf39bb055d6549118904253fbc623721ab64ddfc09fa4cc70c622fbe6a
             # allow ICMP access. net.ipv4.ping_group_range="0 [the uid ie 1000]" may still be required on the node
             # note that Azure loadbalancers (node egress) don't support ICMP
             securityContext:
@@ -90,26 +90,26 @@ spec:
                 bgp_aspath: echo "unsupported"
                 bgp_community: echo "unsupported"
                 bgp_route: ip route get {target}
-                ping: ping {target}
-                traceroute: traceroute {target}
+                ping: ping -c 5 {target}
+                traceroute: traceroute -w 2 -q 1 -m 20 {target}
               ipv6_default:
                 bgp_aspath: echo "unsupported"
                 bgp_community: echo "unsupported"
                 bgp_route: ip route get {target}
-                ping: ping6 {target}
-                traceroute: traceroute6 {target}
+                ping: ping6 -c 5 {target}
+                traceroute: traceroute6 -w 2 -q 1 -m 20 {target}
               ipv4_vpn:
                 bgp_aspath: echo "unsupported"
                 bgp_community: echo "unsupported"
                 bgp_route: ip route get {target}
-                ping: ping {target}
-                traceroute: traceroute {target}
+                ping: ping -c 5 {target}
+                traceroute: traceroute -w 2 -q 1 -m 20 {target}
               ipv6_vpn:
                 bgp_aspath: echo "unsupported"
                 bgp_community: echo "unsupported"
                 bgp_route: ip route get {target}
-                ping: ping6 {target}
-                traceroute: traceroute6 {target}
+                ping: ping6 -c 5 {target}
+                traceroute: traceroute6 -w 2 -q 1 -m 20 {target}
           devices.yaml: |
             routers:
             - name: Oracle Cloud, Aus East

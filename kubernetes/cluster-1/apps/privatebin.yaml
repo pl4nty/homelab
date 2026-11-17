@@ -2,8 +2,10 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app privatebin
+  name: privatebin${APP_SUFFIX:=}
   namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chartRef:
@@ -45,13 +47,14 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - paste.${PUBLIC_DOMAIN}
+          - paste${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: *app
+              - identifier: main
                 port: 8080
     persistence:
       data:
+        retain: ${APP_RETAIN:=true}
         accessMode: ReadWriteOnce
         size: 1Gi
         globalMounts:

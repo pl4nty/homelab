@@ -3,8 +3,10 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app sillytavern
+  name: sillytavern${APP_SUFFIX:=}
   namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 1h
   chartRef:
@@ -56,13 +58,14 @@ spec:
           - namespace: default
             name: "${CLUSTER_NAME}"
         hostnames:
-          - tavern.${PRIVATE_DOMAIN}
+          - tavern${APP_SUFFIX:=}.${PRIVATE_DOMAIN}
         rules:
           - backendRefs:
-              - name: *app
+              - identifier: sillytavern
                 port: 8000
     persistence:
       data:
+        retain: ${APP_RETAIN:=true}
         accessMode: ReadWriteOnce
         size: 8Gi
         globalMounts:
