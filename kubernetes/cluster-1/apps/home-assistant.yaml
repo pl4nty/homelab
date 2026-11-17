@@ -29,7 +29,7 @@ spec:
         strategy: Recreate
         containers:
           main:
-            image:
+            image: &image
               repository: ghcr.io/home-assistant/home-assistant
               tag: 2026.11.1@sha256:6785d1eca68747a524c156faae1b139ed415c07357386ae6fe17291986e59e82
             env:
@@ -45,6 +45,22 @@ spec:
                 enabled: true
               startup:
                 enabled: true
+        initContainers:
+          # a new volume, as in previews, starts with the proxy settings prod has, or HA answers 400 behind the gateway
+          config:
+            image: *image
+            command:
+              - sh
+              - -c
+              - |
+                [ -e /config/configuration.yaml ] || cat > /config/configuration.yaml <<EOF
+                default_config:
+                http:
+                  use_x_forwarded_for: true
+                  trusted_proxies:
+                    - 10.0.0.0/16
+                    - 10.244.0.0/16
+                EOF
     persistence:
       config:
         retain: ${APP_RETAIN:=true}
