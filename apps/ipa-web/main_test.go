@@ -105,6 +105,16 @@ func TestStore(t *testing.T) {
 	if _, err := s.File("com.example.app", "1.0", "version.json"); err == nil {
 		t.Error("arbitrary file served")
 	}
+
+	if err := os.MkdirAll(filepath.Join(s.dir, ".ipatool"), 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.SetLatest("com.example.app", Latest{Version: "1.1"}); err != nil {
+		t.Fatal(err)
+	}
+	if bundles, err := s.Bundles(); err != nil || len(bundles) != 1 || bundles[0] != "com.example.app" {
+		t.Errorf("bundles = %v, %v", bundles, err)
+	}
 }
 
 func TestExemptSchemes(t *testing.T) {

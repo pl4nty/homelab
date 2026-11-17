@@ -2,7 +2,7 @@
 
 Search App Store apps and view metadata from their `.ipa` files: URL schemes, Universal Links, `Info.plist`, `entitlements.plist` and `PrivacyInfo.xcprivacy`. Replaces [ipa-web](https://github.com/pl4nty/ipa-web) and [ipa-track](https://github.com/pl4nty/ipa-track).
 
-Opening `/bundle/<bundle ID>` checks the App Store version at most once per `CACHE_TTL` (default 24h). A new version is purchased (free apps only), downloaded with [ipatool](https://github.com/majd/ipatool) and extracted to `DATA_DIR`. Every extracted version is kept, so past versions stay selectable.
+Opening `/bundle/<bundle ID>` checks the App Store version at most once per `CACHE_TTL` (default 24h), and cached bundles are checked in the background once per `CACHE_TTL` too. A new version is purchased (free apps only), downloaded with [ipatool](https://github.com/majd/ipatool) and extracted to `DATA_DIR`. Every extracted version is kept, so past versions stay selectable.
 
 | Env | Purpose |
 | --- | --- |

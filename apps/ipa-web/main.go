@@ -95,6 +95,8 @@ type statusError struct {
 
 func (e statusError) Error() string { return e.err.Error() }
 
+const downloadTimeout = 10 * time.Minute
+
 type server struct {
 	appStore    appstore.AppStore
 	store       Store
@@ -192,6 +194,32 @@ func (s *server) latest(ctx context.Context, bundleID string) (*Version, error) 
 		return nil, err
 	}
 	return s.store.Version(bundleID, app.Version)
+}
+
+// refresh checks cached bundles in the background, ending a pass on login failure rather than retrying per bundle
+func (s *server) refresh(pace time.Duration) {
+	for {
+		bundles, err := s.store.Bundles()
+		if err != nil {
+			log.Printf("refresh: %v", err)
+		}
+		for _, id := range bundles {
+			if cached, err := s.store.Latest(id); err == nil && time.Since(cached.Checked) < s.ttl {
+				continue
+			}
+			if _, err := s.account(); err != nil {
+				log.Printf("refresh: %v", err)
+				break
+			}
+			ctx, cancel := context.WithTimeout(context.Background(), downloadTimeout)
+			if _, err := s.latest(ctx, id); err != nil {
+				log.Printf("refresh %s: %v", id, err)
+			}
+			cancel()
+			time.Sleep(pace)
+		}
+		time.Sleep(time.Hour)
+	}
 }
 
 // stale serves the previous version when the App Store can't be reached
@@ -357,7 +385,7 @@ func (s *server) resolve(c *gin.Context) (*Version, error) {
 		}
 		return v, nil
 	}
-	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Minute)
+	ctx, cancel := context.WithTimeout(c.Request.Context(), downloadTimeout)
 	defer cancel()
 	return s.latest(ctx, id)
 }
@@ -401,6 +429,8 @@ func main() {
 	if _, err := s.account(); err != nil {
 		log.Println(err)
 	}
+	// Apple's Search API allows about 20 lookups a minute
+	go s.refresh(3 * time.Second)
 
 	r := gin.Default()
 	r.SetHTMLTemplate(template.Must(template.New("").ParseFS(content, "templates/**/*")))
