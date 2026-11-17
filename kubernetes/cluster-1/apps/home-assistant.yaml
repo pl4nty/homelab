@@ -43,20 +43,39 @@ spec:
               startup:
                 enabled: true
         initContainers:
-          # a new volume, as in previews, starts with the proxy settings prod has, or HA answers 400 behind the gateway
+          # a new volume, as in previews, starts with the proxy settings prod has, or HA answers 400 behind the gateway.
+          # http settings in configuration.yaml only become a trial that reverts after five minutes
           config:
             image: *image
             command:
               - sh
               - -c
               - |
-                [ -e /config/configuration.yaml ] || cat > /config/configuration.yaml <<EOF
-                default_config:
-                http:
-                  use_x_forwarded_for: true
-                  trusted_proxies:
-                    - 10.0.0.0/16
-                    - 10.244.0.0/16
+                [ -e /config/.storage/http ] && exit
+                mkdir -p /config/.storage
+                cat > /config/.storage/http <<EOF
+                {
+                  "version": 3,
+                  "minor_version": 1,
+                  "key": "http",
+                  "data": {
+                    "stable": {
+                      "server_port": 8123,
+                      "use_x_forwarded_for": true,
+                      "trusted_proxies": ["10.0.0.0/16", "10.244.0.0/16"],
+                      "cors_allowed_origins": ["https://cast.home-assistant.io"],
+                      "login_attempts_threshold": -1,
+                      "ip_ban_enabled": true,
+                      "ssl_profile": "intermediate_v6",
+                      "use_x_frame_options": true,
+                      "created_at": "2026-11-17T00:00:00+00:00",
+                      "error": null,
+                      "error_message": null
+                    },
+                    "pending": null,
+                    "yaml_migration_done": true
+                  }
+                }
                 EOF
     persistence:
       config:
