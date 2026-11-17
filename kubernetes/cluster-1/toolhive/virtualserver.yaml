@@ -38,8 +38,8 @@ spec:
       - name: azure
         type: oidc
         oidcConfig:
-          # tplant.com.au tenant
-          issuerUrl: https://login.microsoftonline.com/7ba4d371-2109-4d8d-8aec-b5d2f0c06646/v2.0
+          # Tenant that holds the Azure subscriptions
+          issuerUrl: https://login.microsoftonline.com/e1166daa-6cda-4ed4-9879-ffdf77c51cf5/v2.0
           clientId: 5c3c299e-f61f-41cc-b4e1-f12018b84afa
           clientSecretRef:
             name: toolhive
