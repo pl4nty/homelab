@@ -11,6 +11,8 @@ RUN service ssh restart
 
 RUN echo ubuntu:ubuntu | chpasswd
 
+RUN rm /etc/profile.d/80-systemd-osc-context.sh
+
 USER ubuntu
 RUN ssh-keygen -A
 
