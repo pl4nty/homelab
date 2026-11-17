@@ -20,12 +20,19 @@ data "github_repositories" "archived" {
 
 locals {
   overrides = {
-    anutimetable                  = { allow_auto_merge = true, delete_branch_on_merge = true }
-    cloudflare-kubernetes-gateway = { delete_branch_on_merge = true }
-    dotfiles                      = { allow_merge_commit = false, allow_squash_merge = false }
-    homelab                       = { delete_branch_on_merge = true }
-    winget-extras                 = { allow_auto_merge = true, allow_update_branch = true, delete_branch_on_merge = true }
+    anutimetable                  = { allow_auto_merge = true, delete_branch_on_merge = true, default_workflow_permissions = "write", can_approve_pull_request_reviews = true }
+    ataxx                         = { default_workflow_permissions = "write", can_approve_pull_request_reviews = true }
+    azure-favicons                = { default_workflow_permissions = "write", can_approve_pull_request_reviews = true }
+    cloudflare-kubernetes-gateway = { delete_branch_on_merge = true, can_approve_pull_request_reviews = true }
+    dotfiles                      = { allow_merge_commit = false, allow_squash_merge = false, default_workflow_permissions = "write", can_approve_pull_request_reviews = true }
+    homelab                       = { delete_branch_on_merge = true, default_workflow_permissions = "write", can_approve_pull_request_reviews = true }
+    shapes                        = { default_workflow_permissions = "write", can_approve_pull_request_reviews = true }
+    temple-trap                   = { default_workflow_permissions = "write", can_approve_pull_request_reviews = true }
+    tsuro                         = { default_workflow_permissions = "write", can_approve_pull_request_reviews = true }
+    web-admx-tool                 = { default_workflow_permissions = "write", can_approve_pull_request_reviews = true }
+    winget-extras                 = { allow_auto_merge = true, allow_update_branch = true, delete_branch_on_merge = true, can_approve_pull_request_reviews = true }
     winget-recipes                = { allow_auto_merge = true, allow_update_branch = true, delete_branch_on_merge = true }
+    zmk-config                    = { default_workflow_permissions = "write", can_approve_pull_request_reviews = true }
   }
 
   # GitHub's defaults for a new repo
@@ -39,6 +46,9 @@ locals {
         allow_auto_merge       = false
         allow_update_branch    = false
         delete_branch_on_merge = false
+
+        default_workflow_permissions     = "read"
+        can_approve_pull_request_reviews = false
       },
       lookup(local.overrides, name, {}),
     )

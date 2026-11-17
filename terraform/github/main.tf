@@ -102,8 +102,8 @@ resource "github_workflow_repository_permissions" "this" {
   for_each = local.sources
 
   repository                       = each.key
-  default_workflow_permissions     = "read"
-  can_approve_pull_request_reviews = false
+  default_workflow_permissions     = local.repos[each.key].default_workflow_permissions
+  can_approve_pull_request_reviews = local.repos[each.key].can_approve_pull_request_reviews
 
   lifecycle {
     destroy = false
