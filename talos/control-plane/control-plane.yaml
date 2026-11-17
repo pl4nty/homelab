@@ -11,7 +11,7 @@ config:
 apiVersion: v1alpha1
 kind: KubeProxyConfig
 mode: nftables
-image: quay.io/k0sproject/kube-proxy:v1.36.6@sha256:89ab5ebd6edf5d6409c09d17287134299ec53395340fbf80f2158a11a502a1e3
+image: quay.io/k0sproject/kube-proxy:v1.37.2@sha256:b24d9f8b5e0265ac14fb532856e84af957eae2fb8fd38f8240c42b76e76e09a7
 ---
 # for kubernetes/cluster-1/backups/etcd.yaml
 apiVersion: v1alpha1
