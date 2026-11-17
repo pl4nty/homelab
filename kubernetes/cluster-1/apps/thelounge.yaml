@@ -15,11 +15,6 @@ spec:
   values:
     global:
       createDefaultServiceAccount: false
-    defaultPodOptions:
-      # the image runs as uid 1000, which can't write to fresh volumes
-      securityContext:
-        fsGroup: 1000
-        fsGroupChangePolicy: OnRootMismatch
     controllers:
       thelounge:
         pod:
@@ -27,7 +22,7 @@ spec:
             instrumentation.opentelemetry.io/inject-nodejs: "true"
         containers:
           app:
-            image:
+            image: &image
               repository: ghcr.io/thelounge/thelounge
               tag: 4.5.2@sha256:b19c2ef06efce2a494a7f142e5acba2db3086a591453f25916e204d342e3d194
             env:
@@ -42,6 +37,16 @@ spec:
                 cpu: 10m
               limits:
                 memory: 512Mi
+        initContainers:
+          # the image runs as uid 1000 and chmods its home, so it must own a new volume
+          config:
+            image: *image
+            command:
+              - chown
+              - "1000:1000"
+              - /config
+            securityContext:
+              runAsUser: 0
     service:
       app:
         controller: thelounge
