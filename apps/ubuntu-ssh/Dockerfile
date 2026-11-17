@@ -9,10 +9,12 @@ RUN --mount=type=cache,target=/var/cache/apt \
 
 RUN service ssh restart
 
+RUN echo ubuntu:ubuntu | chpasswd
+
 USER ubuntu
 RUN ssh-keygen -A
 
 USER root
 
-CMD ["/usr/sbin/sshd","-D","-p 2222"]
+CMD ["/usr/sbin/sshd","-D","-p 2222","-o","ListenAddress=127.0.0.1","-o","ListenAddress=::1"]
 EXPOSE 2222
