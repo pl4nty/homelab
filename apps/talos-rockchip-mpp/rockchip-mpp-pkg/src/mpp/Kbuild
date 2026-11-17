@@ -2,7 +2,7 @@
 # Out-of-tree build of the Rockchip BSP MPP service for mainline kernels,
 # RK3588 codec blocks only.
 
-NOSTDINC_FLAGS += -I$(src)/../compat -I$(src)/../compat/uapi -I$(src)/../dt
+NOSTDINC_FLAGS += -I$(src)/../compat -I$(src)/../compat/uapi
 
 ccflags-y += -include $(src)/mpp_config.h
 

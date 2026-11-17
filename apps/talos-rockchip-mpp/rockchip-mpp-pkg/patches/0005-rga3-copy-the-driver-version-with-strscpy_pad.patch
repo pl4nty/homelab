@@ -1,0 +1,24 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 7 Nov 2026 06:30:00 +0000
+Subject: [PATCH] rga3: copy the driver version with strscpy_pad()
+
+Linux 7.x removed strncpy(). The _pad variant zero-fills the rest of the
+buffer, as strncpy() did, since the struct is copied to userspace.
+---
+ drivers/video/rockchip/rga3/rga_drv.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/video/rockchip/rga3/rga_drv.c b/drivers/video/rockchip/rga3/rga_drv.c
+index 715e9e8..4bcfaed 100644
+--- a/drivers/video/rockchip/rga3/rga_drv.c
++++ b/drivers/video/rockchip/rga3/rga_drv.c
+@@ -1085,7 +1085,7 @@ static long rga_ioctl(struct file *file, uint32_t cmd, unsigned long arg)
+ 		driver_version.major = DRIVER_MAJOR_VERSION;
+ 		driver_version.minor = DRIVER_MINOR_VERSION;
+ 		driver_version.revision = DRIVER_REVISION_VERSION;
+-		strncpy((char *)driver_version.str, DRIVER_VERSION, sizeof(driver_version.str));
++		strscpy_pad((char *)driver_version.str, DRIVER_VERSION, sizeof(driver_version.str));
+ 
+ 		if (copy_to_user((void *)arg, &driver_version, sizeof(driver_version)))
+ 			ret = -EFAULT;

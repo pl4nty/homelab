@@ -1,19 +1,12 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 /*
- * RK3588 MPP codec and RGA blocks for a mainline device tree, from the
- * vendor rk3588s.dtsi (rockchip-linux/kernel develop-6.12), with:
- * - 4-cell GIC specifiers, as mainline's GIC has ppi-partitions
- * - mainline IOMMU compatibles; vdpu/vepu share mainline's vpu121_mmu
- * - the AV1 decoder's IOMMU as mainline describes it, for the vsi-iommu driver
- * - rockchip,core-id instead of aliases, which overlays can't add
- * - no OPP tables: the vendor OPP/leakage framework isn't in mainline
- *
- * External references (cru, power, vpu121_mmu) resolve through /__symbols__,
- * which the module adds before applying this, as board DTBs are built without.
+ * RK3588 MPP codec and RGA nodes from the vendor rk3588s.dtsi, for the RK1 DTB
+ * that talos/Dockerfile decompiles and recompiles with this appended. Vendor
+ * nodes, with mainline's 4-cell GIC specifiers and IOMMU compatibles, and
+ * without OPP tables. Nodes that Linux 7.x DTBs also have (IOMMUs, SRAM pools)
+ * use mainline's names, so they merge. Mainline's hantro, rga and rkvdec nodes
+ * for the same blocks stay as they are: Talos builds none of their drivers.
  */
-
-/dts-v1/;
-/plugin/;
 
 #include <dt-bindings/clock/rockchip,rk3588-cru.h>
 #include <dt-bindings/interrupt-controller/arm-gic.h>
@@ -21,45 +14,28 @@
 #include <dt-bindings/power/rk3588-power.h>
 #include <dt-bindings/reset/rockchip,rk3588-cru.h>
 
-/*
- * Mainline's hantro and rga nodes for the same blocks stay as they are: Talos builds
- * neither driver, and disabling a populated node at runtime tears down its platform
- * device, which the mainline Rockchip IOMMU driver can't survive (list corruption in
- * rk_iommu_release_device). Unbound, they hold no registers.
- */
+cru: &{/clock-controller@fd7c0000} {};
+power: &{/power-management@fd8d8000/power-controller} {};
+vpu121_mmu: &{/iommu@fdb50800} {};
+
+&{/aliases} {
+	rkvenc0 = &rkvenc0;
+	rkvenc1 = &rkvenc1;
+	rkvdec0 = &rkvdec0;
+	rkvdec1 = &rkvdec1;
+};
 
 &{/sram@ff001000} {
-	rkvdec0_sram: rkvdec-sram@0 {
+	rkvdec0_sram: codec-sram@0 {
 		reg = <0x0 0x78000>;
 	};
 
-	rkvdec1_sram: rkvdec-sram@78000 {
+	rkvdec1_sram: codec-sram@78000 {
 		reg = <0x78000 0x77000>;
 	};
 };
 
-&{/} {
-	mpp_srv: mpp-srv {
-		compatible = "rockchip,mpp-service";
-		rockchip,taskqueue-count = <12>;
-		rockchip,resetgroup-count = <1>;
-	};
-
-	rkvenc_ccu: rkvenc-ccu {
-		compatible = "rockchip,rkv-encoder-v2-ccu";
-	};
-
-	rga3_core0: rga@fdb60000 {
-		compatible = "rockchip,rga3_core0";
-		reg = <0x0 0xfdb60000 0x0 0x1000>;
-		interrupts = <GIC_SPI 114 IRQ_TYPE_LEVEL_HIGH 0>;
-		interrupt-names = "rga3_core0_irq";
-		clocks = <&cru ACLK_RGA3_0>, <&cru HCLK_RGA3_0>, <&cru CLK_RGA3_0_CORE>;
-		clock-names = "aclk_rga3_0", "hclk_rga3_0", "clk_rga3_0";
-		power-domains = <&power RK3588_PD_RGA30>;
-		iommus = <&rga3_0_mmu>;
-	};
-
+/ {
 	rga3_0_mmu: iommu@fdb60f00 {
 		compatible = "rockchip,rk3588-iommu", "rockchip,rk3568-iommu";
 		reg = <0x0 0xfdb60f00 0x0 0x100>;
@@ -70,17 +46,6 @@
 		#iommu-cells = <0>;
 	};
 
-	rga3_core1: rga@fdb70000 {
-		compatible = "rockchip,rga3_core1";
-		reg = <0x0 0xfdb70000 0x0 0x1000>;
-		interrupts = <GIC_SPI 115 IRQ_TYPE_LEVEL_HIGH 0>;
-		interrupt-names = "rga3_core1_irq";
-		clocks = <&cru ACLK_RGA3_1>, <&cru HCLK_RGA3_1>, <&cru CLK_RGA3_1_CORE>;
-		clock-names = "aclk_rga3_1", "hclk_rga3_1", "clk_rga3_1";
-		power-domains = <&power RK3588_PD_RGA31>;
-		iommus = <&rga3_1_mmu>;
-	};
-
 	rga3_1_mmu: iommu@fdb70f00 {
 		compatible = "rockchip,rk3588-iommu", "rockchip,rk3568-iommu";
 		reg = <0x0 0xfdb70f00 0x0 0x100>;
@@ -89,6 +54,60 @@
 		clock-names = "aclk", "iface";
 		power-domains = <&power RK3588_PD_RGA31>;
 		#iommu-cells = <0>;
+	};
+
+	rkvdec0_mmu: iommu@fdc38700 {
+		compatible = "rockchip,rk3588-iommu", "rockchip,rk3568-iommu";
+		reg = <0x0 0xfdc38700 0x0 0x40>, <0x0 0xfdc38740 0x0 0x40>;
+		interrupts = <GIC_SPI 96 IRQ_TYPE_LEVEL_HIGH 0>;
+		clocks = <&cru ACLK_RKVDEC0>, <&cru HCLK_RKVDEC0>;
+		clock-names = "aclk", "iface";
+		rockchip,disable-mmu-reset;
+		#iommu-cells = <0>;
+		power-domains = <&power RK3588_PD_RKVDEC0>;
+	};
+
+	/* as mainline describes it, for vsi-iommu */
+	av1d_mmu: iommu@fdca0000 {
+		compatible = "rockchip,rk3588-av1-iommu", "verisilicon,iommu-1.2";
+		reg = <0x0 0xfdca0000 0x0 0x600>;
+		interrupts = <GIC_SPI 109 IRQ_TYPE_LEVEL_HIGH 0>;
+		clocks = <&cru ACLK_AV1>, <&cru PCLK_AV1>;
+		clock-names = "core", "iface";
+		#iommu-cells = <0>;
+		power-domains = <&power RK3588_PD_AV1>;
+	};
+
+	mpp_srv: mpp-srv {
+		compatible = "rockchip,mpp-service";
+		rockchip,taskqueue-count = <12>;
+		rockchip,resetgroup-count = <1>;
+	};
+
+	rkvenc_ccu: rkvenc-ccu {
+		compatible = "rockchip,rkv-encoder-v2-ccu";
+	};
+
+	rga3_core0: rga3-core0@fdb60000 {
+		compatible = "rockchip,rga3_core0";
+		reg = <0x0 0xfdb60000 0x0 0x1000>;
+		interrupts = <GIC_SPI 114 IRQ_TYPE_LEVEL_HIGH 0>;
+		interrupt-names = "rga3_core0_irq";
+		clocks = <&cru ACLK_RGA3_0>, <&cru HCLK_RGA3_0>, <&cru CLK_RGA3_0_CORE>;
+		clock-names = "aclk_rga3_0", "hclk_rga3_0", "clk_rga3_0";
+		power-domains = <&power RK3588_PD_RGA30>;
+		iommus = <&rga3_0_mmu>;
+	};
+
+	rga3_core1: rga3-core1@fdb70000 {
+		compatible = "rockchip,rga3_core1";
+		reg = <0x0 0xfdb70000 0x0 0x1000>;
+		interrupts = <GIC_SPI 115 IRQ_TYPE_LEVEL_HIGH 0>;
+		interrupt-names = "rga3_core1_irq";
+		clocks = <&cru ACLK_RGA3_1>, <&cru HCLK_RGA3_1>, <&cru CLK_RGA3_1_CORE>;
+		clock-names = "aclk_rga3_1", "hclk_rga3_1", "clk_rga3_1";
+		power-domains = <&power RK3588_PD_RGA31>;
+		iommus = <&rga3_1_mmu>;
 	};
 
 	/* replaces mainline's rga@fdb80000, which has the same block */
@@ -219,7 +238,6 @@
 		iommus = <&rkvenc0_mmu>;
 		rockchip,srv = <&mpp_srv>;
 		rockchip,ccu = <&rkvenc_ccu>;
-		rockchip,core-id = <0>;
 		rockchip,taskqueue-node = <7>;
 		rockchip,task-capacity = <8>;
 		power-domains = <&power RK3588_PD_VENC0>;
@@ -253,7 +271,6 @@
 		iommus = <&rkvenc1_mmu>;
 		rockchip,srv = <&mpp_srv>;
 		rockchip,ccu = <&rkvenc_ccu>;
-		rockchip,core-id = <1>;
 		rockchip,taskqueue-node = <7>;
 		rockchip,task-capacity = <8>;
 		power-domains = <&power RK3588_PD_VENC1>;
@@ -311,7 +328,6 @@
 		iommus = <&rkvdec0_mmu>;
 		rockchip,srv = <&mpp_srv>;
 		rockchip,ccu = <&rkvdec_ccu>;
-		rockchip,core-id = <0>;
 		rockchip,core-mask = <0x00010001>;
 		rockchip,task-capacity = <16>;
 		rockchip,taskqueue-node = <9>;
@@ -322,17 +338,6 @@
 				    <139 180224>, <133 49152>, <134 8192>, <135 4352>,
 				    <138 13056>, <142 291584>;
 		rockchip,rcb-min-width = <512>;
-		power-domains = <&power RK3588_PD_RKVDEC0>;
-	};
-
-	rkvdec0_mmu: iommu@fdc38700 {
-		compatible = "rockchip,rk3588-iommu", "rockchip,rk3568-iommu";
-		reg = <0x0 0xfdc38700 0x0 0x40>, <0x0 0xfdc38740 0x0 0x40>;
-		interrupts = <GIC_SPI 96 IRQ_TYPE_LEVEL_HIGH 0>;
-		clocks = <&cru ACLK_RKVDEC0>, <&cru HCLK_RKVDEC0>;
-		clock-names = "aclk", "iface";
-		rockchip,disable-mmu-reset;
-		#iommu-cells = <0>;
 		power-domains = <&power RK3588_PD_RKVDEC0>;
 	};
 
@@ -360,7 +365,6 @@
 		iommus = <&rkvdec1_mmu>;
 		rockchip,srv = <&mpp_srv>;
 		rockchip,ccu = <&rkvdec_ccu>;
-		rockchip,core-id = <1>;
 		rockchip,core-mask = <0x00020002>;
 		rockchip,task-capacity = <16>;
 		rockchip,taskqueue-node = <9>;
@@ -404,17 +408,6 @@
 		iommus = <&av1d_mmu>;
 		rockchip,srv = <&mpp_srv>;
 		rockchip,taskqueue-node = <11>;
-		power-domains = <&power RK3588_PD_AV1>;
-	};
-
-	/* as mainline (Linux 7.x) describes it, for vsi-iommu */
-	av1d_mmu: iommu@fdca0000 {
-		compatible = "rockchip,rk3588-av1-iommu", "verisilicon,iommu-1.2";
-		reg = <0x0 0xfdca0000 0x0 0x600>;
-		interrupts = <GIC_SPI 109 IRQ_TYPE_LEVEL_HIGH 0>;
-		clocks = <&cru ACLK_AV1>, <&cru PCLK_AV1>;
-		clock-names = "core", "iface";
-		#iommu-cells = <0>;
 		power-domains = <&power RK3588_PD_AV1>;
 	};
 };

@@ -32,7 +32,7 @@ params:
   # cnpg pods request 100Mi hugepages-2Mi each
   vm.nr_hugepages: "256"
 ---
-# rockchip-mpp, for Jellyfin. These pull in vsi_iommu and rk3588_mpp_dt
+# rockchip-mpp, for Jellyfin. rk_vcodec pulls in vsi_iommu. The device tree nodes are in the installer's DTB
 apiVersion: v1alpha1
 kind: KernelModuleConfig
 name: rk_vcodec
