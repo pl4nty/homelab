@@ -1,3 +1,12 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: browsertrix
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: https://docs.browsertrix.com/helm-repo
+---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -8,22 +17,11 @@ spec:
   chart:
     spec:
       chart: browsertrix
-      version: 1.26.2
+      version: 1.26.6
       sourceRef:
         kind: HelmRepository
         name: browsertrix
         namespace: flux-system
-  maxHistory: 3
-  install:
-    createNamespace: true
-    remediation:
-      retries: 3
-  upgrade:
-    cleanupOnFail: true
-    remediation:
-      retries: 3
-  uninstall:
-    keepHistory: false
   # chart leaves minio on the default RollingUpdate, but its RWO volume can't attach to a second node
   postRenderers:
     - kustomize:
@@ -36,6 +34,17 @@ spec:
                 path: /spec/strategy
                 value:
                   type: Recreate
+          # the chart has no pod annotation values. api and op are both FastAPI apps
+          - target:
+              kind: Deployment
+              name: browsertrix-cloud-backend
+            patch: |
+              - op: add
+                path: /spec/template/metadata/annotations/instrumentation.opentelemetry.io~1inject-python
+                value: "true"
+              - op: add
+                path: /spec/template/metadata/annotations/instrumentation.opentelemetry.io~1python-container-names
+                value: api,op
   values:
     superuser:
       email: tom@tplant.com.au

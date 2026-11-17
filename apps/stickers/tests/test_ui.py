@@ -132,9 +132,9 @@ def test_search_tags_and_viewer(page, server):
     assert order != [f"Sticker {i}" for i in range(23, -1, -1)]  # shuffled, not newest first
     page.reload()
     page.wait_for_selector(".tile")
-    assert (
-        page.eval_on_selector_all(".tile img", "els => els.map(e => e.alt)") == order
-    )  # same tab, same order
+    again = page.eval_on_selector_all(".tile img", "els => els.map(e => e.alt)")
+    assert sorted(again) == sorted(order) and again != order  # every load reshuffles
+    order = again
 
     page.click(".tile >> nth=0")
     page.wait_for_selector("dialog .view img")
@@ -149,6 +149,7 @@ def test_search_tags_and_viewer(page, server):
         page.locator(".count").count() == 0
         and page.get_attribute("#q", "placeholder") == "Search 24 stickers"
     )
+    assert page.locator("dialog .find a").count() == 2  # Download PNG, Google Lens
     lens = page.get_attribute("dialog a[href*=lens]", "href")
     assert lens.startswith("https://lens.google.com/uploadbyurl?url=http%3A%2F%2F127.0.0.1")
     page.keyboard.press("ArrowRight")
@@ -190,7 +191,6 @@ def test_upload_review_publish_edit(page, server, tmp_path):
     assert page.locator(".tile").count() == 0 and page.is_hidden("#q")  # submitters only upload
     page.set_input_files("[type=file]", str(make_scan(tmp_path / f"scan-{page.kind}.png")))
     page.fill(".upload [name=creator]", "Ana")
-    page.fill(".upload [name=comment]", "Swap table")
     page.click(".upload .primary")
     page.wait_for_function(
         "document.querySelector('.jobs .st')?.textContent === 'done: 4 stickers'", timeout=60000
@@ -207,7 +207,7 @@ def test_upload_review_publish_edit(page, server, tmp_path):
 
     page.goto(f"{url}/admin?s={new[0]['id']}#adm-token")  # a link straight to one sticker
     page.wait_for_function("document.querySelector('.stage img')?.style.transform")
-    assert page.input_value("dialog [name=comment]") == "Swap table"
+    page.fill("dialog [name=comment]", "Swap table")  # each sticker has its own story
     page.wait_for_selector(".dupes:not([hidden])")
     assert "Same sticker?" in page.inner_text(".dupes") and "Earlier copy" in page.inner_text(
         ".dupes"
@@ -218,12 +218,17 @@ def test_upload_review_publish_edit(page, server, tmp_path):
     page.click("[data-act=fit]")
     page.fill("dialog [name=title]", "Reviewed")
     page.fill("dialog [name=tags]", "Holo, ctf, holo")
+    page.eval_on_selector(".target", "e => (e.value = '#000000')")
+    page.click("[data-tool=pick]")
+    box = page.locator(".stage").bounding_box()
+    page.mouse.click(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    page.wait_for_function("document.querySelector('.target').value !== '#000000'")
     page.eval_on_selector(
-        "[name=warmth]",
-        "e => { e.value = 0.5; e.dispatchEvent(new Event('input', {bubbles: true})) }",
+        "[name=saturation]",
+        "e => { e.value = -0.5; e.dispatchEvent(new Event('input', {bubbles: true})) }",
     )
     page.wait_for_function(
-        "document.querySelector('.stage img').src.includes('preview.webp?warmth=0.5')"
+        "document.querySelector('.stage img').src.includes('preview.webp?hue=0&saturation=-0.5')"
     )
     page.screenshot(path=f"/tmp/ui-{page.kind}-editor.png")
     no_sideways_scroll(page)
@@ -232,7 +237,13 @@ def test_upload_review_publish_edit(page, server, tmp_path):
     page.wait_for_selector(".toast.on")
     assert page.inner_text(".toast") == "Published"
     m = st.items[new[0]["id"]]
-    assert (m.state, m.title, m.tags, m.creator) == ("approved", "Reviewed", ["holo", "ctf"], "Ana")
+    assert (m.state, m.title, m.tags, m.creator, m.comment) == (
+        "approved",
+        "Reviewed",
+        ["holo", "ctf"],
+        "Ana",
+        "Swap table",
+    )
     before = len(st.list("pending"))
     page.click("[data-act=delete]")  # next one: reject, two clicks
     assert "click again" in page.inner_text("[data-act=delete]")

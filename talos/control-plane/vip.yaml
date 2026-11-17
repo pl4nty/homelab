@@ -1,0 +1,6 @@
+# Kubernetes API VIP, outside the router's DHCP pool (192.168.1.2-.191). Talos announces it from one
+# control plane at a time over the RK1s' end0
+apiVersion: v1alpha1
+kind: Layer2VIPConfig
+name: 192.168.1.200
+link: end0

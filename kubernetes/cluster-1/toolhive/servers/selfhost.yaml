@@ -10,7 +10,7 @@ spec:
     name: toolhive
   externalAuthConfigRef:
     name: entra-upstream
-  image: ghcr.io/pl4nty/mcp:latest@sha256:55f06ea533e82bbb94ae1503120d3a04a6c50ab714a8a1fd7643aac2e6186b83
+  image: ghcr.io/pl4nty/mcp:latest@sha256:5056447182a2feeb3217089779588d62bd4321ba5d56c251bbf9c8da3d13dfa5
   transport: streamable-http
   mcpPort: 8000
   podTemplateSpec:
@@ -34,7 +34,3 @@ spec:
       volumes:
         - name: tmp
           emptyDir: {}
-  secrets:
-    - name: toolhive
-      key: flowsavvy-cookie
-      targetEnvName: FLOWSAVVY_COOKIE

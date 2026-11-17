@@ -1,0 +1,4 @@
+# Oracle Cloud A1. The oracle platform only sets ttyS0, but arm64's serial console is ttyAMA0
+customization:
+  extraKernelArgs:
+    - console=ttyAMA0

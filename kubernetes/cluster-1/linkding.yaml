@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -10,10 +10,11 @@ spec:
     kind: OCIRepository
     name: app-template
   values:
-    global:
-      createDefaultServiceAccount: false
     controllers:
       main:
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-python: "true"
         containers:
           main:
             image:
@@ -22,6 +23,14 @@ spec:
             env:
               TZ: ${TIMEZONE}
               SECURE_REFERRER_POLICY: origin
+              # the OTel agent's sitecustomize loads the Django instrumentation before uWSGI sets these
+              # (uwsgi.ini). without them it configures Django's defaults, and every request 500s on ROOT_URLCONF
+              DJANGO_SETTINGS_MODULE: bookmarks.settings.prod
+              PYTHONPATH: /etc/linkding
+              # ~13 sqlite spans per request (~18k per 10 min from the crawler); keep the Django server spans
+              OTEL_PYTHON_DISABLED_INSTRUMENTATIONS: sqlite3
+              # uWSGI logs every crawler request, ~110MB/day. 4xx/5xx still log, the gateway traces the rest
+              LD_DISABLE_REQUEST_LOGS: "true"
     service:
       main:
         controller: main
@@ -48,8 +57,9 @@ spec:
       overrides:
         type: configMap
         name: "{{ .Release.Name }}"
+        # 1.45 moved head.html from bookmarks/ to shared/. check the upstream template on upgrades
         globalMounts:
-          - path: /etc/linkding/bookmarks/templates/bookmarks/head.html
+          - path: /etc/linkding/bookmarks/templates/shared/head.html
             subPath: head.html
     configMaps:
       overrides:
@@ -67,7 +77,12 @@ spec:
               <meta name="apple-mobile-web-app-capable" content="yes">
               <meta name="viewport" content="width=device-width, initial-scale=1.0, minimal-ui">
               <meta name="description" content="Useful apps I've made or found on the web">
-              <meta name="robots" content="index,follow">
+              {# tag links append to the query (?q=#a+#a+#b...), so crawlers never run out of search URLs #}
+              {% if request.GET.q %}
+                <meta name="robots" content="noindex,nofollow">
+              {% else %}
+                <meta name="robots" content="index,follow">
+              {% endif %}
               <meta name="author" content="Tom Plant">
               <title>apps.tplant.com.au</title>
               {# Include specific theme variant based on user profile setting #}
@@ -97,4 +112,7 @@ spec:
                 <link rel="alternate" type="application/rss+xml" href="{{ rss_feed_url }}" />
               {% endif %}
               <script src="{% static "bundle.js" %}?v={{ app_version }}"></script>
+              {% if debug %}
+                <script src="{% static "live-reload.js" %}"></script>
+              {% endif %}
             </head>`}}

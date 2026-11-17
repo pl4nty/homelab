@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -10,15 +10,13 @@ spec:
     kind: OCIRepository
     name: app-template
   values:
-    global:
-      createDefaultServiceAccount: false
     controllers:
       main:
         containers:
           app:
             image:
               repository: ghcr.io/browserless/chromium
-              tag: v2.57.3@sha256:40dff7c23e0e378ba451c23ef66394ffb81bd11e6b9fe8ef3066d59eb402cc5d
+              tag: v2.63.1@sha256:a79e03601b98ca7dc69bb518e7ffec9bbc7e368cde9b28d793a0c81e3193c0bb
               pullPolicy: IfNotPresent
             env:
               TZ: ${TIMEZONE}
@@ -34,6 +32,8 @@ spec:
               allowPrivilegeEscalation: false
               capabilities: { drop: [ ALL ] }
         pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-nodejs: "true"
           securityContext:
             runAsNonRoot: true
             fsGroup: 999

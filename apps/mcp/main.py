@@ -8,19 +8,18 @@ from contextvars import ContextVar
 import httpx
 import jwt
 import uvicorn
+
 # from azure.identity.aio import OnBehalfOfCredential
 from dotenv import load_dotenv
+from mcp.server.auth.provider import AccessToken, TokenVerifier
+from mcp.server.mcpserver import MCPServer
+from mcp.server.transport_security import TransportSecuritySettings
+
 # from msgraph_beta import GraphServiceClient
-from pydantic import AnyHttpUrl
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
 from starlette.routing import Mount, Route
-
-from mcp.server.auth.provider import AccessToken, TokenVerifier
-from mcp.server.auth.settings import AuthSettings
-from mcp.server.fastmcp import FastMCP
-from mcp.server.transport_security import TransportSecuritySettings
 
 load_dotenv()
 log = logging.getLogger(__name__)
@@ -48,7 +47,8 @@ class EntraTokenVerifier(TokenVerifier):
         try:
             key = self._jwks.get_signing_key_from_jwt(token)
             claims = jwt.decode(
-                token, key.key,
+                token,
+                key.key,
                 algorithms=["RS256"],
                 audience=list(AUDIENCES),
                 options={"verify_iss": False},
@@ -62,14 +62,13 @@ class EntraTokenVerifier(TokenVerifier):
 
         return AccessToken(
             token=token,
-            client_id=claims.get("azp") or claims.get(
-                "appid") or AZURE_CLIENT_ID,
+            client_id=claims.get("azp") or claims.get("appid") or AZURE_CLIENT_ID,
             scopes=claims.get("scp", "").lower().split(),
             expires_at=claims.get("exp"),
         )
 
 
-mcp = FastMCP(
+mcp = MCPServer(
     name="Outlook MCP",
     instructions="Tools for reading Outlook emails and calendar events via Microsoft Graph.",
     # token_verifier=EntraTokenVerifier(),
@@ -78,9 +77,6 @@ mcp = FastMCP(
     #     resource_server_url=None,
     #     required_scopes=None,
     # ),
-    transport_security=TransportSecuritySettings(
-        enable_dns_rebinding_protection=False,
-    )
 )
 
 
@@ -100,10 +96,9 @@ mcp = FastMCP(
 
 
 # Using third-party servers for these
-# import tools.graph  # noqa: E402, F401 — registers @mcp.tool() on import
-# import tools.google_maps  # noqa: E402, F401
-import tools.flowsavvy  # noqa: E402, F401
-
+# import tools.graph
+# import tools.google_maps
+import tools.flowsavvy  # noqa: F401
 
 _PROXY_SCOPE = f"api://{AZURE_CLIENT_ID}/claudeai"
 
@@ -117,16 +112,26 @@ async def _authorize(request: Request) -> RedirectResponse:
 
 
 async def _token(request: Request) -> Response:
-    headers = {k: v for k, v in request.headers.items() if k.lower()
-               in ("content-type", "accept")}
+    headers = {k: v for k, v in request.headers.items() if k.lower() in ("content-type", "accept")}
     async with httpx.AsyncClient() as client:
-        resp = await client.post(f"{ENTRA_URL}/token", content=await request.body(), headers=headers)
-    return Response(content=resp.content, status_code=resp.status_code, media_type=resp.headers.get("content-type"))
+        resp = await client.post(
+            f"{ENTRA_URL}/token", content=await request.body(), headers=headers
+        )
+    return Response(
+        content=resp.content,
+        status_code=resp.status_code,
+        media_type=resp.headers.get("content-type"),
+    )
 
 
 def main() -> None:
-    mcp_app = mcp.streamable_http_app()
-    # FastMCP resource_server_url is used as both MCP base and OAuth scope, but Entra only allows api:// or http with a verified domain
+    # mcp 2 moved transport security from the server to the transport
+    mcp_app = mcp.streamable_http_app(
+        transport_security=TransportSecuritySettings(
+            enable_dns_rebinding_protection=False,
+        ),
+    )
+    # MCPServer resource_server_url is used as both MCP base and OAuth scope, but Entra only allows api:// or http with a verified domain
     # So for local development with non-entra-verified domains, we become the Auth Server (resource_server_url=None) and forward to Entra, rewriting the scope
     app = Starlette(
         lifespan=mcp_app.router.lifespan_context,

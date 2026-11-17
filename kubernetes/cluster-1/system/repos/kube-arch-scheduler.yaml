@@ -1,8 +1,0 @@
-apiVersion: source.toolkit.fluxcd.io/v1
-kind: HelmRepository
-metadata:
-  name: kube-arch-scheduler
-  namespace: flux-system
-spec:
-  interval: 1h
-  url: https://pl4nty.github.io/kube-arch-scheduler

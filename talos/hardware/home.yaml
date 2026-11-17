@@ -1,0 +1,45 @@
+# The home nodes (RK1 control planes and the NUC). Symlinked from control-plane/ and node/talos-ivx-yqq/.
+#
+# Home LAN traffic stays off KubeSpan. KubeSpan's rule (priority 32500) sends every peer address to its
+# WireGuard table 180; this rule matches the LAN first and uses the main table, so node-to-node traffic
+# (Longhorn, flannel, etcd) goes direct. Only talos-oci-a1, which isn't on the LAN, goes over WireGuard.
+# The idea is from https://github.com/siderolabs/talos/issues/8364#issuecomment-2638110082
+apiVersion: v1alpha1
+kind: RoutingRuleConfig
+name: "32000"
+dst: 192.168.1.0/24
+table: main
+---
+# well-known topology labels, matching what the OCI cloud controller sets on talos-oci-a1 (ap-sydney-1)
+apiVersion: v1alpha1
+kind: KubeNodeConfig
+labels:
+  topology.kubernetes.io/region: home
+  topology.kubernetes.io/zone: home
+---
+# NUT client (siderolabs/nut-client) for the upsd in kubernetes/cluster-1/nut.yaml. Powers the node off
+# on low battery. A secondary login can only watch the UPS, so its password needn't be secret
+apiVersion: v1alpha1
+kind: ExtensionServiceConfig
+name: nut-client
+configFiles:
+  - mountPath: /usr/local/etc/nut/upsmon.conf
+    content: |
+      MONITOR eaton@192.168.1.134 1 secondary secondary secondary
+      SHUTDOWNCMD "/sbin/poweroff"
+---
+# Hardware watchdog: iTCO_wdt on the NUC, the DesignWare watchdog on the RK1s. The RK1's
+# watchdog can't count much past 44s, so stay under that
+apiVersion: v1alpha1
+kind: WatchdogTimerConfig
+device: /dev/watchdog0
+timeout: 30s
+---
+# Spegel (kubernetes/cluster-1/system/spegel.yaml) serves image layers to peers, so keep them unpacked.
+# takes effect after a reboot
+apiVersion: v1alpha1
+kind: CRICustomizationConfig
+name: spegel
+content: |
+  [plugins."io.containerd.cri.v1.images"]
+    discard_unpacked_layers = false

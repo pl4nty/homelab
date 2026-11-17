@@ -1,0 +1,33 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: cert-manager
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: oci://quay.io/jetstack/charts/cert-manager
+  layerSelector:
+    mediaType: 'application/vnd.cncf.helm.chart.content.v1.tar+gzip'
+    operation: copy
+  ref:
+    tag: v1.21.3
+    digest: sha256:e482675aec32862d323a9218293ff7de81192337998615e4378c56498473f240
+---
+# yaml-language-server: $schema=https://flux-helm-schema.tplant.com.au?values=https://raw.githubusercontent.com/cert-manager/cert-manager/refs/heads/master/deploy/charts/cert-manager/values.schema.json
+# shared: Barman Cloud Plugin mTLS and opentelemetry-operator webhook certs
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cert-manager
+  namespace: flux-system
+spec:
+  targetNamespace: cert-manager
+  releaseName: cert-manager
+  interval: 15m
+  chartRef:
+    kind: OCIRepository
+    name: cert-manager
+    namespace: flux-system
+  values:
+    crds:
+      enabled: true

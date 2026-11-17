@@ -1,0 +1,10 @@
+# 256 GB NVMe, so keep most of it for Longhorn. node/ patches apply after control-plane/, and the
+# merge replaces provisioning whole, so repeat it all
+apiVersion: v1alpha1
+kind: VolumeConfig
+name: EPHEMERAL
+provisioning:
+  diskSelector:
+    match: disk.transport == "nvme"
+  maxSize: 32GiB
+  grow: true

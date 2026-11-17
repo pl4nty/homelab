@@ -12,23 +12,15 @@ spec:
   affinity:
     nodeSelector:
       node.longhorn.io/create-default-disk: config
+    # longhorn-local is best-effort, so a replica can follow its pod to another
+    # node. Required anti-affinity keeps the two instances on separate nodes.
+    podAntiAffinityType: required
 
-  backup:
-    retentionPolicy: 30d
-    barmanObjectStore:
-      endpointURL: https://s3.us-west-004.backblazeb2.com
-      destinationPath: s3://tplant-homelab-postgres
-      s3Credentials:
-        accessKeyId:
-          name: cloudnative-pg
-          key: ACCESS_KEY_ID
-        secretAccessKey:
-          name: cloudnative-pg
-          key: ACCESS_SECRET_KEY
-      wal:
-        compression: gzip
-      data:
-        compression: gzip
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: b2
 
   # bootstrap:
   #   recovery:
@@ -36,16 +28,11 @@ spec:
 
   externalClusters:
     - name: private-1-cnpg
-      barmanObjectStore:
-        endpointURL: https://s3.us-west-004.backblazeb2.com
-        destinationPath: s3://tplant-homelab-postgres
-        s3Credentials:
-          accessKeyId:
-            name: cloudnative-pg
-            key: ACCESS_KEY_ID
-          secretAccessKey:
-            name: cloudnative-pg
-            key: ACCESS_SECRET_KEY
+      plugin:
+        name: barman-cloud.cloudnative-pg.io
+        parameters:
+          barmanObjectName: b2
+          serverName: private-1-cnpg
 
   # otherwise postgres crashes with hugepages enabled
   resources:
@@ -65,5 +52,8 @@ spec:
   immediate: true
   schedule: 0 0 0 * * *
   backupOwnerReference: self
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
   cluster:
     name: private-1-cnpg

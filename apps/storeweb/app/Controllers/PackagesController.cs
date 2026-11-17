@@ -36,26 +36,44 @@ namespace StoreWeb.Controllers
 
         // GET: api/Packages
         [HttpGet]
-        public async Task<string> GetPackages(
+        public async Task<ActionResult<string>> GetPackages(
             /*Mandatory get parameter*/ string Id,
             string Idtype="url",
             string Environment="Production",
             string Market = "US",
             string Lang = "en",
-            string Msatoken=null)
+            string Msatoken=null,
+            // the upstream form names the type select "inputform", so Idtype was always "url"
+            [FromQuery(Name = "inputform")] string Inputform = null)
         {
+            Idtype = Inputform ?? Idtype;
+            if (string.IsNullOrWhiteSpace(Id))
+            {
+                return BadRequest("Missing ID");
+            }
+            if (!Enum.TryParse(Environment, true, out DCatEndpoint environment)
+                || !Enum.TryParse(Lang, true, out Lang lang)
+                || !Enum.TryParse(Market, true, out Market market))
+            {
+                return BadRequest("Unknown environment, market or language");
+            }
             Packages packagerequest = new Packages()
             {
-                id = Id,
-                environment = (DCatEndpoint)Enum.Parse(typeof(DCatEndpoint), Environment),
-                lang = (Lang)Enum.Parse(typeof(Lang), Lang),
-                market = (Market)Enum.Parse(typeof(Market), Market),
+                id = Id.Trim(),
+                environment = environment,
+                lang = lang,
+                market = market,
                 msatoken = Msatoken
             };
             switch (Idtype)
             {
                 case "url":
-                    packagerequest.id = new Regex(@"[a-zA-Z0-9]{12}").Matches(packagerequest.id)[0].Value;
+                    var match = new Regex(@"[a-zA-Z0-9]{12}").Match(packagerequest.id);
+                    if (!match.Success)
+                    {
+                        return BadRequest("No product ID found in the URL");
+                    }
+                    packagerequest.id = match.Value;
                     packagerequest.type = IdentiferType.ProductID;
                     break;
                 case "productid":
@@ -80,16 +98,34 @@ namespace StoreWeb.Controllers
                     packagerequest.type = IdentiferType.LegacyWindowsPhoneProductID;
                     break;
                 default:
-                    packagerequest.type = (IdentiferType)Enum.Parse(typeof(IdentiferType),Idtype);
+                    if (!Enum.TryParse(Idtype, true, out IdentiferType idtype))
+                    {
+                        return BadRequest("Unknown ID type");
+                    }
+                    packagerequest.type = idtype;
                     break;
             }
             DisplayCatalogHandler dcat = new DisplayCatalogHandler(packagerequest.environment, new Locale(packagerequest.market, packagerequest.lang, true));
             if (!string.IsNullOrWhiteSpace(packagerequest.msatoken)) {
                 await dcat.QueryDCATAsync(packagerequest.id, packagerequest.type, packagerequest.msatoken);
             }
-            else 
+            else
             {
                 await dcat.QueryDCATAsync(packagerequest.id, packagerequest.type);
+            }
+            if (!dcat.IsFound)
+            {
+                return NotFound("Product not found");
+            }
+            // alternate ID lookups (pfn, cid, xti...) return a Products list, and StoreLib only reads Product
+            dcat.ProductListing.Product ??= dcat.ProductListing.Products?.FirstOrDefault();
+            if (dcat.ProductListing.Product == null)
+            {
+                return NotFound("Product not found");
+            }
+            if (dcat.ProductListing.Product.DisplaySkuAvailabilities?.FirstOrDefault()?.Sku?.Properties?.FulfillmentData == null)
+            {
+                return NotFound("Product has no downloadable packages");
             }
             List<PackageInfo> packages = new List<PackageInfo>();
             var productpackages = await dcat.GetPackagesForProductAsync();
@@ -113,9 +149,10 @@ namespace StoreWeb.Controllers
                 httpTasks.Add(_httpClient.SendAsync(httpRequest, new System.Threading.CancellationToken()));
                 packages.Add(temppackageinfo);
             }
-            if (!object.ReferenceEquals(dcat.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages[0].PackageDownloadUris, null))
+            var downloadUris = dcat.ProductListing.Product.DisplaySkuAvailabilities?.FirstOrDefault()?.Sku?.Properties?.Packages?.FirstOrDefault()?.PackageDownloadUris;
+            if (downloadUris != null)
             {
-                foreach (var Package in dcat.ProductListing.Product.DisplaySkuAvailabilities[0].Sku.Properties.Packages[0].PackageDownloadUris)
+                foreach (var Package in downloadUris)
                 {
                     Uri PackageURL = new Uri(Package.Uri);
                     PackageInfo temppackageinfo = new PackageInfo()

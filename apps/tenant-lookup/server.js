@@ -9,8 +9,13 @@ require('isomorphic-fetch');
 const app = express();
 const port = 3000;
 
-// Serve static files (e.g., index.html, css/site.css)
-app.use(express.static(__dirname));
+// only the page and its assets: the app directory also holds the source and node_modules
+app.get('/', (_req, res) => res.sendFile('index.html', { root: __dirname }));
+app.get('/favicon.ico', (_req, res) => res.sendFile('favicon.ico', { root: __dirname }));
+app.use('/css', express.static(`${__dirname}/css`));
+app.use('/js', express.static(`${__dirname}/js`));
+
+const GUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // Create an instance of the TokenCredential class that is imported
 const credential = new ClientSecretCredential(
@@ -25,8 +30,9 @@ const client = Client.initWithMiddleware({ authProvider });
 app.get('/api', async (req, res) => {
   const tenantId = req.query.tenantId;
 
-  if (!tenantId) {
-    return res.status(400).send('tenantId query parameter is required');
+  // it is interpolated into the Graph path
+  if (!GUID.test(tenantId ?? '')) {
+    return res.status(400).send('tenantId query parameter must be a GUID');
   }
 
   try {

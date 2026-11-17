@@ -32,12 +32,19 @@ apiVersion: storage.k8s.io/v1
 metadata:
   name: longhorn-local
   namespace: default
+  annotations:
+    # StorageClass parameters are immutable, so let Flux recreate it on change.
+    # Bound PVCs keep working: they reference the class by name only.
+    kustomize.toolkit.fluxcd.io/force: enabled
 provisioner: driver.longhorn.io
 allowVolumeExpansion: true
 parameters:
   fsType: ext4
   numberOfReplicas: "1"
-  dataLocality: strict-local
+  # best-effort, not strict-local: Longhorn can't live-upgrade the engine of an
+  # attached strict-local volume, so every Longhorn minor needed downtime.
+  # With 1 replica, best-effort still keeps the data on the pod's node.
+  dataLocality: best-effort
   staleReplicaTimeout: "30"
   recurringJobSelector: '[
     {

@@ -3,11 +3,11 @@
 One web app for a sticker collection:
 
 - **Browse** (`/`, public, read-only): justified rows that fill the width, as in Immich and Google Photos, in the colours and type of tplant.com.au. Search across title, tags, comment and name. Filter by tags; several tags must all match. Open a sticker to see its size in mm, its details, a PNG download and reverse image search. The search, the tags and the open sticker are kept in the URL, so you can share a link.
-- **Submit** (`/submit#<SUBMIT_TOKEN>`): upload a scan of many stickers, with your name and how you got them. The server splits it into stickers, straightens them, and has Claude title and tag them. Submitters see only the progress of their own scans.
+- **Submit** (`/submit#<SUBMIT_TOKEN>`): upload a scan of many stickers, with your name. How each sticker was acquired is added per sticker in review. The server splits it into stickers, straightens them, and has Claude title and tag them. Submitters see only the progress of their own scans.
 - **Admin** (`/admin#<ADMIN_TOKEN>`):
   - **To review:** each sticker from an uploaded scan. Rotate, zoom, level, fix the colour, and edit the title, tags and comment. Possible duplicates are shown alongside. Then publish or reject.
   - **Published:** edit the title, tags, comment, name, rotation or colour, unpublish, or delete. On a browser that has opened the admin link, the public viewer also has an **Edit** button.
-  - **Add scans** and a one-off **Import** from PhotoPrism.
+  - **Add scans**.
 
 ```sh
 export SUBMIT_TOKEN=$(openssl rand -base64 18) ADMIN_TOKEN=$(openssl rand -base64 18)
@@ -26,6 +26,7 @@ There is no database. Each sticker is one PNG, its folder is its state, and its 
 data/pending/<id>.png     split from a scan, waiting for review
 data/approved/<id>.png    public
 data/scans/               uploads waiting to be processed (with a .json sidecar), so a restart resumes them
+data/uploads/             scans still arriving in chunks; deleted after a day if abandoned
 data/cache/               WebP thumbnails at 256/512/1024/2048 px; safe to delete
 ```
 
@@ -43,6 +44,8 @@ Size is not stored. It is the bounding box of the sticker's alpha outline divide
 
 One worker thread takes scans one at a time, so several people uploading at once cannot run the server out of memory. An A3 scan at 600 dpi takes 1 to 1.5 minutes and about 1.3 GB. Uploads over `MAX_MEGAPIXELS` (default 150) are refused. Each sticker appears for review as soon as it has been tagged. If tagging fails, the sticker is still queued, untitled.
 
+Cloudflare refuses request bodies over 100 MB, and an uncompressed 600 dpi A4 TIFF is about 105 MB. So the page sends each scan in 32 MiB chunks (`PUT /api/uploads/<random id>?offset=<n>`, appended in `data/uploads/`), then queues it with `POST /api/scans` (`upload`, `name`, `size`, `creator`). A chunk that fails is retried. If the server already has it, a 409 gives the size it holds, and the page resumes from there. Abandoned uploads are deleted after a day. Scripts can still `POST /api/scans` with the file itself, up to 100 MB through Cloudflare.
+
 The rotation and colour you set in the editor are applied once, on save, so the PNG is resampled at most once per edit. Quarter turns are lossless.
 
 ## Tagging
@@ -56,24 +59,25 @@ It must never tag colours, shapes, objects, characters, the brand or words from 
 
 ## Holo colour
 
-Holographic foil scans blue or cyan: the scanner lights it from one fixed angle, so the foil reflects one band of colour instead of a rainbow. Every sticker tagged `holo` is corrected automatically at ingest:
-- **Estimate:** the cast is measured from the sticker's bright, non-white pixels. If they are not blue, the sticker is left alone.
-- **Correct:** warmth and tint gains are faded in by brightness, so dark ink keeps its colour. The gains are adjusted repeatedly until those pixels average neutral; a single step under-corrected.
+Holographic foil scans blue or cyan: the scanner lights it from one fixed angle, so the foil reflects one band of colour instead of a rainbow.
 
-The editor has **Warmth** and **Tint** sliders, **Auto** and **Reset**, with a preview computed by the same code as the save.
+The editor has **Hue**, **Saturation** and **Brightness** sliders for one colour: the sticker's main colour, or one clicked with **Pick colour**. Colours change fully within 30° of its hue and 25 L* of its lightness, fading out by 60° and 50 L*, and greys don't change. So the foil can be greyed while the silver edge, white and black ink, and other inks keep their scanned colour. The preview is computed by the same code as the save.
 
-**Reference test:** PentesterLab's "Read Code Receive Bug" exists in a plain white version and a holo version. Aligning the two (435 matched points) lines up the plain version's white paper with the holo version's foil.
+**Auto**, and every sticker tagged `holo` at ingest, targets the main light cyan or blue (L* over 52, covering a tenth of the sticker), cuts its chroma to 3 and lifts it to L* 78. A sticker without one is left alone, so printed blue ink (Intel's, L* 45) and warm or green designs keep their colour.
 
-| | Foil colour (CIELAB b*, chroma) | Ink |
+This replaced a whole-sticker warmth/tint gain, faded in by brightness. That gain greyed foil on average, but it pushed every bright neutral the other way. Compared on the published holo stickers:
+
+| Sticker | Warmth/tint gain | One colour |
 |---|---|---|
-| Plain version's white paper (the target) | b* −2.8, chroma 2.8 | unchanged reference |
-| Holo, as scanned | b* −50.5, chroma 50.5 | |
-| Holo, one-step correction (the first version) | b* −23, chroma 23 | |
-| Holo, Auto now | b* −7.4, chroma 7.4 | lightness and colour unchanged |
+| CTF cat (cyan foil, silver edge) | edge salmon, red flag magenta | foil silver, edge and inks unchanged |
+| PentesterLab "Read Code Receive Bug" | orange streaks, foil grey-blue | foil silver-white, like the plain version |
+| Patchstack "Hello, My Password Is" | lime ring turned orange | ring stays lime |
+| Skull with eyepatch | green eye turned orange | eye stays green |
+| Intel Core i7 | unchanged | unchanged |
 
 **Limits:**
-- Neutral on average is not how foil looks: a scanner can't capture the rainbow, so corrected foil looks silver-grey with streaks.
-- A design that really is blue, such as US Cyber Team's Bluey, gets greyed too. Use Reset for those.
+- A scanner can't capture the rainbow, so corrected foil looks silver-grey.
+- Inks near the foil's hue and lightness are greyed too: the CTF cat's blue whiskers, the globe on PentesterLab's "Hack The Planet", and a design that really is light blue, such as US Cyber Team's Bluey. Use Reset, or pick another colour.
 
 ## Duplicates
 
@@ -98,7 +102,7 @@ A holo rescanned at another angle may differ more in colour, and then shows as "
 | Zoom and move | Scroll or pinch to zoom. Use **Move**, or two fingers, to pan. `+` `−` `0` |
 | Level | Choose **Level** and drag along an edge that should be horizontal or vertical. |
 | Symmetry | Finds the angle at which the outline best matches its mirror image. |
-| Find online | Google Lens, Bing, TinEye or Yandex. They fetch the image by URL, so this only works on a publicly reachable server. |
+| Find online | Google Lens. It fetches the image by URL, so this only works on a publicly reachable server. |
 | Colour | **Warmth** and **Tint** sliders, **Auto**, **Reset** |
 | Publish, save | `Enter` |
 
@@ -112,18 +116,7 @@ docker build -t stickers .        # runs the tests; the image runs as uid 1000
 
 - Mount one persistent volume at `/data`.
 - Put `SUBMIT_TOKEN`, `ADMIN_TOKEN` and `ANTHROPIC_API_KEY` in a Secret.
-- Serve the app through the Cloudflare tunnel / HTTPRoute that PhotoPrism uses now. The app enforces read-only access itself, so it needs no method allow-list in front of it.
-
-## Moving off PhotoPrism
-
-Open **Admin → Import** and enter the PhotoPrism address. The import copies every photo straight into Published:
-- the original PNG, with its alpha and DPI;
-- the title;
-- the manual labels, lowercased, as tags (PhotoPrism's own `keyword` labels, such as "Blue", are skipped).
-
-Running it again skips stickers already imported: each id is `pp<PhotoPrism UID>`. Against stickers.tplant.com.au, all 114 photos imported, and the sizes matched the old captions. Afterwards, delete `migrate.py`, its `include_router` line in `server.py`, and `importPanel` and the Import tab in `static/app.js`.
-
-Cloudflare answers 403 to Python's default `User-Agent`, so the import sends its own.
+- `kubernetes/cluster-1/apps/stickers.yaml` does all three and serves it through the cluster's Cloudflare tunnel. Each PR gets a preview at `stickers-pr-<n>`, with its own empty volume. The app enforces read-only access itself, so it needs no method allow-list in front of it. The zone caches every URL, so API responses are `no-store` and the public list revalidates by ETag.
 
 ## Scanning
 
@@ -152,7 +145,7 @@ pytest tests/test_ui.py                                     # 10 browser tests, 
   - the scan queue with a fake Claude, including one failure and a resume after a restart;
   - uploading the same scan twice flags each rescanned sticker as a duplicate;
   - the colour correction fixes blue foil but leaves green designs and dark ink alone;
-  - the PhotoPrism import against a mock that rejects urllib's User-Agent the way Cloudflare does.
+  - that only public responses are cacheable.
 - `test_ui.py` runs Chromium at 1440×900 and at 390×844 (touch). It checks:
   - that rows fill the width;
   - search, tag AND-filtering and URL state;

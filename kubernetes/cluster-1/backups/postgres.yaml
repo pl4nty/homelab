@@ -1,0 +1,22 @@
+# shared by every CNPG cluster. each one archives under its own cluster name (the plugin's serverName)
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: b2
+  namespace: default
+spec:
+  retentionPolicy: 30d
+  configuration:
+    endpointURL: https://s3.us-west-004.backblazeb2.com
+    destinationPath: s3://tplant-homelab-postgres
+    s3Credentials:
+      accessKeyId:
+        name: cloudnative-pg
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: cloudnative-pg
+        key: ACCESS_SECRET_KEY
+    wal:
+      compression: gzip
+    data:
+      compression: gzip

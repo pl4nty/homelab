@@ -20,7 +20,9 @@
     '**/node_modules/**',
     'archive/**',
   ],
-  dependencyDashboardOSVVulnerabilitySummary: 'all',
+  dependencyDashboard: {
+    osvVulnerabilitySummary: 'all',
+  },
   lockFileMaintenance: {
     enabled: true,
     automerge: true,
@@ -80,7 +82,7 @@
         '/apps/[^/]+/docker-bake\\.hcl$/',
       ],
       matchStrings: [
-        '# renovate: branch=(?<currentValue>\\S+)\n\\s*\\S+\\s*=\\s*"(?<depName>https://github\\.com/[^"#]+?)(\\.git)?#(?<currentDigest>[0-9a-f]{40})"',
+        '# renovate: branch=(?<currentValue>\\S+)\n\\s*\\S+\\s*=\\s*"(?<depName>https://github\\.com/[^"#?]+?)(\\.git)?(\\?[^"#]*)?#(?<currentDigest>[0-9a-f]{40})"',
       ],
       datasourceTemplate: 'git-refs',
     },
@@ -95,6 +97,28 @@
       ],
       datasourceTemplate: 'github-releases',
       versioningTemplate: 'semver',
+    },
+    {
+      customType: 'regex',
+      description: 'Talos and Kubernetes versions in topf.yaml',
+      managerFilePatterns: [
+        '/^talos/topf\\.yaml$/',
+      ],
+      matchStrings: [
+        '# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\n\\w+: (?<currentValue>\\S+)\n',
+      ],
+      extractVersionTemplate: '^v(?<version>.+)$',
+    },
+    {
+      customType: 'regex',
+      description: 'riscv64-capable kube-proxy in the Talos config',
+      managerFilePatterns: [
+        '/^talos/control-plane/control-plane\\.yaml$/',
+      ],
+      matchStrings: [
+        'image: (?<depName>quay\\.io/k0sproject/kube-proxy):(?<currentValue>[^@\\s]+)@(?<currentDigest>sha256:[a-f0-9]{64})',
+      ],
+      datasourceTemplate: 'docker',
     },
   ],
   // hostRules: [
@@ -200,14 +224,26 @@
       separateMultipleMinor: true,
     },
     {
-      description: 'flat-viewer uses vite 2, which breaks on node 17+, and node 26 also drops yarn',
+      description: 'Talos and Kubernetes upgrade one minor at a time, and are applied to the cluster by hand',
       matchFileNames: [
-        'apps/flat-viewer/**',
+        'talos/**',
       ],
+      separateMultipleMinor: true,
+      automerge: false,
+    },
+    {
       matchPackageNames: [
-        'node',
+        'siderolabs/talos',
       ],
-      allowedVersions: '<17',
+      groupName: 'talos',
+    },
+    {
+      description: 'kube-proxy must not be newer than the apiserver',
+      matchPackageNames: [
+        'kubernetes/kubernetes',
+        'quay.io/k0sproject/kube-proxy',
+      ],
+      groupName: 'kubernetes',
     },
     {
       description: 'One PR per app, named after it, so each gets its own preview',
@@ -227,9 +263,27 @@
       commitMessagePrefix: "feat({{lookup (split packageFileDir '/') 1}})!: ",
     },
     {
+      description: 'One PR per kubernetes/cluster-1/apps manifest, named after it, so each gets its own preview',
+      matchFileNames: [
+        'kubernetes/cluster-1/apps/**',
+      ],
+      additionalBranchPrefix: "{{replace '\\.yaml$' '' (lookup (split packageFile '/') 3)}}-",
+      semanticCommitScope: "{{replace '\\.yaml$' '' (lookup (split packageFile '/') 3)}}",
+    },
+    {
+      matchFileNames: [
+        'kubernetes/cluster-1/apps/**',
+      ],
+      matchUpdateTypes: [
+        'major',
+      ],
+      commitMessagePrefix: "feat({{replace '\\.yaml$' '' (lookup (split packageFile '/') 3)}})!: ",
+    },
+    {
       description: 'App CI and previews only run on PRs, so automerge app updates through a PR once checks pass',
       matchFileNames: [
         'apps/**',
+        'kubernetes/cluster-1/apps/**',
       ],
       automergeType: 'pr',
       platformAutomerge: false,

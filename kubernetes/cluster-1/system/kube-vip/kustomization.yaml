@@ -4,4 +4,4 @@ resources:
 - https://kube-vip.io/manifests/rbac.yaml
 - kube-vip.yaml
 - kube-vip-config.yaml
-- https://raw.githubusercontent.com/kube-vip/kube-vip-cloud-provider/main/manifest/kube-vip-cloud-controller.yaml
+- https://raw.githubusercontent.com/kube-vip/kube-vip-cloud-provider/v0.0.13/manifest/kube-vip-cloud-controller.yaml

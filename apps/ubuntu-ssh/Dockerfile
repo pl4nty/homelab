@@ -1,4 +1,4 @@
-FROM ubuntu:24.04@sha256:561618e2c15bf2397621dd04f96926663a3b5616c189cf7e38db7e82f5c538ea
+FROM ubuntu:26.04@sha256:6a06111c3b0a8600feadb270aec771dc239bf407b25625f93f44ab00e11f4d3c
 
 RUN --mount=type=cache,target=/var/cache/apt \
     apt-get update && apt-get install -y --no-install-recommends \
@@ -9,10 +9,12 @@ RUN --mount=type=cache,target=/var/cache/apt \
 
 RUN service ssh restart
 
+RUN echo ubuntu:ubuntu | chpasswd
+
 USER ubuntu
 RUN ssh-keygen -A
 
 USER root
 
-CMD ["/usr/sbin/sshd","-D","-p 2222"]
+CMD ["/usr/sbin/sshd","-D","-p 2222","-o","ListenAddress=127.0.0.1","-o","ListenAddress=::1"]
 EXPOSE 2222

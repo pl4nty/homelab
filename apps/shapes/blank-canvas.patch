@@ -1,0 +1,21 @@
+--- a/Graphics/Blank.hs
++++ b/Graphics/Blank.hs
+@@ -285,10 +285,14 @@
+ 
+         connectApp
+ 
+-        get "/"                 $ file $ dataDir ++ "/static/index.html"
+-        get "/jquery.js"        $ file $ dataDir ++ "/static/jquery.js"
+-        get "/jquery-json.js"   $ file $ dataDir ++ "/static/jquery-json.js"
+-        get "/kansas-comet.js"  $ file $ kComet
++        -- Scotty's file sets no Content-Type, so browsers and caches had to guess
++        let typed mime path = do
++              Scotty.setHeader "Content-Type" mime
++              file path
++        get "/"                 $ typed "text/html; charset=utf-8" $ dataDir ++ "/static/index.html"
++        get "/jquery.js"        $ typed "text/javascript" $ dataDir ++ "/static/jquery.js"
++        get "/jquery-json.js"   $ typed "text/javascript" $ dataDir ++ "/static/jquery-json.js"
++        get "/kansas-comet.js"  $ typed "text/javascript" $ kComet
+ 
+         -- There has to be a better way of doing this, using function, perhaps?
+         get (Scotty.regex "^/(.*)$") $ do

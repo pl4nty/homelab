@@ -6,7 +6,7 @@ extension. They give RK3588 boards (Turing RK1 here) the hardware video
 decoders and encoders that Jellyfin's RKMPP transcoding uses, without a BSP
 kernel.
 
-**Status: builds against the released Talos v1.14.4 kernel, and every imported symbol version matches it; not yet run on hardware.**
+**Status: builds against the released Talos v1.14.5 kernel, and every imported symbol version matches it; not yet run on hardware.**
 
 ## What's in it
 
@@ -28,8 +28,8 @@ deferred-probe timeout, and finds no IOMMU driver, binds without one.
 ## How it works on mainline
 
 - **Source**: the build downloads
-  [armbian/linux-rockchip](https://github.com/armbian/linux-rockchip) `rk-6.12-rkr1`
-  at `6bdc00d`, takes `drivers/video/rockchip/{mpp,rga3}` and the vendor headers
+  Rockchip's BSP kernel, [rockchip-linux/kernel](https://github.com/rockchip-linux/kernel)
+  `develop-6.12` at `470f9dc`, takes `drivers/video/rockchip/{mpp,rga3}` and the vendor headers
   they include from it, and applies `rockchip-mpp-pkg/patches`. Those patches are
   every change made to the vendor code for mainline. `rockchip-mpp-pkg/src` holds
   the files written for the port and is copied on top: the build files, two
@@ -54,9 +54,10 @@ deferred-probe timeout, and finds no IOMMU driver, binds without one.
   overlay in `rockchip-mpp-pkg/src/dt/rk3588-mpp.dtso`. That overlay holds the vendor
   nodes, translated to mainline: 4-cell GIC specifiers, mainline IOMMU
   compatibles, `rockchip,core-id` in place of aliases, and no vendor OPP tables.
-  It disables mainline's hantro `vpu121` and `rga` nodes for the same blocks. The
-  overlay stays applied until reboot, because the mainline IOMMU driver can't
-  unbind.
+  It leaves mainline's hantro `vpu121` and `rga` nodes for the same blocks alone:
+  Talos doesn't build those drivers, and disabling a populated node removes its
+  device, which oopses the mainline IOMMU driver. The overlay stays applied until
+  reboot for the same reason.
 - **Signing**: Talos signs modules with a key it throws away after its build, so
   these modules can't carry a signature Talos trusts. Talos v1.14's kernel
   enforces signatures only through the `module.sig_enforce=1` boot argument, so
@@ -72,12 +73,12 @@ kernel, so they can't be signed with its key.
 
 | Stage | Like | What it does |
 | --- | --- | --- |
-| `kernel-tree` | pkgs `kernel-build` | Linux 6.18.57 source and `modules_prepare` with Sidero's LLVM image. The config (`CONFIG_IKCONFIG`) and `Module.symvers` come from the released `ghcr.io/siderolabs/kernel` image. `symvers.py` reads the export tables and CRCs out of its `Image`, and checks them against the `__versions` of the kernel's own modules. |
+| `kernel-tree` | pkgs `kernel-build` | Linux 6.18.58 source and `modules_prepare` with Sidero's LLVM image. The config (`CONFIG_IKCONFIG`) and `Module.symvers` come from the released `ghcr.io/siderolabs/kernel` image. `symvers.py` reads the export tables and CRCs out of its `Image`, and checks them against the `__versions` of the kernel's own modules. |
 | `rockchip-mpp-pkg` | pkgs `gasket-driver-pkg` | downloads and patches the vendor drivers, and builds the modules into `/usr/lib/modules/<release>/extras` |
 | `rockchip-mpp` | extensions `drivers/gasket` | the extension: `manifest.yaml.tmpl`, `vars.yaml`, and `extensions-validator` |
 
-`PKGS`, `TOOLS` and `ABBREV_TAG` in `docker-bake.hcl` pin Talos v1.14.4, as in
-siderolabs/extensions v1.14.4. CI pushes `ghcr.io/pl4nty/talos-rockchip-mpp:sha-<commit>`.
+`PKGS`, `TOOLS` and `ABBREV_TAG` in `docker-bake.hcl` pin Talos v1.14.5, as in
+siderolabs/extensions v1.14.5. CI pushes `ghcr.io/pl4nty/talos-rockchip-mpp:sha-<commit>`.
 To build the extension rootfs and manifest locally, from the repository root:
 
 ```sh
@@ -85,40 +86,22 @@ APP=talos-rockchip-mpp docker buildx bake -f apps/docker-bake.hcl -f apps/talos-
   --set default.output=type=local,dest=_out
 ```
 
-## Install (one RK1 first)
+## Install
 
-1. Build an installer with the released imager. The extension needs no custom
-   kernel, but the node must boot without signature enforcement:
+topf installs it on the RK1s. `talos/docker-bake.hcl` builds their installer from
+`talos/hardware/rk1-schematic.yaml`. `talos/control-plane/rk1.yaml` loads
+rk_vcodec and rga3, which pull in vsi_iommu and rk3588_mpp_dt.
 
-   ```sh
-   docker run --rm -t -v $PWD/_out:/out ghcr.io/siderolabs/imager:v1.14.4 installer --arch arm64 \
-     --overlay-image ghcr.io/siderolabs/sbc-rockchip:<tag for v1.14.4> --overlay-name turingrk1 \
-     --system-extension-image ghcr.io/siderolabs/iscsi-tools:<tag for v1.14.4> \
-     --system-extension-image ghcr.io/siderolabs/util-linux-tools:<tag for v1.14.4> \
-     --system-extension-image ghcr.io/pl4nty/talos-rockchip-mpp:<tag> \
-     --extra-kernel-arg -module.sig_enforce
-   ```
+Jellyfin transcodes fully in hardware on d04 (Jellyfin's `rkmpp` acceleration):
+hevc_rkmpp decode, overlay_rkrga subtitle burn-in, h264_rkmpp encode. A 1080p
+HEVC Main 10 episode transcodes at 4–7x realtime. Mainline has only the `system`
+dma-heap, so `kubernetes/cluster-1/arr/jellyfin.yaml` mounts it under the other
+three names MPP checks for.
 
-   `ghcr.io/siderolabs/extensions:v1.14.4` lists the official extension tags
-   for v1.14.4.
-
-2. Load the modules. They don't autoload, because their device tree nodes only
-   exist once `rk3588_mpp_dt` has loaded. Module dependencies load `vsi_iommu`
-   and `rk3588_mpp_dt` first.
-
-   ```yaml
-   apiVersion: v1alpha1
-   kind: KernelModuleConfig
-   name: rk_vcodec
-   ---
-   apiVersion: v1alpha1
-   kind: KernelModuleConfig
-   name: rga3
-   ```
-
-3. Upgrade one RK1 to that installer, with a serial console attached. Talos
-   upgrades one minor version at a time, so a v1.11 node goes through v1.12 and
-   v1.13 first.
+For about 10 minutes after the modules first loaded, every rkvdec2 job timed out
+(`resetting for err 0x23`). After that, decoding ran cleanly. The cause is
+unknown. All decode jobs run on rkvdec core0, and core1 stays idle.
+CI also tags main's build with its Talos version. The schematic pins a digest, so a rebuild gets a new installer.
 
 ## Test plan
 

@@ -11,10 +11,11 @@ spec:
     kind: OCIRepository
     name: app-template
   values:
-    global:
-      createDefaultServiceAccount: false
     controllers:
       sillytavern:
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-nodejs: "true"
         containers:
           main:
             image:

@@ -1,5 +1,5 @@
 # The modules, built against the released Talos kernel as siderolabs/pkgs builds
-# out-of-tree modules: the Rockchip BSP drivers from Armbian's tree with
+# out-of-tree modules: the Rockchip BSP drivers from Rockchip's kernel with
 # patches/ applied, the mainline vsi-iommu driver, and src/ (build files,
 # the pm_domains and IOMMU headers, the device tree module) on top. They aren't signed: the Talos
 # key is thrown away after its kernel build, so nodes boot with
@@ -13,7 +13,7 @@ dependencies:
   - image: "{{ .BUILD_ARG_TOOLS_PREFIX }}/llvm:{{ .BUILD_ARG_TOOLS }}"
 steps:
   - sources:
-      - url: https://github.com/armbian/linux-rockchip/archive/{{ .linux_rockchip_ref }}.tar.gz
+      - url: https://github.com/rockchip-linux/kernel/archive/{{ .linux_rockchip_ref }}.tar.gz
         destination: linux-rockchip.tar.gz
         sha256: "{{ .linux_rockchip_sha256 }}"
         sha512: "{{ .linux_rockchip_sha512 }}"

@@ -1,0 +1,25 @@
+kind: Secret
+apiVersion: v1
+metadata:
+  name: stickers
+  namespace: default
+type: Opaque
+stringData:
+  ADMIN_TOKEN: ENC[AES256_GCM,data:wTeladfGw16lfEYfFm9g+AOEMoC384kR,iv:9KVE+y6ad7B8sCWRdeshyKiVpUhb+fyBAohiZqDy+Os=,tag:ZqqD5XtbQuDygYOyGwPHmQ==,type:str]
+  SUBMIT_TOKEN: ENC[AES256_GCM,data:A86qmaQCoh/Tf59Z22VCqnkzinjULO9A,iv:/MkCWA3J3MTz5x+t8XbsKhGbIZNHU2684Y1u2Um56wM=,tag:LS94339sYLiEAX/742idJQ==,type:str]
+  ANTHROPIC_API_KEY: ENC[AES256_GCM,data:fkzNBM/fKd7rHJsUu1Qn3PaurbRNcXsRtQbAuClEMWuVdcDWGOSNGaBE0E0FfWSTaKYjoMHXpiwmIgo7lt/YZeRuMV8+EBE3wbkYuGlN8qxB9dJOubGrpYiBVYGWvN3DdoougMXVg6oxPA==,iv:lfz/7QxwbR029hYqhwyNjnca0YNLQsuhBtgjR4D+R3I=,tag:+OYOKcxWW1Gal3vRT/8Ktw==,type:str]
+sops:
+  age:
+    - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBPNHRNVmlsVkg5QnFLQTYz
+        Rkw1bjI5VVlBNlJHUnE1QmRmSG5idG55bEJZCmZDUUlhbG5qVytWKzhIVlVXdW9V
+        QzN3bWxXR2FCSG9LaDBMd1Y0SkFqUG8KLS0tIDJrMloxMFJmWHdiaDB2SWFvUi8z
+        dzVGbUZQT2lCa1lldlhjUkhONloxVWcK1CZObB959RVTIgwRzEnjI+gkXnpHjYEA
+        pRRSQMc54OV8WJj6EW4HggenW4wlNOtdKqD6Py/vyH0V+HLFVUEfVQ==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2026-11-08T12:48:40Z"
+  mac: ENC[AES256_GCM,data:tHaHg1NlAM4D3PPAs+FYFBbMsGklHrFWHLZiCaZ+sVqIKH5UkQwOR0oYa9aJaxCP4d2AX0e55ehY6zpLxMXj1ls97FlFtX7VjgtqgOv8IquJDl/D29SXZAmXKQc2vTx6cfSSAgb6rpfNNdCmj+QLd6S+s/oRFTwsTDYPqN4v+TU=,iv:yRX3VichWQIp1yP0IRchdkDoXPtCD3F+s5mDCWagL14=,tag:fWJRqE+b1qm/6bzIIlrNgg==,type:str]
+  encrypted_regex: ^(data|stringData)$
+  version: 3.11.0

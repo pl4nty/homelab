@@ -1,3 +1,18 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: opentelemetry-operator
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: oci://ghcr.io/open-telemetry/opentelemetry-helm-charts/opentelemetry-operator
+  layerSelector:
+    mediaType: 'application/vnd.cncf.helm.chart.content.v1.tar+gzip'
+    operation: copy
+  ref:
+    tag: 0.129.0
+    digest: sha256:0f7cba9a9382bc219ee6e358560db65c47e7ced3c31ddcb9c339415c8f816923
+---
 # yaml-language-server: $schema=https://flux-helm-schema.tplant.com.au?values=https://raw.githubusercontent.com/open-telemetry/opentelemetry-helm-charts/refs/heads/main/charts/opentelemetry-operator/values.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
@@ -5,29 +20,20 @@ metadata:
   name: opentelemetry-operator
   namespace: monitoring-system
 spec:
+  dependsOn:
+    - name: cert-manager
+      namespace: flux-system
   interval: 15m
   chartRef:
     kind: OCIRepository
     name: opentelemetry-operator
     namespace: flux-system
-  maxHistory: 3
   install:
-    createNamespace: true
-    remediation:
-      retries: 3
     crds: CreateReplace
   upgrade:
-    cleanupOnFail: true
-    remediation:
-      retries: 3
     crds: CreateReplace
-  uninstall:
-    keepHistory: false
   values:
-    # use selfsigned from helm, not cert-manager
     admissionWebhooks:
-      certManager:
-        enabled: false
       failurePolicy: Ignore # don't Fail on flaky TLS errors
     manager:
       # controller_runtime_webhook_latency_seconds_bucket has high cardinality, no option to drop as of 0.33.0
