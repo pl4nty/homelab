@@ -24,6 +24,7 @@ locals {
     cloudflare-kubernetes-gateway = { delete_branch_on_merge = true }
     dotfiles                      = { allow_merge_commit = false, allow_squash_merge = false }
     homelab                       = { delete_branch_on_merge = true }
+    windows-ddf                   = { archived = true }
     winget-extras                 = { allow_auto_merge = true, allow_update_branch = true, delete_branch_on_merge = true }
     winget-recipes                = { allow_auto_merge = true, allow_update_branch = true, delete_branch_on_merge = true }
   }
