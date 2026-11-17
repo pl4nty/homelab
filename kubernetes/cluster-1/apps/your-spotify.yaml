@@ -2,13 +2,16 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: your-spotify
+  name: your-spotify${APP_SUFFIX:=}
   namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chartRef:
     kind: OCIRepository
     name: app-template
+    namespace: default
   values:
     global:
       createDefaultServiceAccount: false
@@ -28,10 +31,10 @@ spec:
               tag: 1.20.0@sha256:624ea009f2ef9d877989bee9c7913ac66840449f566517871696c31a8ea13ddf
             env:
               TIMEZONE: ${TIMEZONE}
-              API_ENDPOINT: https://spotify-api.${PUBLIC_DOMAIN}
-              CLIENT_ENDPOINT: &client https://spotify.${PUBLIC_DOMAIN}
+              API_ENDPOINT: https://spotify-api${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
+              CLIENT_ENDPOINT: &client https://spotify${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
               CORS: *client
-              MONGO_ENDPOINT: mongodb://your-spotify-mongodb:27017/your_spotify
+              MONGO_ENDPOINT: mongodb://your-spotify${APP_SUFFIX:=}-mongodb:27017/your_spotify
             envFrom:
               - secretRef:
                   name: your-spotify
@@ -55,7 +58,7 @@ spec:
               tag: 1.20.0@sha256:e4da90a0634c7862f9f4e893026ee8cd91380234fa2125b88b26c6fb9da3d47e
             env:
               TIMEZONE: ${TIMEZONE}
-              API_ENDPOINT: https://spotify-api.${PUBLIC_DOMAIN}
+              API_ENDPOINT: https://spotify-api${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
             probes: *probes
             resources:
               limits:
@@ -91,6 +94,7 @@ spec:
             port: 27017
     persistence:
       config:
+        retain: ${APP_RETAIN:=true}
         accessMode: ReadWriteOnce
         size: 4Gi
         advancedMounts:
@@ -103,18 +107,18 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - spotify-api.${PUBLIC_DOMAIN}
+          - spotify-api${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: your-spotify
+              - identifier: main
                 port: 8080
       client:
         parentRefs:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - spotify.${PUBLIC_DOMAIN}
+          - spotify${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: your-spotify-client
+              - identifier: client
                 port: 3000

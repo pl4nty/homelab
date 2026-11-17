@@ -2,32 +2,39 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app privatebin
+  name: kutt${APP_SUFFIX:=}
   namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chartRef:
     kind: OCIRepository
     name: app-template
+    namespace: default
   values:
     global:
       createDefaultServiceAccount: false
-    defaultPodOptions:
-      securityContext:
-        runAsUser: 65534
-        runAsGroup: 82
-        fsGroup: 82
     controllers:
       main:
         strategy: Recreate
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-nodejs: "true"
         containers:
           main:
             image:
-              repository: ghcr.io/privatebin/nginx-fpm-alpine
-              tag: 2.1.1@sha256:9fbcc4d5671b974cafb55948d6fc3ab9eaf77f0c39271a50a16dd71bd4c4d3e6
-            securityContext:
-              readOnlyRootFilesystem: true
-              allowPrivilegeEscalation: false
+              repository: docker.io/kutt/kutt
+              tag: v3.2.6@sha256:fa3d24a89b04e0feb542ed7d3c77993d58dbcc1406e5291a369595d543886146
+            env:
+              DEFAULT_DOMAIN: l${APP_SUFFIX:=}.${PRIVATE_DOMAIN}
+              DB_FILENAME: /var/lib/kutt/data.sqlite
+              # links are only created by signed-in users, and registration needs email, so this stays a private shortener
+              DISALLOW_ANONYMOUS_LINKS: "true"
+              DISALLOW_REGISTRATION: "true"
+            envFrom:
+              - secretRef:
+                  name: kutt
             probes:
               liveness:
                 enabled: true
@@ -40,33 +47,22 @@ spec:
         controller: main
         ports:
           http:
-            port: 8080
+            port: 3000
     route:
       main:
         parentRefs:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - paste.${PUBLIC_DOMAIN}
+          - l${APP_SUFFIX:=}.${PRIVATE_DOMAIN}
         rules:
           - backendRefs:
-              - name: *app
-                port: 8080
+              - identifier: main
+                port: 3000
     persistence:
       data:
+        retain: ${APP_RETAIN:=true}
         accessMode: ReadWriteOnce
         size: 1Gi
         globalMounts:
-          - path: /srv/data
-      tmp:
-        type: emptyDir
-        globalMounts:
-          - path: /tmp
-      run:
-        type: emptyDir
-        globalMounts:
-          - path: /run
-      nginx-tmp:
-        type: emptyDir
-        globalMounts:
-          - path: /var/lib/nginx/tmp
+          - path: /var/lib/kutt
