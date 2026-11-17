@@ -1,6 +1,3 @@
-# Azure Resource Manager MCP: https://github.com/Azure/Azure-Resource-Manager-MCP
-# Hosted by Microsoft, so no ToolHive proxy pods. The vMCP calls it directly
-# with the user's token from the "azure" upstream (virtualserver.yaml).
 apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPServerEntry
 metadata:
@@ -15,10 +12,6 @@ spec:
   transport: streamable-http
   headerForward:
     addPlaintextHeaders:
-      # Every opt-in toolset. CostManagement: forecasts, budgets, alerts,
-      # reservations. Skills (experimental): list_skills, get_skills.
-      # Upstream documents single values only; comma-joined is RFC 9110's
-      # form of a repeated header, and a map can't repeat a header anyway.
       x-mcp-toolset: CostManagement,Skills
 ---
 apiVersion: toolhive.stacklok.dev/v1beta1
