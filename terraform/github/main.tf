@@ -14,16 +14,11 @@ provider "github" {
   owner = "pl4nty"
 }
 
-resource "github_repository" "this" {
-  for_each = local.repos
+resource "github_repository" "public" {
+  for_each = local.public
 
   name                   = each.key
   archived               = each.value.archived
-  is_template            = each.value.is_template
-  has_issues             = each.value.has_issues
-  has_projects           = each.value.has_projects
-  has_wiki               = each.value.has_wiki
-  has_discussions        = each.value.has_discussions
   allow_merge_commit     = each.value.allow_merge_commit
   allow_squash_merge     = each.value.allow_squash_merge
   allow_rebase_merge     = each.value.allow_rebase_merge
@@ -33,17 +28,36 @@ resource "github_repository" "this" {
 
   security_and_analysis {
     secret_scanning {
-      status = each.value.secret_scanning
+      status = "enabled"
     }
     secret_scanning_push_protection {
-      status = each.value.secret_scanning
+      status = "enabled"
     }
   }
 
   lifecycle {
     # repos that leave the search results are forgotten, never deleted or archived
     destroy        = false
-    ignore_changes = [description, homepage_url, has_downloads, ignore_vulnerability_alerts_during_read]
+    ignore_changes = [description, homepage_url, has_downloads, has_issues, has_projects, has_wiki, has_discussions, is_template, template, ignore_vulnerability_alerts_during_read]
+  }
+}
+
+# secret scanning isn't available on private repos
+resource "github_repository" "private" {
+  for_each = local.private
+
+  name                   = each.key
+  archived               = each.value.archived
+  allow_merge_commit     = each.value.allow_merge_commit
+  allow_squash_merge     = each.value.allow_squash_merge
+  allow_rebase_merge     = each.value.allow_rebase_merge
+  allow_auto_merge       = each.value.allow_auto_merge
+  allow_update_branch    = each.value.allow_update_branch
+  delete_branch_on_merge = each.value.delete_branch_on_merge
+
+  lifecycle {
+    destroy        = false
+    ignore_changes = [description, homepage_url, has_downloads, has_issues, has_projects, has_wiki, has_discussions, is_template, template, ignore_vulnerability_alerts_during_read, security_and_analysis]
   }
 }
 
@@ -60,11 +74,12 @@ resource "github_repository" "archived" {
   }
 }
 
+# forks run upstream code, so only their repo settings are managed
 resource "github_repository_vulnerability_alerts" "this" {
-  for_each = local.repos
+  for_each = local.sources
 
-  repository = github_repository.this[each.key].name
-  enabled    = each.value.vulnerability_alerts
+  repository = each.key
+  enabled    = true
 
   lifecycle {
     destroy = false
@@ -72,10 +87,10 @@ resource "github_repository_vulnerability_alerts" "this" {
 }
 
 resource "github_actions_repository_permissions" "this" {
-  for_each = local.repos
+  for_each = local.sources
 
-  repository      = github_repository.this[each.key].name
-  enabled         = each.value.actions_enabled
+  repository      = each.key
+  enabled         = true
   allowed_actions = "all"
 
   lifecycle {
@@ -84,10 +99,10 @@ resource "github_actions_repository_permissions" "this" {
 }
 
 resource "github_workflow_repository_permissions" "this" {
-  for_each = local.repos
+  for_each = local.sources
 
-  repository                       = github_repository.this[each.key].name
-  default_workflow_permissions     = each.value.default_workflow_permissions
+  repository                       = each.key
+  default_workflow_permissions     = "read"
   can_approve_pull_request_reviews = false
 
   lifecycle {
@@ -96,8 +111,14 @@ resource "github_workflow_repository_permissions" "this" {
 }
 
 import {
-  for_each = local.repos
-  to       = github_repository.this[each.key]
+  for_each = local.public
+  to       = github_repository.public[each.key]
+  id       = each.key
+}
+
+import {
+  for_each = local.private
+  to       = github_repository.private[each.key]
   id       = each.key
 }
 
@@ -108,19 +129,19 @@ import {
 }
 
 import {
-  for_each = local.repos
+  for_each = local.sources
   to       = github_repository_vulnerability_alerts.this[each.key]
   id       = each.key
 }
 
 import {
-  for_each = local.repos
+  for_each = local.sources
   to       = github_actions_repository_permissions.this[each.key]
   id       = each.key
 }
 
 import {
-  for_each = local.repos
+  for_each = local.sources
   to       = github_workflow_repository_permissions.this[each.key]
   id       = each.key
 }
