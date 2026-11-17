@@ -15,6 +15,11 @@ spec:
   values:
     global:
       createDefaultServiceAccount: false
+    defaultPodOptions:
+      # the image runs as uid 1000, which can't write to fresh volumes
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
     controllers:
       thelounge:
         pod:
