@@ -54,6 +54,6 @@ metadata:
 spec:
   groupRef:
     name: toolhive
-  remoteUrl: http://kubernetes-mcp-server.toolhive-system.svc.cluster.local:8080/mcp
+  remoteUrl: http://kubernetes-mcp-server.toolhive-system:8080/mcp
   allowPrivateEndpoint: true
   transport: streamable-http
