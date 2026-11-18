@@ -1,0 +1,36 @@
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: home-assistant
+  namespace: toolhive-system
+spec:
+  groupRef:
+    name: toolhive
+  telemetryConfigRef:
+    name: toolhive
+  image: ghcr.io/homeassistant-ai/ha-mcp:7.13.0@sha256:2bc9a40fcc162424b123b1d30102cfa567090a41cb54003d0883d8d59c2d0167
+  transport: streamable-http
+  mcpPort: 8086
+  # Upstream's image has a non-numeric USER (mcpuser, uid 999)
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          command:
+            - ha-mcp-web
+          securityContext:
+            runAsUser: 999
+            runAsGroup: 999
+          volumeMounts:
+            - name: home
+              mountPath: /home/mcpuser
+      volumes:
+        - name: home
+          emptyDir: {}
+  env:
+    - name: HOMEASSISTANT_URL
+      value: http://home-assistant-main.default.svc.cluster.local:8123
+  secrets:
+    - name: toolhive
+      key: home-assistant-token
+      targetEnvName: HOMEASSISTANT_TOKEN
