@@ -45,8 +45,12 @@ the live services on 2026-11-19.
 6. **Peer Type** is a bit field. `CPeerInfo::CPeerInfo` maps bit 0 to `CPeerTypeMap` index 1, bit 1 to 4, bit 31 to
    7 and any other non-zero value to 3. `s_typeNames` (read from doclient.dll 923.725.111.0 on the symbol server)
    names them `tcpOpen`, `Group`, `LinkLocal` and `tcpOpenInternet`, and `SumAllNonInternetP2P` sums 1, 4 and 7.
-   The explorer shows these as LAN, Group, LinkLocal and Internet. The arrays return 4 and 16 for Internet peers;
-   what the higher bits mean is not known.
+   The explorer shows these as LAN, Group, LinkLocal and Internet. The client reads no other bit: it keys connect
+   stats on the raw value, and `CCollectiveRecord` parses `InternalIp` only when `Type & 0x80000001` is 0. So bits
+   2 to 30 are the array's own, and their meaning is not known. In 557 Internet peers from families 5, 6 and 8 on
+   2026-11-19, 534 had Type 16 (bit 4), 22 had Type 4 (bit 2) and 1 had Type 20 (both). Of the Type 4 peers, 86%
+   shared their external IP with another peer (31% for Type 16), mostly enterprise networks, so bit 2 may mark a
+   peer behind a shared NAT. That is a guess from one sample.
 
 Filestreamingservice files (FE3 and the Update Catalog) are keyed by the `tlu.dl.delivery.mp.microsoft.com` URL
 that FE3 hands out. The same file as a `dl.` URL gets `FailureReason 0x0001` from the array, and as a
@@ -68,6 +72,7 @@ Windows Calculator 2021.2607.0.0 (SHA1 ID) each returned 50 Internet peers, as m
 - The array picks peers near the IP address that calls it. `ReportedIp`, `Ipv6`, and extra `ExternalIp` or
   `CountryCode` fields in the join did not change the countries of the peers returned, so peers from another region
   need a server in that region.
-- Whois uses RDAP through rdap.org. Many peer IPv6 addresses are Teredo (`2001:0::/32`), which RDAP does not
-  cover, so the explorer decodes the IPv4 in them instead.
+- Whois uses RDAP through rdap.org, one lookup per click, for the peer's external IPv4. "Whois all" on about 400
+  peers got HTTP 429 from RDAP for about half of them; those rows get a Retry button. The explorer hides Teredo
+  IPv6 addresses (`2001:0::/32`): 231 of 291 in one sample wrapped that same IPv4.
 - Peer lists carry other devices' public IP addresses, so the route is on the private domain.

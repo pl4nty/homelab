@@ -59,14 +59,6 @@ export const discovery = (family: number, contentId: string, partitionId: number
 export const peerType = (type: number) =>
   type & 1 ? 'LAN' : type & 2 ? 'Group' : type < 0 || type & 0x80000000 ? 'LinkLocal' : type ? 'Internet' : 'none';
 
-// 2001:0000::/32 is Teredo (RFC 4380): the last 32 bits are the client's public IPv4, inverted
-export function teredo(ipv6: string) {
-  const g = ipv6.split(':');
-  if (g.length !== 8 || Number.parseInt(g[0], 16) !== 0x2001 || Number.parseInt(g[1], 16) !== 0) return undefined;
-  const v = ~((Number.parseInt(g[6], 16) << 16) | Number.parseInt(g[7], 16)) >>> 0;
-  return [v >>> 24, (v >>> 16) & 255, (v >>> 8) & 255, v & 255].join('.');
-}
-
 export type Peer = {
   PeerId: string;
   Type: number;
@@ -162,13 +154,12 @@ async function exploreFamily(
   }
   const array = (steps.discovery as { CollectiveArray: string }[])[0]?.CollectiveArray;
   if (!array) return { ...steps, error: 'discovery returned no array' };
-  const peers = new Map<string, Peer & { array: string; family: number; typeName: string; teredo?: string }>();
+  const peers = new Map<string, Peer & { array: string; family: number; typeName: string }>();
   const announces = [];
   for (let i = 0; i < opts.joins; i++) {
     const { Peers, ...announce } = await join(array, contentId, opts.scope, opts.size, alt);
     announces.push(announce);
-    for (const p of Peers ?? [])
-      peers.set(p.PeerId, { ...p, array, family, typeName: peerType(p.Type), teredo: teredo(p.Ipv6) });
+    for (const p of Peers ?? []) peers.set(p.PeerId, { ...p, array, family, typeName: peerType(p.Type) });
   }
   return { ...steps, array, announce: announces[0], joins: announces.length, peers: [...peers.values()] };
 }

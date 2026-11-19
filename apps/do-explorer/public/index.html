@@ -156,6 +156,8 @@
 
   let last;
   let lookups = 0;
+  // skip Teredo (2001:0::/32) addresses, which mostly wrap the peer's external IPv4
+  const teredo = (ip) => /^2001:0*:/i.test(ip ?? '');
   async function exploreFile(file) {
     last = file;
     const run = ++lookups;
@@ -169,32 +171,40 @@
           <dt>URL</dt><dd class="mono">${esc(file.url)}</dd>
           <dt>AltCatalogId</dt><dd class="mono">${esc(r.altCatalogId)}</dd>
           <dt>Requested ContentId</dt><dd class="mono">${esc(r.requestedContentId)}</dd>
-          <dt>Peers</dt><dd>${peers.length} unique <span id="countries"></span></dd></dl>
+          <dt>Peers</dt><dd>${peers.length} unique ${peers.length ? '<button type="button" id="whois-all">Whois all</button>' : ''} <span id="countries"></span></dd></dl>
         ${json('Pieces hash', r.piecesHash)}
         <div class="scroll"><table><tr><th>Family</th><th>ContentId</th><th>Array</th><th>Result</th><th></th></tr>${r.families
           .map((f) => `<tr><td>${f.family}xx</td><td class="mono">${esc(f.contentId)}${f.contentPolicy?.ContentId ? ' (content policy)' : ''}</td><td class="mono">${esc(f.array?.replace(/^https:\/\/|\.prod.*$/g, ''))}</td><td>${f.error ? `<span class="error">${esc(f.error)}</span>` : `${f.peers.length} peers from ${f.joins} joins, FailureReason ${esc(f.announce?.FailureReason ?? 'none')}`}</td><td>${json('Responses', { contentPolicy: f.contentPolicy, discovery: f.discovery, announce: f.announce })}</td></tr>`)
           .join('')}</table></div>
         ${peers.length ? `<div class="scroll"><table><tr><th>Array</th><th>Type</th><th>External</th><th>Whois</th><th>Internal</th><th>IPv6</th><th>PeerId</th></tr>${peers
-          .map((p, i) => `<tr><td class="mono">${esc(p.array.replace(/^https:\/\/|\.prod.*$/g, ''))}</td><td title="Type ${esc(p.Type)}">${esc(p.typeName)}</td><td class="mono">${esc(p.ExternalIp)}:${esc(p.ExternalPort)}</td><td id="whois-${i}" class="muted">…</td><td class="mono">${esc(p.InternalIp)}${p.InternalPort ? `:${esc(p.InternalPort)}` : ''}</td><td class="mono">${esc(p.Ipv6)}${p.teredo ? `<br><span class="muted">Teredo, IPv4 ${esc(p.teredo)}</span>` : ''}</td><td class="mono">${esc(p.PeerId)}</td></tr>`)
+          .map((p, i) => `<tr><td class="mono">${esc(p.array.replace(/^https:\/\/|\.prod.*$/g, ''))}</td><td title="Type ${esc(p.Type)}">${esc(p.typeName)}</td><td class="mono">${esc(p.ExternalIp)}:${esc(p.ExternalPort)}</td><td id="whois-${i}"><button type="button" data-whois="${i}">Whois</button></td><td class="mono">${esc(p.InternalIp)}${p.InternalPort ? `:${esc(p.InternalPort)}` : ''}</td><td class="mono">${teredo(p.Ipv6) ? '' : esc(p.Ipv6)}</td><td class="mono">${esc(p.PeerId)}</td></tr>`)
           .join('')}</table></div>` : ''}`;
-      // whois with four lookups at a time; the server caches each IP
+      // whois only on click; the server caches each IP
       const countries = {};
-      const queue = peers.map((p, i) => [p.ExternalIp || p.Ip, i]);
-      const worker = async () => {
-        for (let next = queue.shift(); next && run === lookups; next = queue.shift()) {
-          const [ip, i] = next;
-          const cell = document.getElementById(`whois-${i}`);
-          try {
-            const w = await api('/api/whois', { ip });
-            const country = w.country;
-            countries[country ?? '?'] = (countries[country ?? '?'] ?? 0) + 1;
-            cell.className = '';
-            cell.innerHTML = `${esc(w.org ?? w.network)}<br><span class="muted">${esc(country)} · ${esc(w.range)}</span>`;
-          } catch (e) { cell.textContent = e.message; }
-          $('#countries').textContent = `(${Object.entries(countries).sort((a, b) => b[1] - a[1]).map(([c, n]) => `${c} ${n}`).join(', ')})`;
-        }
+      const lookup = async (i) => {
+        const cell = document.getElementById(`whois-${i}`);
+        if (!cell.querySelector('button')) return;
+        cell.textContent = '…';
+        try {
+          const w = await api('/api/whois', { ip: peers[i].ExternalIp || peers[i].Ip });
+          countries[w.country ?? '?'] = (countries[w.country ?? '?'] ?? 0) + 1;
+          cell.innerHTML = `${esc(w.org ?? w.network)}<br><span class="muted">${esc(w.country)} · ${esc(w.range)}</span>`;
+        } catch (e) { cell.innerHTML = `<span class="error">${esc(e.message)}</span> <button type="button" data-whois="${i}">Retry</button>`; return; }
+        $('#countries').textContent = `(${Object.entries(countries).sort((a, b) => b[1] - a[1]).map(([c, n]) => `${c} ${n}`).join(', ')})`;
       };
-      await Promise.all([worker(), worker(), worker(), worker()]);
+      $('#explore').onclick = (ev) => {
+        const i = ev.target.dataset?.whois;
+        if (i !== undefined) lookup(Number(i));
+      };
+      const all = $('#whois-all');
+      if (all) all.onclick = async () => {
+        all.disabled = true;
+        // four lookups at a time
+        const queue = peers.map((_, i) => i);
+        const worker = async () => { for (let i = queue.shift(); i !== undefined && run === lookups; i = queue.shift()) await lookup(i); };
+        await Promise.all([worker(), worker(), worker(), worker()]);
+        all.disabled = false;
+      };
     } catch (e) { $('#explore').innerHTML = `<p class="error">${esc(e.message)}</p>`; }
   }
   $('#options').onchange = () => last && exploreFile(last);
