@@ -20,7 +20,11 @@ Each step follows `doclient.dll` 10.0.26100.6 (decompiled with its public PDB), 
 the live services on 2026-11-19.
 
 1. `geo.prod.do.dsp.mp.microsoft.com/geo` gives the country and the key-value (KV) endpoint; KV `/all` gives the
-   service config.
+   service config. The KV, and the cp, disc and array hosts it lists, belong to one of four service families,
+   `{kv,cp,disc}{4,5,6,8}01` and `array{401-405,501-525,601-622,801-822}` (every host from 1 to 999 that resolves).
+   geo answered with kv501 and kv801 at different times. Each family keeps its own swarms: three joins each on
+   array508, array616 and array804 for KB5132061 returned 42, 148 and 146 peers with no peer in common, and
+   array402 returned none. The explorer queries every family.
 2. **Content policy** `cp801…/content/{contentId}/contentpolicy?altCatalogId={url}`. `altCatalogId` is the download
    URL with its query stripped. Without a caller ContentId, the client's `{contentId}` is the SHA1 of that URL,
    hex encoded (`CBackgroundCopyJob::_InternalCreateDownload`). The service looks the file up by `altCatalogId` and
@@ -35,6 +39,14 @@ the live services on 2026-11-19.
    Internet, 2 for LAN, 6 for Group. The explorer announces a peer that is still downloading, with restricted
    upload, then sends `JoinRequestEvent 2`, which the client sends when a swarm stops. The array answers that with
    no peers; that it removes the peer is inferred, not verified.
+5. **More peers**: a join returns at most 52 peers whatever `PeersWanted` is, and no answer at all above 255. Each
+   join with a new `PeerId` returns a fresh sample: six joins on array804 returned 281 unique peers. The explorer
+   runs up to ten joins per family and merges them.
+6. **Peer Type** is a bit field. `CPeerInfo::CPeerInfo` maps bit 0 to `CPeerTypeMap` index 1, bit 1 to 4, bit 31 to
+   7 and any other non-zero value to 3. `s_typeNames` (read from doclient.dll 923.725.111.0 on the symbol server)
+   names them `tcpOpen`, `Group`, `LinkLocal` and `tcpOpenInternet`, and `SumAllNonInternetP2P` sums 1, 4 and 7.
+   The explorer shows these as LAN, Group, LinkLocal and Internet. The arrays return 4 and 16 for Internet peers;
+   what the higher bits mean is not known.
 
 Filestreamingservice files (FE3 and the Update Catalog) are keyed by the `tlu.dl.delivery.mp.microsoft.com` URL
 that FE3 hands out. The same file as a `dl.` URL gets `FailureReason 0x0001` from the array, and as a
@@ -53,4 +65,9 @@ Windows Calculator 2021.2607.0.0 (SHA1 ID) each returned 50 Internet peers, as m
 - The DO services chain to the Microsoft ECC Product Root Certificate Authority 2018, and FE3 to the Microsoft
   Root Certificate Authority 2011. Bun's bundled roots have neither (the calls fail without them), so
   `ms-roots.pem` carries both.
+- The array picks peers near the IP address that calls it. `ReportedIp`, `Ipv6`, and extra `ExternalIp` or
+  `CountryCode` fields in the join did not change the countries of the peers returned, so peers from another region
+  need a server in that region.
+- Whois uses RDAP through rdap.org. Many peer IPv6 addresses are Teredo (`2001:0::/32`), which RDAP does not
+  cover, so the explorer decodes the IPv4 in them instead.
 - Peer lists carry other devices' public IP addresses, so the route is on the private domain.

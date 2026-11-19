@@ -26,6 +26,7 @@
   .muted { color: var(--muted); } .error { color: #d13438; }
   details { margin: 4px 0; } summary { cursor: pointer; }
   pre { margin: 4px 0; padding: 8px; background: var(--bg); border: 1px solid var(--line); border-radius: 4px; overflow: auto; max-height: 320px; font-size: 12px; }
+  fieldset { border: 1px solid var(--line); border-radius: 4px; padding: 2px 8px; margin: 0; display: flex; gap: 8px; }
   dl { display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; margin: 0; } dt { color: var(--muted); } dd { margin: 0; word-break: break-all; }
 </style>
 </head>
@@ -56,7 +57,15 @@
   <form id="options">
     <label>Scope <select name="scope"><option value="internet">Internet (mode 3)</option><option value="lan">LAN (mode 1)</option><option value="group">Group (mode 2)</option></select></label>
     <label>Partition <input type="number" name="partition" value="0" min="0" max="20"></label>
+    <label>Joins per family <input type="number" name="joins" value="3" min="1" max="10"></label>
+    <fieldset id="families"><legend>Service families</legend>
+      <label><input type="checkbox" value="4" checked> 4xx</label>
+      <label><input type="checkbox" value="5" checked> 5xx</label>
+      <label><input type="checkbox" value="6" checked> 6xx</label>
+      <label><input type="checkbox" value="8" checked> 8xx</label>
+    </fieldset>
   </form>
+  <p class="muted">Each family keeps its own swarms. A join returns about 50 peers, sampled afresh each time, so more joins collect more of the swarm. The array picks peers near the IP that calls it, so peers come mostly from this server's region.</p>
   <div id="explore" class="muted">Pick a file above.</div>
 </main>
 <script type="module">
@@ -146,23 +155,46 @@
   };
 
   let last;
+  let lookups = 0;
   async function exploreFile(file) {
     last = file;
+    const run = ++lookups;
     const opts = Object.fromEntries(new FormData($('#options')));
-    $('#explore').innerHTML = '<p class="muted">Asking content policy, discovery and the array…</p>';
+    opts.families = [...document.querySelectorAll('#families input:checked')].map((i) => i.value).join(',');
+    $('#explore').innerHTML = '<p class="muted">Asking content policy, discovery and the arrays…</p>';
     try {
       const r = await api('/api/explore', { ...Object.fromEntries(Object.entries(file).filter(([, v]) => v)), ...opts });
-      const peers = r.peers ?? [];
+      const peers = r.families.flatMap((f) => f.peers ?? []);
       $('#explore').innerHTML = `<dl>
           <dt>URL</dt><dd class="mono">${esc(file.url)}</dd>
           <dt>AltCatalogId</dt><dd class="mono">${esc(r.altCatalogId)}</dd>
-          <dt>ContentId</dt><dd class="mono">${esc(r.contentId ?? r.requestedContentId)}${r.contentPolicy?.ContentId ? ' (from content policy)' : ''}</dd>
-          <dt>Array</dt><dd class="mono">${esc(r.array)}</dd>
-          <dt>Result</dt><dd>${r.error ? `<span class="error">${esc(r.error)}</span>` : `${peers.length} peers, FailureReason ${esc(r.announce?.FailureReason ?? 'none')}`}</dd></dl>
-        ${json('Content policy', r.contentPolicy)}${json('Pieces hash', r.piecesHash)}${json('Discovery', r.discovery)}${json('Announce response', r.announce)}
-        ${peers.length ? `<div class="scroll"><table><tr><th>PeerId</th><th>Type</th><th>External</th><th>Internal</th><th>IPv6</th></tr>${peers
-          .map((p) => `<tr><td class="mono">${esc(p.PeerId)}</td><td>${esc(p.Type)}</td><td class="mono">${esc(p.ExternalIp)}:${esc(p.ExternalPort)}</td><td class="mono">${esc(p.InternalIp)}${p.InternalPort ? `:${esc(p.InternalPort)}` : ''}</td><td class="mono">${esc(p.Ipv6)}</td></tr>`)
+          <dt>Requested ContentId</dt><dd class="mono">${esc(r.requestedContentId)}</dd>
+          <dt>Peers</dt><dd>${peers.length} unique <span id="countries"></span></dd></dl>
+        ${json('Pieces hash', r.piecesHash)}
+        <div class="scroll"><table><tr><th>Family</th><th>ContentId</th><th>Array</th><th>Result</th><th></th></tr>${r.families
+          .map((f) => `<tr><td>${f.family}xx</td><td class="mono">${esc(f.contentId)}${f.contentPolicy?.ContentId ? ' (content policy)' : ''}</td><td class="mono">${esc(f.array?.replace(/^https:\/\/|\.prod.*$/g, ''))}</td><td>${f.error ? `<span class="error">${esc(f.error)}</span>` : `${f.peers.length} peers from ${f.joins} joins, FailureReason ${esc(f.announce?.FailureReason ?? 'none')}`}</td><td>${json('Responses', { contentPolicy: f.contentPolicy, discovery: f.discovery, announce: f.announce })}</td></tr>`)
+          .join('')}</table></div>
+        ${peers.length ? `<div class="scroll"><table><tr><th>Array</th><th>Type</th><th>External</th><th>Whois</th><th>Internal</th><th>IPv6</th><th>PeerId</th></tr>${peers
+          .map((p, i) => `<tr><td class="mono">${esc(p.array.replace(/^https:\/\/|\.prod.*$/g, ''))}</td><td title="Type ${esc(p.Type)}">${esc(p.typeName)}</td><td class="mono">${esc(p.ExternalIp)}:${esc(p.ExternalPort)}</td><td id="whois-${i}" class="muted">…</td><td class="mono">${esc(p.InternalIp)}${p.InternalPort ? `:${esc(p.InternalPort)}` : ''}</td><td class="mono">${esc(p.Ipv6)}${p.teredo ? `<br><span class="muted">Teredo, IPv4 ${esc(p.teredo)}</span>` : ''}</td><td class="mono">${esc(p.PeerId)}</td></tr>`)
           .join('')}</table></div>` : ''}`;
+      // whois with four lookups at a time; the server caches each IP
+      const countries = {};
+      const queue = peers.map((p, i) => [p.ExternalIp || p.Ip, i]);
+      const worker = async () => {
+        for (let next = queue.shift(); next && run === lookups; next = queue.shift()) {
+          const [ip, i] = next;
+          const cell = document.getElementById(`whois-${i}`);
+          try {
+            const w = await api('/api/whois', { ip });
+            const country = w.country;
+            countries[country ?? '?'] = (countries[country ?? '?'] ?? 0) + 1;
+            cell.className = '';
+            cell.innerHTML = `${esc(w.org ?? w.network)}<br><span class="muted">${esc(country)} · ${esc(w.range)}</span>`;
+          } catch (e) { cell.textContent = e.message; }
+          $('#countries').textContent = `(${Object.entries(countries).sort((a, b) => b[1] - a[1]).map(([c, n]) => `${c} ${n}`).join(', ')})`;
+        }
+      };
+      await Promise.all([worker(), worker(), worker(), worker()]);
     } catch (e) { $('#explore').innerHTML = `<p class="error">${esc(e.message)}</p>`; }
   }
   $('#options').onchange = () => last && exploreFile(last);

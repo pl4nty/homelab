@@ -1,6 +1,7 @@
 import { catalogFiles, searchCatalog } from './catalog.ts';
-import { explore, geo, PARTITIONS, SCOPES } from './do.ts';
+import { explore, FAMILIES, geo, PARTITIONS, SCOPES } from './do.ts';
 import { storeFileUrl, storeInstallers, storeProduct } from './store.ts';
+import { whois } from './whois.ts';
 
 const routes: Record<string, (q: URLSearchParams) => Promise<unknown>> = {
   '/api/geo': () => geo(),
@@ -21,10 +22,13 @@ const routes: Record<string, (q: URLSearchParams) => Promise<unknown>> = {
   '/api/store/url': (q) => storeFileUrl(q.get('updateId')!, q.get('revision')!),
   '/api/catalog': (q) => searchCatalog(q.get('q')!),
   '/api/catalog/files': (q) => catalogFiles(q.get('id')!),
+  '/api/whois': (q) => whois(q.get('ip')!),
   '/api/explore': (q) =>
     explore({
       url: q.get('url') || undefined,
       contentId: q.get('contentId') || undefined,
+      families: FAMILIES.filter((f) => (q.get('families') ?? FAMILIES.join(',')).split(',').includes(String(f))),
+      joins: Math.min(Math.max(Number(q.get('joins')) || 1, 1), 10),
       partition: Math.min(Math.max(Number(q.get('partition')) || 0, 0), PARTITIONS - 1),
       scope: SCOPES[q.get('scope') ?? ''] ?? SCOPES.internet,
       size: Number(q.get('size')) || 1,
