@@ -50,7 +50,8 @@ the live services on 2026-11-19.
    2 to 30 are the array's own, and their meaning is not known. In 557 Internet peers from families 5, 6 and 8 on
    2026-11-19, 534 had Type 16 (bit 4), 22 had Type 4 (bit 2) and 1 had Type 20 (both). Of the Type 4 peers, 86%
    shared their external IP with another peer (31% for Type 16), mostly enterprise networks, so bit 2 may mark a
-   peer behind a shared NAT. That is a guess from one sample.
+   peer behind a shared NAT. That is a guess from one sample. The explorer shows each peer's set bits, the count of
+   peers in the list on the same external IP, and the raw peer JSON.
 
 Filestreamingservice files (FE3 and the Update Catalog) are keyed by the `tlu.dl.delivery.mp.microsoft.com` URL
 that FE3 hands out. The same file as a `dl.` URL gets `FailureReason 0x0001` from the array, and as a

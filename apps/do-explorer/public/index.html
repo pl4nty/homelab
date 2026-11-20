@@ -157,6 +157,8 @@
   let last;
   let lookups = 0;
   // skip Teredo (2001:0::/32) addresses, which mostly wrap the peer's external IPv4
+  // set bits of the array's Type; the client reads only bits 0, 1 and 31
+  const bits = (type) => { const b = [...Array(32).keys()].filter((i) => (type >>> i) & 1); return b.length ? `bit${b.length > 1 ? 's' : ''} ${b.join(', ')}` : 'no bits'; };
   const teredo = (ip) => /^2001:0*:/i.test(ip ?? '');
   async function exploreFile(file) {
     last = file;
@@ -167,6 +169,8 @@
     try {
       const r = await api('/api/explore', { ...Object.fromEntries(Object.entries(file).filter(([, v]) => v)), ...opts });
       const peers = r.families.flatMap((f) => f.peers ?? []);
+      const sameIp = {};
+      for (const p of peers) sameIp[p.ExternalIp] = (sameIp[p.ExternalIp] ?? 0) + 1;
       $('#explore').innerHTML = `<dl>
           <dt>URL</dt><dd class="mono">${esc(file.url)}</dd>
           <dt>AltCatalogId</dt><dd class="mono">${esc(r.altCatalogId)}</dd>
@@ -176,8 +180,8 @@
         <div class="scroll"><table><tr><th>Family</th><th>ContentId</th><th>Array</th><th>Result</th><th></th></tr>${r.families
           .map((f) => `<tr><td>${f.family}xx</td><td class="mono">${esc(f.contentId)}${f.contentPolicy?.ContentId ? ' (content policy)' : ''}</td><td class="mono">${esc(f.array?.replace(/^https:\/\/|\.prod.*$/g, ''))}</td><td>${f.error ? `<span class="error">${esc(f.error)}</span>` : `${f.peers.length} peers from ${f.joins} joins, FailureReason ${esc(f.announce?.FailureReason ?? 'none')}`}</td><td>${json('Responses', { contentPolicy: f.contentPolicy, discovery: f.discovery, announce: f.announce })}</td></tr>`)
           .join('')}</table></div>
-        ${peers.length ? `<div class="scroll"><table><tr><th>Array</th><th>Type</th><th>External</th><th>Whois</th><th>Internal</th><th>IPv6</th><th>PeerId</th></tr>${peers
-          .map((p, i) => `<tr><td class="mono">${esc(p.array.replace(/^https:\/\/|\.prod.*$/g, ''))}</td><td title="Type ${esc(p.Type)}">${esc(p.typeName)}</td><td class="mono">${esc(p.ExternalIp)}:${esc(p.ExternalPort)}</td><td id="whois-${i}"><button type="button" data-whois="${i}">Whois</button></td><td class="mono">${esc(p.InternalIp)}${p.InternalPort ? `:${esc(p.InternalPort)}` : ''}</td><td class="mono">${teredo(p.Ipv6) ? '' : esc(p.Ipv6)}</td><td class="mono">${esc(p.PeerId)}</td></tr>`)
+        ${peers.length ? `<div class="scroll"><table><tr><th>Array</th><th>Type</th><th>External</th><th title="Peers in this list with the same external IP">Same IP</th><th>Whois</th><th>Internal</th><th>IPv6</th><th>PeerId</th><th></th></tr>${peers
+          .map((p, i) => `<tr><td class="mono">${esc(p.array.replace(/^https:\/\/|\.prod.*$/g, ''))}</td><td>${esc(p.typeName)}<br><span class="muted">${esc(p.Type)} = ${esc(bits(p.Type))}</span></td><td class="mono">${esc(p.ExternalIp)}:${esc(p.ExternalPort)}</td><td>${sameIp[p.ExternalIp]}</td><td id="whois-${i}"><button type="button" data-whois="${i}">Whois</button></td><td class="mono">${esc(p.InternalIp)}${p.InternalPort ? `:${esc(p.InternalPort)}` : ''}</td><td class="mono">${teredo(p.Ipv6) ? '' : esc(p.Ipv6)}</td><td class="mono">${esc(p.PeerId)}</td><td>${json('Raw', p)}</td></tr>`)
           .join('')}</table></div>` : ''}`;
       // whois only on click; the server caches each IP
       const countries = {};
