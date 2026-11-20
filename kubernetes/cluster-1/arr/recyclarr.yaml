@@ -109,5 +109,11 @@ spec:
                   movie:
                     rename: true
                     standard: jellyfin-tmdb
+                media_management:
+                  propers_and_repacks: do_not_prefer
                 quality_definition:
                   type: movie
+                quality_profiles:
+                  - trash_id: d1d67249d3890e49bc12e275d989a7e9 # HD Bluray + WEB
+                    reset_unmatched_scores:
+                      enabled: true
