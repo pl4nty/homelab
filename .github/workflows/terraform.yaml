@@ -34,7 +34,7 @@ jobs:
           path: ${{ env.STATE }}
           key: terraform-state-${{ github.run_id }}
           restore-keys: terraform-state-
-      - uses: dflook/tofu-plan@53b5b01b6eef56cd678401dbe92a0f6ca6b863ff # v3.1.2
+      - uses: dflook/tofu-plan@0f690c855ee068cc5d4e0b9f3373b9b7990e73e0 # v3.1.3
         with:
           path: terraform/github
 
@@ -48,7 +48,7 @@ jobs:
           path: ${{ env.STATE }}
           key: terraform-state-${{ github.run_id }}
           restore-keys: terraform-state-
-      - uses: dflook/tofu-apply@1de081df5087fb9ba2acf4866e9bc9b95f79676c # v3.1.2
+      - uses: dflook/tofu-apply@cf65a333228c1a4faa7f95bdd4328bf17513e638 # v3.1.3
         with:
           path: terraform/github
           # main is the source of truth, like Flux

@@ -50,7 +50,7 @@ spec:
           value: "1"
         - name: address
           value: 192.168.0.40
-        image: ghcr.io/kube-vip/kube-vip:v1.3.1@sha256:1962f9daf226503f7e6b107f595cb28b7917fd2d0113957075e19a3e5a6c1e33
+        image: ghcr.io/kube-vip/kube-vip:v1.3.2@sha256:50b25c001fe19628a932b42ec6f8ec31bb65a5e1811a723a57ceddbc5cd5aade
         imagePullPolicy: Always
         name: kube-vip
         securityContext:

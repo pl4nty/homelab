@@ -10,8 +10,8 @@ spec:
     mediaType: 'application/vnd.cncf.helm.chart.content.v1.tar+gzip'
     operation: copy
   ref:
-    tag: 1.2.15
-    digest: sha256:0d9657c08107f5b7c15133c0fd34b92c42494bcc6651de53d4009167c981dc71
+    tag: 1.2.16
+    digest: sha256:0c12f1db0483dc850a623dd0eaf4875d9cfa2afaefb6c5d33341bcb4fd1b15ab
 ---
 # kubelets with rotate-server-certificates serve no TLS until their serving CSR is approved,
 # so Alloy can't scrape their kubelet or cAdvisor metrics
