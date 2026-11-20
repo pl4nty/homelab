@@ -11,7 +11,7 @@
 ARG UV_VERSION=0.12.5
 
 # Stage 1: Frontend build (static assets, so build once on the native platform)
-FROM --platform=$BUILDPLATFORM node:26.13.0@sha256:438603bbb5cda404b9416f0b5c8026f61501ab911760d861ec28c36b5d675725 AS frontend-build
+FROM --platform=$BUILDPLATFORM node:26.13.1@sha256:e18c3ccdf7d71619990b0e85639f506e2028a95410999cab24cc373cbd10e0ac AS frontend-build
 
 WORKDIR /app
 
@@ -30,7 +30,7 @@ COPY --from=src talemate_frontend/ ./
 RUN pnpm build
 
 # Node.js runtime for the pi coding agent, for the target platform
-FROM node:26.13.0@sha256:438603bbb5cda404b9416f0b5c8026f61501ab911760d861ec28c36b5d675725 AS node
+FROM node:26.13.1@sha256:e18c3ccdf7d71619990b0e85639f506e2028a95410999cab24cc373cbd10e0ac AS node
 
 # Stage 2: Backend build
 FROM python:3.15-slim@sha256:65a65fc7b30b06cb6df4930fd4650697cb23f4c2698ab81fc87e4b031bc36928 AS backend-build
