@@ -65,6 +65,17 @@ spec:
           http:
             port: *port
             nodePort: 30096
+    route:
+      app:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - jellyfin.${PRIVATE_DOMAIN}
+        rules:
+          - backendRefs:
+              - name: *app
+                port: *port
     persistence:
       config:
         accessMode: ReadWriteOnce
