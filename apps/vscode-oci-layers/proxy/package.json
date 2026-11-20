@@ -4,6 +4,6 @@
   "type": "module",
   "dependencies": {
     "@opentelemetry/api": "1.10.0",
-    "@opentelemetry/sdk-node": "0.301.1"
+    "@opentelemetry/sdk-node": "0.301.2"
   }
 }
