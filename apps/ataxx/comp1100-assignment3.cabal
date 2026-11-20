@@ -40,7 +40,7 @@ library
                      , safe >= 0.3.18 && < 0.4
                      , streaming-commons >= 0.2.1.2 && < 0.3
                      , text >=1.2.3.1 && <2.2
-                     , witherable >= 0.3.1 && < 0.4
+                     , witherable >=0.3.1 && <0.6
   default-extensions:  DeriveAnyClass
                      , DeriveGeneric
   hs-source-dirs:      src
