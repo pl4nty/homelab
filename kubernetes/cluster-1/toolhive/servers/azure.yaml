@@ -1,0 +1,25 @@
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServerEntry
+metadata:
+  name: azure
+  namespace: toolhive-system
+spec:
+  groupRef:
+    name: toolhive
+  externalAuthConfigRef:
+    name: azure-upstream
+  remoteUrl: https://mcp.management.azure.com
+  transport: streamable-http
+  headerForward:
+    addPlaintextHeaders:
+      x-mcp-toolset: CostManagement,Skills
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPExternalAuthConfig
+metadata:
+  name: azure-upstream
+  namespace: toolhive-system
+spec:
+  type: upstreamInject
+  upstreamInject:
+    providerName: azure

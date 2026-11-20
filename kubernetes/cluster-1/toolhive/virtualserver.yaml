@@ -31,6 +31,18 @@ spec:
             - https://graph.microsoft.com/MailboxSettings.Read
             - https://graph.microsoft.com/Contacts.ReadWrite
             - https://graph.microsoft.com/Files.ReadWrite
+      - name: azure
+        type: oidc
+        oidcConfig:
+          issuerUrl: https://login.microsoftonline.com/e1166daa-6cda-4ed4-9879-ffdf77c51cf5/v2.0
+          clientId: 5c3c299e-f61f-41cc-b4e1-f12018b84afa
+          clientSecretRef:
+            name: toolhive
+            key: entra-client-secret
+          scopes:
+            - openid
+            - offline_access
+            - api://22bfbae3-f4e7-485f-be43-8cee15065084/MCP.Access
   incomingAuth:
     type: oidc
     oidcConfigRef:

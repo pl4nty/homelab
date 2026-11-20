@@ -30,14 +30,15 @@ spec:
       parameters:
         barmanObjectName: b2
 
-  # otherwise postgres crashes with hugepages enabled
+  postgresql:
+    parameters:
+      huge_pages: "off"
+
   resources:
     requests:
       memory: 100Mi
-      hugepages-2Mi: 100Mi
     limits:
       memory: 1Gi
-      hugepages-2Mi: 100Mi
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup

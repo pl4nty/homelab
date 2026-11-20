@@ -100,6 +100,24 @@ func (s Store) SetLatest(bundleID string, latest Latest) error {
 	return writeJSON(filepath.Join(dir, "latest.json"), latest)
 }
 
+// Bundles lists bundle IDs whose latest version has been checked
+func (s Store) Bundles() ([]string, error) {
+	entries, err := os.ReadDir(s.dir)
+	if err != nil {
+		return nil, err
+	}
+	bundles := []string{}
+	for _, entry := range entries {
+		if !entry.IsDir() || !safeName.MatchString(entry.Name()) {
+			continue
+		}
+		if _, err := s.Latest(entry.Name()); err == nil {
+			bundles = append(bundles, entry.Name())
+		}
+	}
+	return bundles, nil
+}
+
 func (s Store) Version(bundleID, version string) (*Version, error) {
 	dir, err := s.versionDir(bundleID, version)
 	if err != nil {

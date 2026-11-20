@@ -120,7 +120,34 @@
       ],
       datasourceTemplate: 'docker',
     },
+    {
+      customType: 'regex',
+      description: 'Firmware versions in firmware.yaml',
+      managerFilePatterns: [
+        '/^firmware\\.yaml$/',
+      ],
+      matchStrings: [
+        '# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( versioning=(?<versioning>\\S+))?\n\\w+: (?<currentValue>\\S+)\n',
+      ],
+      versioningTemplate: '{{#if versioning}}{{{versioning}}}{{else}}semver-coerced{{/if}}',
+      extractVersionTemplate: '^v?(?<version>.+)$',
+    },
   ],
+  customDatasources: {
+    'aussie-broadband': {
+      defaultRegistryUrlTemplate: 'https://www.aussiebroadband.com.au/help-centre/internet/aussie-broadband-router-firmware',
+      format: 'html',
+      transformTemplates: [
+        '{"releases": [releases[$contains(version, "/{{{packageName}}}.NC.ABB-")].{"version": $match(version, /ABB-(R\\d+B\\d+)\\./).groups[0]}]}',
+      ],
+    },
+    asus: {
+      defaultRegistryUrlTemplate: 'https://www.asus.com/support/webapi/ProductV2/GetPDBIOS?website=global&model={{{packageName}}}',
+      transformTemplates: [
+        '{"releases": [Result.Obj[Name = "BIOS"].Files[$contains(Title, "BIOS Update")].{"version": Version, "releaseTimestamp": $replace(ReleaseDate, "/", "-")}]}',
+      ],
+    },
+  },
   // hostRules: [
   //   {
   //     hostType: 'docker',
@@ -229,6 +256,15 @@
         'talos/**',
       ],
       separateMultipleMinor: true,
+      automerge: false,
+    },
+    {
+      description: 'Firmware is flashed by hand, so one PR per device, merged once it is',
+      matchFileNames: [
+        'firmware.yaml',
+      ],
+      groupName: null,
+      semanticCommitScope: 'firmware',
       automerge: false,
     },
     {

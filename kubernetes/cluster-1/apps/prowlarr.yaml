@@ -1,17 +1,17 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: prowlarr
+  name: prowlarr${APP_SUFFIX:=}
   namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chartRef:
     kind: OCIRepository
     name: app-template
   values:
-    global:
-      createDefaultServiceAccount: false
     controllers:
       prowlarr:
         pod:
@@ -80,13 +80,14 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - prowlarr.${PRIVATE_DOMAIN}
+          - prowlarr${APP_SUFFIX:=}.${PRIVATE_DOMAIN}
         rules:
           - backendRefs:
-              - name: prowlarr
+              - identifier: main
                 port: *port
     persistence:
       config:
+        retain: ${APP_RETAIN:=true}
         accessMode: ReadWriteOnce
         size: 4Gi
       tmp:

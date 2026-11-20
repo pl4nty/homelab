@@ -1,3 +1,18 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: kubelet-csr-approver
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: oci://ghcr.io/postfinance/charts/kubelet-csr-approver
+  layerSelector:
+    mediaType: 'application/vnd.cncf.helm.chart.content.v1.tar+gzip'
+    operation: copy
+  ref:
+    tag: 1.2.15
+    digest: sha256:0d9657c08107f5b7c15133c0fd34b92c42494bcc6651de53d4009167c981dc71
+---
 # kubelets with rotate-server-certificates serve no TLS until their serving CSR is approved,
 # so Alloy can't scrape their kubelet or cAdvisor metrics
 apiVersion: helm.toolkit.fluxcd.io/v2
@@ -11,12 +26,6 @@ spec:
     kind: OCIRepository
     name: kubelet-csr-approver
     namespace: flux-system
-  install:
-    remediation:
-      retries: 3
-  upgrade:
-    remediation:
-      retries: 3
   values:
     # generated names, plus the pinned Oracle names (talos/node/talos-oci-*)
     providerRegex: ^talos-([a-z0-9]{3}-[a-z0-9]{3}|oci-[a-z0-9-]+)$
