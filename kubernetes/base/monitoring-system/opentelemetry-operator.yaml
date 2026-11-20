@@ -10,8 +10,8 @@ spec:
     mediaType: 'application/vnd.cncf.helm.chart.content.v1.tar+gzip'
     operation: copy
   ref:
-    tag: 0.129.0
-    digest: sha256:0f7cba9a9382bc219ee6e358560db65c47e7ced3c31ddcb9c339415c8f816923
+    tag: 0.129.1
+    digest: sha256:b3b95264dc7ac2108fe08d50d2b07dab8ac8b60bebab7f6cd24bc810ac564bea
 ---
 # yaml-language-server: $schema=https://flux-helm-schema.tplant.com.au?values=https://raw.githubusercontent.com/open-telemetry/opentelemetry-helm-charts/refs/heads/main/charts/opentelemetry-operator/values.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
