@@ -393,7 +393,7 @@ spec:
                 # query={"highlight":"text","limit":20}, so results carry a text snippet
                 # engines are https-only unless enable_http is set
                 enable_http: true
-                search_url: http://hister.default.svc:4433/search?format=json&query=%7B%22highlight%22%3A%22text%22%2C%22limit%22%3A20%7D&q={query}
+                search_url: http://hister.default:4433/search?format=json&query=%7B%22highlight%22%3A%22text%22%2C%22limit%22%3A20%7D&q={query}
                 results_query: documents
                 url_query: url
                 title_query: title
