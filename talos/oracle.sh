@@ -31,20 +31,28 @@ schematic=$(curl -fsS -X POST --data-binary @hardware/oracle-schematic.yaml http
 
 vcn=$(lookup "$name" network vcn list)
 [[ -n $vcn ]] || vcn=$(oci network vcn create -c "$compartment" --display-name "$name" --cidr-blocks "[\"$cidr\"]" --dns-label talos --wait-for-state AVAILABLE --query data.id --raw-output)
+# IPv6 for the dual-stack cluster: flannel needs it on the same interface as the IPv4 default route
+v6() { oci network vcn get --vcn-id "$vcn" --query 'data."ipv6-cidr-blocks"[0]' --raw-output; }
+[[ -n $(v6) ]] || oci network vcn add-ipv6-vcn-cidr --vcn-id "$vcn" --is-oracle-gua-allocation-enabled true --wait-for-state SUCCEEDED >/dev/null
+vcn_v6=$(v6)
 igw=$(lookup "$name" network internet-gateway list --vcn-id "$vcn")
 [[ -n $igw ]] || igw=$(oci network internet-gateway create -c "$compartment" --vcn-id "$vcn" --display-name "$name" --is-enabled true --wait-for-state AVAILABLE --query data.id --raw-output)
 defaults=$(oci network vcn get --vcn-id "$vcn" --query "join(' ', [data.\"default-route-table-id\", data.\"default-security-list-id\"])" --raw-output)
 read -r rt sl <<<"$defaults"
-oci network route-table update --rt-id "$rt" --force --route-rules "[{\"destination\": \"0.0.0.0/0\", \"networkEntityId\": \"$igw\"}]" >/dev/null
+oci network route-table update --rt-id "$rt" --force --route-rules "[{\"destination\": \"0.0.0.0/0\", \"networkEntityId\": \"$igw\"}, {\"destination\": \"::/0\", \"networkEntityId\": \"$igw\"}]" >/dev/null
 oci network security-list update --security-list-id "$sl" --force \
-  --egress-security-rules '[{"destination": "0.0.0.0/0", "protocol": "all"}]' \
+  --egress-security-rules '[{"destination": "0.0.0.0/0", "protocol": "all"}, {"destination": "::/0", "protocol": "all"}]' \
   --ingress-security-rules "[
     {\"description\": \"KubeSpan\", \"source\": \"0.0.0.0/0\", \"protocol\": \"17\", \"udpOptions\": {\"destinationPortRange\": {\"min\": 51820, \"max\": 51820}}},
+    {\"description\": \"KubeSpan\", \"source\": \"::/0\", \"protocol\": \"17\", \"udpOptions\": {\"destinationPortRange\": {\"min\": 51820, \"max\": 51820}}},
     {\"description\": \"Talos apid for topf\", \"source\": \"$admin_cidr\", \"protocol\": \"6\", \"tcpOptions\": {\"destinationPortRange\": {\"min\": 50000, \"max\": 50000}}},
-    {\"description\": \"path MTU discovery\", \"source\": \"0.0.0.0/0\", \"protocol\": \"1\", \"icmpOptions\": {\"type\": 3, \"code\": 4}}
+    {\"description\": \"path MTU discovery\", \"source\": \"0.0.0.0/0\", \"protocol\": \"1\", \"icmpOptions\": {\"type\": 3, \"code\": 4}},
+    {\"description\": \"path MTU discovery\", \"source\": \"::/0\", \"protocol\": \"58\", \"icmpOptions\": {\"type\": 2}}
   ]" >/dev/null
 subnet=$(lookup "$name" network subnet list --vcn-id "$vcn")
 [[ -n $subnet ]] || subnet=$(oci network subnet create -c "$compartment" --vcn-id "$vcn" --display-name "$name" --cidr-block "$cidr" --dns-label nodes --wait-for-state AVAILABLE --query data.id --raw-output)
+[[ -n $(oci network subnet get --subnet-id "$subnet" --query 'data."ipv6-cidr-blocks"[0]' --raw-output) ]] ||
+  oci network subnet add-ipv6-subnet-cidr --subnet-id "$subnet" --ipv6-cidr-block "${vcn_v6%/*}/64" --wait-for-state SUCCEEDED >/dev/null
 
 # Talos docs' BYOI flow: factory qcow2 + launch metadata in a .oci archive, imported from Object Storage
 image_name=talos-v$version-${schematic:0:12}
@@ -92,13 +100,16 @@ if [[ -z $instance ]]; then
   # No user data: Talos waits in maintenance mode for `topf apply`, so cluster secrets never sit in instance metadata
   instance=$(oci compute instance launch -c "$compartment" --availability-domain "${ads%% *}" --display-name "$name" --hostname-label "$name" \
     --shape VM.Standard.A1.Flex --shape-config "{\"ocpus\": $ocpus, \"memoryInGBs\": $memory}" \
-    --image-id "$image" --boot-volume-size-in-gbs 50 --subnet-id "$subnet" --assign-public-ip true \
+    --image-id "$image" --boot-volume-size-in-gbs 50 --subnet-id "$subnet" --assign-public-ip true --assign-ipv6-ip true \
     --launch-options '{"firmware": "UEFI_64", "networkType": "PARAVIRTUALIZED", "bootVolumeType": "PARAVIRTUALIZED", "remoteDataVolumeType": "PARAVIRTUALIZED"}' \
     --instance-options '{"areLegacyImdsEndpointsDisabled": true}' \
     --agent-config '{"areAllPluginsDisabled": true, "isManagementDisabled": true, "isMonitoringDisabled": true}' \
     --availability-config '{"isLiveMigrationPreferred": true, "recoveryAction": "RESTORE_INSTANCE"}' \
     --wait-for-state RUNNING --query data.id --raw-output)
 fi
+vnic=$(oci compute instance list-vnics --instance-id "$instance" --query 'data[0].id' --raw-output)
+# Talos reads the VNIC's IPv6 config from instance metadata at boot, so a node that gets one here needs a reboot
+[[ -n $(oci network ipv6 list --vnic-id "$vnic" --query 'data[0].id' --raw-output) ]] || oci network ipv6 create --vnic-id "$vnic" >/dev/null
 ip=$(oci compute instance list-vnics --instance-id "$instance" --query 'data[0]."public-ip"' --raw-output)
 
 # topf reaches the node on its public IP, which isn't on an interface, so apid's cert needs it as a SAN
