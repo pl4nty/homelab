@@ -17,8 +17,11 @@ concurrency:
 env:
   GITHUB_TOKEN: ${{ secrets.TERRAFORM_GITHUB_TOKEN }}
   TERRAFORM_ACTIONS_GITHUB_TOKEN: ${{ github.token }}
-  # state is only a cache: without it, import blocks adopt everything again
-  STATE: terraform/github/terraform.tfstate
+  OCI_TENANCY_OCID: ${{ secrets.OCI_TENANCY_OCID }}
+  OCI_USER_OCID: ${{ secrets.OCI_USER_OCID }}
+  OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
+  OCI_PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
+  TF_VAR_admin_cidrs: ${{ secrets.TF_VAR_ADMIN_CIDRS }}
 
 jobs:
   plan:
@@ -27,29 +30,40 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
+    strategy:
+      fail-fast: false
+      matrix: &modules
+        module: [github, oracle]
+    env: &state
+      # state is only a cache: without it, import blocks adopt everything again
+      STATE: terraform/${{ matrix.module }}/terraform.tfstate
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ env.STATE }}
-          key: terraform-state-${{ github.run_id }}
-          restore-keys: terraform-state-
+          key: terraform-state-${{ matrix.module }}-${{ github.run_id }}
+          restore-keys: terraform-state-${{ matrix.module }}-
       - uses: dflook/tofu-plan@0f690c855ee068cc5d4e0b9f3373b9b7990e73e0 # v3.1.3
         with:
-          path: terraform/github
+          path: terraform/${{ matrix.module }}
 
   apply:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: *modules
+    env: *state
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ env.STATE }}
-          key: terraform-state-${{ github.run_id }}
-          restore-keys: terraform-state-
+          key: terraform-state-${{ matrix.module }}-${{ github.run_id }}
+          restore-keys: terraform-state-${{ matrix.module }}-
       - uses: dflook/tofu-apply@cf65a333228c1a4faa7f95bdd4328bf17513e638 # v3.1.3
         with:
-          path: terraform/github
+          path: terraform/${{ matrix.module }}
           # main is the source of truth, like Flux
           auto_approve: true
