@@ -1,0 +1,149 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: frigate${APP_SUFFIX:=}
+  namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
+spec:
+  interval: 15m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    controllers:
+      main:
+        # RWO volumes can't attach to two nodes during a rollout
+        strategy: Recreate
+        pod:
+          # OpenVINO and VAAPI need the NUC's Intel iGPU. The RK1 NPU needs Rockchip's
+          # vendor rknpu driver, and Talos only has mainline rocket
+          nodeSelector:
+            kubernetes.io/arch: amd64
+        containers:
+          main:
+            image: &image
+              repository: ghcr.io/blakeblackshear/frigate
+              tag: 0.18.3@sha256:d1a3e0008557bb3f3314d442ecd4ba68e9b16ab7872d64612649f7a6e5156635
+            env:
+              TZ: ${TIMEZONE}
+            securityContext:
+              # the iGPU device nodes and perf events for GPU stats, as with Jellyfin's VPU
+              privileged: true
+            probes:
+              liveness: &probe
+                enabled: true
+                type: HTTP
+                path: /api/version
+                port: 5000
+              readiness: *probe
+              startup:
+                enabled: true
+                type: HTTP
+                path: /api/version
+                port: 5000
+                spec:
+                  periodSeconds: 5
+                  failureThreshold: 60
+            resources:
+              requests:
+                cpu: 200m
+                memory: 1Gi
+              limits:
+                memory: 4Gi
+        initContainers:
+          # the UI edits config.yml, so only a new volume gets this one
+          config:
+            image: *image
+            command:
+              - sh
+              - -c
+              - |
+                [ -e /config/config.yml ] && exit
+                cat > /config/config.yml <<EOF
+                mqtt:
+                  host: mosquitto
+                  topic_prefix: frigate${APP_SUFFIX:=}
+                  client_id: frigate${APP_SUFFIX:=}
+                auth:
+                  enabled: false
+                proxy:
+                  header_map:
+                    user: cf-access-authenticated-user-email
+                detectors:
+                  ov:
+                    type: openvino
+                    device: GPU
+                model:
+                  width: 300
+                  height: 300
+                  input_tensor: nhwc
+                  input_pixel_format: bgr
+                  path: /openvino-model/ssdlite_mobilenet_v2.xml
+                  labelmap_path: /openvino-model/coco_91cl_bkgr.txt
+                ffmpeg:
+                  hwaccel_args: preset-vaapi
+                record:
+                  enabled: true
+                  motion:
+                    days: 3
+                  alerts:
+                    retain:
+                      days: 14
+                  detections:
+                    retain:
+                      days: 14
+                cameras: {}
+                version: 0.18-0
+                EOF
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            primary: true
+            port: 8971
+          # unauthenticated API for Home Assistant
+          api:
+            port: 5000
+          rtsp:
+            port: 8554
+    route:
+      main:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - frigate${APP_SUFFIX:=}.${PRIVATE_DOMAIN}
+        rules:
+          - backendRefs:
+              - identifier: main
+                port: 8971
+    persistence:
+      config:
+        retain: ${APP_RETAIN:=true}
+        accessMode: ReadWriteOnce
+        size: 5Gi
+        globalMounts:
+          - path: /config
+      media:
+        retain: ${APP_RETAIN:=true}
+        accessMode: ReadWriteOnce
+        size: 200Gi
+        storageClass: longhorn-local
+        globalMounts:
+          - path: /media/frigate
+      # recording segments land here before they're moved to media. the NUC's NVMe is worn out
+      cache:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 1Gi
+        globalMounts:
+          - path: /tmp/cache
+      shm:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 512Mi
+        globalMounts:
+          - path: /dev/shm
