@@ -66,16 +66,6 @@ spec:
             port: *port
             nodePort: 30096
     route:
-      app:
-        parentRefs:
-          - namespace: default
-            name: ${CLUSTER_NAME}
-        hostnames:
-          - jellyfin.${PRIVATE_DOMAIN}
-        rules:
-          - backendRefs:
-              - name: *app
-                port: *port
       # LAN speed for offline downloads, and video over the Cloudflare CDN breaks its terms
       lan:
         parentRefs:
