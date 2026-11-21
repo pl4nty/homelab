@@ -5,6 +5,7 @@ dependencies:
   - stage: base
   # in siderolabs/extensions this would be the {{ .BUILD_ARG_PKGS_PREFIX }}/rockchip-mpp-pkg image
   - stage: rockchip-mpp-pkg
+  - stage: rockchip-rknpu-pkg
 steps:
   - install:
       - |

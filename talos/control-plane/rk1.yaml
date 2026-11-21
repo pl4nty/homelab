@@ -26,7 +26,7 @@ provisioning:
   minSize: 100GiB
   grow: true
 ---
-# rockchip-mpp, for Jellyfin. These pull in vsi_iommu and rk3588_mpp_dt
+# rockchip-mpp, for Jellyfin and Frigate. These pull in vsi_iommu and rk3588_mpp_dt
 apiVersion: v1alpha1
 kind: KernelModuleConfig
 name: rk_vcodec
@@ -34,3 +34,8 @@ name: rk_vcodec
 apiVersion: v1alpha1
 kind: KernelModuleConfig
 name: rga3
+---
+# rockchip-mpp's RKNPU driver, for Frigate. Loaded so it binds the NPU before rockchip-rknn's rocket can
+apiVersion: v1alpha1
+kind: KernelModuleConfig
+name: rknpu
