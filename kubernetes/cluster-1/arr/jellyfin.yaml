@@ -12,27 +12,6 @@ spec:
   values:
     controllers:
       jellyfin:
-        initContainers:
-          moonbase:
-            image:
-              repository: quay.io/curl/curl
-              tag: 8.23.0@sha256:3fb7e13e5d179a845c97d78204f3f1064d1907037f26a3ebf91710571151fd93
-            env:
-              # datasource=github-releases depName=Moonfin-Client/Plugin
-              MOONBASE_VERSION: "3.1.1"
-            command:
-              - sh
-              - -ec
-              - |
-                dir=/config/plugins/Moonbase_$MOONBASE_VERSION.0
-                [ -d "$dir" ] && exit
-                rm -rf /config/plugins/Moonbase_*
-                mkdir -p "$dir.new"
-                curl -fsSL -o /tmp/moonbase.zip https://github.com/Moonfin-Client/Plugin/releases/download/$MOONBASE_VERSION/Moonfin.Server-$MOONBASE_VERSION.0.zip
-                unzip -q /tmp/moonbase.zip -d "$dir.new"
-                mv "$dir.new" "$dir"
-            securityContext:
-              runAsUser: 0
         containers:
           app:
             image:
