@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "minecraft-sdr",
+  "version": "${version}",
+  "name": "Minecraft SDR",
+  "description": "Join servers through Valve's Steam Datagram Relay. Add a server as sdr:<host> or sdr:<steam id>.",
+  "authors": ["pl4nty"],
+  "contact": {
+    "sources": "https://github.com/pl4nty/homelab/tree/main/apps/minecraft-sdr"
+  },
+  "license": "MIT",
+  "environment": "client",
+  "mixins": ["minecraft-sdr.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.20.1",
+    "minecraft": "~26.3",
+    "java": ">=25"
+  }
+}

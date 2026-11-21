@@ -1,0 +1,9 @@
+{
+  "required": true,
+  "package": "au.com.tplant.sdr.fabric.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": ["ServerAddressMixin", "ServerNameResolverMixin"],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -1,0 +1,12 @@
+subprojects {
+  group = 'au.com.tplant'
+  version = '0.1.0'
+
+  repositories {
+    mavenCentral()
+  }
+
+  tasks.withType(JavaCompile).configureEach {
+    options.release = 25
+  }
+}

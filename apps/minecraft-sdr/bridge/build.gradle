@@ -1,0 +1,9 @@
+plugins {
+  id 'java-library'
+}
+
+jar {
+  manifest {
+    attributes 'Main-Class': 'au.com.tplant.sdr.Main', 'Enable-Native-Access': 'ALL-UNNAMED'
+  }
+}
