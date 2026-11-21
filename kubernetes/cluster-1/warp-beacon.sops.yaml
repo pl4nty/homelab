@@ -1,0 +1,25 @@
+# self-signed, so its SHA-256 (in the Zero Trust managed network) only changes when this does
+apiVersion: v1
+kind: Secret
+metadata:
+  name: warp-beacon
+  namespace: default
+type: kubernetes.io/tls
+stringData:
+  tls.crt: ENC[AES256_GCM,data:DMhiYSjfy/DKVsAIELYOnX4Qnd+ZaiGek/HVcayzFoncKaHgDxsc8YkspEui+BwVsxoX9UQvAIE6mxhE3qFb3/VN6A65Lz9KAh1HKpiGNgDbaE+LQzfvBdIhPCfyGkOUmHICTvugXYH7n58ZUatFTig9l0o93gtgOeaXgz0f2lAqJc9pE6jcGLwrKckJs/goaWbvfqnkYpyPZG+ryYlxH1k1Aruk4Q6MXyxWOYHMqopbfv8m+AiFULyMpMUFt7vLGgiNZbRbGVvyb7uqwvsRLjTWjkvUrNV8rPQ2sVVDQkprtFF9qGMnkqfjz28qEHRJg1xEHPpcqPwKrCniCNxKIR0whLpioW4b4L9ERMlErBEuXb9W5mb7uAveaVrsgIbe8ZMn9Fqv9Q8RajyiY65eIHp1MTFdkwMvZq7BHTwfkFqMhhkdbC2hamIQ854zt6bJNzkQqInI3G23PTZ3kgEu37tjgm8f9MEQwsQfh04RIA4BWjRlpj65M6bCYCjRkv9ws/7FyoOaKA+hbmhuXkzzz7iktS3dGFdGFOjrSUpiP5q14qnhBrrO0aoEUl+yfTMRzf9/6LUAzXIb4EPgs4Rwgil1v2uA80IyJ8WafL8PxuTc8TxI+mHd5/OHW2RbJGr2aOC/w0zZQ89GJRFYQF3Vc1nmmtOseUjcttJZQSNadLoh5/IfxlfSGoFpDpwGlHU2Nroprjj9JT0yuLPKZXfNvsc5RuCN+n//C50UL/1NZBPzBllBV24TX9CrfpLeh1TQopiihASe9w==,iv:mjrr/0GsS5DDvuK7fRVvTkpc2pm66BkVnX73hH8Y6A0=,tag:7gXi0ILmjQKhyB+o3QlwUw==,type:str]
+  tls.key: ENC[AES256_GCM,data:w2HrjNMS3NS/JtCD9kK0/akgegNR0TBpR2m8eoMI37pvxDcv8lZm2fi6U+5JYt7usNDo/RKF2YIwgZntXeC0uGIefIe+3lrgrjgbxHRp/jAVDiEGhuQRwMP/uYdW3Z0OiSlXGRMaq+bGiyBoeXeE5k5Llw8NbOaJCreL4o55uyqWbCiaT4ZBykmGbJyJDqWqyQvG9mKkiEG7EG9ff+5ue9eKZEaUl9vURzxFSYHUk+P+zVMLa0uQzBjOYMNWXLBwM6N3SPMXlUSIfaWuXIY7clKjm25QmuP1Drh33lt5Poaj8tmj2bl3A+i1lajvUjkLTw==,iv:HUjOV+X+frYWKf3RXc3cLr5GbFKdLoRsWdNobwMTumA=,tag:odH0OtK4ulRUPS19iT6eTg==,type:str]
+sops:
+  age:
+    - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBoWjgvZUlMVDhBSGpHcUIv
+        TUE0ZVZ3M25PNldmN0VDeFF4U1EvcWRNc1U4CnIyL2VJRU1lRzBxazNMK05MVVR1
+        UkNoZEZqRzJiUlZiN1FkVnlpdGI0a3MKLS0tIGFtenc1STFnVVNlR1hVdHZLOUNO
+        N0M0K05scFhzUlVBNy9LdzJMdXI5Um8KIlfJ5xXNRoYsX64aDLBA4mcaGhhHZVxd
+        ErysZSpUSG7a4xg9RK4Ek8HoKoas1jre8/JyoV/AJoUgFN9buMY6ww==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2026-11-21T14:01:21Z"
+  mac: ENC[AES256_GCM,data:DPddbmjveusGD/pDNCojqvqURMBCaxz3kqhSEpnvLR1pHECswabwioddIgRmM1R4GfF5/YhuJdSOtGoktGJ0pePsA5n5vliVJMfPjF6//Vh21pJf+gyyKLymHEWNG+MzareB2wvk4xfRn9K6pkEIRIkzd7Pzmyepn3TCnyaAokQ=,iv:0lMY/DJzlcYgcUA5FfBP8ywmzh+PMPR+9N6f8Ji7y+E=,tag:O0ji17f2rXiI1hoKVlidbA==,type:str]
+  encrypted_regex: ^(data|stringData)$
+  version: 3.11.0

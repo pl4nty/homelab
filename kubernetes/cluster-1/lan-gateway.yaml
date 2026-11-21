@@ -1,0 +1,150 @@
+# Local-only services: one LAN IP, published in public DNS (DNS-only), so home traffic never leaves the LAN.
+# Away from home, WARP reaches it through the cluster-1 tunnel's 192.168.1.128/25 private network route,
+# and WARP's home profile (managed network warp-beacon, below) stops that route at home
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: letsencrypt
+  namespace: default
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt
+    solvers:
+    - dns01:
+        cloudflare:
+          apiTokenSecretRef:
+            name: external-dns
+            key: CF_API_TOKEN
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: lan
+  namespace: default
+spec:
+  secretName: lan-tls
+  dnsNames:
+  - "*.${PRIVATE_DOMAIN}"
+  issuerRef:
+    kind: Issuer
+    name: letsencrypt
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: lan
+  namespace: default
+spec:
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyDeployment:
+        container:
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+        pod:
+          nodeSelector:
+            topology.kubernetes.io/region: home
+      envoyService:
+        # kube-vip announces from one node, which may not run Envoy
+        externalTrafficPolicy: Cluster
+        annotations:
+          kube-vip.io/loadbalancerIPs: 192.168.1.198
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: lan
+  namespace: default
+spec:
+  gatewayClassName: envoy
+  infrastructure:
+    parametersRef:
+      group: gateway.envoyproxy.io
+      kind: EnvoyProxy
+      name: lan
+  listeners:
+  - name: https
+    protocol: HTTPS
+    port: 443
+    hostname: "*.${PRIVATE_DOMAIN}"
+    tls:
+      certificateRefs:
+      - name: lan-tls
+    allowedRoutes:
+      namespaces:
+        from: All
+---
+# WARP managed network endpoint: WARP checks this cert's SHA-256 to tell it's at home. It must sit outside
+# the WARP split tunnel include, so the include is 192.168.1.128/25 minus this IP
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: warp-beacon
+  namespace: default
+spec:
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyDeployment:
+        container:
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+        pod:
+          nodeSelector:
+            topology.kubernetes.io/region: home
+      envoyService:
+        externalTrafficPolicy: Cluster
+        annotations:
+          kube-vip.io/loadbalancerIPs: 192.168.1.199
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: warp-beacon
+  namespace: default
+spec:
+  gatewayClassName: envoy
+  infrastructure:
+    parametersRef:
+      group: gateway.envoyproxy.io
+      kind: EnvoyProxy
+      name: warp-beacon
+  listeners:
+  - name: https
+    protocol: HTTPS
+    port: 443
+    tls:
+      certificateRefs:
+      - name: warp-beacon
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: HTTPRouteFilter
+metadata:
+  name: warp-beacon
+  namespace: default
+spec:
+  directResponse:
+    statusCode: 204
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: warp-beacon
+  namespace: default
+spec:
+  parentRefs:
+  - name: warp-beacon
+  rules:
+  - filters:
+    - type: ExtensionRef
+      extensionRef:
+        group: gateway.envoyproxy.io
+        kind: HTTPRouteFilter
+        name: warp-beacon
