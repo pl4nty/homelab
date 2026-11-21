@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+# Envoy Gateway's own CRDs. Gateway API's come from ../cloudflare-gateway
+- https://raw.githubusercontent.com/envoyproxy/gateway/v1.10.0/charts/gateway-helm/charts/crds/crds/generated/gateway.envoyproxy.io_backends.yaml
+- https://raw.githubusercontent.com/envoyproxy/gateway/v1.10.0/charts/gateway-helm/charts/crds/crds/generated/gateway.envoyproxy.io_backendtrafficpolicies.yaml
+- https://raw.githubusercontent.com/envoyproxy/gateway/v1.10.0/charts/gateway-helm/charts/crds/crds/generated/gateway.envoyproxy.io_clienttrafficpolicies.yaml
+- https://raw.githubusercontent.com/envoyproxy/gateway/v1.10.0/charts/gateway-helm/charts/crds/crds/generated/gateway.envoyproxy.io_envoyextensionpolicies.yaml
+- https://raw.githubusercontent.com/envoyproxy/gateway/v1.10.0/charts/gateway-helm/charts/crds/crds/generated/gateway.envoyproxy.io_envoypatchpolicies.yaml
+- https://raw.githubusercontent.com/envoyproxy/gateway/v1.10.0/charts/gateway-helm/charts/crds/crds/generated/gateway.envoyproxy.io_envoyproxies.yaml
+- https://raw.githubusercontent.com/envoyproxy/gateway/v1.10.0/charts/gateway-helm/charts/crds/crds/generated/gateway.envoyproxy.io_httproutefilters.yaml
+- https://raw.githubusercontent.com/envoyproxy/gateway/v1.10.0/charts/gateway-helm/charts/crds/crds/generated/gateway.envoyproxy.io_securitypolicies.yaml
+- envoy-gateway.yaml
