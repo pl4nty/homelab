@@ -243,6 +243,14 @@
       automerge: true,
     },
     {
+      description: 'Envoy Gateway CRDs (raw GitHub URLs) and chart must move together',
+      matchPackageNames: [
+        'envoyproxy/gateway',
+        'docker.io/envoyproxy/gateway-helm',
+      ],
+      groupName: 'envoy-gateway',
+    },
+    {
       description: 'Longhorn only supports upgrading one minor version at a time',
       matchPackageNames: [
         'longhorn',
