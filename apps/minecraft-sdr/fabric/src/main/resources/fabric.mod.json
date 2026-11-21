@@ -3,7 +3,7 @@
   "id": "minecraft-sdr",
   "version": "${version}",
   "name": "Minecraft SDR",
-  "description": "Join servers through Valve's Steam Datagram Relay. Add a server as sdr:<host> or sdr:<steam id>.",
+  "description": "Join servers through Valve's Steam Datagram Relay. Add a server as <host>.sdr or <steam id>.sdr.",
   "authors": ["pl4nty"],
   "contact": {
     "sources": "https://github.com/pl4nty/homelab/tree/main/apps/minecraft-sdr"

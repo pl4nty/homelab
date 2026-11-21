@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class Forwarder {
-  public static final String SCHEME = "sdr:";
+  public static final String SUFFIX = ".sdr";
   public static final String WELL_KNOWN = "/.well-known/minecraft-sdr";
 
   private static final System.Logger LOG = System.getLogger("minecraft-sdr");
@@ -33,7 +33,7 @@ public final class Forwarder {
   }
 
   public static boolean isSdr(String address) {
-    return address.regionMatches(true, 0, SCHEME, 0, SCHEME.length());
+    return address.regionMatches(true, address.length() - SUFFIX.length(), SUFFIX, 0, SUFFIX.length());
   }
 
   public static InetSocketAddress localAddress(String address) throws IOException {
@@ -41,7 +41,7 @@ public final class Forwarder {
   }
 
   public static InetSocketAddress localAddress(String address, int port) throws IOException {
-    String target = address.substring(SCHEME.length()).trim().toLowerCase();
+    String target = address.substring(0, address.length() - SUFFIX.length()).toLowerCase();
     Forwarder forwarder = FORWARDERS.get(target);
     if (forwarder == null) {
       synchronized (FORWARDERS) {

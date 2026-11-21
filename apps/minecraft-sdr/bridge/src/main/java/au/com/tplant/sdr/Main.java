@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class Main {
   private Main() {}
@@ -15,7 +16,7 @@ public final class Main {
     if (args.length == 4 && args[0].equals("serve")) {
       serve(parse(args[1]), Integer.parseInt(args[2]), Path.of(args[3]));
     } else if ((args.length == 2 || args.length == 3) && args[0].equals("connect")) {
-      String address = Forwarder.isSdr(args[1]) ? args[1] : Forwarder.SCHEME + args[1];
+      String address = Forwarder.isSdr(args[1]) ? args[1] : args[1] + Forwarder.SUFFIX;
       int port = args.length == 3 ? Integer.parseInt(args[2]) : 25565;
       InetSocketAddress local = Forwarder.localAddress(address, port);
       System.out.println("Add server " + local.getHostString() + ":" + local.getPort() + " in Minecraft");
@@ -34,9 +35,7 @@ public final class Main {
   private static void serve(InetSocketAddress target, int httpPort, Path downloads)
       throws IOException, InterruptedException {
     Steam steam = Steam.get();
-    long steamId = steam.awaitReady(120_000);
-    steam.listen(connection -> Link.accept(steam, connection, new InetSocketAddress(target.getHostString(), target.getPort())));
-    System.out.println("Listening on SDR as " + Long.toUnsignedString(steamId) + ", forwarding to " + target);
+    AtomicBoolean listening = new AtomicBoolean();
 
     HttpServer http = HttpServer.create(new InetSocketAddress(httpPort), 0);
     http.createContext(
@@ -45,6 +44,9 @@ public final class Main {
           byte[] body;
           int status;
           try {
+            if (!listening.get()) {
+              throw new IOException("not listening");
+            }
             body = Long.toUnsignedString(steam.awaitReady(0)).getBytes(StandardCharsets.UTF_8);
             status = 200;
           } catch (IOException | InterruptedException e) {
@@ -60,5 +62,10 @@ public final class Main {
         });
     http.createContext("/", SimpleFileServer.createFileHandler(downloads.toAbsolutePath()));
     http.start();
+
+    long steamId = steam.awaitReady(120_000);
+    steam.listen(connection -> Link.accept(steam, connection, new InetSocketAddress(target.getHostString(), target.getPort())));
+    listening.set(true);
+    System.out.println("Listening on SDR as " + Long.toUnsignedString(steamId) + ", forwarding to " + target);
   }
 }
