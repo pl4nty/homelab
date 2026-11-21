@@ -35,6 +35,8 @@ spec:
       - 10.10.0.0/24
       # talos-oci-a1's public IP, which the OCI cloud controller adds as its ExternalIP
       - 192.9.186.226/32
+      # global IPv6 node IPs (talos/all/cluster.yaml). The ISP prefix can change, so not pinned
+      - 2000::/3
     # node hostnames aren't in DNS
     bypassDnsResolution: true
     replicas: 1
