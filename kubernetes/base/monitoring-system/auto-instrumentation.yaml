@@ -34,7 +34,7 @@ spec:
   # container limit lifts the pod to 1Gi without a per-app override. the cpu and memory
   # values are the operator's defaults, which it only fills in when limits/requests are unset
   java:
-    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-java:2.33.1@sha256:383a36e8d63a96435a04f2a32f0bf065f211f9ef0c6e75e9e895f0f7d272659a
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-java:2.34.0@sha256:9e32040d5521bc5771c1290e7757131f7f4032fb3ecdece37781a5f118d4ae64
     # java names this field resources, the other languages resourceRequirements
     resources: &agent-resources
       limits:
@@ -79,9 +79,9 @@ spec:
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
         value: http://k8s-monitoring-alloy-receiver.monitoring-system:4318
   apacheHttpd:
-    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:e93f74a3d4407db796c380a702fc4ca17e0c08d3c361d03653bb0ad79b6d6941
+    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:75078aca4e3b8d5ac94ffcf011abb4e8cf45ed8f666f47bcfb75ec0ef66f0549
   nginx:
-    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:e93f74a3d4407db796c380a702fc4ca17e0c08d3c361d03653bb0ad79b6d6941
+    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:75078aca4e3b8d5ac94ffcf011abb4e8cf45ed8f666f47bcfb75ec0ef66f0549
     attrs:
       - name: NginxModuleTraceAsError
         value: "OFF"

@@ -10,8 +10,8 @@ spec:
     mediaType: 'application/vnd.cncf.helm.chart.content.v1.tar+gzip'
     operation: copy
   ref:
-    tag: 0.29.1
-    digest: sha256:3245fa051bb21d0dd9246272f57a2760b4234817a164a3167d2a1e7fb9f63fd9
+    tag: 0.29.2
+    digest: sha256:3bfb3670ccb80c7f2e6bef3189c1599ad4b6d6f0a52fb745f986ac5b511d2fc0
 ---
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository

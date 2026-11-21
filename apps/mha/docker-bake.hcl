@@ -1,6 +1,6 @@
 variable "SRC" {
   # renovate: branch=main
-  default = "https://github.com/microsoft/MHA.git#be418550716789771e312196677bdd0b0a2915ca"
+  default = "https://github.com/microsoft/MHA.git#24da86ba1d9635f28d9324736430d2ae5e95844e"
 }
 
 target "default" {

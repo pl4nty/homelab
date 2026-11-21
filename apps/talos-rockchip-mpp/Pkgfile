@@ -19,5 +19,11 @@ vars:
   vsi_iommu_sha256: bf5642d2e5f8754d6f47bea6b858cdfebbc42d945527bdde536d9848bcceb910
   vsi_iommu_sha512: 1c68a06b526ec9613f6112c35ff25a6a460b68cd65ef8cc96a6663df0bf8ab3633242178a5746cbb9fbbaf6ad1db6001bc265f369d687055a4efd49900a674ec
 
+  # the RKNPU driver, ported to mainline's RK3588 NPU nodes
+  # renovate: datasource=git-refs versioning=git depName=https://github.com/lurenJBD/rk3588-rknn-core.git currentValue=main
+  rknpu_ref: a6bcdb120b8a21255c6520f0504a13a5d37b9045
+  rknpu_sha256: 9f30de630bdfd9bbbfb2f4914acc0cacfe55e3ffdd8a468ddeb65637adfc3037
+  rknpu_sha512: 0b2c1d3d523237946220b077860e62f651d80c145b16d745576e3e2cb011880e8acb94e92ec4c9b52d8645e9c04c53f7dd75651c5c7f386e8631009da1644af6
+
 labels:
   org.opencontainers.image.source: https://github.com/pl4nty/homelab
