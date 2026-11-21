@@ -18,4 +18,4 @@ customization:
       - ghcr.io/siderolabs/util-linux-tools:2.42.2@sha256:f93f23e96b28e00228cf9a006a15c1648bd5975be989adb1bee6c05c046001a1
       # built for one Talos kernel, so rebuild it with talosVersion. Its digest is in the
       # schematic ID, so a rebuild gets a new installer
-      - ghcr.io/pl4nty/talos-rockchip-mpp:sha-c08e9b6133cc8e632c7291fde2a3fbe8957c7661@sha256:fe397095d86af514c4a6d862473008a5decf66678997c7d05846894fdfaed205
+      - ghcr.io/pl4nty/talos-rockchip-mpp:sha-146139e1fe885a4aa04377dc306aa9ed52204900@sha256:c31c0c3034d26d0976c2f1acee66edae50cbd8a14a56ae5d7e8fc948719014f7
