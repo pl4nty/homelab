@@ -20,6 +20,7 @@ spec:
           # RKNN detection and RKMPP decoding need the RK3588 NPU and VPU
           nodeSelector:
             kubernetes.io/arch: arm64
+            topology.kubernetes.io/region: home
         containers:
           main:
             image: &image
