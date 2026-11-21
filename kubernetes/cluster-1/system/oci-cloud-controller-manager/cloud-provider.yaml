@@ -1,5 +1,5 @@
 # OCIDs only, no credentials: the controller authenticates as talos-oci-a1 (instance principals,
-# dynamic group cluster-1-oci-ccm, see talos/oracle.sh)
+# dynamic group cluster-1-oci-ccm, see terraform/oracle)
 useInstancePrincipals: true
 compartment: ocid1.tenancy.oc1..aaaaaaaa25lbdpi2azw3qdkoi3j2qpnsvkjxggpbsdlpqiibrv6qs6v6qyxa
 vcn: ocid1.vcn.oc1.ap-sydney-1.amaaaaaaqwuji6aakd7w3tqnuqngqbjznna2336ifh7cyzfi5y22vrkx2bba
