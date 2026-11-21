@@ -17,19 +17,18 @@ spec:
         # RWO volumes can't attach to two nodes during a rollout
         strategy: Recreate
         pod:
-          # OpenVINO and VAAPI need the NUC's Intel iGPU. The RK1 NPU needs Rockchip's
-          # vendor rknpu driver, and Talos only has mainline rocket
+          # RKNN detection and RKMPP decoding need the RK3588 NPU and VPU
           nodeSelector:
-            kubernetes.io/arch: amd64
+            kubernetes.io/arch: arm64
         containers:
           main:
             image: &image
               repository: ghcr.io/blakeblackshear/frigate
-              tag: 0.18.3@sha256:d1a3e0008557bb3f3314d442ecd4ba68e9b16ab7872d64612649f7a6e5156635
+              tag: 0.18.3-rk@sha256:fee739513583f3871ecde56e3428a51557e1bbf232afc661e83cbb4e6aa8ffe1
             env:
               TZ: ${TIMEZONE}
             securityContext:
-              # the iGPU device nodes and perf events for GPU stats, as with Jellyfin's VPU
+              # the NPU and VPU device nodes and an unmasked /proc/device-tree, as with Jellyfin
               privileged: true
             probes:
               liveness: &probe
@@ -72,18 +71,18 @@ spec:
                   header_map:
                     user: cf-access-authenticated-user-email
                 detectors:
-                  ov:
-                    type: openvino
-                    device: GPU
+                  rknn:
+                    type: rknn
+                    num_cores: 3
                 model:
-                  width: 300
-                  height: 300
+                  path: frigate-fp16-yolov9-t
+                  model_type: yolo-generic
+                  width: 320
+                  height: 320
                   input_tensor: nhwc
-                  input_pixel_format: bgr
-                  path: /openvino-model/ssdlite_mobilenet_v2.xml
-                  labelmap_path: /openvino-model/coco_91cl_bkgr.txt
+                  labelmap_path: /labelmap/coco-80.txt
                 ffmpeg:
-                  hwaccel_args: preset-vaapi
+                  hwaccel_args: preset-rkmpp
                 record:
                   enabled: true
                   motion:
@@ -134,7 +133,7 @@ spec:
         storageClass: longhorn-local
         globalMounts:
           - path: /media/frigate
-      # recording segments land here before they're moved to media. the NUC's NVMe is worn out
+      # recording segments land here before they're moved to media
       cache:
         type: emptyDir
         medium: Memory
@@ -147,3 +146,12 @@ spec:
         sizeLimit: 512Mi
         globalMounts:
           - path: /dev/shm
+      # MPP uses DMA heaps only when all four of the vendor kernel's exist, and mainline only has system
+      dma-heap:
+        type: hostPath
+        hostPath: /dev/dma_heap/system
+        hostPathType: CharDevice
+        globalMounts:
+          - path: /dev/dma_heap/system-dma32
+          - path: /dev/dma_heap/system-uncached
+          - path: /dev/dma_heap/system-uncached-dma32
