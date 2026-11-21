@@ -4,9 +4,9 @@ format: v1alpha2
 
 vars:
   # the kernel in siderolabs/kernel:${PKGS}
-  linux_version: 6.18.58
-  linux_sha256: 069b19f9032c4dac8149ae4b6520c35debca0f42a9f6d52ee55ba6ca9b818013
-  linux_sha512: 9ee621783588881dff0032ea6ef2a555869efe541e9a00b6702561bcc107a3f986b691140c7374c9cecf989d7ccb5b526ead3ac67906c88223840380f3f8effa
+  linux_version: 6.18.63
+  linux_sha256: 81764a545072d160748beff4d9de2e7d95aa9f16e8261110288f067a2cc61d71
+  linux_sha512: 5365eddd6b7dcd51553efd3dd2578f845f034f34c7ebdeea6fb7517833f3d26585fd0bd450fe6a7be86f7e9b7852ee7b416dcdc7c18f0e4dd4b0400e6a3e55a9
 
   # drivers/video/rockchip/{mpp,rga3} come from Rockchip's BSP kernel
   # renovate: datasource=git-refs versioning=git depName=https://github.com/rockchip-linux/kernel.git currentValue=develop-6.12
