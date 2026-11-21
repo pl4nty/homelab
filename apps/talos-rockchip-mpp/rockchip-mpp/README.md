@@ -4,7 +4,8 @@
 
 See [Installing Extensions](https://github.com/siderolabs/extensions#installing-extensions).
 The modules aren't signed with the Talos key, so the installer also needs
-`--extra-kernel-arg -module.sig_enforce`.
+`--extra-kernel-arg -module.sig_enforce`. With `rockchip-rknn` installed, also pass
+`--extra-kernel-arg module_blacklist=rocket`, or rocket binds the NPU before rknpu.
 
 ## Usage
 

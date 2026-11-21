@@ -6,6 +6,8 @@ customization:
   extraKernelArgs:
     # rockchip-mpp isn't signed with the Talos key
     - -module.sig_enforce
+    # rockchip-mpp's rknpu drives the NPU for librknnrt, and rockchip-rknn's rocket binds it first
+    - module_blacklist=rocket
   systemExtensions:
     # digests from ghcr.io/siderolabs/extensions:v<talosVersion>: Sidero re-pushes tags for newer Talos releases
     officialExtensions:

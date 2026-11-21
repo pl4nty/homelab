@@ -97,7 +97,8 @@ APP=talos-rockchip-mpp docker buildx bake -f apps/docker-bake.hcl -f apps/talos-
 
 topf installs it on the RK1s. `talos/docker-bake.hcl` builds their installer from
 `talos/hardware/rk1-schematic.yaml`. `talos/control-plane/rk1.yaml` loads
-rk_vcodec and rga3, which pull in vsi_iommu and rk3588_mpp_dt, and rknpu.
+rk_vcodec and rga3, which pull in vsi_iommu and rk3588_mpp_dt, and rknpu. The schematic
+blacklists rockchip-rknn's `rocket`, which would otherwise bind the NPU first.
 
 Jellyfin transcodes fully in hardware on d04 (Jellyfin's `rkmpp` acceleration):
 hevc_rkmpp decode, overlay_rkrga subtitle burn-in, h264_rkmpp encode. A 1080p

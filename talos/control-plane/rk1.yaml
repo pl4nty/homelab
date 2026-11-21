@@ -35,7 +35,7 @@ apiVersion: v1alpha1
 kind: KernelModuleConfig
 name: rga3
 ---
-# rockchip-mpp's RKNPU driver, for Frigate. Loaded so it binds the NPU before rockchip-rknn's rocket can
+# rockchip-mpp's RKNPU driver, for Frigate
 apiVersion: v1alpha1
 kind: KernelModuleConfig
 name: rknpu
