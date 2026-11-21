@@ -68,9 +68,6 @@ spec:
                   client_id: frigate${APP_SUFFIX:=}
                 auth:
                   enabled: false
-                proxy:
-                  header_map:
-                    user: cf-access-authenticated-user-email
                 detectors:
                   rknn:
                     type: rknn
@@ -103,9 +100,6 @@ spec:
         ports:
           http:
             primary: true
-            port: 8971
-          # unauthenticated API for Home Assistant
-          api:
             port: 5000
           rtsp:
             port: 8554
@@ -119,7 +113,7 @@ spec:
         rules:
           - backendRefs:
               - identifier: main
-                port: 8971
+                port: 5000
     persistence:
       config:
         retain: ${APP_RETAIN:=true}
