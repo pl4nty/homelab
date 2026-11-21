@@ -31,7 +31,7 @@ schematic=$(curl -fsS -X POST --data-binary @hardware/oracle-schematic.yaml http
 
 vcn=$(lookup "$name" network vcn list)
 [[ -n $vcn ]] || vcn=$(oci network vcn create -c "$compartment" --display-name "$name" --cidr-blocks "[\"$cidr\"]" --dns-label talos --wait-for-state AVAILABLE --query data.id --raw-output)
-# a public IPv6 address too, so host-network listeners on this node take IPv6 clients
+# IPv6 for the dual-stack cluster: flannel needs it on the same interface as the IPv4 default route
 v6() { oci network vcn get --vcn-id "$vcn" --query 'data."ipv6-cidr-blocks"[0]' --raw-output; }
 [[ -n $(v6) ]] || oci network vcn add-ipv6-vcn-cidr --vcn-id "$vcn" --is-oracle-gua-allocation-enabled true --wait-for-state SUCCEEDED >/dev/null
 vcn_v6=$(v6)
