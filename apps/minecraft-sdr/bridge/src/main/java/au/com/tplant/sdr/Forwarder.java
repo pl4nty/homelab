@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class Forwarder {
   public static final String SUFFIX = ".sdr";
-  public static final String WELL_KNOWN = "/.well-known/minecraft-sdr";
+  public static final String STEAM_ID = "/steam-id";
 
   private static final System.Logger LOG = System.getLogger("minecraft-sdr");
   private static final Map<String, Forwarder> FORWARDERS = new ConcurrentHashMap<>();
@@ -60,7 +60,7 @@ public final class Forwarder {
       return Long.parseUnsignedLong(target);
     }
     HttpRequest request =
-        HttpRequest.newBuilder(URI.create("https://" + target + WELL_KNOWN)).timeout(Duration.ofSeconds(10)).build();
+        HttpRequest.newBuilder(URI.create("https://" + target + STEAM_ID)).timeout(Duration.ofSeconds(10)).build();
     HttpResponse<String> response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
     if (response.statusCode() != 200) {
       throw new IOException(request.uri() + " returned " + response.statusCode());

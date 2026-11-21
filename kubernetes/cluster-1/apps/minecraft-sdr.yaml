@@ -67,7 +67,7 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /.well-known/minecraft-sdr
+                    path: /steam-id
                     port: 8080
                   periodSeconds: 30
               readiness: *sdr-probe
@@ -76,7 +76,7 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /.well-known/minecraft-sdr
+                    path: /steam-id
                     port: 8080
                   failureThreshold: 30
                   periodSeconds: 5

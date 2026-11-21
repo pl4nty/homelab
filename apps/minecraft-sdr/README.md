@@ -16,6 +16,6 @@ Clients need x86_64 Windows or Linux, or macOS.
 
 ## Server
 
-`java -jar minecraft-sdr.jar serve <minecraft host:port> <http port> <download dir>` forwards SDR connections to the Minecraft server. Its HTTP port serves the download dir and `/.well-known/minecraft-sdr`, the game server's Steam ID, which changes on every logon. A `<host>.sdr` address reads it from `https://<host>/.well-known/minecraft-sdr`, and `<steam id>.sdr` skips the lookup.
+`java -jar minecraft-sdr.jar serve <minecraft host:port> <http port> <download dir>` forwards SDR connections to the Minecraft server. Its HTTP port serves the download dir and `/steam-id`, the game server's Steam ID, which changes on every logon. A `<host>.sdr` address reads it from `https://<host>/steam-id`, and `<steam id>.sdr` skips the lookup.
 
 Valve only ships `steamclient.so` for x86_64, so the image is amd64 only.

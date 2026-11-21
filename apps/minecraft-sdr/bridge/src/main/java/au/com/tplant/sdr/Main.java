@@ -39,7 +39,7 @@ public final class Main {
 
     HttpServer http = HttpServer.create(new InetSocketAddress(httpPort), 0);
     http.createContext(
-        Forwarder.WELL_KNOWN,
+        Forwarder.STEAM_ID,
         exchange -> {
           byte[] body;
           int status;
