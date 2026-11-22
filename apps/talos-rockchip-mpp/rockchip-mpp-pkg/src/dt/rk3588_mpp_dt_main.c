@@ -2,8 +2,9 @@
 /*
  * Adds the RK3588 MPP, RGA and AV1 device nodes to a mainline device tree at
  * module load. rk_vcodec and rga3 call rk3588_mpp_dt_ready(), so loading either
- * loads this first, and this loads vsi_iommu first: the AV1 decoder must find
- * its IOMMU driver when it probes.
+ * loads this first, and this loads vsi_iommu and rk_dma_heaps first: the AV1
+ * decoder must find its IOMMU driver when it probes, and userspace MPP the
+ * vendor DMA heaps.
  *
  * Board DTBs are built without __symbols__, so the labels the overlay refers
  * to are added to /__symbols__ first, found by compatible or path. The overlay
@@ -20,6 +21,7 @@
 #include "rk3588_mpp_dt.h"
 
 void vsi_iommu_dep(void);
+void rk_dma_heaps_dep(void);
 
 extern const u8 mpp_dtbo_begin[];
 extern const u8 mpp_dtbo_end[];
@@ -116,6 +118,7 @@ static int __init rk3588_mpp_dt_init(void)
 		return -ENODEV;
 
 	vsi_iommu_dep();
+	rk_dma_heaps_dep();
 
 	/* applied by an earlier load since boot, or the DT already has them */
 	np = of_find_compatible_node(NULL, NULL, "rockchip,mpp-service");

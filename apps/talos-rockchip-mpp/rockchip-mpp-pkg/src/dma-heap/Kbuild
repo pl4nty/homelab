@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: GPL-2.0
+# The Rockchip BSP system DMA-BUF heaps that userspace MPP needs and mainline
+# doesn't have.
+obj-m += rk_dma_heaps.o
