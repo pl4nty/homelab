@@ -10,12 +10,17 @@ name: "32000"
 dst: 192.168.1.0/24
 table: main
 ---
-# well-known topology labels, matching what the OCI cloud controller sets on talos-oci-a1 (ap-sydney-1)
+# well-known topology labels, matching what the OCI cloud controller sets on talos-oci-a1 (ap-sydney-1).
+# Global IPv6 only, so kubelet never picks the KubeSpan ULA
 apiVersion: v1alpha1
 kind: KubeNodeConfig
 labels:
   topology.kubernetes.io/region: home
   topology.kubernetes.io/zone: home
+nodeIP:
+  validSubnets:
+    - 0.0.0.0/0
+    - 2000::/3
 ---
 # NUT client (siderolabs/nut-client) for the upsd in kubernetes/cluster-1/nut.yaml. Powers the node off
 # on low battery. A secondary login can only watch the UPS, so its password needn't be secret

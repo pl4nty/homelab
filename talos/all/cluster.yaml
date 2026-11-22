@@ -40,11 +40,3 @@ podSubnets:
 serviceSubnets:
   - 10.96.0.0/12
   - fd11:bb51:15bd:100::/112
----
-# global IPv6 only, so kubelet never picks the KubeSpan ULA
-apiVersion: v1alpha1
-kind: KubeNodeConfig
-nodeIP:
-  validSubnets:
-    - 0.0.0.0/0
-    - 2000::/3

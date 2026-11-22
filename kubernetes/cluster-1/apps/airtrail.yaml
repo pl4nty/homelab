@@ -1,0 +1,116 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: airtrail${APP_SUFFIX:=}
+  namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
+spec:
+  interval: 15m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    controllers:
+      main:
+        strategy: Recreate
+        containers:
+          main:
+            image:
+              repository: docker.io/johly/airtrail
+              tag: v3.14.0@sha256:69ef0a421d6a5f99c06d04ea6b66445a5d1261dd533d6efe3bd8bc3e2dfd018f
+            env:
+              ORIGIN: https://airtrail${APP_SUFFIX:=}.${PRIVATE_DOMAIN}
+              DB_URL:
+                secretKeyRef:
+                  name: airtrail${APP_SUFFIX:=}-cnpg-app
+                  key: uri
+              UPLOAD_LOCATION: /app/uploads
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 3000
+    route:
+      main:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - airtrail${APP_SUFFIX:=}.${PRIVATE_DOMAIN}
+        rules:
+          - backendRefs:
+              - identifier: main
+                port: 3000
+    persistence:
+      uploads:
+        retain: ${APP_RETAIN:=true}
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        globalMounts:
+          - path: /app/uploads
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: airtrail${APP_SUFFIX:=}-cnpg
+  namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
+spec:
+  instances: 2
+  storage:
+    size: 2Gi
+    storageClass: longhorn-local
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.6-standard-trixie
+  affinity:
+    nodeSelector:
+      node.longhorn.io/create-default-disk: config
+    podAntiAffinityType: required
+
+  bootstrap:
+    initdb:
+      database: airtrail
+      owner: airtrail
+
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: b2
+
+  postgresql:
+    parameters:
+      huge_pages: "off"
+
+  resources:
+    requests:
+      memory: 100Mi
+    limits:
+      memory: 1Gi
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: airtrail${APP_SUFFIX:=}
+  namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
+spec:
+  immediate: true
+  schedule: 0 0 0 * * *
+  backupOwnerReference: self
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+  cluster:
+    name: airtrail${APP_SUFFIX:=}-cnpg
