@@ -10,6 +10,14 @@ name: "32000"
 dst: 192.168.1.0/24
 table: main
 ---
+# The same for the LAN's IPv6 prefix, which flannel-v6 uses for its VXLAN endpoints. Over KubeSpan its
+# packets (1370 + 70) don't fit the 1420 MTU, so large pod IPv6 transfers between home nodes stall
+apiVersion: v1alpha1
+kind: RoutingRuleConfig
+name: "32001"
+dst: 2403:581d:d371::/64
+table: main
+---
 # well-known topology labels, matching what the OCI cloud controller sets on talos-oci-a1 (ap-sydney-1).
 # Global IPv6 only, so kubelet never picks the KubeSpan ULA
 apiVersion: v1alpha1
