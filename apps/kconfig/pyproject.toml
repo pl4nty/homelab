@@ -1,10 +1,12 @@
 [project]
-name = "kconfig-index"
+name = "kconfig"
 version = "0.1.0"
 requires-python = ">=3.14"
 dependencies = [
+  "httpx2==2.16.2",
   "kconfiglib==14.1.0",
   "kernel-hardening-checker @ git+https://github.com/a13xp0p0v/kernel-hardening-checker@b2acfd4f8fba4e91996224b29c992cf83be30904",
+  "nicegui==4.0.0",
 ]
 
 [tool.uv]

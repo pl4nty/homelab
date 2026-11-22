@@ -25,6 +25,13 @@ spec:
             image:
               repository: ghcr.io/pl4nty/kconfig
               tag: ${APP_IMAGE_TAG:=}
+            resources:
+              requests:
+                cpu: 10m
+                memory: 256Mi
+              # up to 4 parsed trees stay loaded, ~100MiB each
+              limits:
+                memory: 1Gi
             probes:
               liveness:
                 enabled: true
