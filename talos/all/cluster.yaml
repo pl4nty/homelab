@@ -46,11 +46,3 @@ apiVersion: v1alpha1
 kind: KubeletConfig
 clusterDNS:
   - 10.96.0.10
----
-# global IPv6 only, so kubelet never picks the KubeSpan ULA
-apiVersion: v1alpha1
-kind: KubeNodeConfig
-nodeIP:
-  validSubnets:
-    - 0.0.0.0/0
-    - 2000::/3
