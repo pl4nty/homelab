@@ -18,6 +18,14 @@ extraArgs:
   # registration, since NodeRestriction stops workers changing their own taints later
   register-with-taints: topology.kubernetes.io/region:PreferNoSchedule
 ---
+# IPv4 only. The OCI cloud controller only returns the VNIC's IPv6 for nodes labelled
+# oci.oraclecloud.com/ip-family-ipv6, and won't initialise a node registered with an IP it doesn't return
+apiVersion: v1alpha1
+kind: KubeNodeConfig
+nodeIP:
+  validSubnets:
+    - 0.0.0.0/0
+---
 # the OCI CSI driver waits for /dev/oracleoci/oraclevd<x>, which Oracle Linux's udev rules create
 # from the paravirtualized SCSI LUN (1 is the boot volume, so attachments start at b)
 apiVersion: v1alpha1
