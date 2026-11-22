@@ -17,8 +17,6 @@ concurrency:
 env:
   GITHUB_TOKEN: ${{ secrets.TERRAFORM_GITHUB_TOKEN }}
   TERRAFORM_ACTIONS_GITHUB_TOKEN: ${{ github.token }}
-  OCI_USER_OCID: ${{ secrets.OCI_USER_OCID }}
-  OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
   OCI_PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
 
 jobs:

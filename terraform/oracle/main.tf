@@ -9,9 +9,11 @@ terraform {
   }
 }
 
-# API key from the OCI_USER_OCID, OCI_FINGERPRINT and OCI_PRIVATE_KEY env vars
+# the key itself comes from the OCI_PRIVATE_KEY env var
 provider "oci" {
   tenancy_ocid = local.tenancy
+  user_ocid    = "ocid1.user.oc1..aaaaaaaats75afzmmvucnsll32vtiwjtrkm5l54hg5atp3i7yfyvz4ny22iq"
+  fingerprint  = "a5:e6:88:f6:01:d3:ef:a8:92:47:57:e1:8b:4f:5a:7f"
   region       = "ap-sydney-1"
 }
 

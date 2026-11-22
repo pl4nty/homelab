@@ -17,4 +17,4 @@ The Always Free A1 VM `talos-oci-a1` (`talos/node/talos-oci-a1`): its VCN, firew
 * `import` blocks adopt everything that already exists, so state is just a cache here too. The VCN, subnet and VM can't be destroyed (`prevent_destroy`).
 * The VM ignores every change, since nearly any field replaces it and Talos owns it after boot. To make a new one, run `talos/oracle-image.sh` first, then add its `public_ip` output to `talos/topf.yaml` and `talos/node/talos-oci-a1/certsans.yaml`.
 * OCI allocates the VCN's IPv6 /56 on apply, so a VCN getting IPv6 needs a second apply for the subnet and VM addresses. Talos reads them at boot, so reboot the node after.
-* CI uses an API key (`OCI_*` secrets).
+* CI uses an API key, whose private key is the `OCI_PRIVATE_KEY` secret.
