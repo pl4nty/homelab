@@ -1,0 +1,23 @@
+kind: Secret
+apiVersion: v1
+metadata:
+  name: media-cleanup
+  namespace: default
+type: Opaque
+stringData:
+  JELLYFIN_API_KEY: ENC[AES256_GCM,data:KowWJtAcwpcIrOt0SxQ7wDqU911J4T1DfdQMcOIcgDk=,iv:j1pNFZ1cNLHjRLvBQH09prQp5AwsOCipLPezXUcEewA=,tag:sb4XKCxJV9eKGmu527GluA==,type:str]
+sops:
+  age:
+    - recipient: age18k9804sxqzuxn3pka0x6rgdqp0g7gm7w99g4lu43meqkl9s8lvrsl6n0vh
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBxb2p5dGQ1b1YrYWF0RDFT
+        eDRUYkZNak1JU0hSK3NiKzlxSEFhNENkVEZVCnlnRWszOW0xdVQ2SS9tR0JqZ1BE
+        djlZUWl4bVNZR3NtdzhnZkFPbHhoTEUKLS0tIGJjRWxvWHVSZWhodFprOVcxWVhJ
+        SnQrU0tkSjZaUUl1Rjc2eFl1YmV3dW8Kq64IJtv/NJRt8iWoWeenKM0DSavVMnap
+        ckX8j4qo0tSdNT+O+x1JoDFychp0spN6hZfiG9aUoiV6yOzwr7UreA==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2026-11-22T10:45:06Z"
+  mac: ENC[AES256_GCM,data:KN7fOkMYVwfEGjWT8nKjNEHfFMgZUoEm8jvfZ1UPUePyNgOxSZbXlpw5gPMtDlaspQZUvw9HQH4jHo47RrOHY0lMfFu5N4n8eSYQh6DaYzrxffyfSCGPfqxpJfk79QZfDL9n0PJzdY1zJ6RBqnVWq/K/kCAnblQd5hD+MFVYeL8=,iv:YQ5qwJlGVFyo8Z2QzMtLci4UlPw6JcrA4kR1DstJPqc=,tag:LgMkLkvoqD/aT3Gj504qOA==,type:str]
+  encrypted_regex: ^(data|stringData)$
+  version: 3.12.2

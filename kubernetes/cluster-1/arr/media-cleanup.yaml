@@ -1,0 +1,185 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# Deletes media once it's been watched in Jellyfin and its torrent has seeded past a ratio
+# while the swarm is healthy. Torrent files are matched to library files by inode, since imports
+# are hardlinks. Library files go through Sonarr/Radarr so they unmonitor rather than re-grab
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: media-cleanup
+  namespace: default
+spec:
+  interval: 15m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    controllers:
+      media-cleanup:
+        type: cronjob
+        cronjob:
+          schedule: 0 4 * * *
+          concurrencyPolicy: Forbid
+          successfulJobsHistory: 1
+          failedJobsHistory: 1
+          backoffLimit: 0
+        containers:
+          app:
+            image:
+              repository: python
+              tag: 3.15.0-alpine@sha256:2699b90f4d562a22e2dd076c82f964032f64814204bff36d271a54ba4cc2c7e2
+            command: [python, /app/cleanup.py]
+            env:
+              DRY_RUN: "true"
+              MIN_RATIO: "2"
+              MIN_SEEDERS: "50"
+              CATEGORIES: shows,movies,tv-sonarr
+              JELLYFIN_API_KEY:
+                secretKeyRef:
+                  name: media-cleanup
+                  key: JELLYFIN_API_KEY
+              SONARR_API_KEY:
+                secretKeyRef:
+                  name: arr
+                  key: SONARR_API_KEY
+              RADARR_API_KEY:
+                secretKeyRef:
+                  name: radarr
+                  key: RADARR_API_KEY
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+        pod:
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 568
+            runAsGroup: 568
+            seccompProfile: { type: RuntimeDefault }
+          # media is RWO with a single local replica, so follow jellyfin to its node
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchExpressions:
+                      - key: app.kubernetes.io/instance
+                        operator: In
+                        values:
+                          - jellyfin
+                  topologyKey: kubernetes.io/hostname
+    persistence:
+      media:
+        existingClaim: media
+        globalMounts:
+          - path: /data
+            readOnly: true
+      script:
+        type: configMap
+        name: "{{ .Release.Name }}"
+        globalMounts:
+          - path: /app
+            readOnly: true
+    configMaps:
+      script:
+        data:
+          cleanup.py: |
+            import json
+            import os
+            import urllib.parse
+            import urllib.request
+
+            DRY_RUN = os.environ["DRY_RUN"] != "false"
+            MIN_RATIO = float(os.environ["MIN_RATIO"])
+            MIN_SEEDERS = int(os.environ["MIN_SEEDERS"])
+            CATEGORIES = os.environ["CATEGORIES"].split(",")
+
+            JELLYFIN = ("http://jellyfin:8096", {"Authorization": f'MediaBrowser Token="{os.environ["JELLYFIN_API_KEY"]}"'})
+            SONARR = ("http://sonarr:8989/api/v3", {"X-Api-Key": os.environ["SONARR_API_KEY"]})
+            RADARR = ("http://radarr:7878/api/v3", {"X-Api-Key": os.environ["RADARR_API_KEY"]})
+            QBITTORRENT = ("http://qbittorrent/api/v2", {})
+
+
+            def call(service, path, method="GET", body=None, form=None):
+                base, headers = service
+                headers = dict(headers)
+                data = None
+                if body is not None:
+                    data = json.dumps(body).encode()
+                    headers["Content-Type"] = "application/json"
+                elif form is not None:
+                    data = urllib.parse.urlencode(form).encode()
+                with urllib.request.urlopen(urllib.request.Request(base + path, data, headers, method=method)) as r:
+                    content = r.read()
+                    return json.loads(content) if content else None
+
+
+            def inode(path):
+                try:
+                    st = os.stat(path)
+                except FileNotFoundError:
+                    return None
+                return st.st_dev, st.st_ino
+
+
+            watched = set()
+            for user in call(JELLYFIN, "/Users"):
+                query = urllib.parse.urlencode({
+                    "userId": user["Id"],
+                    "recursive": "true",
+                    "isPlayed": "true",
+                    "includeItemTypes": "Episode,Movie",
+                    "fields": "Path",
+                })
+                for item in call(JELLYFIN, f"/Items?{query}")["Items"]:
+                    if "Path" in item:
+                        watched.add(inode(item["Path"]))
+
+            # inode -> (path, delete library file, unmonitor)
+            library = {}
+            for series in call(SONARR, "/series"):
+                episodes = call(SONARR, f"/episode?seriesId={series['id']}")
+                for file in call(SONARR, f"/episodefile?seriesId={series['id']}"):
+                    episode_ids = [e["id"] for e in episodes if e["episodeFileId"] == file["id"]]
+                    library[inode(file["path"])] = (
+                        file["path"],
+                        lambda id=file["id"]: call(SONARR, f"/episodefile/{id}", "DELETE"),
+                        lambda ids=episode_ids: call(SONARR, "/episode/monitor", "PUT", {"episodeIds": ids, "monitored": False}),
+                    )
+            for movie in call(RADARR, "/movie"):
+                if file := movie.get("movieFile"):
+                    library[inode(file["path"])] = (
+                        file["path"],
+                        lambda id=file["id"]: call(RADARR, f"/moviefile/{id}", "DELETE"),
+                        lambda id=movie["id"]: call(RADARR, "/movie/editor", "PUT", {"movieIds": [id], "monitored": False}),
+                    )
+            library.pop(None, None)
+
+            for torrent in call(QBITTORRENT, "/torrents/info?filter=completed"):
+                if torrent["category"] not in CATEGORIES:
+                    continue
+                if torrent["ratio"] <= MIN_RATIO or torrent["num_complete"] <= MIN_SEEDERS:
+                    continue
+                linked = set()
+                for file in call(QBITTORRENT, f"/torrents/files?hash={torrent['hash']}"):
+                    path = os.path.join(torrent["save_path"], file["name"])
+                    if (key := inode(path)) and os.stat(path).st_nlink > 1:
+                        linked.add(key)
+                if not linked or not linked <= watched or not linked <= library.keys():
+                    continue
+
+                print(f"{'would delete' if DRY_RUN else 'deleting'} {torrent['name']} "
+                      f"(ratio {torrent['ratio']:.2f}, {torrent['num_complete']} seeders)")
+                for key in linked:
+                    path, delete, unmonitor = library[key]
+                    print(f"  {path}")
+                    if not DRY_RUN:
+                        unmonitor()
+                        delete()
+                if not DRY_RUN:
+                    call(QBITTORRENT, "/torrents/delete", "POST", form={"hashes": torrent["hash"], "deleteFiles": "true"})
