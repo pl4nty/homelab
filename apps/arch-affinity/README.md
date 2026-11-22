@@ -9,4 +9,4 @@ It admits a pod unchanged when:
 - an image lookup fails or takes more than 5 seconds
 - the images share no platform
 
-The pod creates a self-signed certificate on start and writes it to the webhook's `caBundle`. The webhook uses `failurePolicy: Ignore`, so pods are admitted unchanged while it restarts.
+It serves the cert-manager certificate mounted at `/tls`, and cert-manager's CA injector writes the webhook's `caBundle`. The webhook uses `failurePolicy: Ignore`, so pods are admitted unchanged while every replica is down.
