@@ -1,5 +1,5 @@
 # OCI cloud controller and block-volume CSI for the Oracle nodes. The controllers authenticate as the Oracle
-# node they run on (instance principals: talos/oracle-iam.sh creates the dynamic group and policy), so they
+# node they run on (instance principals: terraform/oracle creates the dynamic group and policy), so they
 # must run on an Oracle node: one in this config's region, or a new one the controller hasn't labelled yet.
 # Home nodes always carry topology.kubernetes.io/region=home. One region per config: Oracle nodes elsewhere
 # need another instance with that region.
