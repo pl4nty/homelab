@@ -1,32 +1,24 @@
 # requires pods to run on an os and architecture their images support, see apps/arch-affinity
-apiVersion: v1
-kind: ServiceAccount
+apiVersion: cert-manager.io/v1
+kind: Issuer
 metadata:
   name: arch-affinity
   namespace: kube-system
+spec:
+  selfSigned: {}
 ---
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
+apiVersion: cert-manager.io/v1
+kind: Certificate
 metadata:
-  name: arch-affinity
-rules:
-- apiGroups: ["admissionregistration.k8s.io"]
-  resources: ["mutatingwebhookconfigurations"]
-  resourceNames: ["arch-affinity"]
-  verbs: ["get", "update"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: arch-affinity
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: arch-affinity
-subjects:
-- kind: ServiceAccount
   name: arch-affinity
   namespace: kube-system
+spec:
+  secretName: arch-affinity-tls
+  dnsNames:
+  - arch-affinity.kube-system.svc
+  issuerRef:
+    kind: Issuer
+    name: arch-affinity
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -34,6 +26,7 @@ metadata:
   name: arch-affinity
   namespace: kube-system
 spec:
+  replicas: 2
   selector:
     matchLabels:
       app: arch-affinity
@@ -42,8 +35,15 @@ spec:
       labels:
         app: arch-affinity
     spec:
-      serviceAccountName: arch-affinity
+      automountServiceAccountToken: false
       priorityClassName: system-cluster-critical
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app: arch-affinity
       containers:
       - name: arch-affinity
         image: ghcr.io/pl4nty/arch-affinity:latest@sha256:47aadafb59dff86575f1b0af68c590d8abe6db47775c2ea030b36f0faaf6195e
@@ -66,6 +66,25 @@ spec:
           readOnlyRootFilesystem: true
           capabilities:
             drop: ["ALL"]
+        volumeMounts:
+        - name: tls
+          mountPath: /tls
+          readOnly: true
+      volumes:
+      - name: tls
+        secret:
+          secretName: arch-affinity-tls
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: arch-affinity
+  namespace: kube-system
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: arch-affinity
 ---
 apiVersion: v1
 kind: Service
@@ -83,8 +102,9 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   name: arch-affinity
+  annotations:
+    cert-manager.io/inject-ca-from: kube-system/arch-affinity
 webhooks:
-# the pod sets caBundle on startup
 - name: arch-affinity.tplant.com.au
   admissionReviewVersions: ["v1"]
   sideEffects: None
