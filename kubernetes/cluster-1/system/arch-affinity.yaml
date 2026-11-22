@@ -1,4 +1,10 @@
 # requires pods to run on an os and architecture their images support, see apps/arch-affinity
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: arch-affinity
+  namespace: kube-system
+---
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
@@ -35,6 +41,7 @@ spec:
       labels:
         app: arch-affinity
     spec:
+      serviceAccountName: arch-affinity
       automountServiceAccountToken: false
       priorityClassName: system-cluster-critical
       topologySpreadConstraints:
@@ -46,7 +53,7 @@ spec:
             app: arch-affinity
       containers:
       - name: arch-affinity
-        image: ghcr.io/pl4nty/arch-affinity:latest@sha256:47aadafb59dff86575f1b0af68c590d8abe6db47775c2ea030b36f0faaf6195e
+        image: ghcr.io/pl4nty/arch-affinity:latest@sha256:adeabec5753565019e5bc9fdcc2b5c04106af10fda1ee07ff563a4a22d4e6119
         ports:
         - name: https
           containerPort: 8443
