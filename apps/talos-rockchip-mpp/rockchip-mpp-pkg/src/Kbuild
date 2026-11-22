@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 obj-m += vsi-iommu/
+obj-m += dma-heap/
 obj-m += dt/
 obj-m += mpp/
 obj-m += rga3/

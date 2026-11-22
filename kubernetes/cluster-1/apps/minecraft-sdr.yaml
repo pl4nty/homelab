@@ -1,0 +1,119 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: minecraft-sdr${APP_SUFFIX:=}
+  namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
+spec:
+  interval: 15m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    controllers:
+      server:
+        # RWO volumes can't attach to two nodes during a rollout
+        strategy: Recreate
+        containers:
+          main:
+            image:
+              repository: itzg/minecraft-server
+              tag: java25@sha256:dc15f05423064860968043de873316dbd0c027a7d9c8354826229d7c20dd4619
+            env:
+              EULA: "TRUE"
+              VERSION: "26.3"
+              MEMORY: 2G
+              TZ: ${TIMEZONE}
+            probes:
+              liveness: &probe
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command: [mc-health]
+                  periodSeconds: 30
+                  failureThreshold: 5
+              readiness: *probe
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command: [mc-health]
+                  periodSeconds: 10
+                  failureThreshold: 60
+            resources:
+              requests:
+                cpu: 500m
+                memory: 2560Mi
+              limits:
+                memory: 3Gi
+      sdr:
+        containers:
+          main:
+            image:
+              repository: ghcr.io/pl4nty/minecraft-sdr
+              tag: ${APP_IMAGE_TAG:=}
+            args:
+              - serve
+              - minecraft-sdr${APP_SUFFIX:=}-server:25565
+              - "8080"
+              - /app/public
+            probes:
+              liveness: &sdr-probe
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /steam-id
+                    port: 8080
+                  periodSeconds: 30
+              readiness: *sdr-probe
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /steam-id
+                    port: 8080
+                  failureThreshold: 30
+                  periodSeconds: 5
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                memory: 384Mi
+    service:
+      server:
+        controller: server
+        ports:
+          minecraft:
+            port: 25565
+      sdr:
+        controller: sdr
+        ports:
+          http:
+            port: 8080
+    route:
+      sdr:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - minecraft${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
+        rules:
+          - backendRefs:
+              - identifier: sdr
+                port: 8080
+    persistence:
+      data:
+        retain: ${APP_RETAIN:=true}
+        accessMode: ReadWriteOnce
+        size: 10Gi
+        advancedMounts:
+          server:
+            main:
+              - path: /data

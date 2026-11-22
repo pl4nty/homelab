@@ -35,6 +35,10 @@ spec:
     policy: sync
     sources:
     - service
+    - gateway-httproute
+    # cloudflare-kubernetes-gateway already creates DNS for routes on the Cloudflare gateway
+    extraArgs:
+    - --gateway-name=lan
     txtOwnerId: ${CLUSTER_NAME}
     serviceMonitor:
       enabled: true

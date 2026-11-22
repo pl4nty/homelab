@@ -15,6 +15,7 @@ kernel.
 | `rk_vcodec` | `/dev/mpp_service` | rkvdec2 ×2 (H.264, HEVC, VP9), rkvenc2 ×2 (H.264, HEVC), AV1 decoder, VDPU/VEPU 121, JPEG decoder, IEP2 |
 | `rga3` | `/dev/rga` | RGA3 ×2, RGA2 |
 | `vsi_iommu` | | the Verisilicon IOMMU in front of the AV1 decoder |
+| `rk_dma_heaps` | `/dev/dma_heap/system-{uncached,uncached-dma32,dma32}` | the vendor kernel's DMA heaps, for userspace MPP |
 | `rk3588_mpp_dt` | | the device tree nodes for all of the above |
 | `rknpu` | `/dev/dri/renderD*` (`rknpu`) | the NPU's 3 cores, for librknnrt (Frigate's RKNN detector) |
 
@@ -32,6 +33,12 @@ hantro does. `rk3588_mpp_dt` depends on it through an exported symbol, so it loa
 the AV1 decoder's node is added. Otherwise a codec that probes after the
 deferred-probe timeout, and finds no IOMMU driver, binds without one.
 
+`rk_dma_heaps` is mainline's system heap with the vendor kernel's three other
+system heaps. Userspace MPP uses DMA heaps only when all four exist, and it
+never syncs a buffer from an uncached heap. So the uncached heaps are flushed
+from the CPU caches when allocated and mapped write-combined, as on the BSP.
+`rk3588_mpp_dt` depends on it through an exported symbol too.
+
 ## How it works on mainline
 
 - **Source**: the build downloads
@@ -40,7 +47,7 @@ deferred-probe timeout, and finds no IOMMU driver, binds without one.
   they include from it, and applies `rockchip-mpp-pkg/patches`. Those patches are
   every change made to the vendor code for mainline. `rockchip-mpp-pkg/src` holds
   the files written for the port and is copied on top: the build files, two
-  headers, IOMMU shims and the device tree module. `vsi-iommu.c` comes from
+  headers, IOMMU shims, the device tree module and the DMA heaps. `vsi-iommu.c` comes from
   git.kernel.org at a pinned commit.
 - **Vendor kernel APIs**: the vendor headers declare stubs when their vendor
   Kconfig options are off, as they are here, for the OPP, IPA, system monitor,
@@ -97,18 +104,20 @@ APP=talos-rockchip-mpp docker buildx bake -f apps/docker-bake.hcl -f apps/talos-
 
 topf installs it on the RK1s. `talos/docker-bake.hcl` builds their installer from
 `talos/hardware/rk1-schematic.yaml`. `talos/control-plane/rk1.yaml` loads
-rk_vcodec and rga3, which pull in vsi_iommu and rk3588_mpp_dt, and rknpu. The schematic
+rk_vcodec and rga3, which pull in vsi_iommu, rk_dma_heaps and rk3588_mpp_dt, and rknpu. The schematic
 blacklists rockchip-rknn's `rocket`, which would otherwise bind the NPU first.
 
 Jellyfin transcodes fully in hardware on d04 (Jellyfin's `rkmpp` acceleration):
 hevc_rkmpp decode, overlay_rkrga subtitle burn-in, h264_rkmpp encode. A 1080p
-HEVC Main 10 episode transcodes at 4–7x realtime. Mainline has only the `system`
-dma-heap, so `kubernetes/cluster-1/arr/jellyfin.yaml` mounts it under the other
-three names MPP checks for.
+HEVC Main 10 episode transcodes at 4–7x realtime.
 
-For about 10 minutes after the modules first loaded, every rkvdec2 job timed out
-(`resetting for err 0x23`). After that, decoding ran cleanly. The cause is
-unknown. All decode jobs run on rkvdec core0, and core1 stays idle.
+Before `rk_dma_heaps`, `kubernetes/cluster-1/arr/jellyfin.yaml` mounted the
+cached `system` heap under the three other names. MPP then skipped the cache
+syncs for its internal buffers, such as the bitstream and the decoder's
+parameter tables, so the decoder could read stale data. Decode sessions then
+stalled at random with every rkvdec2 job timing out (`resetting for err 0x23`),
+and d04 crashed or corrupted kernel memory after some of them. All decode jobs
+run on rkvdec core0, and core1 stays idle.
 CI also tags main's build with its Talos version. The schematic pins a digest, so a rebuild gets a new installer.
 
 ## Test plan
@@ -159,10 +168,10 @@ Each of these needs checking on hardware:
 - **Vendor IOMMU options**: `rockchip,enable-cmd-retry` and
   `rockchip,shootdown-entire` from the vendor IOMMU nodes have no mainline
   equivalent and are dropped.
-- **Buffer allocation**: userspace MPP allocates from `/dev/dma_heap/system`,
-  which is the only heap mainline has. It is cached memory, so every buffer is
-  synced on map. That is correct but slower than the vendor's uncached DMA32
-  heaps.
+- **Buffer allocation**: the uncached heaps rely on the CPU never holding a
+  dirty line for their pages through the kernel's cached linear map. The
+  allocation flush cleans the lines the zeroing left, and nothing writes
+  through the linear map after that. The BSP's uncached heaps work the same way.
 - **Module unloading**: the overlay can't be removed, because the mainline IOMMU
   driver can't unbind. Reload the modules by rebooting.
 - **RGA user pointers**: for user memory `get_user_pages` can't pin, the vendor

@@ -1,7 +1,7 @@
 # The modules, built against the released Talos kernel as siderolabs/pkgs builds
 # out-of-tree modules: the Rockchip BSP drivers from Rockchip's kernel with
 # patches/ applied, the mainline vsi-iommu driver, and src/ (build files,
-# the pm_domains and IOMMU headers, the device tree module) on top. They aren't signed: the Talos
+# the pm_domains and IOMMU headers, the device tree module, the DMA heaps) on top. They aren't signed: the Talos
 # key is thrown away after its kernel build, so nodes boot with
 # -module.sig_enforce.
 name: rockchip-mpp-pkg
@@ -59,7 +59,7 @@ steps:
     test:
       - |
         export KERNELRELEASE=$(cat /src/include/config/kernel.release)
-        for m in vsi_iommu rk3588_mpp_dt rk_vcodec rga3; do
+        for m in vsi_iommu rk_dma_heaps rk3588_mpp_dt rk_vcodec rga3; do
           ko=$(find /rootfs/usr/lib/modules/${KERNELRELEASE}/extras -name "${m}.ko")
           test -n "${ko}"
           grep -aq "vermagic=${KERNELRELEASE} SMP mod_unload modversions aarch64" "${ko}"

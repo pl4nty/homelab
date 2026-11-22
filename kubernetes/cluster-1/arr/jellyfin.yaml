@@ -66,16 +66,20 @@ spec:
             port: *port
             nodePort: 30096
     route:
-      app:
+      # LAN speed for offline downloads, and video over the Cloudflare CDN breaks its terms
+      lan:
         parentRefs:
           - namespace: default
-            name: ${CLUSTER_NAME}
+            name: lan
         hostnames:
           - jellyfin.${PRIVATE_DOMAIN}
         rules:
           - backendRefs:
               - name: *app
                 port: *port
+            # Envoy's default 15s route timeout would cut off downloads
+            timeouts:
+              request: 0s
     persistence:
       config:
         accessMode: ReadWriteOnce

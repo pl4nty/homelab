@@ -1,0 +1,40 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: gateway-helm
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: oci://docker.io/envoyproxy/gateway-helm
+  layerSelector:
+    mediaType: 'application/vnd.cncf.helm.chart.content.v1.tar+gzip'
+    operation: copy
+  ref:
+    tag: 1.10.0
+    digest: sha256:62fe8cca72a8770bb33900dd5c0990011ab98f2d6f4420c449ce44b1ca4eebe6
+---
+# Gateways that never touch Cloudflare, like lan (cluster-1/lan-gateway.yaml)
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: envoy-gateway
+  namespace: flux-system
+spec:
+  targetNamespace: envoy-gateway-system
+  releaseName: envoy-gateway
+  interval: 15m
+  chartRef:
+    kind: OCIRepository
+    name: gateway-helm
+    namespace: flux-system
+  values:
+    # kustomization.yaml applies them: the chart's CRD subchart is too big for a Helm release Secret
+    crds:
+      enabled: false
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: envoy
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
