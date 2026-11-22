@@ -14,20 +14,22 @@ import json
 import logging
 import os
 import queue
+import re
 import secrets
 import shutil
 import tempfile
 import threading
+import time
 from collections import Counter
 from io import BytesIO
 from pathlib import Path
 from typing import Literal
 
-from fastapi import Depends, FastAPI, Form, Header, HTTPException, Request, UploadFile
+from fastapi import Depends, FastAPI, Form, Header, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from . import colour
 from .core import Options, split_scan
@@ -38,6 +40,11 @@ log = logging.getLogger("stickers")
 STATIC = Path(__file__).with_name("static")
 SCAN_EXTS = {".png", ".tif", ".tiff", ".jpg", ".jpeg", ".bmp", ".webp"}
 RANK = {None: 0, "submit": 1, "admin": 2}
+# Cloudflare refuses request bodies over 100 MB, and an uncompressed 600 dpi A4 TIFF is ~105 MB.
+# So the page sends a scan in chunks of at most CHUNK bytes, then names the assembled file.
+CHUNK = 64 * 2**20
+UPLOAD_ID = re.compile(r"[A-Za-z0-9-]{16,64}")
+HEX = r"^#[0-9a-f]{6}$"
 Image.MAX_IMAGE_PIXELS = None  # scans are big; uploads are capped by max_mp instead
 
 
@@ -47,8 +54,10 @@ class Edit(BaseModel):
     comment: str | None = None
     creator: str | None = None
     rotate: float = 0.0
-    warmth: float = 0.0
-    tint: float = 0.0
+    target: str | None = Field(None, pattern=HEX)
+    hue: float = 0.0
+    saturation: float = 0.0
+    brightness: float = 0.0
     state: Literal["pending", "approved"] | None = None
 
 
@@ -106,15 +115,14 @@ class Worker:
                         log.warning("tagging %s failed: %s", rec["file"], e)
                 with Image.open(Path(tmp) / rec["file"]) as im:
                     im.load()
-                if "holo" in rec.get("tags", []):
-                    im = colour.balance(im, *colour.auto(im))
+                if "holo" in rec.get("tags", []) and (fix := colour.auto(im)):
+                    im = colour.adjust(im, **fix)
                 self.store.add(
                     im,
                     "pending",
                     title=rec.get("title", ""),
                     tags=rec.get("tags", []),
                     creator=job["creator"],
-                    comment=job["comment"],
                 )
                 job["stickers"] = k
 
@@ -126,6 +134,7 @@ def create_app(
     claude=None,
     model: str = DEFAULT_MODEL,
     max_mp: float = 150.0,
+    max_bytes: int = 2**30,
 ) -> FastAPI:
     store = Store(data)
     worker = Worker(store, claude, model)
@@ -197,12 +206,17 @@ def create_app(
             a, s, s0 = symmetry_angle(im)
         return {"angle": a, "score": s, "score0": s0}
 
-    @app.get("/api/stickers/{id}/balance")
-    def balance(id: str, r=Depends(role)):
+    @app.get("/api/stickers/{id}/auto")
+    def auto(id: str, r=Depends(role)):
         need(r, "admin")
         with Image.open(store.thumb(get(id).id, 512)) as im:
-            warmth, tint = colour.auto(im)
-        return {"warmth": warmth, "tint": tint}
+            return colour.auto(im)
+
+    @app.get("/api/stickers/{id}/dominant")
+    def dominant(id: str, r=Depends(role)):
+        need(r, "admin")
+        with Image.open(store.thumb(get(id).id, 512)) as im:
+            return {"colour": colour.dominant(im)}
 
     @app.get("/api/stickers/{id}/similar")
     def similar(id: str, r=Depends(role)):
@@ -210,16 +224,74 @@ def create_app(
         get(id)
         return store.similar(id)
 
-    @app.post("/api/scans")
-    def upload(file: UploadFile, creator: str = Form(""), comment: str = Form(""), r=Depends(role)):
+    parts = store.root / "uploads"  # chunked uploads in progress, named by the page's random id
+    parts.mkdir(exist_ok=True)
+
+    def sweep() -> None:  # abandoned uploads
+        for f in parts.iterdir():
+            if f.stat().st_mtime < time.time() - 86400:
+                f.unlink(missing_ok=True)
+
+    sweep()
+
+    @app.put("/api/uploads/{uid}")
+    async def chunk(uid: str, offset: int, request: Request, r=Depends(role)):
+        """Append one chunk at `offset`. If that isn't where the file ends (a retried chunk
+        that did arrive, or a lost one), 409 says where it does, so the page resumes there."""
         need(r, "submit")
-        ext = Path(file.filename or "").suffix.lower()
+        if not UPLOAD_ID.fullmatch(uid):
+            raise HTTPException(400, "Bad upload id")
+        part = parts / uid
+        size = lambda: part.stat().st_size if part.exists() else 0
+        if offset != size():
+            return JSONResponse({"detail": "Out of step", "size": size()}, 409)
+        if offset == 0:
+            sweep()
+        with tempfile.NamedTemporaryFile(dir=parts, prefix=".chunk-") as tmp:
+            n = 0
+            async for b in request.stream():
+                n += len(b)
+                if n > CHUNK or offset + n > max_bytes:
+                    raise HTTPException(413, "That file is too big.")
+                tmp.write(b)
+            tmp.flush()
+            tmp.seek(0)
+            # no awaits from here, so concurrent requests for this upload can't interleave
+            if offset != size():
+                return JSONResponse({"detail": "Out of step", "size": size()}, 409)
+            with part.open("ab") as f:
+                shutil.copyfileobj(tmp, f)
+        return {"size": size()}
+
+    @app.post("/api/scans")
+    def upload(
+        file: UploadFile | None = None,
+        upload: str = Form(""),
+        name: str = Form(""),
+        size: int = Form(-1),
+        creator: str = Form(""),
+        r=Depends(role),
+    ):
+        """Queue a scan: either the file itself (up to 100 MB through Cloudflare), or `upload`,
+        the id of a file sent in chunks to /api/uploads, with its `name` and `size`."""
+        need(r, "submit")
+        name = file.filename if file else name
+        ext = Path(name or "").suffix.lower()
         if ext not in SCAN_EXTS:
             raise HTTPException(400, f"Upload a scan as {', '.join(sorted(SCAN_EXTS))}")
         id = secrets.token_hex(6)
         dst = worker.dir / f"{id}{ext}"
-        with dst.open("wb") as f:
-            shutil.copyfileobj(file.file, f)
+        if file:
+            with dst.open("wb") as f:
+                shutil.copyfileobj(file.file, f)
+        else:
+            part = parts / upload
+            if not UPLOAD_ID.fullmatch(upload) or not part.exists():
+                raise HTTPException(400, "That upload didn't arrive. Try again.")
+            if part.stat().st_size != size:
+                part.unlink()
+                raise HTTPException(400, "Part of that upload went missing. Try again.")
+            part.rename(dst)
         try:
             with Image.open(dst) as im:
                 mp = im.width * im.height / 1e6
@@ -236,9 +308,8 @@ def create_app(
             {
                 "id": id,
                 "ext": ext,
-                "name": file.filename,
+                "name": name,
                 "creator": creator.strip(),
-                "comment": comment.strip(),
             }
         )
 
@@ -269,14 +340,21 @@ def create_app(
         )
 
     @app.get("/i/{id}/preview.webp")
-    def preview(id: str, warmth: float = 0.0, tint: float = 0.0):
+    def preview(
+        id: str,
+        target: str | None = Query(None, pattern=HEX),
+        hue: float = 0.0,
+        saturation: float = 0.0,
+        brightness: float = 0.0,
+    ):
         """The editor's colour preview, computed by the same code as the save."""
         get(id)
+        c = lambda x: max(-1.0, min(1.0, x))
         with Image.open(store.thumb(id, 1024)) as im:
             out = BytesIO()
-            colour.balance(im, max(-2.0, min(2.0, warmth)), max(-2.0, min(2.0, tint))).save(
-                out, "WEBP", quality=85
-            )
+            colour.adjust(
+                im, target, max(-180.0, min(180.0, hue)), c(saturation), c(brightness)
+            ).save(out, "WEBP", quality=85)
         return Response(out.getvalue(), media_type="image/webp")
 
     @app.get("/i/{id}/{px}.webp")

@@ -1,0 +1,66 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Fri, 6 Nov 2026 08:58:02 +0000
+Subject: [PATCH] mpp_rkvdec2: unlink a core from its queue when its probe
+ fails
+
+mpp_dev_probe adds the core to its task queue's dev_list. When a later step
+of rkvdec2_core_probe failed, devm freed the core while it was still on that
+list, and the next core's probe hit list_add corruption.
+---
+ drivers/video/rockchip/mpp/mpp_rkvdec2.c | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/video/rockchip/mpp/mpp_rkvdec2.c b/drivers/video/rockchip/mpp/mpp_rkvdec2.c
+index bb7c8e8..85198d3 100644
+--- a/drivers/video/rockchip/mpp/mpp_rkvdec2.c
++++ b/drivers/video/rockchip/mpp/mpp_rkvdec2.c
+@@ -2024,7 +2024,7 @@ static int rkvdec2_core_probe(struct platform_device *pdev)
+ 	ret = rkvdec2_attach_ccu(dev, dec);
+ 	if (ret) {
+ 		dev_err(dev, "attach ccu failed\n");
+-		return ret;
++		goto err_remove;
+ 	}
+ 
+ 	/* alloc rcb buffer */
+@@ -2033,7 +2033,7 @@ static int rkvdec2_core_probe(struct platform_device *pdev)
+ 	/* set device for link */
+ 	ret = rkvdec2_ccu_link_init(pdev, dec);
+ 	if (ret)
+-		return ret;
++		goto err_remove;
+ 
+ 	mpp->dev_ops->alloc_task = rkvdec2_ccu_alloc_task;
+ 	if (dec->ccu->ccu_mode == RKVDEC2_CCU_TASK_SOFT) {
+@@ -2045,7 +2045,7 @@ static int rkvdec2_core_probe(struct platform_device *pdev)
+ 			dec->link_dec->task_capacity = mpp->task_capacity;
+ 			ret = rkvdec2_ccu_alloc_table(dec, dec->link_dec);
+ 			if (ret)
+-				return ret;
++				goto err_remove;
+ 		}
+ 		mpp->dev_ops->task_worker = rkvdec2_hard_ccu_worker;
+ 		irq_proc = rkvdec2_hard_ccu_irq;
+@@ -2058,7 +2058,8 @@ static int rkvdec2_core_probe(struct platform_device *pdev)
+ 					IRQF_SHARED, dev_name(dev), mpp);
+ 	if (ret) {
+ 		dev_err(dev, "register interrupter runtime failed\n");
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto err_remove;
+ 	}
+ 	/*make sure mpp->irq is startup then can be en/disable*/
+ 	mpp->is_irq_startup = true;
+@@ -2071,6 +2072,11 @@ static int rkvdec2_core_probe(struct platform_device *pdev)
+ 		mpp_dev_register_srv(mpp, mpp->srv);
+ 
+ 	return ret;
++
++err_remove:
++	/* mpp_dev_probe linked mpp into its queue; unlink it before devm frees it */
++	mpp_dev_remove(mpp);
++	return ret;
+ }
+ 
+ static int rkvdec2_probe_default(struct platform_device *pdev)

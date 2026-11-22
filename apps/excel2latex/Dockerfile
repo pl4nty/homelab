@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM node:26.12.0@sha256:45a2bf9d9300e9cf47ecb375e38447c140c45ef5fbae869c430475b05b98d86e AS build
+FROM --platform=$BUILDPLATFORM node:26.13.1@sha256:e18c3ccdf7d71619990b0e85639f506e2028a95410999cab24cc373cbd10e0ac AS build
 WORKDIR /app
 
 COPY package*.json ./
@@ -7,6 +7,6 @@ RUN --mount=type=cache,id=npm,target=/root/.npm npm ci
 COPY . .
 RUN npm run build
 
-FROM joseluisq/static-web-server:2.44.1@sha256:94618e3d17802265a21926217e6f9e7832b311b6fbf5933684001739fafed06a
+FROM joseluisq/static-web-server:2.44.2@sha256:23be6c04d474979d6e738081918f5874f88502a150d1123fd000719101a0f05c
 
 COPY --from=build /app/dist /public

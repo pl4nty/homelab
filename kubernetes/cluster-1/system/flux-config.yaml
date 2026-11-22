@@ -12,8 +12,7 @@ spec:
     kind: GitRepository
     name: home-kubernetes
   patches:
-  # release defaults, hoisted out of every HelmRelease. scoped to the default
-  # namespace so longhorn, toolhive and kube-arch-scheduler keep their own.
+  # release defaults, hoisted out of every HelmRelease.
   # spec.interval stays per-release: it is a required field, so a HelmRelease
   # without one fails the API dry-run before any patch is applied
   - patch: |-
@@ -31,8 +30,19 @@ spec:
           cleanupOnFail: true
           remediation:
             retries: 3
-        uninstall:
-          keepHistory: false
+    target:
+      kind: HelmRelease
+  # app-template creates a ServiceAccount per release by default. default holds the
+  # app-template releases, and the other charts there ignore the value
+  - patch: |-
+      apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      metadata:
+        name: not-used
+      spec:
+        values:
+          global:
+            createDefaultServiceAccount: false
     target:
       kind: HelmRelease
       namespace: default
@@ -64,3 +74,21 @@ spec:
   - backendRefs:
     - name: webhook-receiver
       port: 80
+---
+# app main and PR-preview deployments from the apps ResourceSet (system/apps/resourceset.yaml)
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: apps
+  namespace: flux-system
+spec:
+  interval: 30m
+  retryInterval: 2m
+  path: ./kubernetes/cluster-1/system/apps
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: home-kubernetes
+  postBuild:
+    substitute:
+      APP_SSA: Override

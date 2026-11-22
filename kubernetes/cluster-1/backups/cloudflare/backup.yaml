@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -10,8 +10,6 @@ spec:
     kind: OCIRepository
     name: app-template
   values:
-    global:
-      createDefaultServiceAccount: false
     controllers:
       main:
         type: cronjob
@@ -21,10 +19,11 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/flares
-              tag: latest@sha256:eb6d97eb2d1150ca4e9ef193fa533394eb1c55dc6ee065f4949a2a8a8ff5d5a1
+              tag: latest@sha256:b72288861024451bdfe778c016bb8f3294bf66b8b81aea1e595e107d5ff1bc35
+            # flares moved to subcommands, the old --all --export flags now fail with usage
             args:
+              - export
               - --all
-              - --export
             envFrom:
               - secretRef:
                   name: backup-cloudflare

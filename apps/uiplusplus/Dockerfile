@@ -1,5 +1,5 @@
 # Use the official Ruby image as the base image
-FROM --platform=$BUILDPLATFORM ruby:4.0.8@sha256:155974d81dd535a263a2b9392a7198ebafe0c869a90561cc6dee12b9a34e1b38 AS build
+FROM --platform=$BUILDPLATFORM ruby:4.0.9@sha256:07042b74555ff2eef7365abd72d39cba6e499ab63e2d2942fd34d4778338495b AS build
 
 # Set the working directory
 WORKDIR /usr/src/app
@@ -24,7 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends tzdata-legacy
 RUN bundle exec jekyll build --source website --destination _site
 
 # Use the static web server image to serve the built files
-FROM joseluisq/static-web-server:2.44.1@sha256:94618e3d17802265a21926217e6f9e7832b311b6fbf5933684001739fafed06a
+FROM joseluisq/static-web-server:2.44.2@sha256:23be6c04d474979d6e738081918f5874f88502a150d1123fd000719101a0f05c
 
 # Copy the built site to the public directory
 COPY --from=build /usr/src/app/_site /public

@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -12,12 +12,7 @@ spec:
     kind: OCIRepository
     name: app-template
   values:
-    global:
-      createDefaultServiceAccount: false
     defaultPodOptions:
-      # keep off the 8GiB amd64 control plane node
-      nodeSelector:
-        kubernetes.io/arch: arm64
       # upstream's stop_grace_period, so embedded Sidekiq can requeue running jobs
       terminationGracePeriodSeconds: 60
     controllers:
@@ -30,7 +25,7 @@ spec:
           redis:
             image:
               repository: docker.io/library/redis
-              tag: 8.10.1-alpine@sha256:ef216d85ec44f4fdf7c0e6df2d1757a4734ed32fbb278cabd3181b5a27353b79
+              tag: 8.10.3-alpine@sha256:7958cfbb9d152f87dadfbc89f1b0b15938f0b81ff8982feb327476f4911935c3
             restartPolicy: Always
             # upstream's snapshot schedule, so queued jobs survive restarts
             args: [--save, "900", "1", --save, "300", "10", --appendonly, "no"]
@@ -44,7 +39,7 @@ spec:
           main:
             image:
               repository: docker.io/freikin/dawarich
-              tag: 1.20.1@sha256:0640f5adafd7acfcd8a3c79bb3bd0162d5df9108ebcde8734785f8925d2a01a4
+              tag: 1.22.0@sha256:b8ee8d9fdff92a9d6ca570f98e0e875624f4bfb24b61363f8246bba124d5849d
             # the image entrypoint is only `bundle exec`. this one also migrates and seeds
             command: [web-entrypoint.sh]
             args: [bin/rails, server, -p, "3000", -b, "::"]

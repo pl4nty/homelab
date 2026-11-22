@@ -1,6 +1,6 @@
 # https://github.com/microsoft/WSL2-Linux-Kernel/tree/linux-msft-wsl-6.18.y#build-instructions
 # download bzImage from the latest wsl2-kernel/sha-* release
-FROM ubuntu:24.04 AS build
+FROM ubuntu:26.04@sha256:6a06111c3b0a8600feadb270aec771dc239bf407b25625f93f44ab00e11f4d3c AS build
 
 RUN --mount=type=cache,id=apt-cache-noble,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,id=apt-lists-noble,target=/var/lib/apt,sharing=locked \

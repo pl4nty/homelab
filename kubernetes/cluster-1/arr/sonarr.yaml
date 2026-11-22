@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -10,17 +10,22 @@ spec:
     kind: OCIRepository
     name: app-template
   values:
-    global:
-      createDefaultServiceAccount: false
     controllers:
       sonarr:
         containers:
           app:
+            # home-operations builds sonarr from the v5 nightly (preview) channel, so this
+            # follows it. its database migrations are one-way, so there's no going back to v4
             image: &image
               repository: ghcr.io/home-operations/sonarr
-              tag: 4.0.20@sha256:1f19eb5e0f421418c1a956bbe01310a0141423afe28bd9a4b1dcb8629ff2bce2
+              tag: 5.0.0@sha256:05acf764e72fa458b5edf236771d7a08d1f120fce509d4fb8a4e799fae29fda7
             env:
               TZ: ${TIMEZONE}
+              # the image sets DOTNET_EnableDiagnostics=0, which also blocks the OTel CLR profiler.
+              # re-enable diagnostics for the profiler only, without the /tmp IPC pipes or debugger
+              DOTNET_EnableDiagnostics: "1"
+              DOTNET_EnableDiagnostics_IPC: "0"
+              DOTNET_EnableDiagnostics_Debugger: "0"
               SONARR__APP__INSTANCENAME: Sonarr
               SONARR__AUTH__METHOD: External
               SONARR__AUTH__REQUIRED: DisabledForLocalAddresses
@@ -70,6 +75,10 @@ spec:
               readOnlyRootFilesystem: true
               capabilities: { drop: ["ALL"] }
         pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-dotnet: "true"
+            # self-contained .NET on Alpine
+            instrumentation.opentelemetry.io/otel-dotnet-auto-runtime: linux-musl-x64
           securityContext:
             runAsNonRoot: true
             runAsUser: 568

@@ -1,3 +1,12 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: longhorn
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: https://charts.longhorn.io
+---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -13,19 +22,10 @@ spec:
         kind: HelmRepository
         name: longhorn
         namespace: flux-system
-  maxHistory: 3
   install:
-    createNamespace: true
-    remediation:
-      retries: 3
     timeout: 15m
   upgrade:
-    cleanupOnFail: true
     timeout: 15m
-    remediation:
-      retries: 3
-  uninstall:
-    keepHistory: false
   # chart only supports a nodeSelector. Skip nodes without the Talos iscsi-tools extension (custom images)
   postRenderers:
     - kustomize:
@@ -46,11 +46,13 @@ spec:
   values:
     persistence:
       # defaultClass: false # no option to set param for v2 engine
-      defaultClassReplicaCount: 2
+      # one replica per RK1 control plane
+      defaultClassReplicaCount: 3
       # defaultDataLocality: best-effort
     csi:
-      attacherReplicaCount: 1
-      provisionerReplicaCount: 1
+      # 2 so the PDB (minAvailable 1) does not block node drains
+      attacherReplicaCount: 2
+      provisionerReplicaCount: 2
       resizerReplicaCount: 1
       snapshotterReplicaCount: 1
     defaultSettings:

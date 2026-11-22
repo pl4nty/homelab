@@ -10,6 +10,7 @@ const h = (html) => {
 const SIZES = [256, 512, 1024, 2048];
 const src = (m, px) => `/i/${m.id}/${SIZES.find((s) => s >= px) ?? 2048}.webp?v=${m.v}`;
 const pngUrl = (m) => `${location.origin}/i/${m.id}.png?v=${m.v}`;
+const NEUTRAL = { hue: 0, saturation: 0, brightness: 0 };
 const norm = (a) => Math.round(((((a % 360) + 540) % 360) - 180) * 10) / 10;
 const mode = { '/submit': 'submit', '/admin': 'admin' }[location.pathname.replace(/\/$/, '')] ?? 'public';
 const token = decodeURIComponent(location.hash.slice(1));
@@ -197,8 +198,8 @@ const fill = (d, html) => {
   d.prepend(h(html));
 };
 
-function sheet() {
-  const d = h(`<dialog class="sheet"></dialog>`);
+function sheet(label) {
+  const d = h(`<dialog class="sheet" aria-label="${label}"></dialog>`);
   document.body.append(d);
   d.showModal();
   d.addEventListener('close', () => {
@@ -206,30 +207,19 @@ function sheet() {
     d.remove();
     setParams((p) => p.delete('s'));
   });
-  d.addEventListener('click', (e) => e.target.closest('.close') && d.close());
+  d.addEventListener('click', (e) => e.target.closest('.close') && (d.requestClose ? d.requestClose() : d.close()));
   return d;
 }
 
-const ENGINES = {
-  'Google Lens': (u) => `https://lens.google.com/uploadbyurl?url=${u}`,
-  Bing: (u) => `https://www.bing.com/images/search?view=detailv2&iss=sbi&q=imgurl:${u}`,
-  TinEye: (u) => `https://tineye.com/search?url=${u}`,
-  Yandex: (u) => `https://yandex.com/images/search?rpt=imageview&url=${u}`,
-};
 const findOnline = (m) =>
-  `<div class="field"><span>Find this sticker online</span><div class="find">${Object.entries(ENGINES)
-    .map(
-      ([name, url]) =>
-        `<a class="btn" target="_blank" rel="noopener noreferrer" href="${esc(url(encodeURIComponent(pngUrl(m))))}">${name}</a>`,
-    )
-    .join('')}</div></div>`;
+  `<div class="field"><span>Find this sticker online</span><div class="find"><a class="btn" target="_blank" rel="noopener noreferrer" href="https://lens.google.com/uploadbyurl?url=${esc(encodeURIComponent(pngUrl(m)))}">Google Lens</a></div></div>`;
 const date = (s) =>
   s ? new Date(s).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' }) : '';
 const detail = (label, value) => (value ? `<div><dt>${label}</dt><dd>${esc(value)}</dd></div>` : '');
 const viewPx = () => Math.max(innerWidth * 0.7, innerHeight) * devicePixelRatio;
 
 function viewer(list, i) {
-  const d = sheet();
+  const d = sheet('Sticker');
   const go = (k) => {
     i = (k + list.length) % list.length;
     const m = list[i];
@@ -274,22 +264,28 @@ function viewer(list, i) {
 }
 
 // The editor: rotate by dragging (or two-finger twist), zoom with the wheel or a pinch,
-// level by drawing along an edge, and white-balance. Rotation and colour are applied
+// level by drawing along an edge, and recolour one colour. Rotation and colour are applied
 // server-side once, on save; the colour preview comes from the same server code.
 function editor(list, i, changed) {
   list = [...list];
-  const d = sheet();
+  const d = sheet('Edit sticker');
   let m,
     rot,
     zoom,
     pan,
-    warmth,
-    tint,
+    col,
+    target,
+    main,
+    orig,
+    shown,
     tool = 'rotate',
     busy = false,
-    shade;
+    shade,
+    saved,
+    warned;
   const stage = () => $('.stage', d),
-    img = () => $('.stage img', d);
+    img = () => $('.stage img', d),
+    fields = () => new URLSearchParams(new FormData($('.layout', d))).toString();
   const fitter = new ResizeObserver(() => paint());
 
   function load(k) {
@@ -299,8 +295,8 @@ function editor(list, i, changed) {
     rot = 0;
     zoom = 1;
     pan = [0, 0];
-    warmth = 0;
-    tint = 0;
+    col = { ...NEUTRAL };
+    target = main = orig = null;
     setParams((p) => p.set('s', m.id));
     const [label, state] = m.state === 'approved' ? ['Save changes', null] : ['Publish', 'approved'];
     fill(
@@ -313,10 +309,10 @@ function editor(list, i, changed) {
           <output class="readout"></output>
         </div>
         <div class="tools">
-          ${['rotate', 'pan', 'level']
+          ${['rotate', 'pan', 'level', 'pick']
             .map(
               (t) => `<button type="button" class="btn" data-tool="${t}" aria-pressed="${t === tool}"
-            ${t === 'level' ? 'title="Drag along an edge that should be level or upright"' : ''}>${{ rotate: 'Rotate', pan: 'Move', level: 'Level' }[t]}</button>`,
+            ${{ level: 'title="Drag along an edge that should be level or upright"', pick: 'title="Click the colour to change with Hue, Saturation and Brightness"' }[t] ?? ''}>${{ rotate: 'Rotate', pan: 'Move', level: 'Level', pick: 'Pick colour' }[t]}</button>`,
             )
             .join('')}
           <span class="gap"></span>
@@ -337,9 +333,11 @@ function editor(list, i, changed) {
         <label class="field"><span>Tags, separated by commas</span><input name="tags" value="${esc(m.tags.join(', '))}" autocapitalize="none"></label>
         <label class="field"><span>How it was acquired</span><textarea name="comment" rows="2">${esc(m.comment)}</textarea></label>
         <label class="field"><span>Added by</span><input name="creator" value="${esc(m.creator)}" autocomplete="name"></label>
-        <div class="field colour"><span>Colour, for holo foil that scanned too blue</span>
-          <label>Warmth <input type="range" name="warmth" min="-1" max="1" step="0.05" value="0"></label>
-          <label>Tint <input type="range" name="tint" min="-1" max="1" step="0.05" value="0"></label>
+        <div class="field colour"><span>Colour: the main one, or one chosen with Pick colour. Auto greys holo foil that scanned blue</span>
+          <label>Colour <input type="color" class="target" value="#808080"></label>
+          <label>Hue <input type="range" name="hue" min="-180" max="180" step="5" value="0"></label>
+          <label>Saturation <input type="range" name="saturation" min="-1" max="1" step="0.05" value="0"></label>
+          <label>Brightness <input type="range" name="brightness" min="-1" max="1" step="0.05" value="0"></label>
           <div class="find"><button type="button" class="btn" data-act="auto">Auto</button><button type="button" class="btn" data-act="neutral">Reset</button></div></div>
         <div class="field dupes" hidden><span>Possible duplicates</span><ul></ul></div>
         ${findOnline(m)}
@@ -352,6 +350,8 @@ function editor(list, i, changed) {
           Keys: <kbd>←</kbd> <kbd>→</kbd> 1°, with <kbd>Shift</kbd> 15°; <kbd>Q</kbd> <kbd>E</kbd> 90°; <kbd>Enter</kbd> ${label.toLowerCase()}.</p>
       </aside></form>`,
     );
+    saved = fields();
+    warned = false;
     img().onload = paint;
     fitter.disconnect();
     fitter.observe(stage());
@@ -375,14 +375,45 @@ function editor(list, i, changed) {
 
   function recolour() {
     // debounced: each change asks the server for a preview
-    $('[name=warmth]', d).value = warmth;
-    $('[name=tint]', d).value = tint;
+    for (const k in col) $(`[name=${k}]`, d).value = col[k];
+    if (target) $('.target', d).value = target;
+    const q = new URLSearchParams({ ...col, ...(target && { target }), v: m.v });
     clearTimeout(shade);
     shade = setTimeout(
-      () =>
-        (img().src = warmth || tint ? `/i/${m.id}/preview.webp?warmth=${warmth}&tint=${tint}&v=${m.v}` : src(m, 2048)),
+      () => (img().src = Object.values(col).some(Boolean) ? `/i/${m.id}/preview.webp?${q}` : src(m, 2048)),
       120,
     );
+  }
+
+  async function pick([x, y]) {
+    const im = img(),
+      r = stage().getBoundingClientRect(),
+      id = m.id;
+    const p = new DOMMatrix(getComputedStyle(im).transform)
+      .inverse()
+      .transformPoint(new DOMPoint(x - r.left - r.width / 2, y - r.top - r.height / 2));
+    const [u, v] = [p.x / shown[0], p.y / shown[1]];
+    if (!orig) {
+      // the scan as it is, not the preview
+      const o = new Image();
+      o.src = src(m, 1024);
+      await o.decode();
+      if (id !== m.id) return;
+      orig = new OffscreenCanvas(o.naturalWidth, o.naturalHeight).getContext('2d', { willReadFrequently: true });
+      orig.drawImage(o, 0, 0);
+    }
+    const { width: w, height: hh } = orig.canvas;
+    const px = orig.getImageData(Math.round(u * w) - 2, Math.round(v * hh) - 2, 5, 5).data;
+    const sum = [0, 0, 0, 0];
+    for (let k = 0; k < px.length; k += 4)
+      if (px[k + 3] > 200) for (let c = 0; c < 4; c++) sum[c] += c < 3 ? px[k + c] : 1;
+    if (!sum[3]) return toast('Click a colour on the sticker');
+    const hex = (c) =>
+      Math.round(c / sum[3])
+        .toString(16)
+        .padStart(2, '0');
+    target = `#${sum.slice(0, 3).map(hex).join('')}`;
+    recolour();
   }
 
   function paint() {
@@ -390,6 +421,7 @@ function editor(list, i, changed) {
       im = img();
     if (!im?.naturalWidth) return;
     const [W, H, w, hh] = [s.clientWidth, s.clientHeight, im.naturalWidth, im.naturalHeight];
+    shown = [w, hh];
     const t = (rot * Math.PI) / 180,
       c = Math.abs(Math.cos(t)),
       sn = Math.abs(Math.sin(t));
@@ -457,7 +489,7 @@ function editor(list, i, changed) {
       } else if (tool === 'pan') {
         pan = [g.pan[0] + p[0][0] - g.p0[0], g.pan[1] + p[0][1] - g.p0[1]];
         paint();
-      } else {
+      } else if (tool === 'level') {
         const r = s.getBoundingClientRect(),
           line = $('line', s);
         [
@@ -483,6 +515,7 @@ function editor(list, i, changed) {
           toast(`Levelled by ${norm(fix)}°`);
         }
       }
+      if (tool === 'pick' && g.n === 1 && Math.hypot(end[0] - g.p0[0], end[1] - g.p0[1]) < 8) pick(end);
       if (pts.size) begin();
     };
     s.onwheel = (e) => {
@@ -508,8 +541,8 @@ function editor(list, i, changed) {
           comment: f.get('comment'),
           creator: f.get('creator'),
           rotate: norm(rot),
-          warmth,
-          tint,
+          ...col,
+          target,
           state: state || null,
         },
       });
@@ -530,6 +563,12 @@ function editor(list, i, changed) {
     e.preventDefault();
     save(e.submitter?.dataset.state ?? $('.primary', d).dataset.state);
   });
+  d.addEventListener('cancel', (e) => {
+    if (e.target !== d || warned || (!norm(rot) && fields() === saved)) return;
+    e.preventDefault();
+    warned = true;
+    toast('Unsaved changes. Close again to discard them.');
+  });
   d.addEventListener('click', async (e) => {
     const b = e.target.closest('button');
     if (!b) return;
@@ -547,13 +586,13 @@ function editor(list, i, changed) {
       paint();
     } else if (b.dataset.act === 'save') save(null);
     else if (b.dataset.act === 'neutral') {
-      warmth = tint = 0;
+      col = { ...NEUTRAL };
       recolour();
     } else if (b.dataset.act === 'auto') {
-      const c = await api(`/api/stickers/${m.id}/balance`);
-      if (!c.warmth && !c.tint) toast('No blue cast found in the bright parts');
+      const c = await api(`/api/stickers/${m.id}/auto`);
+      if (!c) toast('Its main colour is not blue, so Auto left it');
       else {
-        ({ warmth, tint } = c);
+        ({ target, ...col } = c);
         recolour();
       }
     } else if (b.dataset.act === 'unpublish') save('pending');
@@ -592,10 +631,19 @@ function editor(list, i, changed) {
       }
     }
   });
-  d.addEventListener('input', (e) => {
-    if (e.target.type !== 'range') return;
-    if (e.target.name === 'warmth') warmth = +e.target.value;
-    else tint = +e.target.value;
+  d.addEventListener('input', async (e) => {
+    const k = e.target.name;
+    if (e.target.classList.contains('target')) target = e.target.value;
+    else if (e.target.type === 'range') {
+      col[k] = +e.target.value;
+      if (!target) {
+        main ??= api(`/api/stickers/${m.id}/dominant`).then(
+          (c) => c.colour,
+          () => null,
+        );
+        target = await main;
+      }
+    } else return;
     recolour();
   });
   d.addEventListener('keydown', (e) => {
@@ -624,20 +672,10 @@ function editor(list, i, changed) {
 const main = $('#main');
 let refresh = async () => {};
 
-// A new random order for each visit, kept while the tab is open, so a reload or the viewer's
-// next/previous doesn't reshuffle. Ranking by a hash of (seed, id), not shuffling the list,
-// keeps everyone else in place when a sticker is added or removed.
+// A new random order on every page load. Ranking by a hash of (seed, id), not shuffling the
+// list, keeps everyone else in place when the list refreshes with a sticker added or removed.
+const seed = 1 + Math.floor(Math.random() * 2 ** 31);
 function shuffled(items) {
-  let seed;
-  try {
-    seed = +sessionStorage.getItem('order') || 0;
-  } catch {}
-  if (!seed) {
-    seed = 1 + Math.floor(Math.random() * 2 ** 31);
-    try {
-      sessionStorage.setItem('order', seed);
-    } catch {}
-  }
   const rank = (id) => {
     let x = seed;
     for (const c of id) x = Math.imul(x ^ c.charCodeAt(0), 2654435761);
@@ -656,6 +694,40 @@ async function publicPage() {
   if (k >= 0) viewer(active.items, k);
 }
 
+// Cloudflare refuses request bodies over 100 MB, and scans can be bigger, so a scan goes up in
+// chunks. A chunk that fails is retried; if the server already has it, it says where to resume.
+const CHUNK = 32 * 2 ** 20;
+async function sendChunks(f, onProgress) {
+  const id = crypto.randomUUID();
+  let offset = 0,
+    tries = 0;
+  for (;;) {
+    const end = Math.min(offset + CHUNK, f.size);
+    const xhr = new XMLHttpRequest(); // fetch has no upload progress
+    xhr.open('PUT', `/api/uploads/${id}?offset=${offset}`);
+    xhr.setRequestHeader('X-Token', token);
+    xhr.upload.onprogress = (ev) => onProgress(offset + ev.loaded);
+    await new Promise((done) => {
+      xhr.onloadend = done;
+      xhr.send(f.slice(offset, end));
+    });
+    let data = {};
+    try {
+      data = JSON.parse(xhr.responseText);
+    } catch {}
+    if ((xhr.status === 200 || xhr.status === 409) && Number.isInteger(data.size)) {
+      if (xhr.status === 200) tries = 0;
+      offset = data.size;
+      onProgress(offset);
+      if (offset >= f.size) return id;
+    } else if (xhr.status && xhr.status < 500) {
+      throw new Error(typeof data.detail === 'string' ? data.detail : `${xhr.status} ${xhr.statusText}`);
+    } else if (++tries > 5) {
+      throw new Error('Upload failed. Check your connection and try again.');
+    } else await new Promise((r) => setTimeout(r, 1000 * 2 ** tries));
+  }
+}
+
 function uploadPanel(onProgress) {
   const p = h(`<section class="panel">
     <h2>Add a scan</h2>
@@ -664,7 +736,6 @@ function uploadPanel(onProgress) {
     <form class="upload">
       <label class="drop wide"><input type="file" name="file" accept="image/*,.tif,.tiff" required><span>Choose a scan, or drop it here</span></label>
       <label class="field"><span>Your name</span><input name="creator" autocomplete="name"></label>
-      <label class="field"><span>How you got these, for every sticker in the scan</span><input name="comment" placeholder="BSides Perth 2026 swag table"></label>
       <div class="wide"><button class="btn primary">Upload scan</button></div>
     </form>
     <ul class="jobs"></ul></section>`);
@@ -687,35 +758,33 @@ function uploadPanel(onProgress) {
     file.files = e.dataTransfer.files;
     file.onchange();
   };
-  form.onsubmit = (e) => {
+  form.onsubmit = async (e) => {
     e.preventDefault();
     try {
       localStorage.setItem('creator', form.creator.value);
     } catch {}
-    const xhr = new XMLHttpRequest(); // fetch has no upload progress
-    xhr.open('POST', '/api/scans');
-    xhr.setRequestHeader('X-Token', token);
-    xhr.upload.onprogress = (ev) => (btn.textContent = `Uploading ${Math.round((100 * ev.loaded) / ev.total)}%`);
-    xhr.onloadend = () => {
-      btn.disabled = false;
-      btn.textContent = 'Upload scan';
-      if (xhr.status === 200) {
-        toast(
-          mode === 'admin' ? 'Uploaded. Its stickers will appear in To review as they are found.' : 'Uploaded. Thanks!',
-        );
-        mine.push(JSON.parse(xhr.responseText).id);
-        store('scans', JSON.stringify(mine.slice(-20)));
-        form.file.value = '';
-        file.onchange();
-      } else
-        toast(
-          JSON.parse(xhr.responseText || '{}').detail ?? 'Upload failed. Check your connection and try again.',
-          7000,
-        );
-      poll();
-    };
     btn.disabled = true;
-    xhr.send(new FormData(form));
+    try {
+      const f = form.file.files[0];
+      const upload = await sendChunks(f, (n) => (btn.textContent = `Uploading ${Math.round((100 * n) / f.size)}%`));
+      btn.textContent = 'Checking the scan';
+      const body = new FormData();
+      for (const [k, v] of Object.entries({ upload, name: f.name, size: f.size, creator: form.creator.value }))
+        body.append(k, v);
+      const job = await api('/api/scans', { body });
+      toast(
+        mode === 'admin' ? 'Uploaded. Its stickers will appear in To review as they are found.' : 'Uploaded. Thanks!',
+      );
+      mine.push(job.id);
+      store('scans', JSON.stringify(mine.slice(-20)));
+      form.file.value = '';
+      file.onchange();
+    } catch (err) {
+      toast(err.message || 'Upload failed. Check your connection and try again.', 7000);
+    }
+    btn.disabled = false;
+    btn.textContent = 'Upload scan';
+    poll();
   };
   let timer,
     seen = '';

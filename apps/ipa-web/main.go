@@ -39,6 +39,46 @@ type BundleInformation struct {
 	}
 }
 
+// exemptSchemes lists an app's URL schemes once each, in Info.plist order, for the
+// Intune "Select apps to exempt" value (joined with ";"). http and https are left out:
+// exempting them would send org data to any browser.
+func exemptSchemes(info BundleInformation) []string {
+	seen := map[string]bool{"http": true, "https": true}
+	schemes := []string{}
+	for _, t := range info.CFBundleURLTypes {
+		for _, scheme := range t.CFBundleURLSchemes {
+			key := strings.ToLower(scheme)
+			if scheme == "" || seen[key] {
+				continue
+			}
+			seen[key] = true
+			schemes = append(schemes, scheme)
+		}
+	}
+	return schemes
+}
+
+// universalLinks turns applinks associated domains into Intune universal link
+// patterns (http and https). Other services, such as webcredentials, aren't links.
+func universalLinks(domains []string) []string {
+	links := []string{}
+	seen := map[string]bool{}
+	for _, d := range domains {
+		host, ok := strings.CutPrefix(d, "applinks:")
+		if !ok {
+			continue
+		}
+		// drop the alternate mode, eg applinks:example.com?mode=developer
+		host, _, _ = strings.Cut(host, "?")
+		if host == "" || seen[host] {
+			continue
+		}
+		seen[host] = true
+		links = append(links, "http://"+host+"/*", "https://"+host+"/*")
+	}
+	return links
+}
+
 // TODO Apple Watch subfolder eg Payload/Passbook.app/Watch/PassbookWatchApp.app/
 
 type Bundle struct {
@@ -54,6 +94,8 @@ type statusError struct {
 }
 
 func (e statusError) Error() string { return e.err.Error() }
+
+const downloadTimeout = 10 * time.Minute
 
 type server struct {
 	appStore    appstore.AppStore
@@ -152,6 +194,43 @@ func (s *server) latest(ctx context.Context, bundleID string) (*Version, error) 
 		return nil, err
 	}
 	return s.store.Version(bundleID, app.Version)
+}
+
+// refresh spreads checks of cached bundles evenly across each TTL
+func (s *server) refresh() {
+	for {
+		bundles, err := s.store.Bundles()
+		if err != nil {
+			log.Printf("refresh: %v", err)
+		}
+		if len(bundles) == 0 {
+			time.Sleep(time.Hour)
+			continue
+		}
+		// Apple's Search API allows about 20 lookups a minute
+		pace := max(s.ttl/time.Duration(len(bundles)), 3*time.Second)
+		for _, id := range bundles {
+			s.refreshBundle(id)
+			time.Sleep(pace)
+		}
+	}
+}
+
+// refreshBundle checks a bundle once its last check is older than the TTL, waiting an hour after a login failure
+func (s *server) refreshBundle(id string) {
+	if cached, err := s.store.Latest(id); err == nil && time.Since(cached.Checked) < s.ttl {
+		return
+	}
+	if _, err := s.account(); err != nil {
+		log.Printf("refresh: %v", err)
+		time.Sleep(time.Hour)
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), downloadTimeout)
+	defer cancel()
+	if _, err := s.latest(ctx, id); err != nil {
+		log.Printf("refresh %s: %v", id, err)
+	}
 }
 
 // stale serves the previous version when the App Store can't be reached
@@ -317,7 +396,7 @@ func (s *server) resolve(c *gin.Context) (*Version, error) {
 		}
 		return v, nil
 	}
-	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Minute)
+	ctx, cancel := context.WithTimeout(c.Request.Context(), downloadTimeout)
 	defer cancel()
 	return s.latest(ctx, id)
 }
@@ -361,6 +440,7 @@ func main() {
 	if _, err := s.account(); err != nil {
 		log.Println(err)
 	}
+	go s.refresh()
 
 	r := gin.Default()
 	r.SetHTMLTemplate(template.Must(template.New("").ParseFS(content, "templates/**/*")))
@@ -371,6 +451,10 @@ func main() {
 
 	r.GET("favicon.ico", func(c *gin.Context) {
 		c.FileFromFS("static/favicon.ico", http.FS(content))
+	})
+
+	r.GET("tplant.css", func(c *gin.Context) {
+		c.FileFromFS("static/tplant.css", http.FS(content))
 	})
 
 	r.GET("/search", func(c *gin.Context) {
@@ -409,18 +493,22 @@ func main() {
 			fail(c, err)
 			return
 		}
-		domains := []string{}
-		for _, domain := range b.Entitlements.AssociatedDomains {
-			domains = append(domains, strings.TrimPrefix(domain, "applinks:"))
+		compare := c.Query("compare")
+		if _, err := s.store.Version(c.Param("id"), compare); err != nil || compare == v.App.Version {
+			compare = ""
 		}
-		b.Entitlements.AssociatedDomains = domains
 		_, privacyErr := s.store.File(c.Param("id"), v.App.Version, privacyInfo)
+		schemes := exemptSchemes(b.Information)
 		c.HTML(http.StatusOK, "views/bundle.html", gin.H{
-			"Id":       c.Param("id"),
-			"Bundle":   b,
-			"Version":  v,
-			"Versions": versions,
-			"Privacy":  privacyErr == nil,
+			"Id":          c.Param("id"),
+			"Bundle":      b,
+			"Version":     v,
+			"Versions":    versions,
+			"Compare":     compare,
+			"Privacy":     privacyErr == nil,
+			"Schemes":     schemes,
+			"SchemeValue": strings.Join(schemes, ";"),
+			"Links":       universalLinks(b.Entitlements.AssociatedDomains),
 		})
 	})
 

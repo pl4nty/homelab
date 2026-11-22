@@ -33,9 +33,10 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         working-directory: apps
         run: |
-          # only the OKE manifest ships with the app; cluster-1 manifests take Renovate digest bumps of our own images, so rebuilding on them loops
-          for app in */; do
-            git diff --quiet "$BASE...$COMMIT" -- "$app" "../kubernetes/oke/${app%/}.yaml" || echo "${app%/}"
+          # only kubernetes/cluster-1/apps/<app>.yaml ships with the app; other cluster-1 manifests take Renovate digest bumps of our own images, so rebuilding on them loops.
+          # an app with a manifest and no apps/<app>/ publishes the manifest without a build
+          for app in $(ls -d */ ../kubernetes/cluster-1/apps/*.yaml | grep -v '\.sops\.yaml$' | xargs basename -a -s .yaml | sort -u); do
+            git diff --quiet "$BASE...$COMMIT" -- "$app" "../kubernetes/cluster-1/apps/$app.yaml" || echo "$app"
           done | jq -Rnr '"apps=\([inputs])"' >> "$GITHUB_OUTPUT"
 
   lint:
@@ -62,6 +63,10 @@ jobs:
       fail-fast: false
       matrix:
         app: ${{ fromJson(needs.changes.outputs.apps) }}
+    # one build of an app per ref at a time, so an older main commit can't finish last and overwrite <app>.main.
+    # a queued build gives way to a newer one, which builds the app from a later tree
+    concurrency:
+      group: app-${{ matrix.app }}-${{ github.event.pull_request.number || 'main' }}
     environment:
       name: ${{ matrix.app }}${{ github.event.pull_request && '-preview' || '' }}
       url: ${{ steps.publish.outputs.url }}
@@ -72,8 +77,10 @@ jobs:
         with:
           ref: ${{ env.COMMIT }}
       - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+        if: &build hashFiles(format('apps/{0}/**', matrix.app))
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        if: *build
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         if: env.PUBLISH == 'true'
         with:
           registry: ghcr.io
@@ -81,7 +88,7 @@ jobs:
           password: ${{ github.token }}
       - uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
         # bldr frontends (Pkgfile) don't implement the check subrequest
-        if: ${{ !hashFiles(format('apps/{0}/Pkgfile', matrix.app)) }}
+        if: ${{ hashFiles(format('apps/{0}/**', matrix.app)) && !hashFiles(format('apps/{0}/Pkgfile', matrix.app)) }}
         env: &git-auth
           # BuildKit reads it to fetch private git contexts
           GIT_AUTH_TOKEN: ${{ secrets.GH_PAT || github.token }}
@@ -94,6 +101,7 @@ jobs:
           set: &secrets default.secrets=type=env,id=GIT_AUTH_TOKEN
           vars: APP=${{ matrix.app }}
       - uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        if: *build
         env: *git-auth
         with:
           source: .
@@ -115,19 +123,23 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         # tag main's head: GITHUB_TOKEN can't tag a commit whose workflows differ from it
         run: gh release create "$APP/sha-$COMMIT" dist/* --target "$GITHUB_REF_NAME" --title "$APP" --latest=false
-      # only cluster-oke runs the apps ResourceSet; other clusters git-sync their manifests
+      # the apps ResourceSet (kubernetes/cluster-1/system/apps) deploys these artifacts, main and PR previews
       - uses: fluxcd/flux2/action@3fa784edd773d56630bb9f62645e08f70c2cff0a # v2.10.0
-        if: &manifest env.PUBLISH == 'true' && hashFiles(format('kubernetes/oke/{0}.yaml', matrix.app))
+        if: &manifest env.PUBLISH == 'true' && hashFiles(format('kubernetes/cluster-1/apps/{0}.yaml', matrix.app))
+        # without a token it finds the latest version from github.com's redirect, which times out
+        # at times; it then downloads "vlatest" and fails
+        with:
+          token: ${{ github.token }}
       - id: publish
         if: *manifest
         env:
           APP_SUFFIX: ${{ github.event.pull_request && format('-{0}', env.TAG) || '' }}
           PUBLIC_DOMAIN: tplant.com.au
         run: |
-          sed -i "s/\${APP_IMAGE_TAG:=}/sha-$COMMIT/" kubernetes/oke/"$APP".yaml
-          flux push artifact "oci://ghcr.io/$GITHUB_REPOSITORY/apps:$APP.$TAG" --path kubernetes/oke/"$APP".yaml \
+          sed -i "s/\${APP_IMAGE_TAG:=}/sha-$COMMIT/" kubernetes/cluster-1/apps/"$APP".yaml
+          flux push artifact "oci://ghcr.io/$GITHUB_REPOSITORY/apps:$APP.$TAG" --path kubernetes/cluster-1/apps/"$APP".yaml \
             --source="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" --revision="$TAG@sha1:$COMMIT"
-          yq '.. | select(tag == "!!map") | select(has("hostnames")) | "url=https://" + (.hostnames[0] | envsubst)' kubernetes/oke/"$APP".yaml >> "$GITHUB_OUTPUT"
+          yq '.. | select(tag == "!!map") | select(has("hostnames")) | "url=https://" + (.hostnames[0] | envsubst)' kubernetes/cluster-1/apps/"$APP".yaml >> "$GITHUB_OUTPUT"
 
   # every app any push published, since the final diff can drop an app that still has a preview
   cleanup:

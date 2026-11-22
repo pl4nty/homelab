@@ -119,7 +119,7 @@ def test_permissions(client, app):
     for id in ids.values():
         assert edit(id, SUB, title="x") == 403 and edit(id, {}, title="x") == 403
         assert client.delete(f"/api/stickers/{id}", headers=SUB).status_code == 403
-        for path in ("similar", "balance", "symmetry"):
+        for path in ("similar", "auto", "dominant", "symmetry"):
             assert client.get(f"/api/stickers/{id}/{path}", headers=SUB).status_code == 403
     assert edit(ids["pending"], ADM, state="approved") == 200
     assert edit(ids["approved"], ADM, state="pending") == 200  # unpublish
@@ -142,8 +142,8 @@ def test_admin_edits_title_comment_tags_and_colour(client, app):
             "title": "New",
             "comment": "Swapped",
             "tags": ["Holo", ""],
-            "warmth": 0.5,
-            "tint": 0.2,
+            "target": "#96bef0",
+            "hue": 30,
         },
     )
     assert r.status_code == 200
@@ -159,9 +159,20 @@ def test_admin_edits_title_comment_tags_and_colour(client, app):
         .convert("RGB")
         .getpixel((100, 100))
     )
-    assert r_ > 150 and b_ < 240  # warmer: less blue, more red
-    prev = client.get(f"/i/{m.id}/preview.webp?warmth=0.5&tint=0")
+    assert r_ > 150 and b_ < 240  # turned towards purple: less blue, more red
+    q = "target=%23a0c0f0&hue=40&saturation=-0.5&brightness=0.2"
+    prev = client.get(f"/i/{m.id}/preview.webp?{q}")
     assert prev.status_code == 200 and prev.headers["content-type"] == "image/webp"
+    assert client.get(f"/i/{m.id}/preview.webp?target=blue&saturation=-1").status_code == 422
+    assert client.get(f"/api/stickers/{m.id}/dominant", headers=ADM).json()["colour"]
+    r = client.post(f"/api/stickers/{m.id}", headers=ADM, json={"saturation": -1})
+    assert r.status_code == 200  # no target: the sticker's main colour
+    r_, g, b_ = (
+        Image.open(app.state.store.path(app.state.store.items[m.id]))
+        .convert("RGB")
+        .getpixel((100, 100))
+    )
+    assert max(r_, g, b_) - min(r_, g, b_) < 10
 
 
 def test_scan_is_split_tagged_and_queued_for_review(client, app, tmp_path):
@@ -169,7 +180,7 @@ def test_scan_is_split_tagged_and_queued_for_review(client, app, tmp_path):
     r = client.post(
         "/api/scans",
         headers=SUB,
-        data={"creator": " Ana ", "comment": "Swap table"},
+        data={"creator": " Ana "},
         files={"file": ("my scan.png", scan.read_bytes(), "image/png")},
     )
     assert r.status_code == 200 and r.json()["status"] == "queued"
@@ -179,7 +190,7 @@ def test_scan_is_split_tagged_and_queued_for_review(client, app, tmp_path):
     assert [j["name"] for j in client.get("/api/scans", headers=ADM).json()] == ["my scan.png"]
     queued = client.get("/api/stickers?state=pending", headers=ADM).json()
     assert len(queued) == len(SHAPES)
-    assert all(d["creator"] == "Ana" and d["comment"] == "Swap table" for d in queued)
+    assert all(d["creator"] == "Ana" and d["comment"] == "" for d in queued)
     titled = [d for d in queued if d["title"]]
     assert len(titled) == len(SHAPES) - 1  # one tagging failure, still queued
     assert all(d["tags"] == ["holo", "ctf"] for d in titled)
@@ -229,12 +240,49 @@ def test_upload_rejects_bad_and_huge_files(client, tmp_path):
     assert client.get("/api/scans", headers=ADM).json() == []
 
 
+def test_chunked_upload_resumes_and_checks_size(client, app, tmp_path):
+    """Scans over Cloudflare's 100 MB request limit go up in chunks."""
+    scan = make_scan(tmp_path / "scan.png").read_bytes()
+    uid, n = "0123456789abcdef-chunks", len(scan) // 3
+    put = lambda off, b, h=SUB: client.put(f"/api/uploads/{uid}?offset={off}", headers=h, content=b)
+    assert put(0, scan[:n], {}).status_code == 403
+    assert client.put("/api/uploads/x?offset=0", headers=SUB, content=b"").status_code == 400
+    assert put(0, scan[:n]).json() == {"size": n}
+    r = put(0, scan[:n])  # a retry of a chunk that did arrive: told where to resume
+    assert r.status_code == 409 and r.json()["size"] == n
+    assert put(2 * n, scan[2 * n :]).status_code == 409  # a lost chunk
+    assert put(n, scan[n : 2 * n]).json() == {"size": 2 * n}
+    assert put(2 * n, scan[2 * n :]).json() == {"size": len(scan)}
+    form = {"upload": uid, "name": "big scan.png", "size": str(len(scan)), "creator": "Ana"}
+    r = client.post("/api/scans", headers=SUB, data=form)
+    assert r.status_code == 200 and r.json()["name"] == "big scan.png"
+    assert not list((app.state.store.root / "uploads").iterdir())
+    wait(lambda: client.get(f"/api/scans/{r.json()['id']}", headers=SUB).json()["status"] == "done")
+    assert len(client.get("/api/stickers?state=pending", headers=ADM).json()) == len(SHAPES)
+
+    assert client.post("/api/scans", headers=SUB, data=form).status_code == 400  # used up
+    put(0, scan[:n])
+    r = client.post("/api/scans", headers=SUB, data=form)  # short: a chunk went missing
+    assert r.status_code == 400 and "missing" in r.json()["detail"]
+
+
+def test_chunked_upload_is_capped(tmp_path):
+    app = create_app(tmp_path / "data", "s", "a", max_bytes=1000)
+    c, h = TestClient(app), {"X-Token": "s"}
+    assert c.put("/api/uploads/0123456789abcdef?offset=0", headers=h, content=b"x" * 600).is_success
+    r = c.put("/api/uploads/0123456789abcdef?offset=600", headers=h, content=b"x" * 600)
+    assert r.status_code == 413
+    assert c.put(
+        "/api/uploads/0123456789abcdef?offset=600", headers=h, content=b"x" * 400
+    ).is_success
+
+
 def test_queued_scan_survives_restart(tmp_path):
     data = tmp_path / "data"
     (data / "scans").mkdir(parents=True)
     shutil.copy(make_scan(tmp_path / "s.png"), data / "scans" / "abc.png")
     (data / "scans" / "abc.json").write_text(
-        json.dumps({"id": "abc", "ext": ".png", "name": "s.png", "creator": "", "comment": ""})
+        json.dumps({"id": "abc", "ext": ".png", "name": "s.png", "creator": ""})
     )
     app = create_app(data, "s", "a")
     wait(lambda: app.state.worker.jobs["abc"]["status"] == "done")
@@ -260,14 +308,32 @@ def test_only_public_responses_are_cacheable(client):
 
 
 def test_auto_colour_fixes_blue_foil_only():
-    from stickersplit.colour import auto, balance
+    from stickersplit.colour import adjust, auto
 
     blue = sticker(color=(120, 200, 245, 255))  # foil that scanned cyan-blue
-    w, t = auto(blue)
-    assert w > 0.3
-    r, g, b = balance(blue, w, t).convert("RGB").getpixel((100, 100))
-    assert abs(b - r) < 25 and abs(g - (r + b) / 2) < 25  # neutral, not just less blue
-    assert auto(sticker(color=(150, 200, 60, 255))) == (0.0, 0.0)  # a green design is left alone
-    ink = sticker(color=(20, 30, 70, 255))  # dark navy ink is not shifted
-    assert balance(ink, 0.8, 0.3).convert("RGB").getpixel((100, 100)) == (20, 30, 70)
-    assert balance(blue, 0.5, 0).info["dpi"] == (600, 600)
+    blue.paste((20, 30, 70, 255), (0, 0, 200, 200))  # dark navy ink
+    fix = auto(blue)
+    assert fix["saturation"] < -0.8
+    out = adjust(blue, **fix).convert("RGB")
+    r, g, b = out.getpixel((600, 400))
+    assert max(r, g, b) - min(r, g, b) < 12  # neutral, not just less blue
+    assert out.getpixel((100, 100)) == (20, 30, 70)
+    assert auto(sticker(color=(150, 200, 60, 255))) is None  # a green design is left alone
+    assert auto(sticker(color=(49, 112, 164, 255))) is None  # printed blue, darker than foil
+
+
+def test_one_colour_is_recoloured_and_the_rest_left_alone():
+    from stickersplit.colour import adjust, dominant
+
+    im = sticker(color=(79, 174, 225, 255))  # the CTF cat's cyan, which Auto turned salmon-edged
+    im.paste((90, 28, 41, 255), (0, 0, 200, 200))  # red flag
+    im.paste((160, 167, 168, 255), (200, 0, 400, 200))  # silver edge
+    assert dominant(im) == "#4faee1"
+    out = adjust(im, "#4faee1", 0, -0.9, 0.3).convert("RGB")
+    r, g, b = out.getpixel((600, 400))
+    assert max(r, g, b) - min(r, g, b) < 25 and r > 150  # grey and lighter
+    assert out.getpixel((100, 100)) == (90, 28, 41)
+    assert out.getpixel((300, 100)) == (160, 167, 168)
+    assert adjust(im, "#808080", 0, -1, 0) is im  # a grey target picks nothing
+    assert adjust(im, "#4faee1", 0, -0.5, 0).info["dpi"] == (600, 600)
+    assert dominant(sticker(color=(128, 128, 128, 255))) is None

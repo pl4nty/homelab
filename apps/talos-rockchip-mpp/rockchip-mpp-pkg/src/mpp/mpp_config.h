@@ -3,6 +3,8 @@
 #ifndef __MPP_CONFIG_H
 #define __MPP_CONFIG_H
 
+/* the RK3588 match entries: without them the rkvdec/rkvenc CCUs and jpege never bind */
+#define CONFIG_CPU_RK3588 1
 #define CONFIG_ROCKCHIP_MPP_SERVICE 1
 #define CONFIG_ROCKCHIP_MPP_PROC_FS 1
 #define CONFIG_ROCKCHIP_MPP_RKVDEC2 1

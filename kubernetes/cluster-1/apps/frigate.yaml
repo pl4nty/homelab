@@ -1,0 +1,152 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: frigate${APP_SUFFIX:=}
+  namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
+spec:
+  interval: 15m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    controllers:
+      main:
+        # RWO volumes can't attach to two nodes during a rollout
+        strategy: Recreate
+        pod:
+          # RKNN detection and RKMPP decoding need the RK3588 NPU and VPU
+          nodeSelector:
+            kubernetes.io/arch: arm64
+            topology.kubernetes.io/region: home
+        containers:
+          main:
+            image: &image
+              repository: ghcr.io/blakeblackshear/frigate
+              tag: 0.18.3-rk@sha256:fee739513583f3871ecde56e3428a51557e1bbf232afc661e83cbb4e6aa8ffe1
+            env:
+              TZ: ${TIMEZONE}
+            securityContext:
+              # the NPU and VPU device nodes and an unmasked /proc/device-tree, as with Jellyfin
+              privileged: true
+            probes:
+              liveness: &probe
+                enabled: true
+                type: HTTP
+                path: /api/version
+                port: 5000
+              readiness: *probe
+              startup:
+                enabled: true
+                type: HTTP
+                path: /api/version
+                port: 5000
+                spec:
+                  periodSeconds: 5
+                  failureThreshold: 60
+            resources:
+              requests:
+                cpu: 200m
+                memory: 1Gi
+              limits:
+                memory: 4Gi
+        initContainers:
+          # the UI edits config.yml, so only a new volume gets this one
+          config:
+            image: *image
+            command:
+              - sh
+              - -c
+              - |
+                [ -e /config/config.yml ] && exit
+                cat > /config/config.yml <<EOF
+                mqtt:
+                  host: mosquitto
+                  topic_prefix: frigate${APP_SUFFIX:=}
+                  client_id: frigate${APP_SUFFIX:=}
+                auth:
+                  enabled: false
+                detectors:
+                  rknn:
+                    type: rknn
+                    num_cores: 3
+                model:
+                  path: frigate-fp16-yolov9-t
+                  model_type: yolo-generic
+                  width: 320
+                  height: 320
+                  input_tensor: nhwc
+                  labelmap_path: /labelmap/coco-80.txt
+                ffmpeg:
+                  hwaccel_args: preset-rkmpp
+                record:
+                  enabled: true
+                  motion:
+                    days: 3
+                  alerts:
+                    retain:
+                      days: 14
+                  detections:
+                    retain:
+                      days: 14
+                cameras: {}
+                version: 0.18-0
+                EOF
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            primary: true
+            port: 5000
+          rtsp:
+            port: 8554
+    route:
+      main:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - frigate${APP_SUFFIX:=}.${PRIVATE_DOMAIN}
+        rules:
+          - backendRefs:
+              - identifier: main
+                port: 5000
+    persistence:
+      config:
+        retain: ${APP_RETAIN:=true}
+        accessMode: ReadWriteOnce
+        size: 5Gi
+        globalMounts:
+          - path: /config
+      media:
+        retain: ${APP_RETAIN:=true}
+        accessMode: ReadWriteOnce
+        size: 200Gi
+        storageClass: longhorn-local
+        globalMounts:
+          - path: /media/frigate
+      # recording segments land here before they're moved to media
+      cache:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 1Gi
+        globalMounts:
+          - path: /tmp/cache
+      shm:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 512Mi
+        globalMounts:
+          - path: /dev/shm
+      # MPP uses DMA heaps only when all four of the vendor kernel's exist, and mainline only has system
+      dma-heap:
+        type: hostPath
+        hostPath: /dev/dma_heap/system
+        hostPathType: CharDevice
+        globalMounts:
+          - path: /dev/dma_heap/system-dma32
+          - path: /dev/dma_heap/system-uncached
+          - path: /dev/dma_heap/system-uncached-dma32

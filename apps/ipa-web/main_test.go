@@ -3,6 +3,7 @@ package main
 import (
 	"archive/zip"
 	"bytes"
+	"html/template"
 	"os"
 	"path/filepath"
 	"strings"
@@ -103,5 +104,66 @@ func TestStore(t *testing.T) {
 	}
 	if _, err := s.File("com.example.app", "1.0", "version.json"); err == nil {
 		t.Error("arbitrary file served")
+	}
+
+	if err := os.MkdirAll(filepath.Join(s.dir, ".ipatool"), 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.SetLatest("com.example.app", Latest{Version: "1.1"}); err != nil {
+		t.Fatal(err)
+	}
+	if bundles, err := s.Bundles(); err != nil || len(bundles) != 1 || bundles[0] != "com.example.app" {
+		t.Errorf("bundles = %v, %v", bundles, err)
+	}
+}
+
+func TestExemptSchemes(t *testing.T) {
+	var info BundleInformation
+	data, err := plist.Marshal(map[string]any{"CFBundleURLTypes": []map[string]any{
+		{"CFBundleURLSchemes": []string{"http", "https"}},
+		{"CFBundleURLSchemes": []string{"googleapp", "google"}},
+		{"CFBundleURLSchemes": []string{"Google", "google-deeplink"}},
+	}}, plist.XMLFormat)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := plist.Unmarshal(data, &info); err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.Join(exemptSchemes(info), ";"); got != "googleapp;google;google-deeplink" {
+		t.Errorf("exemptSchemes = %q", got)
+	}
+}
+
+func TestUniversalLinks(t *testing.T) {
+	got := universalLinks([]string{"applinks:goo.gl", "webcredentials:google.com", "applinks:*.example.com?mode=developer", "applinks:goo.gl"})
+	want := "http://goo.gl/* https://goo.gl/* http://*.example.com/* https://*.example.com/*"
+	if strings.Join(got, " ") != want {
+		t.Errorf("universalLinks = %q", got)
+	}
+}
+
+func TestBundleTemplate(t *testing.T) {
+	tmpl := template.Must(template.New("").ParseFS(content, "templates/**/*"))
+	v := &Version{App: appstore.App{ID: 284815942, Name: "Google", Version: "445.5"}}
+	old := Version{App: appstore.App{ID: 284815942, Name: "Google", Version: "445.4"}}
+	var out bytes.Buffer
+	err := tmpl.ExecuteTemplate(&out, "views/bundle.html", map[string]any{
+		"Id":          "com.google.GoogleMobile",
+		"Bundle":      &Bundle{App: v.App},
+		"Version":     v,
+		"Versions":    []Version{*v, old},
+		"Compare":     "445.4",
+		"Schemes":     []string{"googleapp", "google"},
+		"SchemeValue": "googleapp;google",
+		"Links":       []string{"http://goo.gl/*", "https://goo.gl/*"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{`>googleapp;google</textarea>`, `data-copy="https://goo.gl/*"`, `<option value="445.4" selected>`, `const from = "445.4";`} {
+		if !strings.Contains(out.String(), want) {
+			t.Errorf("bundle page is missing %s", want)
+		}
 	}
 }

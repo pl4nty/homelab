@@ -1,0 +1,135 @@
+# requires pods to run on an os and architecture their images support, see apps/arch-affinity
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: arch-affinity
+  namespace: kube-system
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: arch-affinity
+  namespace: kube-system
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: arch-affinity
+  namespace: kube-system
+spec:
+  secretName: arch-affinity-tls
+  dnsNames:
+  - arch-affinity.kube-system.svc
+  issuerRef:
+    kind: Issuer
+    name: arch-affinity
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: arch-affinity
+  namespace: kube-system
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: arch-affinity
+  template:
+    metadata:
+      labels:
+        app: arch-affinity
+    spec:
+      serviceAccountName: arch-affinity
+      automountServiceAccountToken: false
+      priorityClassName: system-cluster-critical
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app: arch-affinity
+      containers:
+      - name: arch-affinity
+        image: ghcr.io/pl4nty/arch-affinity:latest@sha256:adeabec5753565019e5bc9fdcc2b5c04106af10fda1ee07ff563a4a22d4e6119
+        ports:
+        - name: https
+          containerPort: 8443
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: https
+            scheme: HTTPS
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi
+          limits:
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+        volumeMounts:
+        - name: tls
+          mountPath: /tls
+          readOnly: true
+      volumes:
+      - name: tls
+        secret:
+          secretName: arch-affinity-tls
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: arch-affinity
+  namespace: kube-system
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: arch-affinity
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: arch-affinity
+  namespace: kube-system
+spec:
+  selector:
+    app: arch-affinity
+  ports:
+  - port: 443
+    targetPort: https
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: arch-affinity
+  annotations:
+    cert-manager.io/inject-ca-from: kube-system/arch-affinity
+webhooks:
+- name: arch-affinity.tplant.com.au
+  admissionReviewVersions: ["v1"]
+  sideEffects: None
+  failurePolicy: Ignore
+  timeoutSeconds: 10
+  clientConfig:
+    service:
+      name: arch-affinity
+      namespace: kube-system
+      path: /mutate
+  rules:
+  - apiGroups: [""]
+    apiVersions: ["v1"]
+    operations: ["CREATE"]
+    resources: ["pods"]
+  # kube-system holds this webhook and the control plane
+  namespaceSelector:
+    matchExpressions:
+    - key: kubernetes.io/metadata.name
+      operator: NotIn
+      values: ["kube-system"]

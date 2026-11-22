@@ -20,7 +20,9 @@
     '**/node_modules/**',
     'archive/**',
   ],
-  dependencyDashboardOSVVulnerabilitySummary: 'all',
+  dependencyDashboard: {
+    osvVulnerabilitySummary: 'all',
+  },
   lockFileMaintenance: {
     enabled: true,
     automerge: true,
@@ -96,7 +98,56 @@
       datasourceTemplate: 'github-releases',
       versioningTemplate: 'semver',
     },
+    {
+      customType: 'regex',
+      description: 'Talos and Kubernetes versions in topf.yaml',
+      managerFilePatterns: [
+        '/^talos/topf\\.yaml$/',
+      ],
+      matchStrings: [
+        '# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\n\\w+: (?<currentValue>\\S+)\n',
+      ],
+      extractVersionTemplate: '^v(?<version>.+)$',
+    },
+    {
+      customType: 'regex',
+      description: 'riscv64-capable kube-proxy in the Talos config',
+      managerFilePatterns: [
+        '/^talos/control-plane/control-plane\\.yaml$/',
+      ],
+      matchStrings: [
+        'image: (?<depName>quay\\.io/k0sproject/kube-proxy):(?<currentValue>[^@\\s]+)@(?<currentDigest>sha256:[a-f0-9]{64})',
+      ],
+      datasourceTemplate: 'docker',
+    },
+    {
+      customType: 'regex',
+      description: 'Firmware versions in firmware.yaml',
+      managerFilePatterns: [
+        '/^firmware\\.yaml$/',
+      ],
+      matchStrings: [
+        '# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( versioning=(?<versioning>\\S+))?\n\\w+: (?<currentValue>\\S+)\n',
+      ],
+      versioningTemplate: '{{#if versioning}}{{{versioning}}}{{else}}semver-coerced{{/if}}',
+      extractVersionTemplate: '^v?(?<version>.+)$',
+    },
   ],
+  customDatasources: {
+    'aussie-broadband': {
+      defaultRegistryUrlTemplate: 'https://www.aussiebroadband.com.au/help-centre/internet/aussie-broadband-router-firmware',
+      format: 'html',
+      transformTemplates: [
+        '{"releases": [releases[$contains(version, "/{{{packageName}}}.NC.ABB-")].{"version": $match(version, /ABB-(R\\d+B\\d+)\\./).groups[0]}]}',
+      ],
+    },
+    asus: {
+      defaultRegistryUrlTemplate: 'https://www.asus.com/support/webapi/ProductV2/GetPDBIOS?website=global&model={{{packageName}}}',
+      transformTemplates: [
+        '{"releases": [Result.Obj[Name = "BIOS"].Files[$contains(Title, "BIOS Update")].{"version": Version, "releaseTimestamp": $replace(ReleaseDate, "/", "-")}]}',
+      ],
+    },
+  },
   // hostRules: [
   //   {
   //     hostType: 'docker',
@@ -192,12 +243,51 @@
       automerge: true,
     },
     {
+      description: 'Envoy Gateway CRDs (raw GitHub URLs) and chart must move together',
+      matchPackageNames: [
+        'envoyproxy/gateway',
+        'docker.io/envoyproxy/gateway-helm',
+      ],
+      groupName: 'envoy-gateway',
+    },
+    {
       description: 'Longhorn only supports upgrading one minor version at a time',
       matchPackageNames: [
         'longhorn',
       ],
       groupName: 'longhorn',
       separateMultipleMinor: true,
+    },
+    {
+      description: 'Talos and Kubernetes upgrade one minor at a time, and are applied to the cluster by hand',
+      matchFileNames: [
+        'talos/**',
+      ],
+      separateMultipleMinor: true,
+      automerge: false,
+    },
+    {
+      description: 'Firmware is flashed by hand, so one PR per device, merged once it is',
+      matchFileNames: [
+        'firmware.yaml',
+      ],
+      groupName: null,
+      semanticCommitScope: 'firmware',
+      automerge: false,
+    },
+    {
+      matchPackageNames: [
+        'siderolabs/talos',
+      ],
+      groupName: 'talos',
+    },
+    {
+      description: 'kube-proxy must not be newer than the apiserver',
+      matchPackageNames: [
+        'kubernetes/kubernetes',
+        'quay.io/k0sproject/kube-proxy',
+      ],
+      groupName: 'kubernetes',
     },
     {
       description: 'One PR per app, named after it, so each gets its own preview',
@@ -217,9 +307,27 @@
       commitMessagePrefix: "feat({{lookup (split packageFileDir '/') 1}})!: ",
     },
     {
+      description: 'One PR per kubernetes/cluster-1/apps manifest, named after it, so each gets its own preview',
+      matchFileNames: [
+        'kubernetes/cluster-1/apps/**',
+      ],
+      additionalBranchPrefix: "{{replace '\\.yaml$' '' (lookup (split packageFile '/') 3)}}-",
+      semanticCommitScope: "{{replace '\\.yaml$' '' (lookup (split packageFile '/') 3)}}",
+    },
+    {
+      matchFileNames: [
+        'kubernetes/cluster-1/apps/**',
+      ],
+      matchUpdateTypes: [
+        'major',
+      ],
+      commitMessagePrefix: "feat({{replace '\\.yaml$' '' (lookup (split packageFile '/') 3)}})!: ",
+    },
+    {
       description: 'App CI and previews only run on PRs, so automerge app updates through a PR once checks pass',
       matchFileNames: [
         'apps/**',
+        'kubernetes/cluster-1/apps/**',
       ],
       automergeType: 'pr',
       platformAutomerge: false,

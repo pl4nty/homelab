@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: spegel
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: spegel
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: oci://ghcr.io/spegel-org/helm-charts/spegel
+  layerSelector:
+    mediaType: 'application/vnd.cncf.helm.chart.content.v1.tar+gzip'
+    operation: copy
+  ref:
+    tag: 0.8.1
+    digest: sha256:0f6685e12ba49fa57b3fd4329e0e9695d60d00024df102733f337e4752ca2e61
+---
+# P2P image mirror between the home nodes, so a rescheduled pod pulls from a peer
+# when the internet is down. needs the CRICustomizationConfig in talos/hardware/home.yaml
+# https://docs.siderolabs.com/kubernetes-guides/advanced-guides/spegel
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: spegel
+  namespace: spegel
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: spegel
+    namespace: flux-system
+  values:
+    spegel:
+      containerdRegistryConfigPath: /etc/cri/conf.d/hosts
+    # talos-oci-a1 pulls faster from the registries than from home over KubeSpan
+    nodeSelector:
+      topology.kubernetes.io/region: home

@@ -6,7 +6,7 @@ extension. They give RK3588 boards (Turing RK1 here) the hardware video
 decoders and encoders that Jellyfin's RKMPP transcoding uses, without a BSP
 kernel.
 
-**Status: builds against the released Talos v1.14.4 kernel, and every imported symbol version matches it; not yet run on hardware.**
+**Status: builds against the released Talos v1.14.5 kernel, and every imported symbol version matches it; not yet run on hardware.**
 
 ## What's in it
 
@@ -15,9 +15,17 @@ kernel.
 | `rk_vcodec` | `/dev/mpp_service` | rkvdec2 ×2 (H.264, HEVC, VP9), rkvenc2 ×2 (H.264, HEVC), AV1 decoder, VDPU/VEPU 121, JPEG decoder, IEP2 |
 | `rga3` | `/dev/rga` | RGA3 ×2, RGA2 |
 | `vsi_iommu` | | the Verisilicon IOMMU in front of the AV1 decoder |
+| `rk_dma_heaps` | `/dev/dma_heap/system-{uncached,uncached-dma32,dma32}` | the vendor kernel's DMA heaps, for userspace MPP |
 | `rk3588_mpp_dt` | | the device tree nodes for all of the above |
+| `rknpu` | `/dev/dri/renderD*` (`rknpu`) | the NPU's 3 cores, for librknnrt (Frigate's RKNN detector) |
 
 Not ported: the JPEG encoder cores.
+
+`rknpu` is [lurenJBD/rk3588-rknn-core](https://github.com/lurenJBD/rk3588-rknn-core),
+Rockchip's RKNPU driver ported to mainline: it binds the mainline
+`rockchip,rk3588-rknn-core` nodes, which the RK1 DTB already enables, and gives
+librknnrt the vendor ioctls that mainline's `rocket` doesn't have. It's built as is,
+in `rockchip-rknpu-pkg`.
 
 `vsi-iommu` is the mainline driver from Linux 7.3 (`torvalds/linux` `4da9ded`),
 unchanged. The vendor AV1 decoder only uses the DMA API through it, as mainline's
@@ -25,15 +33,21 @@ hantro does. `rk3588_mpp_dt` depends on it through an exported symbol, so it loa
 the AV1 decoder's node is added. Otherwise a codec that probes after the
 deferred-probe timeout, and finds no IOMMU driver, binds without one.
 
+`rk_dma_heaps` is mainline's system heap with the vendor kernel's three other
+system heaps. Userspace MPP uses DMA heaps only when all four exist, and it
+never syncs a buffer from an uncached heap. So the uncached heaps are flushed
+from the CPU caches when allocated and mapped write-combined, as on the BSP.
+`rk3588_mpp_dt` depends on it through an exported symbol too.
+
 ## How it works on mainline
 
 - **Source**: the build downloads
-  [armbian/linux-rockchip](https://github.com/armbian/linux-rockchip) `rk-6.12-rkr1`
-  at `6bdc00d`, takes `drivers/video/rockchip/{mpp,rga3}` and the vendor headers
+  Rockchip's BSP kernel, [rockchip-linux/kernel](https://github.com/rockchip-linux/kernel)
+  `develop-6.12` at `470f9dc`, takes `drivers/video/rockchip/{mpp,rga3}` and the vendor headers
   they include from it, and applies `rockchip-mpp-pkg/patches`. Those patches are
   every change made to the vendor code for mainline. `rockchip-mpp-pkg/src` holds
   the files written for the port and is copied on top: the build files, two
-  headers, IOMMU shims and the device tree module. `vsi-iommu.c` comes from
+  headers, IOMMU shims, the device tree module and the DMA heaps. `vsi-iommu.c` comes from
   git.kernel.org at a pinned commit.
 - **Vendor kernel APIs**: the vendor headers declare stubs when their vendor
   Kconfig options are off, as they are here, for the OPP, IPA, system monitor,
@@ -54,9 +68,10 @@ deferred-probe timeout, and finds no IOMMU driver, binds without one.
   overlay in `rockchip-mpp-pkg/src/dt/rk3588-mpp.dtso`. That overlay holds the vendor
   nodes, translated to mainline: 4-cell GIC specifiers, mainline IOMMU
   compatibles, `rockchip,core-id` in place of aliases, and no vendor OPP tables.
-  It disables mainline's hantro `vpu121` and `rga` nodes for the same blocks. The
-  overlay stays applied until reboot, because the mainline IOMMU driver can't
-  unbind.
+  It leaves mainline's hantro `vpu121` and `rga` nodes for the same blocks alone:
+  Talos doesn't build those drivers, and disabling a populated node removes its
+  device, which oopses the mainline IOMMU driver. The overlay stays applied until
+  reboot for the same reason.
 - **Signing**: Talos signs modules with a key it throws away after its build, so
   these modules can't carry a signature Talos trusts. Talos v1.14's kernel
   enforces signatures only through the `module.sig_enforce=1` boot argument, so
@@ -72,12 +87,12 @@ kernel, so they can't be signed with its key.
 
 | Stage | Like | What it does |
 | --- | --- | --- |
-| `kernel-tree` | pkgs `kernel-build` | Linux 6.18.57 source and `modules_prepare` with Sidero's LLVM image. The config (`CONFIG_IKCONFIG`) and `Module.symvers` come from the released `ghcr.io/siderolabs/kernel` image. `symvers.py` reads the export tables and CRCs out of its `Image`, and checks them against the `__versions` of the kernel's own modules. |
+| `kernel-tree` | pkgs `kernel-build` | Linux 6.18.58 source and `modules_prepare` with Sidero's LLVM image. The config (`CONFIG_IKCONFIG`) and `Module.symvers` come from the released `ghcr.io/siderolabs/kernel` image. `symvers.py` reads the export tables and CRCs out of its `Image`, and checks them against the `__versions` of the kernel's own modules. |
 | `rockchip-mpp-pkg` | pkgs `gasket-driver-pkg` | downloads and patches the vendor drivers, and builds the modules into `/usr/lib/modules/<release>/extras` |
 | `rockchip-mpp` | extensions `drivers/gasket` | the extension: `manifest.yaml.tmpl`, `vars.yaml`, and `extensions-validator` |
 
-`PKGS`, `TOOLS` and `ABBREV_TAG` in `docker-bake.hcl` pin Talos v1.14.4, as in
-siderolabs/extensions v1.14.4. CI pushes `ghcr.io/pl4nty/talos-rockchip-mpp:sha-<commit>`.
+`PKGS`, `TOOLS` and `ABBREV_TAG` in `docker-bake.hcl` pin Talos v1.14.5, as in
+siderolabs/extensions v1.14.5. CI pushes `ghcr.io/pl4nty/talos-rockchip-mpp:sha-<commit>`.
 To build the extension rootfs and manifest locally, from the repository root:
 
 ```sh
@@ -85,40 +100,26 @@ APP=talos-rockchip-mpp docker buildx bake -f apps/docker-bake.hcl -f apps/talos-
   --set default.output=type=local,dest=_out
 ```
 
-## Install (one RK1 first)
+## Install
 
-1. Build an installer with the released imager. The extension needs no custom
-   kernel, but the node must boot without signature enforcement:
+topf installs it on the RK1s. `talos/docker-bake.hcl` builds their installer from
+`talos/hardware/rk1-schematic.yaml`. `talos/control-plane/rk1.yaml` loads
+rk_vcodec and rga3, which pull in vsi_iommu, rk_dma_heaps and rk3588_mpp_dt, and rknpu. The schematic
+blacklists rockchip-rknn's `rocket`, which would otherwise bind the NPU first.
 
-   ```sh
-   docker run --rm -t -v $PWD/_out:/out ghcr.io/siderolabs/imager:v1.14.4 installer --arch arm64 \
-     --overlay-image ghcr.io/siderolabs/sbc-rockchip:<tag for v1.14.4> --overlay-name turingrk1 \
-     --system-extension-image ghcr.io/siderolabs/iscsi-tools:<tag for v1.14.4> \
-     --system-extension-image ghcr.io/siderolabs/util-linux-tools:<tag for v1.14.4> \
-     --system-extension-image ghcr.io/pl4nty/talos-rockchip-mpp:<tag> \
-     --extra-kernel-arg -module.sig_enforce
-   ```
+Jellyfin transcodes fully in hardware on d04 (Jellyfin's `rkmpp` acceleration):
+hevc_rkmpp decode, overlay_rkrga subtitle burn-in, h264_rkmpp encode. A 1080p
+HEVC Main 10 episode transcodes at 4–7x realtime. The test below decodes 10-bit
+1080p HEVC, scales it to 720p and encodes H.264 at about 23x realtime.
 
-   `ghcr.io/siderolabs/extensions:v1.14.4` lists the official extension tags
-   for v1.14.4.
-
-2. Load the modules. They don't autoload, because their device tree nodes only
-   exist once `rk3588_mpp_dt` has loaded. Module dependencies load `vsi_iommu`
-   and `rk3588_mpp_dt` first.
-
-   ```yaml
-   apiVersion: v1alpha1
-   kind: KernelModuleConfig
-   name: rk_vcodec
-   ---
-   apiVersion: v1alpha1
-   kind: KernelModuleConfig
-   name: rga3
-   ```
-
-3. Upgrade one RK1 to that installer, with a serial console attached. Talos
-   upgrades one minor version at a time, so a v1.11 node goes through v1.12 and
-   v1.13 first.
+Before `rk_dma_heaps`, `kubernetes/cluster-1/arr/jellyfin.yaml` mounted the
+cached `system` heap under the three other names. MPP then skipped the cache
+syncs for its internal buffers, such as the bitstream and the decoder's
+parameter tables, so the decoder could read stale data. Decode sessions then
+stalled at random with every rkvdec2 job timing out (`resetting for err 0x23`),
+and d04 crashed or corrupted kernel memory after some of them. All decode jobs
+run on rkvdec core0, and core1 stays idle.
+CI also tags main's build with its Talos version. The schematic pins a digest, so a rebuild gets a new installer.
 
 ## Test plan
 
@@ -127,6 +128,7 @@ On the node:
 ```sh
 talosctl -n <rk1> dmesg | grep -E 'mpp|rkvdec|rkvenc|rga|iommu'
 talosctl -n <rk1> ls /dev | grep -E 'mpp_service|rga|dma_heap|dri'
+talosctl -n <rk1> ls /dev/dma_heap
 talosctl -n <rk1> read /proc/mpp_service/supports-device
 ```
 
@@ -134,6 +136,7 @@ Then in a privileged pod with `jellyfin/jellyfin` on that node:
 
 ```sh
 /usr/lib/jellyfin-ffmpeg/ffmpeg -hide_banner -init_hw_device rkmpp=hw -filter_hw_device hw \
+  -hwaccel rkmpp -hwaccel_output_format drm_prime \
   -c:v hevc_rkmpp -i <hevc file> -vf scale_rkrga=w=1280:h=720:format=nv12 \
   -c:v h264_rkmpp -b:v 4M -f null -
 ```
@@ -168,10 +171,10 @@ Each of these needs checking on hardware:
 - **Vendor IOMMU options**: `rockchip,enable-cmd-retry` and
   `rockchip,shootdown-entire` from the vendor IOMMU nodes have no mainline
   equivalent and are dropped.
-- **Buffer allocation**: userspace MPP allocates from `/dev/dma_heap/system`,
-  which is the only heap mainline has. It is cached memory, so every buffer is
-  synced on map. That is correct but slower than the vendor's uncached DMA32
-  heaps.
+- **Buffer allocation**: the uncached heaps rely on the CPU never holding a
+  dirty line for their pages through the kernel's cached linear map. The
+  allocation flush cleans the lines the zeroing left, and nothing writes
+  through the linear map after that. The BSP's uncached heaps work the same way.
 - **Module unloading**: the overlay can't be removed, because the mainline IOMMU
   driver can't unbind. Reload the modules by rebooting.
 - **RGA user pointers**: for user memory `get_user_pages` can't pin, the vendor

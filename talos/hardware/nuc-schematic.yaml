@@ -2,8 +2,10 @@
 customization:
   systemExtensions:
     officialExtensions:
-      - siderolabs/fuse3
       - siderolabs/i915
+      - siderolabs/intel-hd-audio
       - siderolabs/intel-ucode
       - siderolabs/iscsi-tools
+      - siderolabs/nut-client
+      - siderolabs/thunderbolt
       - siderolabs/util-linux-tools

@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -12,22 +12,25 @@ spec:
   driftDetection:
     mode: enabled
   values:
-    global:
-      createDefaultServiceAccount: false
     controllers:
       main:
         pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-python: "true"
+            instrumentation.opentelemetry.io/otel-python-platform: musl
           nodeSelector:
             node.longhorn.io/create-default-disk: config
         type: cronjob
         cronjob:
           schedule: "0 0 * * *"
-          activeDeadlineSeconds: 21600  # 6h, prevents stuck jobs
+          # a full run takes ~4.5-5h, so with 6h a single retry (DNS blip, GitHub 422)
+          # restarted from scratch and always hit the deadline. 20h still ends before the next run
+          activeDeadlineSeconds: 72000
         containers:
           main:
             image:
               repository: ghcr.io/josegonzalez/python-github-backup
-              tag: 0.66.0@sha256:25892bd6901244145d61fee9ae52c0ea39c48e544070fca17db02341cab372f8
+              tag: 0.68.0@sha256:d29c2686be901d72ccacce76c2674e486dc2626ad94b962958351f1f046b7388
             args:
               - pl4nty
               - --token-fine
@@ -54,6 +57,8 @@ spec:
               - --repositories
               - --bare
               - --lfs
+              # git lfs prune scans every ref, and winget-recipes' 12k refs made it take ~13h
+              - --no-prune
               - --wikis
               # gists are uninitialized and cause crash? maybe fine-grained tokens aren't supported
               # - --gists

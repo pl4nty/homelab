@@ -1,5 +1,5 @@
 # upstream is now a Next.js app with a request proxy for language redirects, so it needs a server instead of nginx
-FROM --platform=$BUILDPLATFORM node:26.12.0@sha256:45a2bf9d9300e9cf47ecb375e38447c140c45ef5fbae869c430475b05b98d86e AS build
+FROM --platform=$BUILDPLATFORM node:26.13.1@sha256:e18c3ccdf7d71619990b0e85639f506e2028a95410999cab24cc373cbd10e0ac AS build
 
 WORKDIR /app
 COPY --from=src package*.json ./
@@ -10,7 +10,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # native deps (sharp, swc) must match the target platform, so install them again without the build platform
-FROM node:26.12.0@sha256:45a2bf9d9300e9cf47ecb375e38447c140c45ef5fbae869c430475b05b98d86e
+FROM node:26.13.1@sha256:e18c3ccdf7d71619990b0e85639f506e2028a95410999cab24cc373cbd10e0ac
 
 WORKDIR /app
 COPY --from=src package*.json ./

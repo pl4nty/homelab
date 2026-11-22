@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: mosquitto${APP_SUFFIX:=}
+  namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    controllers:
+      main:
+        containers:
+          main:
+            image:
+              repository: eclipse-mosquitto
+              tag: 2.1.4-alpine@sha256:fa12172a051310efe5bcb7a6a11b77bd5faacb82cbacd7742aa758bf024fd8e4
+            probes:
+              liveness: &probe
+                enabled: true
+                type: TCP
+                port: 1883
+              readiness: *probe
+            resources:
+              requests:
+                cpu: 5m
+                memory: 16Mi
+              limits:
+                memory: 128Mi
+    service:
+      main:
+        controller: main
+        ports:
+          mqtt:
+            port: 1883
+    persistence:
+      config:
+        type: configMap
+        identifier: config
+        globalMounts:
+          - path: /mosquitto/config/mosquitto.conf
+            subPath: mosquitto.conf
+            readOnly: true
+    configMaps:
+      config:
+        data:
+          # in-cluster only: Frigate and Home Assistant. Frigate republishes its state when it reconnects
+          mosquitto.conf: |
+            listener 1883
+            allow_anonymous true

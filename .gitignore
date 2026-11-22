@@ -2,4 +2,7 @@
 .devcontainer/kubeconfig
 .decrypted~*
 dist/
+node_modules/
 talos/output/
+.terraform/
+terraform.tfstate*

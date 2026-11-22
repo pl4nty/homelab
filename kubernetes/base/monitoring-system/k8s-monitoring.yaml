@@ -1,3 +1,18 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: k8s-monitoring
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: oci://ghcr.io/grafana/helm-charts/k8s-monitoring
+  layerSelector:
+    mediaType: 'application/vnd.cncf.helm.chart.content.v1.tar+gzip'
+    operation: copy
+  ref:
+    tag: 4.6.1
+    digest: sha256:71491492d9c6479f3802cd8bf71ea23e6955d8240fc31164654935a03c33ec28
+---
 # yaml-language-server: $schema=https://flux-helm-schema.tplant.com.au?values=https://raw.githubusercontent.com/grafana/k8s-monitoring-helm/refs/heads/main/charts/k8s-monitoring/values.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
@@ -10,19 +25,10 @@ spec:
     kind: OCIRepository
     name: k8s-monitoring
     namespace: flux-system
-  maxHistory: 3
   install:
-    createNamespace: true
-    remediation:
-      retries: 3
     crds: CreateReplace
   upgrade:
-    cleanupOnFail: true
-    remediation:
-      retries: 3
     crds: CreateReplace
-  uninstall:
-    keepHistory: false
   values:
     cluster:
       name: ${CLUSTER_NAME:=bootstrap}
@@ -110,11 +116,47 @@ spec:
 
     clusterMetrics:
       enabled: true
-      # TODO enable after cluster consolidation, with includeMetrics since control plane sources have no default allowlist
-      # controlPlane:
-      #   enabled: true
-      # kubeProxy:
-      #   enabled: true
+      # control plane sources have no default allowlist, and a full apiserver scrape is thousands of
+      # series per instance. these keep health and leader signals only, ~100 series.
+      # Talos binds the scheduler and controller-manager to localhost unless talos/control-plane
+      # sets bind-address
+      controlPlane:
+        enabled: true
+      apiServer:
+        # 5xx only: a request counter per resource, verb and code would be ~500 series per apiserver
+        extraMetricProcessingRules: |-
+          rule {
+            source_labels = ["__name__","code"]
+            separator     = "@"
+            regex         = "apiserver_request_total@[^5].*"
+            action        = "drop"
+          }
+        metricsTuning:
+          includeMetrics:
+            - apiserver_current_inflight_requests
+            - apiserver_request_total
+            - apiserver_requested_deprecated_apis
+            - apiserver_storage_size_bytes
+            - kubernetes_build_info
+      kubeControllerManager:
+        metricsTuning:
+          includeMetrics:
+            - leader_election_master_status
+      kubeScheduler:
+        metricsTuning:
+          includeMetrics:
+            - leader_election_master_status
+            - scheduler_pending_pods
+            - scheduler_schedule_attempts_total
+      kubeDNS:
+        metricsTuning:
+          includeMetrics:
+            - coredns_dns_responses_total
+            - coredns_forward_healthcheck_broken_total
+            - coredns_panics_total
+      # Talos kube-proxy serves metrics on localhost only
+      kubeProxy:
+        enabled: false
       kubelet:
         metricsTuning:
           excludeMetrics:
@@ -128,7 +170,7 @@ spec:
       cadvisor:
         metricsTuning:
           excludeMetrics:
-            # no swap on Talos or OKE
+            # no swap on Talos
             - container_memory_swap
             # only feeds a recording rule for the mixin dashboards
             - container_memory_cache
@@ -137,12 +179,21 @@ spec:
             - container_network_(receive|transmit)_packets(_dropped)?_total
       kube-state-metrics:
         # Unknown pod phase is deprecated, and the "true" series already reads 0 for an unknown status.
-        # KubePersistentVolumeErrors only reads Failed and Pending volumes
+        # KubePersistentVolumeErrors only reads Failed and Pending volumes.
+        # A CronJob keeps its last failed Job until the next failure, so kubernetes-mixin's KubeJobFailed
+        # kept firing after later runs succeeded. CronJob Jobs are named <cronjob>-<minutes since epoch>
+        # and KubeCronJobNotSucceeded in alerts.yaml covers them, so drop kube_job_failed for those only
         extraMetricProcessingRules: |-
           rule {
             source_labels = ["__name__","phase","condition","status"]
             separator = "@"
             regex = "kube_pod_status_phase@Unknown@.*|kube_pod_status_ready@.*@unknown@.*|kube_deployment_status_condition@.*@unknown|kube_persistentvolume_status_phase@(Available|Released)@.*|kube_persistentvolumeclaim_status_phase@Lost@.*"
+            action = "drop"
+          }
+          rule {
+            source_labels = ["__name__","job_name"]
+            separator = "@"
+            regex = "kube_job_failed@.+-[0-9]{8,}"
             action = "drop"
           }
         metricsTuning:
@@ -158,6 +209,14 @@ spec:
     hostMetrics:
       linuxHosts:
         enabled: true
+        # the chart makes a target per container, so the portless mmc-health sidecar was scraped
+        # too, failed with up=0 and fired NodeExporterDown on every node
+        extraDiscoveryRules: |-
+          rule {
+            source_labels = ["__meta_kubernetes_pod_container_name"]
+            regex = "node-exporter"
+            action = "keep"
+          }
         # one veth per pod, renamed on every restart, and cAdvisor's container_network_* already covers pods.
         # loopback never leaves the node, and the kernel's tunnel and dummy devices sit idle
         extraMetricProcessingRules: |-
@@ -256,9 +315,70 @@ spec:
             # real sessions still keep their tools/call spans
             - resource.attributes["k8s.namespace.name"] == "toolhive-system" and IsMatch(attributes["mcp.method.name"], "^(initialize|server/discover|notifications/.*|(tools|prompts|resources|resources/templates)/list)$")
             - resource.attributes["k8s.namespace.name"] == "toolhive-system" and attributes["http.request.method"] == "DELETE" and attributes["url.path"] == "/mcp"
+            # kubernetes-mcp-server wraps each MCP span in a bare POST /mcp span, so its polls would get through
+            - resource.attributes["service.name"] == "kubernetes-mcp-server" and attributes["http.request.method"] != nil
+            # Beyla: Go's per-request goroutine queue/processing children, Redis (dawarich's Sidekiq polls its
+            # sidecar ~400 times a minute), probe and scrape endpoints, and controllers' Kubernetes API watches
+            - resource.attributes["telemetry.sdk.name"] == "beyla" and (name == "in queue" or name == "processing")
+            - resource.attributes["telemetry.sdk.name"] == "beyla" and attributes["db.system.name"] == "redis"
+            - resource.attributes["telemetry.sdk.name"] == "beyla" and kind == SPAN_KIND_SERVER and IsMatch(attributes["url.path"], "^/(healthz?|livez|readyz?|ready|metrics|ping|failsafe|api/v1/health)$")
+            - resource.attributes["telemetry.sdk.name"] == "beyla" and kind == SPAN_KIND_CLIENT and attributes["server.address"] == "10.96.0.1"
+            # qBittorrent peer connections show up as ~6k CONNECT client spans per 10 min
+            - resource.attributes["telemetry.sdk.name"] == "beyla" and kind == SPAN_KIND_CLIENT and name == "CONNECT"
       collector: alloy-receiver
-    # eBPF, but we already have OTel
-    # autoInstrumentation:
+    # eBPF HTTP/gRPC/SQL spans (Beyla, built on OBI) for apps without an OTel SDK: nginx, static-web-server,
+    # Haskell, bun, Go, Ruby, PHP, C++. one privileged pod per node instead of the operator's per-pod Go sidecar.
+    # it skips processes that already export OTLP, so operator-injected apps aren't traced twice
+    autoInstrumentation:
+      enabled: true
+      # scrapes Beyla's metrics endpoint, which drops everything below
+      collector: alloy-metrics
+      beyla:
+        # each node watches the API itself, instead of a 256Mi cache Deployment
+        k8sCache:
+          replicas: 0
+        # traces only. Beyla's RED/network metrics would cost thousands of active series
+        metricsTuning:
+          excludeMetrics:
+            - .+
+        # 512Mi OOMKilled on 4 of 6 nodes while it attached to every process. ~250-450Mi steady
+        resources:
+          requests:
+            cpu: 10m
+            memory: 128Mi
+          limits:
+            memory: 1Gi
+        config:
+          data:
+            # the chart requires a metrics endpoint. keep the cheapest feature, since they're all dropped
+            prometheus_export:
+              features:
+                - application
+            discovery:
+              instrument:
+                - k8s_namespace: default
+                - k8s_namespace: cert-manager
+                - k8s_namespace: flux-system
+                - k8s_namespace: kube-system
+                  k8s_deployment_name: arch-affinity
+              # replaces the chart's default exclusion, so it's repeated first. pods the operator injects
+              # are skipped up front, since detecting their OTLP export lets their first spans through twice.
+              # CNPG instance managers only poll their own Postgres
+              exclude_instrument:
+                - exe_path: "{*alloy*,*otelcol*,*beyla*}"
+                - k8s_pod_annotations:
+                    instrumentation.opentelemetry.io/inject-dotnet: "true"
+                - k8s_pod_annotations:
+                    instrumentation.opentelemetry.io/inject-java: "true"
+                - k8s_pod_annotations:
+                    instrumentation.opentelemetry.io/inject-nodejs: "true"
+                - k8s_pod_annotations:
+                    instrumentation.opentelemetry.io/inject-python: "true"
+                - k8s_pod_annotations:
+                    instrumentation.opentelemetry.io/inject-sdk: "true"
+                - k8s_pod_labels:
+                    cnpg.io/cluster: "*"
+              exclude_otel_instrumented_services: true
     # just use prom CRDs
     # annotationAutodiscovery:
     prometheusOperatorObjects:
@@ -288,6 +408,53 @@ spec:
         presets:
           - clustered
           - statefulset
+        # etcd runs as a Talos service rather than a pod, so it's scraped by node. it serves plain
+        # HTTP metrics on 2381 once talos/control-plane sets listen-metrics-urls.
+        # leader, size and disk latency only (eMMC and power loss, see the 2026-11-03 incident), ~130 series
+        extraConfig: |-
+          discovery.kubernetes "etcd" {
+            role = "node"
+
+            selectors {
+              role  = "node"
+              label = "node-role.kubernetes.io/control-plane"
+            }
+          }
+
+          discovery.relabel "etcd" {
+            targets = discovery.kubernetes.etcd.targets
+
+            rule {
+              source_labels = ["__meta_kubernetes_node_address_InternalIP"]
+              replacement   = "$1:2381"
+              target_label  = "__address__"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_node_name"]
+              target_label  = "instance"
+            }
+          }
+
+          prometheus.scrape "etcd" {
+            targets    = discovery.relabel.etcd.output
+            job_name   = "integrations/etcd"
+            forward_to = [prometheus.relabel.etcd.receiver]
+
+            clustering {
+              enabled = true
+            }
+          }
+
+          prometheus.relabel "etcd" {
+            rule {
+              source_labels = ["__name__"]
+              regex         = "up|etcd_server_has_leader|etcd_server_leader_changes_seen_total|etcd_server_proposals_failed_total|etcd_mvcc_db_total_size_in_(use_in_)?bytes|etcd_disk_(wal_fsync|backend_commit)_duration_seconds_(bucket|sum|count)"
+              action        = "keep"
+            }
+
+            forward_to = [prometheus.remote_write.metrics.receiver]
+          }
       alloy-singleton:
         presets:
           - singleton
@@ -359,6 +526,24 @@ spec:
 
           otelcol.receiver.tcplog "tcplog" {
             listen_address = "0.0.0.0:5044"
+
+            output {
+              logs = [otelcol.processor.filter.tcplog.input]
+            }
+          }
+
+          // auditd sends an SELinux AVC denial for each write to an unlabeled Longhorn volume, ~600MB/day and ~40GB
+          // during the 11-03 upgrades, which used up the 50GB/month free tier. machined logs the console dashboard's
+          // gRPC polls every 5s
+          otelcol.processor.filter "tcplog" {
+            error_mode = "ignore"
+
+            logs {
+              log_record = [
+                `IsMatch(body, "\"talos-service\":\"auditd\"")`,
+                `IsMatch(body, "match with service \\\\\"dashboard\\\\\"")`,
+              ]
+            }
 
             output {
               logs = [otelcol.processor.transform.tcplog.input]
