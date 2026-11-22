@@ -40,9 +40,3 @@ podSubnets:
 serviceSubnets:
   - 10.96.0.0/12
   - fd11:bb51:15bd:100::/112
----
-# kube-dns has no IPv6 ClusterIP until `talosctl upgrade-k8s` syncs CoreDNS, which waits for the re-registration
-apiVersion: v1alpha1
-kind: KubeletConfig
-clusterDNS:
-  - 10.96.0.10
