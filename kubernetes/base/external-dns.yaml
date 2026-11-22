@@ -1,3 +1,12 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: external-dns
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: https://kubernetes-sigs.github.io/external-dns
+---
 # yaml-language-server: $schema=https://flux-helm-schema.tplant.com.au?values=https://raw.githubusercontent.com/kubernetes-sigs/external-dns/refs/heads/master/charts/external-dns/values.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
@@ -14,17 +23,6 @@ spec:
         kind: HelmRepository
         name: external-dns
         namespace: flux-system
-  maxHistory: 3
-  install:
-    createNamespace: true
-    remediation:
-      retries: 3
-  upgrade:
-    cleanupOnFail: true
-    remediation:
-      retries: 3
-  uninstall:
-    keepHistory: false
   values:
     interval: 2m
     provider: cloudflare
@@ -37,6 +35,10 @@ spec:
     policy: sync
     sources:
     - service
+    - gateway-httproute
+    # cloudflare-kubernetes-gateway already creates DNS for routes on the Cloudflare gateway
+    extraArgs:
+    - --gateway-name=lan
     txtOwnerId: ${CLUSTER_NAME}
     serviceMonitor:
       enabled: true

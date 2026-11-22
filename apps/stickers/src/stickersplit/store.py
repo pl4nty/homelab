@@ -27,7 +27,7 @@ from xml.sax.saxutils import escape
 from PIL import Image, PngImagePlugin
 
 from . import similar
-from .colour import balance
+from .colour import adjust, dominant
 from .tag import rotate_image
 
 STATES = ("pending", "approved")
@@ -165,18 +165,21 @@ class Store:
         self,
         id: str,
         rotate: float = 0.0,
-        warmth: float = 0.0,
-        tint: float = 0.0,
+        target: str | None = None,
+        hue: float = 0.0,
+        saturation: float = 0.0,
+        brightness: float = 0.0,
         state: str | None = None,
         **fields,
     ) -> Meta:
-        """Edit metadata, white-balance, rotate clockwise by `rotate` degrees, and/or change state."""
+        """Edit metadata, recolour, rotate clockwise by `rotate` degrees, and/or change state."""
         with self.lock:
             old = self.items[id]
             with Image.open(self.path(old)) as im:
                 im.load()
             dpi = dpi_of(im)
-            im = balance(im, warmth, tint)
+            if hue or saturation or brightness:
+                im = adjust(im, target or dominant(im), hue, saturation, brightness)
             if rotate % 360:
                 im = rotate_image(im, rotate, dpi)
             changes = {k: v for k, v in fields.items() if k in EDITABLE and v is not None}

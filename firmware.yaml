@@ -1,0 +1,8 @@
+# Firmware that's flashed by hand. The RK1 bootloader is in the sbc-rockchip overlay that each Talos release
+# pins, so it updates with Talos, and Oracle manages the A1 node's firmware
+# renovate: datasource=custom.aussie-broadband depName=NF20MESH versioning=regex:^R(?<major>\d+)B(?<minor>\d+)$
+router: R6B011
+# renovate: datasource=github-releases depName=turing-machines/BMC-Firmware
+turingPiBmc: 2.1.0
+# renovate: datasource=custom.asus depName=NUC7i5BNB versioning=regex:^(?<major>\d+)$
+nucBios: 0093

@@ -16,8 +16,15 @@ kernel.
 | `rga3` | `/dev/rga` | RGA3 ×2, RGA2 |
 | `vsi_iommu` | | the Verisilicon IOMMU in front of the AV1 decoder |
 | `rk3588_mpp_dt` | | the device tree nodes for all of the above |
+| `rknpu` | `/dev/dri/renderD*` (`rknpu`) | the NPU's 3 cores, for librknnrt (Frigate's RKNN detector) |
 
 Not ported: the JPEG encoder cores.
+
+`rknpu` is [lurenJBD/rk3588-rknn-core](https://github.com/lurenJBD/rk3588-rknn-core),
+Rockchip's RKNPU driver ported to mainline: it binds the mainline
+`rockchip,rk3588-rknn-core` nodes, which the RK1 DTB already enables, and gives
+librknnrt the vendor ioctls that mainline's `rocket` doesn't have. It's built as is,
+in `rockchip-rknpu-pkg`.
 
 `vsi-iommu` is the mainline driver from Linux 7.3 (`torvalds/linux` `4da9ded`),
 unchanged. The vendor AV1 decoder only uses the DMA API through it, as mainline's
@@ -90,7 +97,8 @@ APP=talos-rockchip-mpp docker buildx bake -f apps/docker-bake.hcl -f apps/talos-
 
 topf installs it on the RK1s. `talos/docker-bake.hcl` builds their installer from
 `talos/hardware/rk1-schematic.yaml`. `talos/control-plane/rk1.yaml` loads
-rk_vcodec and rga3, which pull in vsi_iommu and rk3588_mpp_dt.
+rk_vcodec and rga3, which pull in vsi_iommu and rk3588_mpp_dt, and rknpu. The schematic
+blacklists rockchip-rknn's `rocket`, which would otherwise bind the NPU first.
 
 Jellyfin transcodes fully in hardware on d04 (Jellyfin's `rkmpp` acceleration):
 hevc_rkmpp decode, overlay_rkrga subtitle burn-in, h264_rkmpp encode. A 1080p

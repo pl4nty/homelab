@@ -10,7 +10,7 @@ spec:
     name: toolhive
   externalAuthConfigRef:
     name: entra-upstream
-  image: ghcr.io/pl4nty/mcp:latest@sha256:5056447182a2feeb3217089779588d62bd4321ba5d56c251bbf9c8da3d13dfa5
+  image: ghcr.io/pl4nty/mcp:latest@sha256:94425d5597dade3f550f79d4f6d21ed12098293fd08cfa0f5d797d4e03239c8a
   transport: streamable-http
   mcpPort: 8000
   podTemplateSpec:

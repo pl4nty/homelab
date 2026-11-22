@@ -1,0 +1,47 @@
+# The RKNPU driver for the mainline RK3588 NPU binding (rockchip,rk3588-rknn-core), built
+# against the released Talos kernel like rockchip-mpp-pkg. It's Rockchip's BSP driver ported to
+# mainline device trees and IOMMU groups, with the ABI librknnrt uses, which mainline's rocket lacks.
+name: rockchip-rknpu-pkg
+variant: scratch
+shell: /bin/bash
+dependencies:
+  - stage: base
+  - stage: kernel-tree
+  - image: "{{ .BUILD_ARG_TOOLS_PREFIX }}/llvm:{{ .BUILD_ARG_TOOLS }}"
+steps:
+  - sources:
+      - url: https://github.com/lurenJBD/rk3588-rknn-core/archive/{{ .rknpu_ref }}.tar.gz
+        destination: rknpu.tar.gz
+        sha256: "{{ .rknpu_sha256 }}"
+        sha512: "{{ .rknpu_sha512 }}"
+    env:
+      ARCH: arm64
+      LLVM: 1
+    prepare:
+      - |
+        mkdir -p /build
+        tar -xzf rknpu.tar.gz --strip-components=1 -C /build --exclude='*/docs' --exclude='*/test-suite'
+        rm rknpu.tar.gz
+    build:
+      - |
+        make -C /src M=/build -j $(nproc) modules
+    install:
+      - |
+        export KERNELRELEASE=$(cat /src/include/config/kernel.release)
+        mkdir -p /rootfs/usr/lib/modules/${KERNELRELEASE}
+        make -C /src M=/build modules_install \
+          INSTALL_MOD_PATH=/rootfs/usr INSTALL_MOD_DIR=extras INSTALL_MOD_STRIP=1 DEPMOD=true \
+          CONFIG_MODULE_SIG_ALL=
+    test:
+      - |
+        export KERNELRELEASE=$(cat /src/include/config/kernel.release)
+        ko=/rootfs/usr/lib/modules/${KERNELRELEASE}/extras/rknpu.ko
+        grep -aq "vermagic=${KERNELRELEASE} SMP mod_unload modversions aarch64" "${ko}"
+        grep -aq "alias=of:N\*T\*Crockchip,rk3588-rknn-core" "${ko}"
+        ! grep -Fq '~Module signature appended~' "${ko}"
+        test "$(find /rootfs/usr/lib/modules -type f | grep -vc '/extras/')" = 0
+      - |
+        fhs-validator /rootfs
+finalize:
+  - from: /rootfs
+    to: /

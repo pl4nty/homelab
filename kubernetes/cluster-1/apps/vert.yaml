@@ -1,9 +1,11 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: vert
+  name: vert${APP_SUFFIX:=}
   namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   interval: 15m
   chartRef:
@@ -15,8 +17,6 @@ spec:
       - key: topology.kubernetes.io/region
         operator: Exists
         effect: PreferNoSchedule
-    global:
-      createDefaultServiceAccount: false
     controllers:
       main:
         strategy: RollingUpdate
@@ -26,7 +26,7 @@ spec:
           main:
             image:
               repository: ghcr.io/vert-sh/vert
-              tag: latest@sha256:51edb89e7c57197b0281ba8427fb27eea63730a3683b10d422061afab2708a49
+              tag: latest@sha256:67cc0ecfcc81ea6c0c7dd730582acc1093cd2e97a96f365fa5b69d7bc0edbd8b
             securityContext:
               capabilities:
                 add:
@@ -50,8 +50,8 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - convert.${PUBLIC_DOMAIN}
+          - convert${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: vert
+              - identifier: main
                 port: 80

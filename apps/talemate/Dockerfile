@@ -4,13 +4,14 @@
 # - LD_LIBRARY_PATH and PYTHONPATH are set outright instead of appending to unset variables
 # - arm64 takes torchcodec's CPU build, because PyPI's aarch64 wheels need CUDA 13
 # - uv and pnpm downloads use cache mounts
+# - uv installs the Python from upstream's .python-version, so the venv doesn't follow the base image's Python
 
 # The backend-build stage creates the virtual environment and the final stage
 # runs it, so both must install the same uv.
 ARG UV_VERSION=0.12.5
 
 # Stage 1: Frontend build (static assets, so build once on the native platform)
-FROM --platform=$BUILDPLATFORM node:26.12.1@sha256:97fa0f1b59035c6072721a88d55be1371c7cb1cc942b521e1cc5c72ec87655f4 AS frontend-build
+FROM --platform=$BUILDPLATFORM node:26.13.1@sha256:e18c3ccdf7d71619990b0e85639f506e2028a95410999cab24cc373cbd10e0ac AS frontend-build
 
 WORKDIR /app
 
@@ -29,10 +30,10 @@ COPY --from=src talemate_frontend/ ./
 RUN pnpm build
 
 # Node.js runtime for the pi coding agent, for the target platform
-FROM node:26.12.1@sha256:97fa0f1b59035c6072721a88d55be1371c7cb1cc942b521e1cc5c72ec87655f4 AS node
+FROM node:26.13.1@sha256:e18c3ccdf7d71619990b0e85639f506e2028a95410999cab24cc373cbd10e0ac AS node
 
 # Stage 2: Backend build
-FROM python:3.11-slim@sha256:db3ff2e1800a8581e2c48a27c3995339d47bdf046da21c7627accd3d51053a93 AS backend-build
+FROM python:3.15-slim@sha256:65a65fc7b30b06cb6df4930fd4650697cb23f4c2698ab81fc87e4b031bc36928 AS backend-build
 
 WORKDIR /app
 
@@ -44,12 +45,13 @@ RUN apt-get update && apt-get install -y \
 ARG UV_VERSION
 RUN pip install uv==${UV_VERSION}
 
-COPY --from=src pyproject.toml uv.lock /app/
+COPY --from=src pyproject.toml uv.lock .python-version /app/
 # the source is needed for the editable install
 COPY --from=src src /app/src
 
 # torch and torchaudio come from the cu128 index, which has aarch64 wheels as well
 ENV UV_LINK_MODE=copy
+ENV UV_PYTHON_INSTALL_DIR=/opt/python UV_PYTHON_PREFERENCE=only-managed
 RUN --mount=type=cache,id=uv,target=/root/.cache/uv uv sync --frozen
 
 # PyPI's aarch64 torchcodec wheels are CUDA 13 builds, which can't load next to cu128 torch,
@@ -68,7 +70,7 @@ RUN find /app/docs -type f ! -name "*.md" -delete && \
     find /app/docs -depth -type d -empty -delete
 
 # Stage 3: Final image
-FROM python:3.11-slim@sha256:db3ff2e1800a8581e2c48a27c3995339d47bdf046da21c7627accd3d51053a93
+FROM python:3.15-slim@sha256:65a65fc7b30b06cb6df4930fd4650697cb23f4c2698ab81fc87e4b031bc36928
 
 WORKDIR /app
 
@@ -99,6 +101,7 @@ RUN npm install -g @earendil-works/pi-coding-agent@${PI_VERSION} && \
 ENV PI_CODING_AGENT_DIR=/app/pi
 RUN mkdir -p /app/pi
 
+COPY --from=backend-build /opt/python /opt/python
 COPY --from=backend-build /app/.venv /app/.venv
 
 # FFmpeg shared libraries for torchcodec, which loads FFmpeg 4 to 8 only.

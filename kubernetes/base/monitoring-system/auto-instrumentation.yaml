@@ -34,7 +34,7 @@ spec:
   # container limit lifts the pod to 1Gi without a per-app override. the cpu and memory
   # values are the operator's defaults, which it only fills in when limits/requests are unset
   java:
-    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-java:2.33.1@sha256:9f44e319d84bfa1cb9b7f711916a0169e185f5eedee0a8f74cb23affc2953f00
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-java:2.34.0@sha256:9e32040d5521bc5771c1290e7757131f7f4032fb3ecdece37781a5f118d4ae64
     # java names this field resources, the other languages resourceRequirements
     resources: &agent-resources
       limits:
@@ -50,7 +50,7 @@ spec:
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
         value: http://k8s-monitoring-alloy-receiver.monitoring-system:4318
   nodejs:
-    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-nodejs:0.82.0@sha256:eec2b930eaf9ae25747f31ee343cbb45e379c49a4d2d31842dfdfc109943155f
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-nodejs:0.83.0@sha256:9b53ce65c9c43ec5d5d3fdade6e6918d3c8231f97dfa4145d4aad36dbbdb6b48
     resourceRequirements: *agent-resources
     env:
       # the sdk-node register hook exports http/protobuf by default
@@ -58,7 +58,7 @@ spec:
         value: http://k8s-monitoring-alloy-receiver.monitoring-system:4318
   python:
     # 0.39b0 had no musl build (hyperglass uses otel-python-platform: musl)
-    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-python:0.66b2@sha256:f0eb2c59acb53cea7e9bca8d6bf98f813cecb4776ea3129f487e1cf8db2f2adb
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-python:0.66b2@sha256:2758fda65f55f77b6de42ee28bfcc190d3e31552bad30a38bc6724b822b7c245
     resourceRequirements: *agent-resources
     env:
       # Required if endpoint is set to 4317.
@@ -70,7 +70,7 @@ spec:
         value: none
   dotnet:
     # multi-arch since 1.x, so arm64 nodes work without the old custom image
-    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-dotnet:1.19.0@sha256:13f03de90e107250f167e38e341114f1a1efb00e5c071ee345962ba5e79d58b1
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-dotnet:1.19.1@sha256:1978ec9b72d2faccee7b7504190374284e7979c280780d2df51a0f953ec95456
     resourceRequirements: *agent-resources
     env:
       # Required if endpoint is set to 4317.
@@ -79,9 +79,9 @@ spec:
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
         value: http://k8s-monitoring-alloy-receiver.monitoring-system:4318
   apacheHttpd:
-    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:c99d3d2d9eb3da45bb7644943dda9442daf740a2a6dd65405a7b82eed0170a13
+    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:75078aca4e3b8d5ac94ffcf011abb4e8cf45ed8f666f47bcfb75ec0ef66f0549
   nginx:
-    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:c99d3d2d9eb3da45bb7644943dda9442daf740a2a6dd65405a7b82eed0170a13
+    image: ghcr.io/pl4nty/otel-operator-autoinstrumentation-apache-httpd@sha256:75078aca4e3b8d5ac94ffcf011abb4e8cf45ed8f666f47bcfb75ec0ef66f0549
     attrs:
       - name: NginxModuleTraceAsError
         value: "OFF"

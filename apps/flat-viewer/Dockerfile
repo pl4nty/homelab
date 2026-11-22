@@ -10,7 +10,7 @@ RUN --mount=type=cache,id=yarn,target=/usr/local/share/.cache/yarn \
 COPY --from=src . .
 RUN yarn build
 
-FROM joseluisq/static-web-server:2.44.1@sha256:94618e3d17802265a21926217e6f9e7832b311b6fbf5933684001739fafed06a
+FROM joseluisq/static-web-server:2.44.2@sha256:23be6c04d474979d6e738081918f5874f88502a150d1123fd000719101a0f05c
 
 COPY --from=build /app/dist /public
 

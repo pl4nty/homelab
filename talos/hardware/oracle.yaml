@@ -5,7 +5,7 @@ apiVersion: v1alpha1
 kind: UnattendedInstallConfig
 provisioning:
   diskSelector:
-    # the paravirtualized boot volume; worker/nuc.yaml's NVMe path doesn't exist here
+    # the paravirtualized boot volume
     match: disk.dev_path == "/dev/sda"
 ---
 apiVersion: v1alpha1

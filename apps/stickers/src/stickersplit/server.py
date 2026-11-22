@@ -25,11 +25,11 @@ from io import BytesIO
 from pathlib import Path
 from typing import Literal
 
-from fastapi import Depends, FastAPI, Form, Header, HTTPException, Request, UploadFile
+from fastapi import Depends, FastAPI, Form, Header, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from . import colour
 from .core import Options, split_scan
@@ -44,6 +44,7 @@ RANK = {None: 0, "submit": 1, "admin": 2}
 # So the page sends a scan in chunks of at most CHUNK bytes, then names the assembled file.
 CHUNK = 64 * 2**20
 UPLOAD_ID = re.compile(r"[A-Za-z0-9-]{16,64}")
+HEX = r"^#[0-9a-f]{6}$"
 Image.MAX_IMAGE_PIXELS = None  # scans are big; uploads are capped by max_mp instead
 
 
@@ -53,8 +54,10 @@ class Edit(BaseModel):
     comment: str | None = None
     creator: str | None = None
     rotate: float = 0.0
-    warmth: float = 0.0
-    tint: float = 0.0
+    target: str | None = Field(None, pattern=HEX)
+    hue: float = 0.0
+    saturation: float = 0.0
+    brightness: float = 0.0
     state: Literal["pending", "approved"] | None = None
 
 
@@ -112,8 +115,8 @@ class Worker:
                         log.warning("tagging %s failed: %s", rec["file"], e)
                 with Image.open(Path(tmp) / rec["file"]) as im:
                     im.load()
-                if "holo" in rec.get("tags", []):
-                    im = colour.balance(im, *colour.auto(im))
+                if "holo" in rec.get("tags", []) and (fix := colour.auto(im)):
+                    im = colour.adjust(im, **fix)
                 self.store.add(
                     im,
                     "pending",
@@ -203,12 +206,17 @@ def create_app(
             a, s, s0 = symmetry_angle(im)
         return {"angle": a, "score": s, "score0": s0}
 
-    @app.get("/api/stickers/{id}/balance")
-    def balance(id: str, r=Depends(role)):
+    @app.get("/api/stickers/{id}/auto")
+    def auto(id: str, r=Depends(role)):
         need(r, "admin")
         with Image.open(store.thumb(get(id).id, 512)) as im:
-            warmth, tint = colour.auto(im)
-        return {"warmth": warmth, "tint": tint}
+            return colour.auto(im)
+
+    @app.get("/api/stickers/{id}/dominant")
+    def dominant(id: str, r=Depends(role)):
+        need(r, "admin")
+        with Image.open(store.thumb(get(id).id, 512)) as im:
+            return {"colour": colour.dominant(im)}
 
     @app.get("/api/stickers/{id}/similar")
     def similar(id: str, r=Depends(role)):
@@ -332,14 +340,21 @@ def create_app(
         )
 
     @app.get("/i/{id}/preview.webp")
-    def preview(id: str, warmth: float = 0.0, tint: float = 0.0):
+    def preview(
+        id: str,
+        target: str | None = Query(None, pattern=HEX),
+        hue: float = 0.0,
+        saturation: float = 0.0,
+        brightness: float = 0.0,
+    ):
         """The editor's colour preview, computed by the same code as the save."""
         get(id)
+        c = lambda x: max(-1.0, min(1.0, x))
         with Image.open(store.thumb(id, 1024)) as im:
             out = BytesIO()
-            colour.balance(im, max(-2.0, min(2.0, warmth)), max(-2.0, min(2.0, tint))).save(
-                out, "WEBP", quality=85
-            )
+            colour.adjust(
+                im, target, max(-180.0, min(180.0, hue)), c(saturation), c(brightness)
+            ).save(out, "WEBP", quality=85)
         return Response(out.getvalue(), media_type="image/webp")
 
     @app.get("/i/{id}/{px}.webp")

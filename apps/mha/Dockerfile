@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM node:26.12.1@sha256:97fa0f1b59035c6072721a88d55be1371c7cb1cc942b521e1cc5c72ec87655f4 AS build
+FROM --platform=$BUILDPLATFORM node:26.13.1@sha256:e18c3ccdf7d71619990b0e85639f506e2028a95410999cab24cc373cbd10e0ac AS build
 WORKDIR /app
 
 # puppeteer dependency can't install ARM chromium by default
@@ -19,7 +19,7 @@ COPY --from=src . .
 ARG SCM_COMMIT_ID
 RUN npm run build --if-present
 
-FROM joseluisq/static-web-server:2.44.1@sha256:94618e3d17802265a21926217e6f9e7832b311b6fbf5933684001739fafed06a
+FROM joseluisq/static-web-server:2.44.2@sha256:23be6c04d474979d6e738081918f5874f88502a150d1123fd000719101a0f05c
 
 COPY --from=build /app/Pages /public/Pages
 COPY --from=build /app/Pages/mha.html /public/index.html

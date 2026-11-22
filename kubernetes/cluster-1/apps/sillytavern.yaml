@@ -1,0 +1,88 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/common-3.7.3/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: sillytavern${APP_SUFFIX:=}
+  namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    controllers:
+      sillytavern:
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-nodejs: "true"
+        containers:
+          main:
+            image:
+              repository: ghcr.io/sillytavern/sillytavern
+              tag: 1.19.1@sha256:660d1a23c70517fa6d5b9b76f4456ee11f002cd911007d838569e4a771a096bc
+            env:
+              TZ: "${TIMEZONE}"
+              SILLYTAVERN_LISTEN: "true"
+              SILLYTAVERN_WHITELIST: '["::/0", "0.0.0.0/0"]'
+            resources:
+              requests:
+                cpu: "10m"
+                memory: "128Mi"
+              limits:
+                cpu: "1"
+                memory: "1Gi"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+                spec:
+                  periodSeconds: 1
+                  failureThreshold: 600
+    service:
+      sillytavern:
+        controller: sillytavern
+        ports:
+          http:
+            port: 8000
+            protocol: HTTP
+            appProtocol: http
+    route:
+      main:
+        parentRefs:
+          - namespace: default
+            name: "${CLUSTER_NAME}"
+        hostnames:
+          - tavern${APP_SUFFIX:=}.${PRIVATE_DOMAIN}
+        rules:
+          - backendRefs:
+              - identifier: sillytavern
+                port: 8000
+    persistence:
+      data:
+        retain: ${APP_RETAIN:=true}
+        accessMode: ReadWriteOnce
+        size: 8Gi
+        globalMounts:
+          - subPath: config
+            path: /home/node/app/config
+          - subPath: data
+            path: /home/node/app/data
+          - subPath: plugins
+            path: /home/node/app/plugins
+          - subPath: extensions
+            path: /home/node/app/public/scripts/extensions/third-party
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 64Mi
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
+          - subPath: backups
+            path: /home/node/app/backups

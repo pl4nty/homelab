@@ -6,6 +6,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
   <meta name="description" content="Search, view, and download iOS app metadata">
   <meta name="author" content="Tom Plant">
   <!-- prevent translation prompts from URL schemes -->
@@ -21,8 +22,10 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
   <!-- data-cfasync: keep Cloudflare Rocket Loader from deferring the theme past first paint -->
   <script data-cfasync="false">
-    const colorScheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-    document.querySelector("html").setAttribute("data-bs-theme", colorScheme);
+    const colorScheme = window.matchMedia("(prefers-color-scheme: dark)");
+    const applyColorScheme = () => document.querySelector("html").setAttribute("data-bs-theme", colorScheme.matches ? "dark" : "light");
+    applyColorScheme();
+    colorScheme.addEventListener("change", applyColorScheme);
   </script>
 </head>
 

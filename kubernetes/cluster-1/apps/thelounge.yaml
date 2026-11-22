@@ -1,0 +1,70 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: thelounge${APP_SUFFIX:=}
+  namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    controllers:
+      thelounge:
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-nodejs: "true"
+        containers:
+          app:
+            image: &image
+              repository: ghcr.io/thelounge/thelounge
+              tag: 4.5.2@sha256:5c3776545c24c8e04ce9520d8aab7320209043aad246ac710dc3339bfda4c772
+            env:
+              THELOUNGE_HOME: /config
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 512Mi
+        initContainers:
+          # the image runs as uid 1000 and chmods its home, so it must own a new volume
+          config:
+            image: *image
+            command:
+              - chown
+              - "1000:1000"
+              - /config
+            securityContext:
+              runAsUser: 0
+    service:
+      app:
+        controller: thelounge
+        ports:
+          http:
+            port: &port 9000
+    route:
+      app:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - irc${APP_SUFFIX:=}.${PRIVATE_DOMAIN}
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: *port
+    persistence:
+      config:
+        retain: ${APP_RETAIN:=true}
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        globalMounts:
+          - path: /config

@@ -1,9 +1,11 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: hyperglass
+  name: hyperglass${APP_SUFFIX:=}
   namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
 spec:
   timeout: 15m
   interval: 30m
@@ -16,8 +18,6 @@ spec:
       - key: topology.kubernetes.io/region
         operator: Exists
         effect: PreferNoSchedule
-    global:
-      createDefaultServiceAccount: false
     controllers:
       main:
         strategy: RollingUpdate
@@ -66,11 +66,11 @@ spec:
           redis:
             image:
               repository: docker.io/redis
-              tag: 8.10.2@sha256:97ec88159e6d7cfb5ddef9015386087d58a912de80112f06ebdfa78fa5989901
+              tag: 8.10.3@sha256:1f88291b4c57bdf249f02eb085a8669889b2d2954e91d4de5118a5da6b78dd53
           ssh:
             image:
               repository: ghcr.io/pl4nty/ubuntu-ssh
-              tag: latest@sha256:fb8453933cff15d436e9136327cad16c499540fcc489d66c63d631b5b722f651
+              tag: latest@sha256:a2efb5d8782e8b06f75e165eaa595cbf5dfe1974de7766d6995f432c88b37f6d
             # allow ICMP access. net.ipv4.ping_group_range="0 [the uid ie 1000]" may still be required on the node
             # note that Azure loadbalancers (node egress) don't support ICMP
             securityContext:
@@ -90,26 +90,26 @@ spec:
                 bgp_aspath: echo "unsupported"
                 bgp_community: echo "unsupported"
                 bgp_route: ip route get {target}
-                ping: ping {target}
-                traceroute: traceroute {target}
+                ping: ping -c 5 {target}
+                traceroute: traceroute -w 2 -q 1 -m 20 {target}
               ipv6_default:
                 bgp_aspath: echo "unsupported"
                 bgp_community: echo "unsupported"
                 bgp_route: ip route get {target}
-                ping: ping6 {target}
-                traceroute: traceroute6 {target}
+                ping: ping6 -c 5 {target}
+                traceroute: traceroute6 -w 2 -q 1 -m 20 {target}
               ipv4_vpn:
                 bgp_aspath: echo "unsupported"
                 bgp_community: echo "unsupported"
                 bgp_route: ip route get {target}
-                ping: ping {target}
-                traceroute: traceroute {target}
+                ping: ping -c 5 {target}
+                traceroute: traceroute -w 2 -q 1 -m 20 {target}
               ipv6_vpn:
                 bgp_aspath: echo "unsupported"
                 bgp_community: echo "unsupported"
                 bgp_route: ip route get {target}
-                ping: ping6 {target}
-                traceroute: traceroute6 {target}
+                ping: ping6 -c 5 {target}
+                traceroute: traceroute6 -w 2 -q 1 -m 20 {target}
           devices.yaml: |
             routers:
             - name: Oracle Cloud, Aus East
@@ -172,8 +172,8 @@ spec:
           - namespace: default
             name: ${CLUSTER_NAME}
         hostnames:
-          - lg.${PUBLIC_DOMAIN}
+          - lg${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
         rules:
           - backendRefs:
-              - name: hyperglass
+              - identifier: main
                 port: 8001

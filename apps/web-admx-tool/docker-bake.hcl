@@ -1,6 +1,6 @@
 target "default" {
   contexts = {
     # renovate: branch=master
-    src = "https://github.com/pl4nty/web-admx-tool.git#c415dc3bd747916e229de87f4796f53ccef3e5e3"
+    src = "https://github.com/pl4nty/web-admx-tool.git#d2b3fbb6d70d49a7d3981c54fac1cd7532086637"
   }
 }
