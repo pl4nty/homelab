@@ -6,7 +6,7 @@ extension. They give RK3588 boards (Turing RK1 here) the hardware video
 decoders and encoders that Jellyfin's RKMPP transcoding uses, without a BSP
 kernel.
 
-**Status: builds against the released Talos v1.14.5 kernel, and every imported symbol version matches it; not yet run on hardware.**
+**Status: builds against the released Talos v1.14.6 kernel, and every imported symbol version matches it; not yet run on hardware.**
 
 ## What's in it
 
@@ -87,12 +87,12 @@ kernel, so they can't be signed with its key.
 
 | Stage | Like | What it does |
 | --- | --- | --- |
-| `kernel-tree` | pkgs `kernel-build` | Linux 6.18.58 source and `modules_prepare` with Sidero's LLVM image. The config (`CONFIG_IKCONFIG`) and `Module.symvers` come from the released `ghcr.io/siderolabs/kernel` image. `symvers.py` reads the export tables and CRCs out of its `Image`, and checks them against the `__versions` of the kernel's own modules. |
+| `kernel-tree` | pkgs `kernel-build` | Linux 6.18.63 source and `modules_prepare` with Sidero's LLVM image. The config (`CONFIG_IKCONFIG`) and `Module.symvers` come from the released `ghcr.io/siderolabs/kernel` image. `symvers.py` reads the export tables and CRCs out of its `Image`, and checks them against the `__versions` of the kernel's own modules. |
 | `rockchip-mpp-pkg` | pkgs `gasket-driver-pkg` | downloads and patches the vendor drivers, and builds the modules into `/usr/lib/modules/<release>/extras` |
 | `rockchip-mpp` | extensions `drivers/gasket` | the extension: `manifest.yaml.tmpl`, `vars.yaml`, and `extensions-validator` |
 
-`PKGS`, `TOOLS` and `ABBREV_TAG` in `docker-bake.hcl` pin Talos v1.14.5, as in
-siderolabs/extensions v1.14.5. CI pushes `ghcr.io/pl4nty/talos-rockchip-mpp:sha-<commit>`.
+`PKGS`, `TOOLS` and `ABBREV_TAG` in `docker-bake.hcl` pin Talos v1.14.6, as in
+siderolabs/extensions v1.14.6. CI pushes `ghcr.io/pl4nty/talos-rockchip-mpp:sha-<commit>`.
 To build the extension rootfs and manifest locally, from the repository root:
 
 ```sh
