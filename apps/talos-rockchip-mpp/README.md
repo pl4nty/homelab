@@ -109,7 +109,8 @@ blacklists rockchip-rknn's `rocket`, which would otherwise bind the NPU first.
 
 Jellyfin transcodes fully in hardware on d04 (Jellyfin's `rkmpp` acceleration):
 hevc_rkmpp decode, overlay_rkrga subtitle burn-in, h264_rkmpp encode. A 1080p
-HEVC Main 10 episode transcodes at 4–7x realtime.
+HEVC Main 10 episode transcodes at 4–7x realtime. The test below decodes 10-bit
+1080p HEVC, scales it to 720p and encodes H.264 at about 23x realtime.
 
 Before `rk_dma_heaps`, `kubernetes/cluster-1/arr/jellyfin.yaml` mounted the
 cached `system` heap under the three other names. MPP then skipped the cache
@@ -127,6 +128,7 @@ On the node:
 ```sh
 talosctl -n <rk1> dmesg | grep -E 'mpp|rkvdec|rkvenc|rga|iommu'
 talosctl -n <rk1> ls /dev | grep -E 'mpp_service|rga|dma_heap|dri'
+talosctl -n <rk1> ls /dev/dma_heap
 talosctl -n <rk1> read /proc/mpp_service/supports-device
 ```
 
@@ -134,6 +136,7 @@ Then in a privileged pod with `jellyfin/jellyfin` on that node:
 
 ```sh
 /usr/lib/jellyfin-ffmpeg/ffmpeg -hide_banner -init_hw_device rkmpp=hw -filter_hw_device hw \
+  -hwaccel rkmpp -hwaccel_output_format drm_prime \
   -c:v hevc_rkmpp -i <hevc file> -vf scale_rkrga=w=1280:h=720:format=nv12 \
   -c:v h264_rkmpp -b:v 4M -f null -
 ```
