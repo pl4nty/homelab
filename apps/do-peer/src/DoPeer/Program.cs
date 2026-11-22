@@ -4,6 +4,13 @@ using DoPeer;
 
 if (args is ["fetch", var peerArg, var phfArg, ..])
     return await FetchAsync(IPEndPoint.Parse(peerArg), phfArg, args.Length > 3 ? args[3] : null);
+if (args is ["encrypt", var plainPath, var encryptedPath])
+{
+    using var cipher = new DoCipher(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+    await File.WriteAllBytesAsync(encryptedPath, cipher.Encrypt(await File.ReadAllBytesAsync(plainPath)));
+    Console.WriteLine(JsonSerializer.Serialize(cipher.DecryptionInfo));
+    return 0;
+}
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Logging.AddFilter("Microsoft.AspNetCore", LogLevel.Warning);

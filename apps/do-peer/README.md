@@ -7,6 +7,7 @@ file and its pieces hash file over HTTP, and can advertise itself on the LAN wit
 Content=/srv/files dotnet run --project src/DoPeer             # HTTP on 8080, peers on 7680
 Content=/srv/files DnsSd=true dotnet run --project src/DoPeer  # also answer mDNS for _dosvc._tcp.local
 dotnet run --project src/DoPeer -- fetch 192.0.2.10:7680 https://host/pieceshash/file.bin out.bin
+dotnet run --project src/DoPeer -- encrypt file.bin file.enc   # prints the DecryptionInfo JSON
 ```
 
 | Setting | Default | |
@@ -42,6 +43,16 @@ From `doclient.dll` 10.0.26100.6, decompiled with its public PDB. The function n
   `SH00`, `SH01`… with the first 16 base64 characters of each swarm hash, `P` the device profile and `G` the group
   ID. The searcher skips records without `P`, a profile it treats as incompatible, or a different `G`. This peer
   sends `P=0` and no `G`.
+- **DecryptionInfo** (`CBackgroundCopyFile::_SetDecryptionInfo`, `CCipher`): JSON with `KeyData` (base64),
+  `AlgorithmName` and `ChainingMode` (default AES-CBC) and `EncryptionBufferSize` (default 64 KiB, at most 1 MiB).
+  Each buffer is decrypted on its own, with the IV set to AES-ECB of its offset (u64 little-endian, then zeros).
+  The last buffer is tried with PKCS7 padding, then without. Peers carry the ciphertext. `DoCipher` writes this
+  format.
+- **IntegrityCheckMandatory**: without it, a missing or bad caller pieces hash file falls back to an unchecked
+  download. With it, the download fails (`0x80D02016`, `0x80D02017`).
+
+[protocol/](protocol) has a Kaitai Struct description of the peer protocol and a Wireshark dissector generated from
+it. Wireshark also has its own `MS-DO` dissector on TCP 7680.
 
 ## What works and what isn't verified
 
