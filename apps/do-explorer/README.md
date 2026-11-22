@@ -28,7 +28,7 @@ the live services on 2026-11-19.
 2. **Content policy** `cp801…/content/{contentId}/contentpolicy?altCatalogId={url}`. `altCatalogId` is the download
    URL with its query stripped. Without a caller ContentId, the client's `{contentId}` is the SHA1 of that URL,
    hex encoded (`CBackgroundCopyJob::_InternalCreateDownload`). The service looks the file up by `altCatalogId` and
-   returns its own `ContentId`, `DO-<base64url(HashOfHashes)>`, where `HashOfHashes` is from the file's
+   returns its own `ContentId`, `DO-` and the base64 `HashOfHashes` with `+` as `_` and `/` as `-`, from the file's
    `pieceshash`. Without `altCatalogId`, it returns `{}` for every ID except one it already knows.
 3. **Discovery** `disc801…/content/{ContentId}?partitionId={n}&altCatalogId={url}` returns the array (a
    `CollectiveArray` URL). The client sends `partitionId = clientHash % Discovery_MaxPartitionId` (21).
