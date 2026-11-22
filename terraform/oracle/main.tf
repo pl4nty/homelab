@@ -9,14 +9,10 @@ terraform {
   }
 }
 
-# API key from the OCI_TENANCY_OCID, OCI_USER_OCID, OCI_FINGERPRINT and OCI_PRIVATE_KEY env vars
+# API key from the OCI_USER_OCID, OCI_FINGERPRINT and OCI_PRIVATE_KEY env vars
 provider "oci" {
-  region = "ap-sydney-1"
-}
-
-# who can reach apid for topf, kept out of git
-variable "admin_cidrs" {
-  type = list(string)
+  tenancy_ocid = local.tenancy
+  region       = "ap-sydney-1"
 }
 
 locals {
@@ -89,8 +85,9 @@ resource "oci_core_default_security_list" "talos" {
     }
   }
 
+  # apid only accepts clients with a cert from the cluster's Talos CA, and the home IP is dynamic
   dynamic "ingress_security_rules" {
-    for_each = var.admin_cidrs
+    for_each = ["0.0.0.0/0", "::/0"]
     content {
       description = "Talos apid for topf"
       source      = ingress_security_rules.value
