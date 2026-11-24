@@ -31,7 +31,7 @@ class InspectorProvider implements vscode.WebviewViewProvider, vscode.Disposable
     this.view = view;
     const { webview } = view;
     webview.options = { enableScripts: true, localResourceRoots: [] };
-    void webviewHtml(webviewRoot(this.context), 'inspector', 'Value Inspector', '<div id="root"></div>').then((h) => {
+    void webviewHtml(webviewRoot(this.context), 'inspector', 'Value', '<div id="root"></div>').then((h) => {
       webview.html = h;
     });
     // These listeners go away with the view. The webview posts `ready` each time its page (re)loads.

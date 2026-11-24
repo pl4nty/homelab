@@ -63,7 +63,7 @@ export class StructureView implements vscode.TreeDataProvider<StructureNode>, vs
         : doc.result?.error
           ? `Parse error: ${doc.result.error}${t?.params.length && !doc.params ? ' (this spec takes params: use Set Spec Params…)' : ''}`
           : !doc.specUri
-            ? 'No spec loaded. Use Load Spec… or pick one from the Format Gallery.'
+            ? 'No spec loaded. Use Load Spec… or pick one from Formats.'
             : undefined;
     this.changeEmitter.fire();
   }

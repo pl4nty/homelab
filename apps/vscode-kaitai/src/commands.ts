@@ -217,7 +217,7 @@ async function findSpecs(limit = 500): Promise<vscode.Uri[]> {
 async function pickSpec(fileName: string): Promise<vscode.Uri | undefined> {
   const found = await findSpecs();
   const browse: vscode.QuickPickItem = { label: '$(folder-opened) Browse…' };
-  const gallery: vscode.QuickPickItem = { label: '$(library) Format Gallery…' };
+  const gallery: vscode.QuickPickItem = { label: '$(library) Formats…' };
   const files = found.map((uri) => ({
     label: uri.path.split('/').pop() as string,
     description: vscode.workspace.asRelativePath(uri),

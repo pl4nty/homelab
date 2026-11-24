@@ -1,0 +1,53 @@
+name: vscode-kaitai
+
+# Packages the Kaitai IDE extension on PRs (downloadable .vsix artifact) and publishes it from main.
+# Publishing is idempotent: a version that is already on a registry is skipped, so bump
+# apps/vscode-kaitai/package.json "version" to release. Secrets: VSCE_PAT (Visual Studio Marketplace,
+# publisher pl4nty) and, optionally, OVSX_PAT (Open VSX).
+on:
+  pull_request:
+    paths: [apps/vscode-kaitai/**, .github/workflows/vscode-kaitai.yaml]
+  push:
+    branches: [main]
+    paths: [apps/vscode-kaitai/**, .github/workflows/vscode-kaitai.yaml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vscode-kaitai-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  extension:
+    runs-on: ubuntu-latest
+    container: node:24-slim
+    defaults:
+      run:
+        working-directory: apps/vscode-kaitai
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm test
+      - run: npm run build
+      - run: npx --yes @vscode/vsce@3 package --out kaitai-ide.vsix
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: kaitai-ide-vsix
+          path: apps/vscode-kaitai/kaitai-ide.vsix
+      - name: Publish to the Visual Studio Marketplace
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          if [ -z "$VSCE_PAT" ]; then echo "::warning::VSCE_PAT is not set; skipping the Marketplace"; exit 0; fi
+          npx --yes @vscode/vsce@3 publish --packagePath kaitai-ide.vsix --skip-duplicate
+      - name: Publish to Open VSX
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          if [ -z "$OVSX_PAT" ]; then echo "OVSX_PAT is not set; skipping Open VSX"; exit 0; fi
+          npx --yes ovsx@0 publish kaitai-ide.vsix --skip-duplicate

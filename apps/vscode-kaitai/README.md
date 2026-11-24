@@ -9,7 +9,7 @@ vscode.dev's Content Security Policy only lets **Developer: Install Extension fr
 1. Build and serve it locally: `npm install && npm run build && PUBLIC_DIR=. bun server/serve.mjs 8787`.
 2. Open https://vscode.dev (or a github.dev repository) in Chrome or Edge, run **Developer: Install Extension from Location…**, and enter `http://localhost:8787`.
 3. Open a binary file, then right-click its tab or explorer entry and select **Open in Kaitai Hex Editor**.
-4. In the **Kaitai Struct** activity bar, use **Load Spec…**, or pick a format from the **Format Gallery**.
+4. In the **Kaitai Struct** activity bar, use **Load Spec…**, or pick a format from **Formats**.
 
 The container image (`server/serve.mjs` behind `https://vscode-kaitai.${PUBLIC_DOMAIN}`) serves the same files with CORS for code-server and other self-hosted workbenches whose CSP allows it.
 
