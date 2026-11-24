@@ -35,13 +35,14 @@ export class Labels {
       );
   }
 
-  update(camera: THREE.PerspectiveCamera, focus: THREE.Vector3, w: number, h: number) {
+  /** `range` stands in for the camera distance when the camera is at street level. */
+  update(camera: THREE.PerspectiveCamera, focus: THREE.Vector3, w: number, h: number, range?: number) {
     const now = performance.now();
     if (now - this.last < 120) return;
     this.last = now;
     this.root.hidden = !this.enabled;
     if (!this.enabled) return;
-    const dist = camera.position.distanceTo(focus);
+    const dist = range ?? camera.position.distanceTo(focus);
     const shown: { x: number; y: number; w: number; item: Item; score: number }[] = [];
     const candidates: { item: Item; score: number }[] = [];
     const seen = new Set<string>();

@@ -38,6 +38,12 @@ export interface Built {
   lights: Float32Array;
   /** Per traffic lane: point count, one-way flag, then x, y, z triples; cars run along these. */
   lanes: Float32Array;
+  /** Like `heights`, but water reads as its surface: what a vehicle rides on. */
+  surface: Float32Array;
+  /** Per bridge deck: point count, half width, then x, y, z triples along its centreline. */
+  decks: Float32Array;
+  /** Per building: point count, bounding box (min x, min z, max x, max z), then x, z pairs of its outline. */
+  solids: Float32Array;
   labels: Label[];
   /** Source buildings a hand-built model replaces: which model, and where the source puts it. */
   landmarks: { id: string; x: number; z: number }[];

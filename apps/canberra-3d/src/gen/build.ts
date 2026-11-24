@@ -129,6 +129,7 @@ export function buildTile(tile: Tile, res: number, missing: string): Built {
   };
 
   // --- water: still water lies flat at its lowest bank, running water follows the bed
+  const surface = new Float32Array(N * N).fill(Number.NaN);
   const wPos: number[] = [];
   const wIdx: number[] = [];
   for (const w of tile.water) {
@@ -136,16 +137,8 @@ export function buildTile(tile: Tile, res: number, missing: string): Built {
     const rings = w.p.map((r) => r.map((v) => v / 10));
     const area = Math.abs(ringArea(rings[0]));
     if (area < 250) continue;
-    let lo = Infinity;
-    let hi = -Infinity;
-    for (const r of rings) {
-      for (let i = 0; i < r.length; i += 2) {
-        const h = hAt(r[i], r[i + 1]);
-        if (h < lo) lo = h;
-        if (h > hi) hi = h;
-      }
-    }
-    const flat = hi - lo < 4 || w.k.startsWith('lake') || w.k.startsWith('reservoir');
+    const samples: number[] = [];
+    for (const r of rings) for (let i = 0; i < r.length; i += 2) samples.push(hAt(r[i], r[i + 1]));
     const box = ringBBox(rings[0]);
     const i0 = Math.max(0, Math.floor(box[0] / STEP));
     const i1 = Math.min(DEM_N, Math.ceil(box[2] / STEP));
@@ -156,10 +149,15 @@ export function buildTile(tile: Tile, res: number, missing: string): Built {
       for (let i = i0; i <= i1; i++) {
         if (pointInPolygon(i * STEP, j * STEP, rings)) {
           inside.push(j * N + i);
-          if (flat && heights[j * N + i] < lo) lo = heights[j * N + i];
+          samples.push(heights[j * N + i]);
         }
       }
     }
+    // The level is a low percentile, not the minimum: one bad elevation sample must not drain a lake.
+    samples.sort((a, b) => a - b);
+    const lo = samples[Math.floor(samples.length * 0.15)];
+    const hi = samples[Math.floor(samples.length * 0.9)];
+    const flat = hi - lo < 4 || w.k.startsWith('lake') || w.k.startsWith('reservoir');
     const coords: number[] = [];
     const holes: number[] = [];
     for (const [i, r] of rings.entries()) {
@@ -180,8 +178,13 @@ export function buildTile(tile: Tile, res: number, missing: string): Built {
       if (cross > 0) wIdx.push(first + a, first + b, first + c);
       else wIdx.push(first + a, first + c, first + b);
     }
-    for (const i of inside) heights[i] = flat ? lo - 1.6 : heights[i] - 1.2;
+    for (const i of inside) {
+      // What a vehicle rides on: the water's surface, not its bed.
+      surface[i] = flat ? lo + 0.3 : heights[i] + 0.3;
+      heights[i] = flat ? Math.min(heights[i], lo) - 1.6 : heights[i] - 1.2;
+    }
   }
+  for (let i = 0; i < N * N; i++) if (Number.isNaN(surface[i])) surface[i] = heights[i];
 
   // --- terrain mesh
   const pos = new Float32Array(N * N * 3);
@@ -302,6 +305,22 @@ export function buildTile(tile: Tile, res: number, missing: string): Built {
     }
   }
 
+  // --- for driving: bridge decks to ride on and building outlines to stop at
+  const decks: number[] = [];
+  for (const r of tile.roads) {
+    if (r.f !== 1) continue;
+    const { pts } = deckProfile(r, hAt);
+    if (pts.length < 2) continue;
+    decks.push(pts.length, roadWidth(r) / 2 + 1);
+    for (const p of pts) decks.push(p.x, p.h, -p.y);
+  }
+  const solids: number[] = [];
+  for (const f of footprints) {
+    const r = f.rings[0];
+    solids.push(r.length / 2, f.box[0], -f.box[3], f.box[2], -f.box[1]);
+    for (let i = 0; i < r.length; i += 2) solids.push(r[i], -r[i + 1]);
+  }
+
   const lights = new Float32Array((tile.lights.length / 3) * 4);
   for (let i = 0, o = 0; i < tile.lights.length; i += 3, o += 4) {
     const x = tile.lights[i] / 10;
@@ -340,6 +359,9 @@ export function buildTile(tile: Tile, res: number, missing: string): Built {
     cars: new Float32Array(cars),
     lights,
     lanes: new Float32Array(lanes),
+    surface,
+    decks: new Float32Array(decks),
+    solids: new Float32Array(solids),
     labels,
     landmarks,
     stats: { buildings: tile.buildings.length, trees: tile.trees.length / 5, missing },

@@ -15,6 +15,9 @@ function transferables(b: Built): Transferable[] {
     b.cars.buffer,
     b.lights.buffer,
     b.lanes.buffer,
+    b.surface.buffer,
+    b.decks.buffer,
+    b.solids.buffer,
   ];
   for (const m of [b.buildings, b.bridges]) {
     if (!m) continue;

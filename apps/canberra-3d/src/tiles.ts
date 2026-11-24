@@ -8,6 +8,7 @@ import { buildingMaterial, vertexColourMaterial, waterMaterial } from './materia
 import type { TreeFactory } from './trees.ts';
 
 const N = DEM_N + 1;
+const STREET_RES = 4096;
 const CLOSE_RES = 2048;
 const NEAR_RES = 1024;
 const FAR_RES = 512;
@@ -105,6 +106,8 @@ export class TileManager {
   private poleMat = new THREE.MeshLambertMaterial({ color: 0x8d9296 });
   readonly lampMat: THREE.PointsMaterial;
   maxAnisotropy = 8;
+  /** Whether this device can afford a 4096 px ground texture under a street-level camera. */
+  streetTextures = false;
   onLabels?: (key: string, labels: Label[] | null, origin: [number, number]) => void;
   onChange?: () => void;
   onLandmark?: (id: string, x: number, z: number) => void;
@@ -171,8 +174,111 @@ export class TileManager {
     return (h[i] * (1 - ax) + h[i + 1] * ax) * (1 - ay) + (h[i + N] * (1 - ax) + h[i + N + 1] * ax) * ay;
   }
 
+  private entryAt(x: number, z: number): Entry | undefined {
+    const [tx, ty] = worldToTile(x, -z);
+    return this.tiles.get(`${tx}/${ty}`);
+  }
+
+  /**
+   * Height a vehicle at scene x, z rides at: the ground, the water's surface, or a bridge deck.
+   * `y` is the vehicle's current height, so it stays on the ground when it passes under a bridge.
+   */
+  surfaceAt(x: number, z: number, y?: number): number | undefined {
+    const e = this.entryAt(x, z);
+    if (!e?.built) return undefined;
+    const h = e.built.surface;
+    const step = TILE_SIZE / DEM_N;
+    const fx = Math.min(DEM_N, Math.max(0, (x - e.originX) / step));
+    const fy = Math.min(DEM_N, Math.max(0, (e.originZ - z) / step));
+    const ix = Math.min(DEM_N - 1, Math.floor(fx));
+    const iy = Math.min(DEM_N - 1, Math.floor(fy));
+    const ax = fx - ix;
+    const ay = fy - iy;
+    const i = iy * N + ix;
+    let best = (h[i] * (1 - ax) + h[i + 1] * ax) * (1 - ay) + (h[i + N] * (1 - ax) + h[i + N + 1] * ax) * ay;
+    // A span belongs to the tile under its midpoint, so look in the neighbours too.
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        const t = this.tiles.get(`${e.x + dx}/${e.y + dy}`);
+        const d = t?.built?.decks;
+        if (!t || !d?.length) continue;
+        const lx = x - t.originX;
+        const lz = z - t.originZ;
+        for (let k = 0; k < d.length; ) {
+          const count = d[k];
+          const half = d[k + 1];
+          for (let p = 0; p + 1 < count; p++) {
+            const a = k + 2 + p * 3;
+            const sx = d[a + 3] - d[a];
+            const sz = d[a + 5] - d[a + 2];
+            const len2 = sx * sx + sz * sz || 1;
+            const u = Math.min(1, Math.max(0, ((lx - d[a]) * sx + (lz - d[a + 2]) * sz) / len2));
+            if (Math.hypot(d[a] + sx * u - lx, d[a + 2] + sz * u - lz) > half) continue;
+            const deck = d[a + 1] + (d[a + 4] - d[a + 1]) * u;
+            if (deck > best && (y == null || deck < y + 1.6)) best = deck;
+          }
+          k += 2 + count * 3;
+        }
+      }
+    }
+    return best;
+  }
+
+  /** True inside a building's outline. */
+  blockedAt(x: number, z: number): boolean {
+    const e = this.entryAt(x, z);
+    const s = e?.built?.solids;
+    if (!e || !s) return false;
+    const lx = x - e.originX;
+    const lz = z - e.originZ;
+    for (let k = 0; k < s.length; ) {
+      const count = s[k];
+      if (lx >= s[k + 1] && lx <= s[k + 3] && lz >= s[k + 2] && lz <= s[k + 4]) {
+        let inside = false;
+        for (let i = 0, j = count - 1; i < count; j = i++) {
+          const xi = s[k + 5 + i * 2];
+          const zi = s[k + 6 + i * 2];
+          const xj = s[k + 5 + j * 2];
+          const zj = s[k + 6 + j * 2];
+          if (zi > lz !== zj > lz && lx < ((xj - xi) * (lz - zi)) / (zj - zi) + xi) inside = !inside;
+        }
+        if (inside) return true;
+      }
+      k += 5 + count * 2;
+    }
+    return false;
+  }
+
+  /** The nearest point on a through road, and the compass heading along it; for starting a drive. */
+  nearestRoad(x: number, z: number, reach = 250): { x: number; z: number; heading: number } | null {
+    const e = this.entryAt(x, z);
+    if (!e?.built || !e.lanes) return null;
+    const b = e.built.lanes;
+    const lx = x - e.originX;
+    const lz = z - e.originZ;
+    let best: { x: number; z: number; heading: number } | null = null;
+    let bestD = reach;
+    for (const lane of e.lanes) {
+      for (let p = 0; p + 1 < lane.count; p++) {
+        const a = lane.start + p * 3;
+        const sx = b[a + 3] - b[a];
+        const sz = b[a + 5] - b[a + 2];
+        const len2 = sx * sx + sz * sz || 1;
+        const u = Math.min(1, Math.max(0, ((lx - b[a]) * sx + (lz - b[a + 2]) * sz) / len2));
+        const px = b[a] + sx * u;
+        const pz = b[a + 2] + sz * u;
+        const d = Math.hypot(px - lx, pz - lz);
+        if (d < bestD) {
+          bestD = d;
+          best = { x: px + e.originX, z: pz + e.originZ, heading: Math.atan2(sx, -sz) };
+        }
+      }
+    }
+    return best;
+  }
+
   /** Loads what lies within `radius` of the focus, drops what is well outside it, and sets detail. */
-  update(fx: number, fz: number, radius: number, nearRadius: number, cameraDistance: number) {
+  update(fx: number, fz: number, radius: number, nearRadius: number, cameraDistance: number, street = false) {
     this.focus.set(fx, fz);
     const [cx, cy] = worldToTile(fx, -fz);
     const reach = Math.ceil(radius / TILE_SIZE);
@@ -221,7 +327,15 @@ export class TileManager {
       const share = d > 3800 ? 0.4 : d > 2400 ? 0.7 : 1;
       for (const t of e.farTrees) t.count = Math.ceil((e.built!.trees.length / 7) * share);
       // Half a metre a pixel under a close camera, a metre nearby, two metres beyond.
-      const res = d < 250 && cameraDistance < 700 ? CLOSE_RES : d < nearRadius * 0.9 ? NEAR_RES : FAR_RES;
+      // At street level the tile underfoot gets a quarter of a metre a pixel.
+      const res =
+        street && d === 0 && this.streetTextures
+          ? STREET_RES
+          : d < 250 && cameraDistance < 700
+            ? CLOSE_RES
+            : d < nearRadius * 0.9
+              ? NEAR_RES
+              : FAR_RES;
       if (res > e.res && !e.repainting) this.repaint(e, res);
     }
     this.pump();

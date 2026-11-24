@@ -7,6 +7,7 @@ Explore Canberra as a 3D miniature in the browser. Built with [three.js](https:/
 - Terrain, lakes, roads, bridges, car parks with parked cars, street lights. The moving cars are set dressing, not data.
 - Hand-built landmarks: Black Mountain Tower, the Parliament House flag mast, the National Carillon, the Captain Cook Memorial Jet, the Australian-American Memorial.
 - Live light rail.
+- Street level: drive a car in chase or first-person view, or fly a free camera. The car rides the ground, the water and bridge decks, and stops at buildings.
 - Time of day from dawn balloons to lit windows at night, and an autumn switch for the deciduous streets.
 
 The view is in the URL (`#lat,lon,distance,bearing,tilt,hour`), so a link reopens the same shot.
@@ -27,7 +28,7 @@ How the sources combine:
 - **Trees.** The LiDAR survey gives position, height and canopy area. A crown takes the genus of the nearest registered tree within its radius; registered trees with no crown are drawn young.
 - **Trams.** The realtime feed carries arrival predictions, not vehicle positions. Each running trip's timetable is shifted to its predicted arrival at the terminus, and the tram is drawn where that puts it.
 
-Known gaps: no open surface model of the ACT exists, so building heights are only as good as OpenStreetMap and Microsoft's estimates, which top out near 30 m. The terrain is not LiDAR-derived.
+Known gaps: no open surface model of the ACT exists, so building heights are only as good as OpenStreetMap and Microsoft's estimates, which top out near 30 m. The terrain is not LiDAR-derived, and its source has stray pixels thousands of metres off; the server replaces any pixel far from the median of its neighbourhood.
 
 ## Server
 
@@ -56,6 +57,8 @@ npm run dev                                           # client with hot reload, 
 
 `npm run build` writes the client to `dist/web` and the server to `dist/server.mjs`.
 
-Keys: arrows or WASD move, Q and E turn, R and F tilt, plus and minus zoom.
+Keys in the overhead view: arrows or WASD move, Q and E turn, R and F tilt, plus and minus zoom.
+
+Keys at street level: WASD or arrows drive, Space brakes, V swaps chase and first-person view, a drag looks around, Esc returns to the overhead view. Flying: W and S fly where you look, A and D turn, Q and E slide sideways, Space and Shift climb and descend. Touch screens get a thumb stick.
 
 Rendering resolution follows the frame rate. `?ratio=1` pins it, for benchmarks and screenshots.

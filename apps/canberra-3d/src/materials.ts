@@ -82,9 +82,9 @@ export function buildingMaterial(): THREE.MeshLambertMaterial {
 /** Still water with drifting ripples and a sun glint. */
 export function waterMaterial(): THREE.MeshPhongMaterial {
   const m = new THREE.MeshPhongMaterial({
-    color: 0x34647f,
-    specular: 0x9fb4c0,
-    shininess: 70,
+    color: 0x3d7494,
+    specular: 0x1c2328,
+    shininess: 60,
     transparent: true,
     opacity: 0.94,
   });

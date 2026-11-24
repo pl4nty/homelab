@@ -8,9 +8,18 @@ export interface UiHooks {
   setAutumn(on: boolean): void;
   setLive(on: boolean): void;
   followTram(): boolean;
+  setMode(mode: Mode): void;
+  toggleView(): void;
 }
 
+export type Mode = 'explore' | 'drive' | 'fly';
+
 export interface Ui {
+  setMode(mode: Mode): void;
+  setSpeed(kmh: number): void;
+  /** Touch controls, present on every device and shown on touch screens. */
+  stick: HTMLElement;
+  lift: { up: boolean; down: boolean };
   setStatus(text: string): void;
   setLive(text: string, trams: number): void;
   setHour(h: number): void;
@@ -93,10 +102,14 @@ export function buildUi(root: HTMLElement, hooks: UiHooks, initial: { hour: numb
   });
 
   const menu = el('button', { type: 'button', className: 'menu', ariaLabel: 'Places and settings' }, 'Places');
+  const drive = el('button', { type: 'button', className: 'menu' }, 'Drive');
+  const fly = el('button', { type: 'button', className: 'menu' }, 'Fly');
+  drive.addEventListener('click', () => hooks.setMode('drive'));
+  fly.addEventListener('click', () => hooks.setMode('fly'));
   const panel = el(
     'section',
     { className: 'panel' },
-    el('header', {}, el('h1', {}, 'Canberra 3D'), menu),
+    el('header', {}, el('h1', {}, 'Canberra 3D'), el('span', { className: 'modes' }, drive, fly, menu)),
     el(
       'div',
       { className: 'body' },
@@ -129,10 +142,63 @@ export function buildUi(root: HTMLElement, hooks: UiHooks, initial: { hour: numb
     ),
   );
   const hint = el('p', { className: 'hint' }, 'Drag to move · right-drag or two fingers to turn · scroll to zoom');
-  root.append(panel, hint, sources);
+
+  // Street level: a speed readout, what the keys do, and the way out.
+  const speed = el('output', { className: 'speed' }, '0');
+  const keysHint = el('span', { className: 'keys' });
+  const view = el('button', { type: 'button', className: 'chip' }, 'Change view');
+  view.addEventListener('click', () => hooks.toggleView());
+  const exit = el('button', { type: 'button', className: 'chip' }, 'Exit');
+  exit.addEventListener('click', () => hooks.setMode('explore'));
+  const hud = el(
+    'div',
+    { className: 'hud', hidden: true },
+    speed,
+    el('span', { className: 'cap' }, 'km/h'),
+    keysHint,
+    view,
+    exit,
+  );
+  const stick = el('div', { className: 'stick', hidden: true });
+  const lift = { up: false, down: false };
+  const hold = (label: string, key: 'up' | 'down') => {
+    const b = el('button', { type: 'button', className: 'chip', ariaLabel: key === 'up' ? 'Climb' : 'Descend' }, label);
+    b.addEventListener('pointerdown', () => {
+      lift[key] = true;
+    });
+    for (const type of ['pointerup', 'pointercancel', 'pointerleave']) {
+      b.addEventListener(type, () => {
+        lift[key] = false;
+      });
+    }
+    return b;
+  };
+  const liftPad = el('div', { className: 'lift', hidden: true }, hold('▲', 'up'), hold('▼', 'down'));
+  root.append(panel, hint, sources, hud, stick, liftPad);
   setTimeout(() => hint.classList.add('gone'), 9000);
 
   return {
+    stick,
+    lift,
+    setMode: (mode) => {
+      const street = mode !== 'explore';
+      hud.hidden = !street;
+      stick.hidden = liftPad.hidden = !street;
+      liftPad.hidden = mode !== 'fly';
+      hint.hidden = street;
+      view.hidden = mode !== 'drive';
+      drive.classList.toggle('active', mode === 'drive');
+      fly.classList.toggle('active', mode === 'fly');
+      panel.classList.remove('open');
+      keysHint.textContent =
+        mode === 'drive'
+          ? 'W A S D drive · Space brake · V view · drag to look · Esc exit'
+          : 'W S fly · A D turn · Q E sideways · Space / Shift up and down · drag to look · Esc exit';
+    },
+    setSpeed: (kmh) => {
+      const t = String(Math.round(kmh));
+      if (speed.textContent !== t) speed.textContent = t;
+    },
     setStatus: (t) => {
       if (status.textContent !== t) status.textContent = t;
     },

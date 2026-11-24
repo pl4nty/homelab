@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { PbfWriter } from 'pbf';
 import { chainLines, treeKind } from '../server/bake.ts';
+import { despike } from '../server/dem.ts';
 import { decodeTripUpdates, decodeVehiclePositions, parseCsv, tramKnots } from '../server/live.ts';
 import { TreeKind } from '../shared/tile.ts';
 
@@ -114,4 +115,17 @@ test('vehicle positions decode to world metres', () => {
   assert.equal(v.bearing, 90);
   // Single-precision coordinates land within a few metres of the origin.
   assert.ok(Math.hypot(v.x!, v.y!) < 5);
+});
+
+test('despike replaces stray elevation pixels and leaves a slope alone', () => {
+  const size = 32;
+  const h = new Float32Array(size * size);
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) h[y * size + x] = 556 + x * 3;
+  h[10 * size + 10] = -1405;
+  h[10 * size + 11] = 120;
+  h[20 * size + 5] = -32768;
+  assert.equal(despike(h, 60, size), 3);
+  assert.ok(Math.abs(h[10 * size + 10] - (556 + 30)) < 6);
+  assert.ok(Math.abs(h[20 * size + 5] - (556 + 15)) < 6);
+  assert.equal(h[4 * size + 20], 556 + 60);
 });

@@ -10,6 +10,8 @@ const STRIDE = 4;
 
 export class Traffic {
   enabled = true;
+  /** Scene position of the driven car; traffic gives it room. Null when nobody is driving. */
+  player: { x: number; z: number } | null = null;
   private m = new THREE.Matrix4();
   private c = new THREE.Color();
 
@@ -72,12 +74,12 @@ export class Traffic {
         dz /= len;
         // Keep left: one-way roads are a carriageway already, two-way roads split about the centreline.
         const off = lane.oneway ? 0 : 1.75;
+        const px = buf[a] + (buf[b] - buf[a]) * t + dz * off;
+        const pz = buf[a + 2] + (buf[b + 2] - buf[a + 2]) * t - dx * off;
         this.m.makeRotationY(Math.atan2(-dx, -dz));
-        this.m.setPosition(
-          buf[a] + (buf[b] - buf[a]) * t + dz * off,
-          buf[a + 1] + (buf[b + 1] - buf[a + 1]) * t,
-          buf[a + 2] + (buf[b + 2] - buf[a + 2]) * t - dx * off,
-        );
+        // Nothing drives through the player: a car that close is tucked out of sight.
+        const clear = !this.player || Math.hypot(px + e.originX - this.player.x, pz + e.originZ - this.player.z) > 14;
+        this.m.setPosition(px, clear ? buf[a + 1] + (buf[b + 1] - buf[a + 1]) * t : -9000, pz);
         mesh.setMatrixAt(k, this.m);
       }
       mesh.instanceMatrix.needsUpdate = true;

@@ -8,6 +8,32 @@ import { fetchBuffer } from './net.ts';
 const DEM_URL = 'https://elevation-tiles-prod.s3.amazonaws.com/terrarium';
 const PX = 256;
 
+/**
+ * The mosaic has stray pixels thousands of metres off (one cluster sits beside Scrivener Dam).
+ * Any pixel far from the median of its neighbourhood is replaced by that median.
+ */
+export function despike(h: Float32Array, threshold: number, size = PX): number {
+  const at = (x: number, y: number) =>
+    h[Math.min(size - 1, Math.max(0, y)) * size + Math.min(size - 1, Math.max(0, x))];
+  const fixes: [number, number][] = [];
+  const win: number[] = [];
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const v = h[y * size + x];
+      const cross = (at(x - 2, y) + at(x + 2, y) + at(x, y - 2) + at(x, y + 2)) / 4;
+      // Cheap test first: most pixels sit close to their neighbours and need no median.
+      if (v > -200 && v < 6000 && Math.abs(v - cross) < threshold / 2) continue;
+      win.length = 0;
+      for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) win.push(at(x + dx, y + dy));
+      win.sort((a, b) => a - b);
+      const median = win[win.length >> 1];
+      if (Math.abs(v - median) > threshold) fixes.push([y * size + x, median]);
+    }
+  }
+  for (const [i, v] of fixes) h[i] = v;
+  return fixes.length;
+}
+
 export class Dem {
   private tiles = new Lru<Promise<Float32Array>>(64);
   constructor(
@@ -28,6 +54,8 @@ export class Dem {
           for (let i = 0; i < PX * PX; i++) {
             out[i] = img.data[i * ch] * 256 + img.data[i * ch + 1] + img.data[i * ch + 2] / 256 - 32768;
           }
+          // A pixel is 8 m at zoom 14; coarser zooms span more ground, so allow more relief per pixel.
+          despike(out, 60 * Math.max(1, 2 ** (14 - this.z) / 2));
           return out;
         });
       // A failed download must not be remembered.

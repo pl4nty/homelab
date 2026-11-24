@@ -173,25 +173,25 @@ function eagle(): THREE.Group {
 /** Captain Cook Memorial Jet: a plume up to 147 m over the Central Basin. */
 function cookJet(): THREE.Group {
   const g = new THREE.Group();
-  const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55, depthWrite: false });
+  const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.42, depthWrite: false });
   const column = new THREE.Mesh(new THREE.CylinderGeometry(2.8, 1.1, 118, 10, 1, true), mat);
   column.position.y = 59;
   const crown = new THREE.Mesh(new THREE.SphereGeometry(7, 10, 8), mat);
   crown.scale.set(1, 1.5, 1);
   crown.position.y = 118;
-  // The wind carries the falling water off to one side.
+  // The wind carries the falling water off to one side: a faint sheet, not a solid shape.
   const veil = new THREE.Mesh(
-    new THREE.ConeGeometry(16, 110, 10, 1, true),
+    new THREE.ConeGeometry(11, 104, 10, 1, true),
     new THREE.MeshBasicMaterial({
       color: 0xffffff,
       transparent: true,
-      opacity: 0.16,
+      opacity: 0.07,
       depthWrite: false,
       side: THREE.DoubleSide,
     }),
   );
-  veil.position.set(9, 60, 3);
-  veil.rotation.z = -0.12;
+  veil.position.set(6, 56, 2);
+  veil.rotation.z = -0.1;
   g.add(column, crown, veil);
   g.name = 'jet';
   return g;

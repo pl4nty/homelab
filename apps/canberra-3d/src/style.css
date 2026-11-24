@@ -113,6 +113,91 @@ button {
   font-size: 12.5px;
   font-weight: 600;
 }
+.modes {
+  display: flex;
+  gap: 6px;
+}
+.menu.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #1b1408;
+}
+.hud {
+  position: fixed;
+  left: 50%;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 24px);
+  padding: 7px 10px 7px 16px;
+  border-radius: 999px;
+  background: var(--glass);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(14px);
+  font-size: 12.5px;
+}
+.hud[hidden],
+.stick[hidden],
+.lift[hidden] {
+  display: none;
+}
+.speed {
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 2.2ch;
+  text-align: right;
+}
+.keys {
+  color: var(--dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stick,
+.lift {
+  display: none;
+}
+@media (pointer: coarse) {
+  .keys {
+    display: none;
+  }
+  .stick {
+    position: fixed;
+    left: max(22px, env(safe-area-inset-left));
+    bottom: max(84px, env(safe-area-inset-bottom));
+    width: 124px;
+    height: 124px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgb(15 23 32 / 0.45);
+    border: 1px solid var(--line);
+    touch-action: none;
+  }
+  .stick i {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 0.55);
+  }
+  .lift {
+    position: fixed;
+    right: max(22px, env(safe-area-inset-right));
+    bottom: max(84px, env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    touch-action: none;
+  }
+  .lift .chip {
+    width: 56px;
+    height: 56px;
+    font-size: 18px;
+  }
+}
 .menu:hover,
 .chip:hover,
 .place:hover {

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { MapControls } from 'three/addons/controls/MapControls.js';
 import { lonLatToWorld, worldToLonLat } from '../shared/geo.ts';
 import { makeSkyDome, skyAt } from './atmosphere.ts';
+import { Car, Drone, type Ground, type Input, TouchStick } from './drive.ts';
 import { Far } from './far.ts';
 import { Labels } from './labels.ts';
 import { Landmarks, type Place } from './landmarks.ts';
@@ -11,7 +12,7 @@ import { Post } from './post.ts';
 import { TileManager } from './tiles.ts';
 import { Traffic } from './traffic.ts';
 import { TreeFactory } from './trees.ts';
-import { buildUi, canberraNow } from './ui.ts';
+import { buildUi, canberraNow, type Mode } from './ui.ts';
 import './style.css';
 
 const canvas = document.getElementById('view') as HTMLCanvasElement;
@@ -47,6 +48,8 @@ scene.add(sun, sun.target);
 const trees = new TreeFactory();
 const tiles = new TileManager(trees, Math.max(2, Math.min(4, (navigator.hardwareConcurrency || 4) - 1)));
 tiles.maxAnisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+// A 4096 px ground texture is 90 MB with mipmaps: fine on a desktop, too much to assume on a phone.
+tiles.streetTextures = renderer.capabilities.maxTextureSize >= 8192 && matchMedia('(pointer: fine)').matches;
 scene.add(tiles.group);
 const far = new Far();
 far.load(tiles).then(
@@ -145,10 +148,70 @@ function flyTo(p: Place) {
   flight = { from, to, t: 0, time: THREE.MathUtils.clamp(far / 2500, 1.4, 4) };
   following = null;
 }
-canvas.addEventListener('pointerdown', () => {
+canvas.addEventListener('pointerdown', (e) => {
   flight = null;
   following = null;
+  if (mode !== 'explore') {
+    look.id = e.pointerId;
+    canvas.setPointerCapture(e.pointerId);
+  }
 });
+// At street level a drag looks around instead of moving the map.
+const look = { id: -1, x: 0, y: 0 };
+canvas.addEventListener('pointermove', (e) => {
+  if (e.pointerId !== look.id) return;
+  look.x += e.movementX * 0.004;
+  look.y -= e.movementY * 0.004;
+});
+for (const type of ['pointerup', 'pointercancel'] as const) {
+  canvas.addEventListener(type, (e) => {
+    if (e.pointerId === look.id) look.id = -1;
+  });
+}
+
+let mode: Mode = 'explore';
+const car = new Car();
+const drone = new Drone();
+scene.add(car.group);
+const world: Ground = {
+  surfaceAt: (x, z, y) => tiles.surfaceAt(x, z, y) ?? far.heightAt(x, z),
+  blockedAt: (x, z) => tiles.blockedAt(x, z),
+};
+let blurWanted = true;
+function setMode(next: Mode) {
+  if (next === mode) next = 'explore';
+  const v = getView();
+  const az = THREE.MathUtils.degToRad(v.bearing);
+  // Leaving a vehicle, look back down at where it was.
+  if (mode === 'drive') setView(car.x, car.z, 420, THREE.MathUtils.radToDeg(car.heading), 62);
+  if (mode === 'fly')
+    setView(
+      drone.x,
+      drone.z,
+      Math.max(300, (drone.y - groundAt(drone.x, drone.z)) * 1.6),
+      THREE.MathUtils.radToDeg(drone.heading),
+      55,
+    );
+  if (next === 'drive') {
+    // Start on the nearest through road, facing along it, if one is close.
+    const road = tiles.nearestRoad(v.x, v.z);
+    car.place(road?.x ?? v.x, road?.z ?? v.z, road?.heading ?? az, world);
+  } else if (next === 'fly') {
+    drone.place(camera.position.x, Math.min(camera.position.y, groundAt(v.x, v.z) + 400), camera.position.z, az);
+  }
+  car.group.visible = next === 'drive';
+  mode = next;
+  flight = null;
+  following = null;
+  controls.enabled = mode === 'explore';
+  camera.fov = mode === 'explore' ? 32 : 62;
+  post.blur = mode === 'explore' && blurWanted ? 1 : 0;
+  look.x = look.y = 0;
+  // A focused button would take Space and the arrow keys.
+  (document.activeElement as HTMLElement | null)?.blur();
+  ui.setMode(mode);
+}
+
 canvas.addEventListener(
   'wheel',
   () => {
@@ -166,7 +229,12 @@ const ui = buildUi(
       writeHash();
     },
     setBlur: (on) => {
-      post.blur = on ? 1 : 0;
+      blurWanted = on;
+      post.blur = on && mode === 'explore' ? 1 : 0;
+    },
+    setMode,
+    toggleView: () => {
+      car.firstPerson = !car.firstPerson;
     },
     setLabels: (on) => {
       labels.enabled = on;
@@ -195,8 +263,32 @@ live.start();
 const keys = new Set<string>();
 window.addEventListener('keydown', (e) => {
   if (e.target instanceof HTMLInputElement) return;
-  keys.add(e.key.toLowerCase());
+  const key = e.key.toLowerCase();
+  keys.add(key);
+  if (mode === 'explore') return;
+  if (key === 'escape') setMode('explore');
+  if (key === 'v' && mode === 'drive') car.firstPerson = !car.firstPerson;
+  // Space and the arrows would otherwise scroll or press the focused button.
+  if (key === ' ' || key.startsWith('arrow')) e.preventDefault();
 });
+const stick = new TouchStick(ui.stick);
+const held = (...names: string[]) => names.some((k) => keys.has(k));
+function readInput(): Input {
+  const input: Input = {
+    throttle: (held('w', 'arrowup') ? 1 : 0) - (held('s', 'arrowdown') ? 1 : 0) + stick.y,
+    steer: (held('d', 'arrowright') ? 1 : 0) - (held('a', 'arrowleft') ? 1 : 0) + stick.x,
+    lift: (held(' ', 'r') || ui.lift.up ? 1 : 0) - (held('shift', 'f') || ui.lift.down ? 1 : 0),
+    strafe: (held('e') ? 1 : 0) - (held('q') ? 1 : 0),
+    brake: mode === 'drive' && held(' '),
+    lookX: look.x,
+    lookY: look.y,
+    dragging: look.id !== -1,
+  };
+  look.x = look.y = 0;
+  input.throttle = THREE.MathUtils.clamp(input.throttle, -1, 1);
+  input.steer = THREE.MathUtils.clamp(input.steer, -1, 1);
+  return input;
+}
 window.addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
 window.addEventListener('blur', () => keys.clear());
 /** Arrow keys or WASD move, Q and E turn, R and F tilt, plus and minus zoom. */
@@ -286,7 +378,18 @@ function frame() {
   const dt = Math.min(0.1, (performance.now() - lastFrame) / 1000);
   lastFrame = performance.now();
   shared.time.value += dt;
-  if (flight) {
+  if (mode === 'drive') {
+    const input = readInput();
+    car.update(dt, input, world);
+    car.aim(camera, dt, input, world);
+    controls.target.set(car.x, car.y, car.z);
+    ui.setSpeed(Math.abs(car.speed) * 3.6);
+  } else if (mode === 'fly') {
+    drone.update(dt, readInput(), world);
+    drone.aim(camera);
+    controls.target.set(drone.x, groundAt(drone.x, drone.z), drone.z);
+    ui.setSpeed(drone.speed * 3.6);
+  } else if (flight) {
     flight.t = Math.min(1, flight.t + dt / flight.time);
     const k = flight.t * flight.t * (3 - 2 * flight.t);
     const { from: a, to: b } = flight;
@@ -303,21 +406,33 @@ function frame() {
     controls.update();
   }
 
-  // Keep the pivot on the ground as the terrain streams in underneath it.
-  const ground = groundAt(controls.target.x, controls.target.z);
-  const lift = (ground - controls.target.y) * Math.min(1, dt * 4);
-  controls.target.y += lift;
-  camera.position.y += lift;
-  const floor = groundAt(camera.position.x, camera.position.z) + 8;
-  if (camera.position.y < floor) camera.position.y = floor;
+  const street = mode !== 'explore';
+  if (!street) {
+    // Keep the pivot on the ground as the terrain streams in underneath it.
+    const ground = groundAt(controls.target.x, controls.target.z);
+    const lift = (ground - controls.target.y) * Math.min(1, dt * 4);
+    controls.target.y += lift;
+    camera.position.y += lift;
+    const floor = groundAt(camera.position.x, camera.position.z) + 8;
+    if (camera.position.y < floor) camera.position.y = floor;
+  }
 
-  const dist = camera.position.distanceTo(controls.target);
+  // How far the camera is from what it looks at; at street level, how far it can usefully see.
+  const height = camera.position.y - groundAt(camera.position.x, camera.position.z);
+  const dist = street ? THREE.MathUtils.clamp(height * 2.5, 350, 6000) : camera.position.distanceTo(controls.target);
   const now = performance.now();
   if (!document.hidden) adaptResolution(dt, now);
   if (now - lastTileUpdate > 250) {
     lastTileUpdate = now;
-    const radius = THREE.MathUtils.clamp(dist * 1.5, 1800, 5200);
-    tiles.update(controls.target.x, controls.target.z, radius, THREE.MathUtils.clamp(dist * 0.9, 900, 1700), dist);
+    const radius = THREE.MathUtils.clamp(dist * 1.5, street ? 2400 : 1800, 5200);
+    tiles.update(
+      controls.target.x,
+      controls.target.z,
+      radius,
+      THREE.MathUtils.clamp(dist * 0.9, 900, 1700),
+      dist,
+      street && height < 60,
+    );
   }
 
   const s = applySky();
@@ -327,15 +442,26 @@ function frame() {
   );
   landmarks.update(shared.time.value, state.hour, s.night);
   live.update(dt);
+  traffic.player = mode === 'drive' ? car : null;
   traffic.update(dt);
-  labels.update(camera, controls.target, window.innerWidth, window.innerHeight);
+  labels.update(
+    camera,
+    controls.target,
+    window.innerWidth,
+    window.innerHeight,
+    street ? Math.max(700, dist) : undefined,
+  );
   const waiting = tiles.loading;
   ui.setStatus(
     waiting
       ? `Loading ${waiting} ${waiting === 1 ? 'tile' : 'tiles'}`
       : tiles.missing.size
         ? `Some data is unavailable: ${[...tiles.missing].join(', ')}`
-        : 'Drag, scroll and explore',
+        : street
+          ? mode === 'drive'
+            ? 'Driving'
+            : 'Flying'
+          : 'Drag, scroll and explore',
   );
   // Fit the shadow map to what is in view, and snap it to whole texels so shadows do not crawl.
   const extent = THREE.MathUtils.clamp(dist * 0.9, 250, 2600);
@@ -352,12 +478,13 @@ function frame() {
   sun.position.copy(sun.target.position).addScaledVector(s.dir, 4500);
   sun.target.updateMatrixWorld();
 
-  camera.near = Math.max(3, dist * 0.02);
+  camera.near = street ? THREE.MathUtils.clamp(height * 0.05, 0.3, 20) : Math.max(3, dist * 0.02);
   camera.far = Math.max(40000, dist * 12);
   camera.updateProjectionMatrix();
   const fog = scene.fog as THREE.Fog;
-  fog.near = Math.max(2500, dist * 1.6);
-  fog.far = Math.max(16000, dist * 9);
+  // Nearer haze at street level hides where the loaded tiles end.
+  fog.near = street ? Math.max(500, dist * 0.8) : Math.max(2500, dist * 1.6);
+  fog.far = street ? Math.max(5000, dist * 6) : Math.max(16000, dist * 9);
   sky.position.copy(camera.position);
   sky.scale.setScalar(camera.far * 0.9);
   post.focus = dist;
@@ -367,4 +494,6 @@ function frame() {
 requestAnimationFrame(frame);
 
 // Handles for the console and for automated screenshots.
-Object.assign(window, { app: { scene, camera, controls, tiles, state, setView, post, renderer, live, flyTo } });
+Object.assign(window, {
+  app: { scene, camera, controls, tiles, state, setView, post, renderer, live, flyTo, setMode, car, drone },
+});

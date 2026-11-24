@@ -1,6 +1,6 @@
 // The baked tile the server sends. Planar coordinates are integers in decimetres from the
 // tile's south-west corner (x east, y north); heights are metres unless noted.
-export const TILE_VERSION = 3;
+export const TILE_VERSION = 4;
 export const DEM_N = 64;
 
 export interface Building {
