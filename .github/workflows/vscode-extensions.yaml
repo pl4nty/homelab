@@ -39,7 +39,7 @@ jobs:
           HEAD: ${{ github.sha }}
         run: |
           all=$(for f in apps/*/package.json; do
-            jq -e '.engines.vscode and .publisher' "$f" >/dev/null && dirname "$f" | cut -d/ -f2
+            if jq -e '.engines.vscode and .publisher' "$f" >/dev/null; then dirname "$f" | cut -d/ -f2; fi
           done)
           if [ "$EVENT" = workflow_dispatch ] || ! changed=$(git diff --name-only "$BASE" "$HEAD" 2>/dev/null) \
             || grep -qx .github/workflows/vscode-extensions.yaml <<<"$changed"; then
