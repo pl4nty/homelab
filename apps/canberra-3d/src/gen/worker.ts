@@ -1,7 +1,7 @@
 import { TILE_VERSION, type Tile } from '../../shared/tile.ts';
 import { buildTile } from './build.ts';
 import { paintGround } from './ground.ts';
-import type { BuildReply, BuildRequest, Built } from './types.ts';
+import type { BuildReply, BuildRequest, Built, FacadeIndex } from './types.ts';
 
 function transferables(b: Built): Transferable[] {
   const out: Transferable[] = [
@@ -24,6 +24,7 @@ function transferables(b: Built): Transferable[] {
     if (!m) continue;
     out.push(m.pos.buffer, m.normal.buffer, m.color.buffer, m.index.buffer);
     if (m.wall) out.push(m.wall.buffer);
+    if (m.fuv) out.push(m.fuv.buffer);
   }
   if (b.water) out.push(b.water.pos.buffer, b.water.index.buffer);
   return out;
@@ -63,6 +64,20 @@ async function photograph(x: number, y: number, res: number): Promise<ImageBitma
   return got ? canvas.transferToImageBitmap() : null;
 }
 
+/** Facade photographs for a tile, if the offline pipeline has made any. */
+async function facadesFor(x: number, y: number): Promise<{ index: FacadeIndex; atlas: ImageBitmap } | null> {
+  try {
+    const r = await fetch(`/api/facades/15/${x}/${y}.json`);
+    if (!r.ok) return null;
+    const index = (await r.json()) as FacadeIndex;
+    const img = await fetch(`/api/facades/15/${x}/${y}.webp`);
+    if (!img.ok) return null;
+    return { index, atlas: await createImageBitmap(await img.blob()) };
+  } catch {
+    return null;
+  }
+}
+
 // Recently built tiles, kept so the ground can be repainted sharper without another download.
 const recent = new Map<string, Tile>();
 
@@ -92,9 +107,12 @@ self.onmessage = async (e: MessageEvent<BuildRequest>) => {
       const mask = painted.mask.transferToImageBitmap();
       post({ id, ok: true, ground, mask, photo }, photo ? [ground, mask, photo] : [ground, mask]);
     } else {
-      const built = buildTile(tile, res, missing);
+      const facades = await facadesFor(x, y);
+      const built = buildTile(tile, res, missing, facades?.index ?? null);
       built.photo = photo;
-      post({ id, ok: true, built }, photo ? [...transferables(built), photo] : transferables(built));
+      built.facade = facades?.atlas ?? null;
+      const extra = [photo, built.facade].filter((b) => b !== null);
+      post({ id, ok: true, built }, [...transferables(built), ...extra]);
     }
   } catch (err) {
     post({ id, ok: false, error: (err as Error).message });

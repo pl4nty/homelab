@@ -62,7 +62,10 @@ const landmarks = new Landmarks();
 scene.add(landmarks.group);
 const labels = new Labels(document.getElementById('labels')!);
 tiles.onLabels = (key, list, origin) => labels.set(key, list, origin);
-tiles.onChange = () => landmarks.unsettle();
+tiles.onChange = () => {
+  landmarks.unsettle();
+  if (tiles.facadeCredits.size) ui.setFacadeCredits([...tiles.facadeCredits]);
+};
 tiles.onLandmark = (id, x, z) => landmarks.moveTo(id, x, z);
 const traffic = new Traffic(tiles);
 const live = new LiveLayer(groundAt);
@@ -238,6 +241,9 @@ const ui = buildUi(
     },
     setLabels: (on) => {
       labels.enabled = on;
+    },
+    setFacades: (on) => {
+      shared.facades.value = on ? 1 : 0;
     },
     setPhoto: (on) => {
       shared.photo.value = on ? 1 : 0;

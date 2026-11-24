@@ -324,6 +324,9 @@ input[type="range"] {
 .credits summary::-webkit-details-marker {
   display: none;
 }
+.credits a {
+  color: inherit;
+}
 .credits p {
   margin: 0;
   padding: 2px 10px 9px;

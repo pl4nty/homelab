@@ -113,6 +113,17 @@ const server = createServer(async (req, res) => {
         ...(missing.length ? { 'x-missing': missing.join(', ') } : {}),
       });
     }
+    // Facade textures are made offline by facades/build.py and dropped into the data directory.
+    const facade = url.pathname.match(/^\/api\/facades\/15\/(\d+)\/(\d+)\.(json|webp)$/);
+    if (facade) {
+      const body = await disk.get(`facades/${facade[1]}/${facade[2]}.${facade[3]}`);
+      if (!body) return send(res, 404, 'no facades for this tile', { 'cache-control': 'public, max-age=300' });
+      return send(res, 200, body, {
+        'content-type': facade[3] === 'json' ? 'application/json' : 'image/webp',
+        // Rebuilt whenever the pipeline is rerun, so only briefly cacheable.
+        'cache-control': 'public, max-age=300',
+      });
+    }
     if (url.pathname === '/api/far') return sendJson(res, await farTerrain(disk), 'public, max-age=604800');
     if (url.pathname === '/api/live') {
       const at = Number(url.searchParams.get('at')) || undefined;

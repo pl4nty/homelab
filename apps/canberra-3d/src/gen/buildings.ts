@@ -6,7 +6,7 @@ import { pointInPolygon, ringArea } from '../../shared/poly.ts';
 import type { Building, Tile } from '../../shared/tile.ts';
 import { ROOF_FLAT, ROOF_HOUSE, WALL_APT, WALL_CIVIC, WALL_COM, WALL_HOUSE, WALL_SHED } from './palette.ts';
 import { MAST } from './sites.ts';
-import { hash2, type Label, MeshBuilder } from './types.ts';
+import { type FacadeIndex, hash2, type Label, MeshBuilder } from './types.ts';
 
 /** Window styles the wall shader understands. */
 const STYLE_NONE = 0;
@@ -141,6 +141,7 @@ export function buildBuildings(
   hAt: (x: number, y: number) => number,
   labels: Label[],
   landmarks: { id: string; x: number; z: number }[],
+  facades: FacadeIndex | null,
 ): MeshBuilder {
   const mb = new MeshBuilder();
   const origin = tileBoundsWorld(TILE_Z, tile.x, tile.y);
@@ -234,6 +235,19 @@ export function buildBuildings(
         mb.vertex(bx, eave, -by, nx, 0, nz, c, along + len, wallH, look.style + seed2 * 0.9, wallH);
         mb.vertex(ax, eave, -ay, nx, 0, nz, c, along, wallH, look.style + seed2 * 0.9, wallH);
         mb.index.push(v0, v0 + 1, v0 + 2, v0, v0 + 2, v0 + 3);
+        if (facades && !b.mh) {
+          // The pipeline keys a wall by its two ends in tile decimetres, smaller end first, and
+          // lays the photograph from that end, top row at the building's full height.
+          const ia = [Math.round(ax * 10), Math.round(ay * 10)];
+          const ib = [Math.round(bx * 10), Math.round(by * 10)];
+          const aFirst = ia[0] < ib[0] || (ia[0] === ib[0] && ia[1] <= ib[1]);
+          const rect = facades.walls[aFirst ? `${ia},${ib}` : `${ib},${ia}`];
+          if (rect) {
+            const u = (end: number) => (rect[0] + (end === (aFirst ? 0 : 1) ? 0.5 : rect[2] - 0.5)) / facades.size;
+            const v = (y: number) => (rect[1] + Math.min(1, Math.max(0, 1 - y / b.h)) * rect[3]) / facades.size;
+            mb.fuv.splice(v0 * 2, 8, u(0), v(bottom - base), u(1), v(bottom - base), u(1), v(wallH), u(0), v(wallH));
+          }
+        }
         along += len;
       }
     }

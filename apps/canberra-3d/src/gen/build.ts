@@ -5,7 +5,7 @@ import { lineLength, pointInPolygon, ringArea, ringBBox } from '../../shared/pol
 import { DEM_N, type Road, type Tile } from '../../shared/tile.ts';
 import { buildBuildings } from './buildings.ts';
 import { paintGround, roadWidth } from './ground.ts';
-import { BASE, type Built, hash2, type Label, MeshBuilder } from './types.ts';
+import { BASE, type Built, type FacadeIndex, hash2, type Label, MeshBuilder } from './types.ts';
 
 const N = DEM_N + 1;
 const STEP = TILE_SIZE / DEM_N;
@@ -110,7 +110,7 @@ function buildBridges(tile: Tile, hAt: (x: number, y: number) => number): MeshBu
   return mb;
 }
 
-export function buildTile(tile: Tile, res: number, missing: string): Built {
+export function buildTile(tile: Tile, res: number, missing: string, facades: FacadeIndex | null): Built {
   // --- terrain heights, mutable so water can press them down
   const heights = new Float32Array(N * N);
   for (let i = 0; i < N * N; i++) heights[i] = tile.dem.min + tile.dem.h[i] / 10 - BASE;
@@ -228,7 +228,7 @@ export function buildTile(tile: Tile, res: number, missing: string): Built {
 
   const labels: Label[] = [];
   const landmarks: Built['landmarks'] = [];
-  const buildings = buildBuildings(tile, hAt, labels, landmarks);
+  const buildings = buildBuildings(tile, hAt, labels, landmarks, facades);
   const bridges = buildBridges(tile, hAt);
 
   // --- trees
@@ -355,6 +355,8 @@ export function buildTile(tile: Tile, res: number, missing: string): Built {
     ground,
     mask,
     photo: null,
+    facade: null,
+    facadeCredits: facades?.credits ?? [],
     terrain: { pos, normal, uv, index },
     buildings: buildings.finish(true),
     bridges: bridges.finish(false),

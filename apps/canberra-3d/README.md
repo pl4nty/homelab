@@ -49,6 +49,25 @@ Known gaps: no open surface model of the ACT exists, so building heights are onl
 | `OVERTURE_RELEASE` | newest | Overture keeps about two months of releases, so the newest is looked up daily. |
 | `BUS_RT_AUTH` | | `user:password` for Transport Canberra's bus feed, from the [ACT Government API portal](https://anypoint.mulesoft.com/exchange/portals/act-government-9/). Without it only trams are live. |
 
+## Facade photographs (experimental)
+
+`facades/build.py` is an offline research pipeline that textures walls from [Mapillary](https://www.mapillary.com/) street photos (CC BY-SA 4.0). It is not part of the image and nothing runs it automatically. For each wall of a tile it:
+
+1. finds recent photos that look at the wall;
+2. keeps only pixels Mapillary's own segmentation labels as building, which drops trees, cars and sky;
+3. shifts and turns each camera until the model's buildings overlap that segmentation, because published poses are GPS-grade;
+4. drops parts of a wall another building hides;
+5. blends the photos texel by texel, keeping a texel only where two photos agree or one well-aligned photo saw it;
+6. packs the walls that are at least 45% covered into an atlas and an index.
+
+```sh
+MAPILLARY_TOKEN=... uv run facades/build.py --server http://localhost:8080 --out "$DATA_DIR/facades" 29958/19819
+```
+
+The server serves what it finds in `DATA_DIR/facades` at `/api/facades/15/{x}/{y}.json` and `.webp`, and the client lays the photographs on the matching walls when `Street photos (experimental)` is switched on, and names the photographers. Walls are matched by their end points in the tile, so a new Overture release that moves a footprint drops that wall back to drawn windows until the tile is rebuilt.
+
+State of it: on the best-covered tile (central Civic, 999 walls, 5,083 photos since 2023) it textures 54 walls, 6% of wall length, and many of those are smeared or show the wrong surface. It is off by default because it does not yet beat the drawn windows. Usable Mapillary coverage in Canberra is the city centre and a few main roads; an 800 m square in Curtin has two photos. Most photos are dashcam frames along the street, so facades are seen at a slant. Known gaps: no check that a pixel's depth is on the wall (a taller building behind can print onto a wall in front), buildings in neighbouring tiles are ignored, and the ground is assumed flat.
+
 ## Develop
 
 ```sh

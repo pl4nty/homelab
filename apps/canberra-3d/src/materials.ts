@@ -8,6 +8,8 @@ export const shared = {
   sky: { value: new THREE.Color(0xc4dcf0) },
   /** How much of the aerial photograph shows: 0 for drawn colours only. */
   photo: { value: 1 },
+  /** How much of the experimental street photographs shows on walls; off unless switched on. */
+  facades: { value: 0 },
 };
 
 /** Stands in where a tile has no photograph: fully transparent, so nothing is blended. */
@@ -35,24 +37,30 @@ export function vertexColourMaterial(): THREE.MeshLambertMaterial {
  * the wall; pitched roofs draw tile courses and the odd solar array. All of it fades to its average
  * with distance, so nothing shimmers.
  */
-export function buildingMaterial(photo: THREE.Texture, tileSize: number): THREE.MeshLambertMaterial {
+export function buildingMaterial(
+  photo: THREE.Texture,
+  tileSize: number,
+  facade: THREE.Texture,
+): THREE.MeshLambertMaterial {
   const m = new THREE.MeshLambertMaterial({ vertexColors: true });
   // One material per tile, all sharing a program: each has its own photograph.
   m.userData.photo = { value: photo };
   m.onBeforeCompile = (shader) => {
     shader.uniforms.uNight = shared.night;
     shader.uniforms.uPhoto = m.userData.photo;
+    shader.uniforms.uFacade = { value: facade };
     shader.uniforms.uPhotoMix = shared.photo;
+    shader.uniforms.uFacadeMix = shared.facades;
     shader.uniforms.uTile = { value: tileSize };
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
-        '#include <common>\nattribute vec4 wall;\nvarying vec4 vWall;\nvarying vec2 vPlan;\nuniform float uTile;',
+        '#include <common>\nattribute vec4 wall;\nattribute vec2 fuv;\nvarying vec4 vWall;\nvarying vec2 vPlan;\nvarying vec2 vFuv;\nuniform float uTile;',
       )
       // A roof seen from above lies at its plan position in the tile's photograph, north at the top.
       .replace(
         '#include <begin_vertex>',
-        '#include <begin_vertex>\nvWall = wall;\nvPlan = vec2(position.x / uTile, 1.0 + position.z / uTile);',
+        '#include <begin_vertex>\nvWall = wall;\nvFuv = fuv;\nvPlan = vec2(position.x / uTile, 1.0 + position.z / uTile);',
       );
     shader.fragmentShader = shader.fragmentShader
       .replace(
@@ -60,7 +68,8 @@ export function buildingMaterial(photo: THREE.Texture, tileSize: number): THREE.
         /* glsl */ `#include <common>
         varying vec4 vWall;
         varying vec2 vPlan;
-        uniform float uNight; uniform float uPhotoMix; uniform sampler2D uPhoto;
+        varying vec2 vFuv;
+        uniform float uNight; uniform float uPhotoMix; uniform float uFacadeMix; uniform sampler2D uPhoto; uniform sampler2D uFacade;
         float h21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
         // 1 where a repeating pattern is resolved on screen, 0 where a cell is under a pixel.
         float resolved(vec2 cell, float lo, float hi) { vec2 w = fwidth(cell); return 1.0 - smoothstep(lo, hi, max(w.x, w.y)); }`,
@@ -152,6 +161,13 @@ export function buildingMaterial(photo: THREE.Texture, tileSize: number): THREE.
           lit = mix(vec3(1.0, 0.72, 0.38), vec3(0.85, 0.9, 1.0), step(0.8, r)) * win * on * uNight * 1.6;
         }
         if (style > 9.5) diffuseColor.rgb = mix(diffuseColor.rgb, real.rgb * (0.82 + 0.18 * dot(diffuseColor.rgb, vec3(0.333)) / max(dot(drawn, vec3(0.333)), 0.02)), photo * 0.92);
+        // A wall with a street photograph shows it, in place of the drawn windows, above ground level.
+        if (vFuv.x >= 0.0 && vWall.y >= 0.0 && style < 9.5) {
+          vec4 street = texture2D(uFacade, vFuv);
+          float shown = street.a * uFacadeMix;
+          diffuseColor.rgb = mix(diffuseColor.rgb, street.rgb, shown);
+          lit *= 1.0 - shown;
+        }
         // A pale coping along the top of flat-roofed walls.
         if (style > 1.5 && style < 9.5) diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 1.25 + 0.03, smoothstep(vWall.w - 0.55, vWall.w - 0.35, vWall.y));
         `,

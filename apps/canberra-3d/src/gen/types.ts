@@ -9,6 +9,8 @@ export interface MeshData {
   index: Uint32Array;
   /** Buildings only: [metres along the wall, metres above the base, style, wall height] per vertex. */
   wall?: Float32Array;
+  /** Buildings only: where each vertex falls in the tile's facade atlas, or -1 where it has no photograph. */
+  fuv?: Float32Array;
 }
 
 export interface Label {
@@ -30,6 +32,10 @@ export interface Built {
   mask: ImageBitmap;
   /** Aerial photograph of the tile, where the survey covers it. */
   photo: ImageBitmap | null;
+  /** Facade photographs packed into one image, where the offline pipeline has made them. */
+  facade: ImageBitmap | null;
+  /** The photographers to credit for it. */
+  facadeCredits: string[];
   terrain: { pos: Float32Array; normal: Float32Array; uv: Float32Array; index: Uint32Array };
   buildings: MeshData | null;
   bridges: MeshData | null;
@@ -68,6 +74,14 @@ export type BuildReply =
   | { id: number; ok: true; ground: ImageBitmap; mask: ImageBitmap; photo: ImageBitmap | null }
   | { id: number; ok: false; error: string };
 
+/** The index the facade pipeline writes beside each atlas. */
+export interface FacadeIndex {
+  size: number;
+  /** Atlas rectangle [x, y, width, height] by wall, keyed by its end points in tile decimetres. */
+  walls: Record<string, [number, number, number, number]>;
+  credits: string[];
+}
+
 export function hash2(x: number, y: number): number {
   let h = (Math.imul(x | 0, 374761393) + Math.imul(y | 0, 668265263)) | 0;
   h = Math.imul(h ^ (h >>> 13), 1274126177);
@@ -80,6 +94,7 @@ export class MeshBuilder {
   normal: number[] = [];
   color: number[] = [];
   wall: number[] = [];
+  fuv: number[] = [];
   index: number[] = [];
 
   get count(): number {
@@ -104,6 +119,7 @@ export class MeshBuilder {
     this.normal.push(nx, ny, nz);
     this.color.push((c >> 16) & 255, (c >> 8) & 255, c & 255);
     this.wall.push(w0, w1, w2, w3);
+    this.fuv.push(-1, -1);
     return i;
   }
 
@@ -173,7 +189,10 @@ export class MeshBuilder {
       color: new Uint8Array(this.color),
       index: new Uint32Array(this.index),
     };
-    if (withWall) out.wall = new Float32Array(this.wall);
+    if (withWall) {
+      out.wall = new Float32Array(this.wall);
+      out.fuv = new Float32Array(this.fuv);
+    }
     return out;
   }
 }

@@ -33,6 +33,7 @@ interface Entry {
   /** The tile's aerial photograph, shared by its ground and its roofs. */
   photo?: THREE.Texture;
   walls?: THREE.MeshLambertMaterial;
+  facade?: THREE.Texture;
   retryAt?: number;
   originX: number;
   originZ: number;
@@ -44,6 +45,7 @@ function meshFrom(d: MeshData, material: THREE.Material): THREE.Mesh {
   g.setAttribute('normal', new THREE.BufferAttribute(d.normal, 3));
   g.setAttribute('color', new THREE.BufferAttribute(d.color, 3, true));
   if (d.wall) g.setAttribute('wall', new THREE.BufferAttribute(d.wall, 4));
+  if (d.fuv) g.setAttribute('fuv', new THREE.BufferAttribute(d.fuv, 2));
   g.setIndex(new THREE.BufferAttribute(d.index, 1));
   const m = new THREE.Mesh(g, material);
   m.castShadow = true;
@@ -115,6 +117,8 @@ export class TileManager {
   onLandmark?: (id: string, x: number, z: number) => void;
   focus = new THREE.Vector2();
   missing = new Set<string>();
+  /** Mapillary photographers whose pictures are on walls now loaded; their licence requires naming them. */
+  facadeCredits = new Set<string>();
 
   constructor(
     private trees: TreeFactory,
@@ -421,6 +425,7 @@ export class TileManager {
         reply.built.ground.close();
         reply.built.mask.close();
         reply.built.photo?.close();
+        reply.built.facade?.close();
       }
     }
     this.pump();
@@ -460,7 +465,9 @@ export class TileManager {
     e.ground = ground;
 
     if (b.buildings) {
-      e.walls = buildingMaterial(photo, TILE_SIZE);
+      e.facade = b.facade ? this.texture(b.facade) : undefined;
+      for (const name of b.facadeCredits) this.facadeCredits.add(name);
+      e.walls = buildingMaterial(photo, TILE_SIZE, e.facade ?? noPhoto);
       group.add(meshFrom(b.buildings, e.walls));
     }
     if (b.bridges) group.add(meshFrom(b.bridges, this.plain));
@@ -585,6 +592,7 @@ export class TileManager {
     e.ground?.material.map?.dispose();
     if (e.photo !== noPhoto) e.photo?.dispose();
     e.walls?.dispose();
+    e.facade?.dispose();
     (e.ground?.material.userData.mask as { value: THREE.Texture } | undefined)?.value.dispose();
     e.ground?.material.dispose();
     for (const o of [...e.group.children]) this.dispose(o);

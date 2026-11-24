@@ -7,6 +7,7 @@ export interface UiHooks {
   setLabels(on: boolean): void;
   setAutumn(on: boolean): void;
   setPhoto(on: boolean): void;
+  setFacades(on: boolean): void;
   setLive(on: boolean): void;
   followTram(): boolean;
   setMode(mode: Mode): void;
@@ -24,6 +25,8 @@ export interface Ui {
   setStatus(text: string): void;
   setLive(text: string, trams: number): void;
   setHour(h: number): void;
+  /** Names the photographers of any street photographs on the walls in view. */
+  setFacadeCredits(names: string[]): void;
 }
 
 function el(tag: string, props: Record<string, unknown> = {}, ...kids: (Node | string)[]): HTMLElement {
@@ -123,6 +126,7 @@ export function buildUi(root: HTMLElement, hooks: UiHooks, initial: { hour: numb
         toggle('Labels', true, hooks.setLabels),
         toggle('Live transport', true, hooks.setLive),
         toggle('Aerial photo', true, hooks.setPhoto),
+        toggle('Street photos (experimental)', false, hooks.setFacades),
         toggle('Autumn leaves', false, hooks.setAutumn),
       ),
       el('div', { className: 'row' }, dot, live, follow),
@@ -143,6 +147,8 @@ export function buildUi(root: HTMLElement, hooks: UiHooks, initial: { hour: numb
       'Roofs and ground colour: ACT Government aerial photography, © Australian Capital Territory and Aerometrex (CC BY). Terrain: Mapzen Terrain Tiles on AWS. Light rail: Canberra Metro and Transport Canberra GTFS (CC BY 4.0); tram positions are worked out from live arrival predictions.',
     ),
   );
+  const facadeCredit = el('p', { hidden: true });
+  sources.append(facadeCredit);
   const hint = el('p', { className: 'hint' }, 'Drag to move · right-drag or two fingers to turn · scroll to zoom');
 
   // Street level: a speed readout, what the keys do, and the way out.
@@ -208,6 +214,12 @@ export function buildUi(root: HTMLElement, hooks: UiHooks, initial: { hour: numb
       live.textContent = t;
       dot.classList.toggle('on', trams > 0);
       follow.hidden = trams === 0;
+    },
+    setFacadeCredits: (names) => {
+      if (!names.length || !facadeCredit.hidden) return;
+      facadeCredit.hidden = false;
+      const link = el('a', { href: 'https://www.mapillary.com/', target: '_blank', rel: 'noopener' }, 'Mapillary');
+      facadeCredit.append('Wall photographs: ', link, ` contributors ${names.join(', ')} (CC BY-SA 4.0).`);
     },
     setHour: (h) => {
       slider.value = String(h);
