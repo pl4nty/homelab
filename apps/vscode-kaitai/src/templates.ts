@@ -67,7 +67,10 @@ export class Templates implements vscode.Disposable {
       // Keep only the latest source per URI.
       for (const k of this.cache.keys()) if (k.startsWith(`${uri.toString()}\0`)) this.cache.delete(k);
       const imports: vscode.Uri[] = [];
-      p = compileTemplate(source, importReader(uri, (u) => imports.push(u))).then(
+      p = compileTemplate(
+        source,
+        importReader(uri, (u) => imports.push(u)),
+      ).then(
         (template) => ({ uri, source, template, imports }),
         (e) => ({ uri, source, error: toKsyError(e), imports }),
       );

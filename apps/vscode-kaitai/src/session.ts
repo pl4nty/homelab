@@ -18,6 +18,10 @@ export class KaitaiDocument {
   /** Increases on every parse (or clear). */
   version = 0;
   selection: ByteRange = { start: 0, end: 0 };
+  /** Values for the spec's top-level `params`, in order. */
+  params?: unknown[];
+  /** Extra roots: byte ranges parsed as a chosen user type ("parse selection as"). */
+  extraParses: { typeName: string; start: number; end: number }[] = [];
 
   constructor(uri: vscode.Uri, data: Uint8Array) {
     this.uri = uri;
@@ -141,6 +145,10 @@ export class Session implements vscode.Disposable {
 
   /** Applies a spec to a file and remembers it for the file and its extension. */
   async setSpec(doc: KaitaiDocument, specUri: vscode.Uri | undefined, remember = true) {
+    if (doc.specUri?.toString() !== specUri?.toString()) {
+      doc.params = undefined;
+      doc.extraParses = [];
+    }
     doc.specUri = specUri;
     if (remember) {
       const byFile = { ...this.memento.get<Record<string, string>>('kaitai.byFile', {}) };
@@ -190,17 +198,31 @@ export class Session implements vscode.Disposable {
     if (version !== doc.version) return; // a newer reparse started
     doc.template = compiled.template;
     doc.specError = compiled.error && formatSpecError(compiled.error);
-    doc.result =
-      !compiled.template
-        ? undefined
-        : doc.data.byteLength > max
-          ? { roots: [], error: `File is larger than kaitai.maxFileSizeMB (${max / 1048576} MB)` }
-          : compiled.template.parse(doc.data);
+    doc.result = !compiled.template
+      ? undefined
+      : doc.data.byteLength > max
+        ? { roots: [], error: `File is larger than kaitai.maxFileSizeMB (${max / 1048576} MB)` }
+        : compiled.template.parse(doc.data, { params: doc.params });
+    if (doc.result && compiled.template) {
+      for (const x of doc.extraParses) {
+        const r = compiled.template.parse(doc.data.subarray(x.start, x.end), {
+          typeName: x.typeName,
+          baseOffset: x.start,
+          rootName: `${x.typeName}@0x${x.start.toString(16).toUpperCase()}`,
+        });
+        doc.result.roots.push(...r.roots);
+      }
+    }
     this.parseEmitter.fire(doc);
   }
 
   /** Changes the selection and notifies views. The tree passes its node; the hex view does not. */
-  select(doc: KaitaiDocument, range: ByteRange, source: SelectionSource, opts: { reveal?: boolean; node?: StructureNode } = {}) {
+  select(
+    doc: KaitaiDocument,
+    range: ByteRange,
+    source: SelectionSource,
+    opts: { reveal?: boolean; node?: StructureNode } = {},
+  ) {
     doc.selection = range;
     const node = opts.node ?? (doc.result ? findDeepestNode(doc.roots, range.start) : undefined);
     this.selectionEmitter.fire({ doc, range, source, reveal: opts.reveal ?? source !== 'hex', node });

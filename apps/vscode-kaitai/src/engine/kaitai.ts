@@ -7,17 +7,16 @@ import type { ByteRange, FieldDef, NodeKind, ParseResult, StructureNode } from '
 // The packages ship UMD without usable typings for this TS config.
 // biome-ignore lint/suspicious/noExplicitAny: untyped UMD modules
 type Any = any;
+
 import KaitaiStreamModule from 'kaitai-struct/KaitaiStream.js';
 import compilerModule from 'kaitai-struct-compiler';
 
 const KaitaiStream: Any = KaitaiStreamModule;
 const compiler: Any = compilerModule;
 
-// The runtime picks Node's zlib when `require` exists and pako otherwise; give it fflate for both.
-KaitaiStream.zlib = {
-  inflateSync: (buf: Uint8Array) => unzlibSync(buf),
-  inflate: (buf: Uint8Array) => unzlibSync(buf),
-};
+// The runtime picks Node's zlib + Buffer whenever `require` exists, which is also true in the VS Code
+// web extension host (it supplies a CommonJS `require` but no Buffer). Use fflate everywhere.
+KaitaiStream.processZlib = (buf: Uint8Array) => unzlibSync(buf);
 
 /** Compiler target languages, as accepted by {@link generateCode}. */
 export const LANGUAGES: readonly string[] = compiler.languages;
@@ -49,7 +48,28 @@ export interface Template {
   readonly endian?: string;
   /** All specs that took part (root first): id -> parsed YAML. */
   readonly specs: ReadonlyMap<string, Any>;
-  parse(data: Uint8Array): ParseResult;
+  /** Top-level `params`, which the root type's constructor takes after (_io, _parent, _root). */
+  readonly params: readonly TemplateParam[];
+  /** User type names that can be parsed on their own, as `a::b` paths, for "parse selection as". */
+  readonly typeNames: readonly string[];
+  parse(data: Uint8Array, opts?: ParseOptions): ParseResult;
+}
+
+export interface TemplateParam {
+  id: string;
+  type?: string;
+  doc?: string;
+}
+
+export interface ParseOptions {
+  /** Values for the root's `params`, in order. */
+  params?: unknown[];
+  /** Parse as this user type (`a::b`) instead of the root type. */
+  typeName?: string;
+  /** Document offset of data[0]; ranges are shifted by it. */
+  baseOffset?: number;
+  /** Name of the root node. Defaults to the spec id. */
+  rootName?: string;
 }
 
 interface DebugInfo {
@@ -58,6 +78,8 @@ interface DebugInfo {
   ioOffset?: number;
   enumName?: string;
   arr?: DebugInfo[];
+  /** Set by the generated code when a `valid:` check fails. */
+  validationError?: unknown;
 }
 
 type KObject = { _io: Any; _debug?: Record<string, DebugInfo>; _parent?: KObject; constructor: Any };
@@ -97,7 +119,7 @@ export function toKsyError(e: unknown): KsyError {
   if (e instanceof KsyError) return e;
   // Scala.js exceptions stringify as "<java class>: <message>". Compilation problems look like
   // "<spec id or (main)>: /seq/0/type:\n\terror: unable to find type 'foo', searching from x".
-  const msg = String((e as Error)?.message && !(String(e).includes('Exception')) ? (e as Error).message : e)
+  const msg = String((e as Error)?.message && !String(e).includes('Exception') ? (e as Error).message : e)
     .replace(/^[\w.$]+(Exception|Error): /, '')
     .trim();
   const m = /^(\S+): (\/[^\s:]*):\s*(?:(error|warning): )?(.*)$/s.exec(msg);
@@ -126,23 +148,34 @@ export async function compileTemplate(source: string, readImport: ImportReader):
   if (typeof RootClass !== 'function') throw new KsyError(`Compiled spec does not export ${className}`);
 
   const names = fieldNames(specs.values());
+  const classes = typeSpecs(id, spec, specs.values());
   const ext = spec.meta['file-extension'];
+  const params: TemplateParam[] = (Array.isArray(spec.params) ? spec.params : [])
+    .filter((p: Any) => typeof p?.id === 'string')
+    .map((p: Any) => ({ id: p.id, type: typeof p.type === 'string' ? p.type : undefined, doc: p.doc }));
   return {
     id,
     title: spec.meta.title || id,
     fileExtensions: (Array.isArray(ext) ? ext : ext ? [ext] : []).map(String),
     endian: typeof spec.meta.endian === 'string' ? spec.meta.endian : undefined,
     specs,
-    parse(data) {
+    params,
+    typeNames: userTypeNames(spec),
+    parse(data, opts = {}) {
       const buffer =
         data.byteOffset === 0 && data.byteLength === data.buffer.byteLength
           ? (data.buffer as ArrayBuffer)
           : (data.slice().buffer as ArrayBuffer);
-      const ctx: Ctx = { buffer, modules, names, rootId: id };
+      const base = opts.baseOffset ?? 0;
+      const ctx: Ctx = { buffer, modules, names, rootId: id, base, classes };
+      let Cls: Any = RootClass;
+      for (const part of opts.typeName ? opts.typeName.split('::') : []) Cls = Cls?.[toUpperCamel(part)];
+      if (typeof Cls !== 'function') return { roots: [], error: `Unknown type ${opts.typeName}` };
       let root: KObject;
       let error: string | undefined;
       try {
-        root = new RootClass(new KaitaiStream(buffer));
+        // A non-root type's _root is itself; params apply to the root type only.
+        root = new Cls(new KaitaiStream(buffer), undefined, undefined, ...(opts.typeName ? [] : (opts.params ?? [])));
       } catch (e) {
         return { roots: [], error: errorMessage(e) };
       }
@@ -151,7 +184,16 @@ export async function compileTemplate(source: string, readImport: ImportReader):
       } catch (e) {
         error = errorMessage(e);
       }
-      const node = structNode(ctx, undefined, id, root, { start: 0, end: data.byteLength }, undefined, error);
+      const name = opts.rootName ?? id;
+      const node = structNode(
+        ctx,
+        undefined,
+        name,
+        root,
+        { start: base, end: base + data.byteLength },
+        undefined,
+        error,
+      );
       return { roots: [node], error };
     },
   };
@@ -186,6 +228,10 @@ interface Ctx {
   /** Generated JS property name -> .ksy id. */
   names: Map<string, string>;
   rootId: string;
+  /** Document offset of buffer[0]. */
+  base: number;
+  /** Generated class name -> type spec, for `-webide-representation`. */
+  classes: Map<string, Any>;
 }
 
 class Node implements StructureNode {
@@ -198,6 +244,7 @@ class Node implements StructureNode {
   declare readonly instance?: boolean;
   declare readonly error?: string;
   declare readonly def?: FieldDef;
+  declare readonly streamBytes?: () => Uint8Array;
   readonly parent: Node | undefined;
   readonly name: string;
   readonly kind: NodeKind;
@@ -235,10 +282,9 @@ function absoluteRange(ctx: Ctx, io: Any, dbg: DebugInfo | undefined): ByteRange
   // Fields inside processed (e.g. decompressed) streams have no document offset. `_buffer` is
   // read directly because the public `buffer` getter copies substream buffers.
   if (dbg?.start === undefined || dbg.end === undefined || io?._buffer !== ctx.buffer) return undefined;
-  const base = dbg.ioOffset ?? 0;
+  const base = ctx.base + (dbg.ioOffset ?? 0);
   return { start: base + dbg.start, end: base + dbg.end };
 }
-
 
 function structNode(
   ctx: Ctx,
@@ -249,13 +295,48 @@ function structNode(
   def: FieldDef | undefined,
   error?: string,
 ): Node {
+  const io = obj._io;
+  // Structs read from a processed (e.g. decompressed) stream expose those bytes, so they can be
+  // opened in their own hex editor.
+  const streamBytes =
+    io && io._buffer !== ctx.buffer && io._buffer instanceof ArrayBuffer
+      ? () => new Uint8Array(io._buffer, io._byteOffset ?? 0, io._byteLength ?? io._buffer.byteLength)
+      : undefined;
   return new Node(
     parent,
     name,
     'struct',
-    { type: obj.constructor?.name, range, error, def },
+    { type: obj.constructor?.name, range, error, def, value: representation(ctx, obj), streamBytes },
     (self) => structFields(ctx, self, obj),
   );
+}
+
+/**
+ * Renders a type's `-webide-representation`, e.g. `{name}: {value:dec}`. Field references are
+ * seq ids or instances; `:dec`, `:hex` and `:str` pick the number format. Errors render as `?`.
+ */
+function representation(ctx: Ctx, obj: KObject): string | undefined {
+  const tmpl = ctx.classes.get(obj.constructor?.name)?.['-webide-representation'];
+  if (typeof tmpl !== 'string') return undefined;
+  return tmpl.replace(/\{([a-z_][a-z0-9_]*(?:\.[a-z_][a-z0-9_]*)*)(?::(\w+))?\}/g, (_, path: string, fmt?: string) => {
+    try {
+      let v: Any = obj;
+      for (const part of path.split('.')) v = v?.[toLowerCamel(part)];
+      if (v === undefined || v === null) return '';
+      if (v instanceof Uint8Array) {
+        return fmt === 'str' ? new TextDecoder().decode(v) : formatValue(v);
+      }
+      if (typeof v === 'number' || typeof v === 'bigint') {
+        if (fmt === 'hex') return `0x${v.toString(16).toUpperCase()}`;
+        if (fmt === 'dec') return String(v);
+        return String(v);
+      }
+      if (isStruct(v)) return representation(ctx, v) ?? v.constructor?.name ?? '';
+      return String(v);
+    } catch {
+      return '?';
+    }
+  });
 }
 
 function structFields(ctx: Ctx, self: Node, obj: KObject): StructureNode[] {
@@ -284,7 +365,10 @@ function structFields(ctx: Ctx, self: Node, obj: KObject): StructureNode[] {
         new Node(self, field, 'other', {
           error: errorMessage(e),
           instance: true,
-          range: dbg?.start !== undefined ? absoluteRange(ctx, obj._io, { ...dbg, end: dbg.end ?? dbg.start + 1 }) : undefined,
+          range:
+            dbg?.start !== undefined
+              ? absoluteRange(ctx, obj._io, { ...dbg, end: dbg.end ?? dbg.start + 1 })
+              : undefined,
           def: { type, field },
         }),
       );
@@ -306,10 +390,14 @@ function valueNode(
   let range = absoluteRange(ctx, io, dbg);
   // A field that started but never finished is where parsing failed.
   const failed = dbg?.start !== undefined && dbg.end === undefined;
-  const error = failed ? 'Parsing stopped here' : undefined;
+  const error = dbg?.validationError
+    ? `Validation failed: ${errorMessage(dbg.validationError)}`
+    : failed
+      ? 'Parsing stopped here'
+      : undefined;
   if (failed && io?._buffer === ctx.buffer) {
     const s = (dbg.ioOffset ?? 0) + dbg.start!;
-    range = { start: s, end: Math.min(s + 1, ctx.buffer.byteLength) };
+    range = { start: ctx.base + s, end: ctx.base + Math.min(s + 1, ctx.buffer.byteLength) };
   }
   const base = { range, error, def, instance: instance || undefined };
   if (isStruct(value)) return structNode(ctx, parent, name, value, range, def, error);
@@ -319,7 +407,10 @@ function valueNode(
     );
   }
   if (value === undefined || value === null) return new Node(parent, name, 'other', base);
-  const enumLabel = dbg?.enumName && (typeof value === 'number' || typeof value === 'bigint') ? lookupEnum(ctx, dbg.enumName, value) : undefined;
+  const enumLabel =
+    dbg?.enumName && (typeof value === 'number' || typeof value === 'bigint')
+      ? lookupEnum(ctx, dbg.enumName, value)
+      : undefined;
   const kind: NodeKind =
     value instanceof Uint8Array
       ? 'bytes'
@@ -333,7 +424,12 @@ function valueNode(
               ? 'number'
               : 'other';
   // Bit fields: the debug range is in bytes, so a 3-bit field shows the byte it lives in.
-  return new Node(parent, name, kind, { ...base, raw: value, value: formatValue(value, enumLabel), type: dbg?.enumName });
+  return new Node(parent, name, kind, {
+    ...base,
+    raw: value,
+    value: formatValue(value, enumLabel),
+    type: dbg?.enumName,
+  });
 }
 
 function arrayItems(
@@ -358,8 +454,12 @@ function arrayItems(
     const first = absoluteRange(ctx, io, arr[lo]);
     const last = absoluteRange(ctx, io, arr[hi - 1]);
     nodes.push(
-      new Node(parent, `[${lo}..${hi - 1}]`, 'bucket', { range: first && last && { start: first.start, end: last.end } }, (self) =>
-        arrayItems(ctx, self, array, io, arr, lo, hi, def),
+      new Node(
+        parent,
+        `[${lo}..${hi - 1}]`,
+        'bucket',
+        { range: first && last && { start: first.start, end: last.end } },
+        (self) => arrayItems(ctx, self, array, io, arr, lo, hi, def),
       ),
     );
   }
@@ -368,7 +468,9 @@ function arrayItems(
 
 export function formatValue(value: unknown, enumLabel?: string): string {
   if (value instanceof Uint8Array) {
-    const hex = Array.from(value.subarray(0, BYTES_PREVIEW), (b) => b.toString(16).padStart(2, '0').toUpperCase()).join(' ');
+    const hex = Array.from(value.subarray(0, BYTES_PREVIEW), (b) => b.toString(16).padStart(2, '0').toUpperCase()).join(
+      ' ',
+    );
     return value.length > BYTES_PREVIEW ? `${hex} … (${value.length} bytes)` : hex;
   }
   if (typeof value === 'string') {
@@ -423,12 +525,40 @@ function fieldNames(specs: Iterable<Any>): Map<string, string> {
   const names = new Map<string, string>();
   const visitType = (t: Any) => {
     if (!t || typeof t !== 'object') return;
-    for (const f of Array.isArray(t.seq) ? t.seq : []) if (typeof f?.id === 'string') names.set(toLowerCamel(f.id), f.id);
+    for (const f of Array.isArray(t.seq) ? t.seq : [])
+      if (typeof f?.id === 'string') names.set(toLowerCamel(f.id), f.id);
     for (const k of Object.keys(t.instances ?? {})) names.set(toLowerCamel(k), k);
     for (const sub of Object.values(t.types ?? {})) visitType(sub);
   };
   for (const s of specs) visitType(s);
   return names;
+}
+
+/** Maps generated class names (UpperCamel) to their type spec, root included. */
+function typeSpecs(rootId: string, root: Any, specs: Iterable<Any>): Map<string, Any> {
+  const out = new Map<string, Any>();
+  const visit = (name: string, t: Any) => {
+    if (!t || typeof t !== 'object') return;
+    if (!out.has(toUpperCamel(name))) out.set(toUpperCamel(name), t);
+    for (const [k, sub] of Object.entries(t.types ?? {})) visit(k, sub);
+  };
+  visit(rootId, root);
+  for (const s of specs) if (s !== root && typeof s?.meta?.id === 'string') visit(s.meta.id, s);
+  return out;
+}
+
+/** `a`, `a::b` paths of the root spec's user types, for parsing a selection as a type. */
+function userTypeNames(spec: Any): string[] {
+  const out: string[] = [];
+  const visit = (prefix: string, t: Any) => {
+    for (const [k, sub] of Object.entries(t?.types ?? {})) {
+      const name = prefix ? `${prefix}::${k}` : k;
+      out.push(name);
+      visit(name, sub);
+    }
+  };
+  visit('', spec);
+  return out;
 }
 
 function ksyName(ctx: Ctx, jsName: string) {

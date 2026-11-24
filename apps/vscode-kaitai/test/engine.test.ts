@@ -116,3 +116,59 @@ test('large arrays are bucketed', async () => {
   assert.equal((toJson(a) as unknown[]).length, 250);
   void sample;
 });
+
+test('params, parse-as-type with base offset, representation, stream bytes', async () => {
+  const spec = `
+meta: { id: p, endian: le }
+params:
+  - { id: n, type: u1 }
+seq:
+  - { id: head, size: n }
+  - { id: rec, type: rec }
+  - { id: z, size: 11, process: zlib, type: rec }
+types:
+  rec:
+    -webide-representation: '{tag:hex} len={len:dec}'
+    seq:
+      - { id: tag, type: u1 }
+      - { id: len, type: u2 }
+`;
+  const t = await compileTemplate(spec, noImports);
+  assert.deepEqual(t.params, [{ id: 'n', type: 'u1', doc: undefined }]);
+  assert.deepEqual(t.typeNames, ['rec']);
+  const packed = deflateSync(Buffer.from([0xab, 2, 0]));
+  const data = new Uint8Array([1, 2, 0xff, 3, 0, ...packed]);
+  const { roots, error } = t.parse(data, { params: [2] });
+  assert.equal(error, undefined);
+  assert.deepEqual(findById(roots, 'p/head')!.raw, new Uint8Array([1, 2]));
+  assert.equal(findById(roots, 'p/rec')!.value, '0xFF len=3');
+  const z = findById(roots, 'p/z')!;
+  assert.deepEqual(Array.from(z.streamBytes!()), [0xab, 2, 0]);
+  assert.equal(findById(roots, 'p/rec')!.streamBytes, undefined);
+  const sel = t.parse(data.subarray(2, 5), { typeName: 'rec', baseOffset: 2, rootName: 'rec@0x2' });
+  assert.deepEqual(findById(sel.roots, 'rec@0x2/len')!.range, { start: 3, end: 5 });
+});
+
+test('real gallery spec: png.ksy with relative imports', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const dir = new URL('./fixtures/image/', import.meta.url);
+  const read = async (name: string) => readFile(new URL(`${name}.ksy`, dir), 'utf8');
+  const t = await compileTemplate(await read('png'), (n) => read(n));
+  assert.deepEqual([...t.specs.keys()].sort(), ['exif', 'icc_4', 'png']);
+  const data = new Uint8Array(await readFile(new URL('./fixtures/sample.png', import.meta.url)));
+  const { roots, error } = t.parse(data);
+  assert.equal(error, undefined);
+  assert.equal(findById(roots, 'png/ihdr/width')!.raw, 16);
+  assert.deepEqual(findById(roots, 'png/ihdr/color_type')!.value, 'truecolor = 2 (0x2)');
+  const chunks = findById(roots, 'png/chunks')!.children();
+  assert.equal(chunks.length, 3);
+  assert.equal(findById(roots, 'png/chunks/[0]/body/keyword')?.raw, 'Comment');
+  assert.equal(findDeepestNode(roots, 0x10)!.id, 'png/ihdr/width');
+});
+
+test('validation failures mark the field', async () => {
+  const t = await compileTemplate('meta: {id: v}\nseq:\n  - {id: a, type: u1, valid: 5}\n', noImports);
+  const { roots, error } = t.parse(new Uint8Array([4]));
+  assert.ok(error);
+  assert.match(findById(roots, 'v/a')!.error!, /^Validation failed/);
+});

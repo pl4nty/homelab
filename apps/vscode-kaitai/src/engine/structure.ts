@@ -40,6 +40,8 @@ export interface StructureNode {
   readonly error?: string;
   /** Where the field is defined, for go-to-definition. */
   readonly def?: FieldDef;
+  /** For structs read from a processed stream: the decoded bytes of that stream. */
+  readonly streamBytes?: () => Uint8Array;
   readonly hasChildren: boolean;
   /** Lazily computes and caches children. Reading instances may parse more data. */
   children(): StructureNode[];
@@ -93,10 +95,11 @@ export function regionsInRange(roots: StructureNode[], start: number, end: numbe
     const r = node.range;
     if (r && (r.end <= start || r.start >= end)) return;
     if (node.hasChildren && node.kind !== 'bytes') {
-      const before = out.length;
-      for (const child of node.children()) if (!child.instance) visit(child, depth + 1);
-      // A struct whose fields all live in a processed stream still covers its raw bytes.
-      if (out.length === before && r && r.end > r.start) out.push(region(node, depth));
+      const children = node.children().filter((c) => !c.instance);
+      for (const child of children) visit(child, depth + 1);
+      // A struct whose fields all live in a processed stream still covers its raw bytes. Decided
+      // from all children, not the ones in the window, so the result does not depend on the window.
+      if (!children.some((c) => c.range) && r && r.end > r.start) out.push(region(node, depth));
       return;
     }
     if (r && r.end > r.start) out.push(region(node, depth));
@@ -138,7 +141,9 @@ export function toJson(node: StructureNode, depth = 64): unknown {
     return o;
   }
   if (node.kind === 'array' || node.kind === 'bucket') {
-    return node.children().flatMap((c) => (c.kind === 'bucket' ? (toJson(c, depth - 1) as unknown[]) : [toJson(c, depth - 1)]));
+    return node
+      .children()
+      .flatMap((c) => (c.kind === 'bucket' ? (toJson(c, depth - 1) as unknown[]) : [toJson(c, depth - 1)]));
   }
   const v = node.raw;
   if (v instanceof Uint8Array) return Array.from(v);

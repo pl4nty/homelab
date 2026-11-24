@@ -1,0 +1,1020 @@
+// Generated from schema/ksy_schema.json (the official KSY JSON schema, MIT licence, Copyright (c) 2019-2025
+// Kaitai Project; see schema/LICENSE). `$comment` fields were stripped. Regenerate after updating the JSON.
+// biome-ignore-all lint: generated from JSON
+
+export const KSY_SCHEMA: any = {
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  title: 'ksy schema',
+  description: 'the schema for ksy files',
+  type: 'object',
+  properties: {
+    meta: {
+      $ref: '#/definitions/MetaSpec',
+      required: ['id'],
+    },
+    doc: {
+      $ref: '#/definitions/Doc',
+    },
+    'doc-ref': {
+      $ref: '#/definitions/DocRef',
+    },
+    'to-string': {
+      $ref: '#/definitions/ToString',
+    },
+    params: {
+      $ref: '#/definitions/ParamsSpec',
+    },
+    seq: {
+      description: 'identifier for a primary structure described in top-level map',
+      $ref: '#/definitions/Attributes',
+    },
+    instances: {
+      description:
+        'Purpose: description of data that lies outside of normal sequential parsing flow (for example, that requires seeking somewhere in the file) or just needs to be loaded only by special request\n\nInfluences: would be translated into distinct methods (that read desired data on demand) in current class',
+      $ref: '#/definitions/InstancesSpec',
+    },
+    types: {
+      description:
+        'maps of strings to user-defined types\n\ndeclares types for substructures that can be referenced in the attributes of seq or instances element\n\nwould be directly translated into classes',
+      $ref: '#/definitions/TypesSpec',
+    },
+    enums: {
+      description:
+        "allows for the setup of named enums, mappings of integer constants to symbolic names. Can be used with integer attributes using the enum key.\n\nwould be represented as enum-like construct (or closest equivalent, if target language doesn't support enums), nested or namespaced in current type/class",
+      $ref: '#/definitions/EnumsSpec',
+    },
+  },
+  patternProperties: {
+    '^-': true,
+  },
+  additionalProperties: false,
+  definitions: {
+    Doc: {
+      type: 'string',
+      description:
+        'used to give a more detailed description of a user-defined type. In most languages, it will be used as a docstring compatible with tools like Javadoc, Doxygen, JSDoc, etc.',
+    },
+    DocRef: {
+      description:
+        'used to provide reference to original documentation (if the ksy file is actually an implementation of some documented format).\n\nContains:\n1. URL as text,\n2. arbitrary string, or\n3. URL as text + space + arbitrary string',
+      anyOf: [
+        {
+          type: 'string',
+        },
+        {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+        },
+      ],
+    },
+    ToString: {
+      description:
+        'expression that provides a human-readable string representation of an object of this user-defined type for debugging purposes\n\nit will be used to override the standard method for converting an object to a string called `toString()` (or similar) in most target languages, `__str__()` in Python and `to_s` in Ruby; in Rust, it is the `Display` trait',
+      type: 'string',
+      examples: ['f"{file_name} ({file_size} bytes)"', 'file_name + " (" + file_size.to_s + " bytes)"'],
+    },
+    MediaWikiPageName: {
+      type: 'string',
+      pattern: "^([a-zA-Z0-9$\\-._~+!*'(),@&;:\\/]|%[0-9a-fA-F]{2})+$",
+    },
+    IsoIdentifier: {
+      type: 'string',
+      pattern: '^[1-9]\\d*(-[0-9]+)?(:(19|20)\\d{2})?$',
+    },
+    LocIdentifier: {
+      type: 'string',
+      pattern: '^fdd\\d{6}$',
+    },
+    MimeType: {
+      type: 'string',
+      pattern: '^(application|audio|font|image|model|text|video)/([a-zA-Z0-9]+[.\\-_+])*[a-zA-Z0-9]+[.\\-_+]?$',
+    },
+    PronomIdentifier: {
+      type: 'string',
+      pattern: '^(x-)?fmt/\\d+$',
+    },
+    RfcIdentifier: {
+      anyOf: [
+        {
+          type: 'integer',
+        },
+        {
+          type: 'string',
+          pattern: '^[1-9]\\d*$',
+        },
+      ],
+    },
+    WikidataIdentifier: {
+      type: 'string',
+      pattern: '^Q[1-9]\\d*$',
+    },
+    MetaSpec: {
+      type: 'object',
+      properties: {
+        id: {
+          $ref: '#/definitions/Identifier',
+          description:
+            "unique string that identifies this format\n\nshould be identical to the file name without the `.ksy` extension (e.g. `microsoft_pe` for `microsoft_pe.ksy`)\n\nused to derive the name of the top-level type when generating parsers\n\nrequired at the top level, shouldn't be used at nested levels",
+        },
+        title: {
+          type: 'string',
+          description: 'brief name of the format',
+          examples: ['Windows PE executable'],
+        },
+        application: {
+          anyOf: [
+            {
+              type: 'string',
+            },
+            {
+              type: 'array',
+              items: {
+                type: 'string',
+              },
+            },
+          ],
+          description: 'applications that use this format and are typically associated with it',
+        },
+        'file-extension': {
+          anyOf: [
+            {
+              type: 'string',
+            },
+            {
+              type: 'array',
+              items: {
+                type: 'string',
+              },
+            },
+          ],
+          description:
+            'file extensions typically used for this format, without the leading dot and in lowercase letters\n\nshould be sorted from most popular to least popular',
+          examples: ['exe', ['jpg', 'jpeg']],
+        },
+        xref: {
+          type: 'object',
+          properties: {
+            forensicswiki: {
+              description:
+                'article name at [Forensics Wiki](https://forensics.wiki/), which is a CC-BY-SA-licensed wiki with information on digital forensics, file formats and tools\n\nfull link name could be generated as `https://forensics.wiki/` + this value + `/`',
+              anyOf: [
+                {
+                  $ref: '#/definitions/MediaWikiPageName',
+                },
+                {
+                  type: 'array',
+                  items: {
+                    $ref: '#/definitions/MediaWikiPageName',
+                  },
+                },
+              ],
+            },
+            iso: {
+              description:
+                'ISO/IEC standard number, reference to a standard accepted and published by [ISO](https://www.iso.org/) (International Organization for Standardization).\n\nISO standards typically have clear designations like "ISO/IEC 15948:2004", so value should be citing everything except for "ISO/IEC", i.e. `15948:2004`',
+              anyOf: [
+                {
+                  $ref: '#/definitions/IsoIdentifier',
+                },
+                {
+                  type: 'array',
+                  items: {
+                    $ref: '#/definitions/IsoIdentifier',
+                  },
+                },
+              ],
+            },
+            justsolve: {
+              description:
+                'article name at ["Just Solve the File Format Problem" wiki](http://fileformats.archiveteam.org/wiki/Main_Page), a wiki that collects information on many file formats\n\nfull link name could be generated as `http://fileformats.archiveteam.org/wiki/` + this value',
+              anyOf: [
+                {
+                  $ref: '#/definitions/MediaWikiPageName',
+                },
+                {
+                  type: 'array',
+                  items: {
+                    $ref: '#/definitions/MediaWikiPageName',
+                  },
+                },
+              ],
+            },
+            loc: {
+              description:
+                'identifier in [Digital Formats](https://www.loc.gov/preservation/digital/formats/fdd/browse_list.shtml) database of [US Library of Congress](https://www.loc.gov/)\n\nvalue typically looks like `fddXXXXXX`, where `XXXXXX` is a 6-digit identifier',
+              anyOf: [
+                {
+                  $ref: '#/definitions/LocIdentifier',
+                },
+                {
+                  type: 'array',
+                  items: {
+                    $ref: '#/definitions/LocIdentifier',
+                  },
+                },
+              ],
+            },
+            mime: {
+              description:
+                'MIME type (IANA media type), a string typically used in various Internet protocols to specify format of binary payload\n\nthere is a [central registry of media types](https://www.iana.org/assignments/media-types/media-types.xhtml) managed by IANA\n\nvalue must specify full MIME type (both parts), e.g. `image/png`',
+              anyOf: [
+                {
+                  $ref: '#/definitions/MimeType',
+                },
+                {
+                  type: 'array',
+                  items: {
+                    $ref: '#/definitions/MimeType',
+                  },
+                },
+              ],
+            },
+            pronom: {
+              description:
+                'format identifier in [PRONOM Technical Registry](https://www.nationalarchives.gov.uk/PRONOM/BasicSearch/proBasicSearch.aspx?status=new) of [UK National Archives](https://www.nationalarchives.gov.uk/), which is a massive file formats database that catalogues many file formats for digital preservation purposes',
+              anyOf: [
+                {
+                  $ref: '#/definitions/PronomIdentifier',
+                },
+                {
+                  type: 'array',
+                  items: {
+                    $ref: '#/definitions/PronomIdentifier',
+                  },
+                },
+              ],
+            },
+            rfc: {
+              description:
+                'reference to [RFC](https://en.wikipedia.org/wiki/Request_for_Comments), "Request for Comments" documents maintained by ISOC (Internet Society)\n\nRFCs are typically treated as global, Internet-wide standards, and, for example, many networking / interoperability protocols are specified in RFCs\n\nvalue should be just raw RFC number, without any prefixes, e.g. `1234`',
+              anyOf: [
+                {
+                  $ref: '#/definitions/RfcIdentifier',
+                },
+                {
+                  type: 'array',
+                  items: {
+                    $ref: '#/definitions/RfcIdentifier',
+                  },
+                },
+              ],
+            },
+            wikidata: {
+              description:
+                'item identifier at [Wikidata](https://www.wikidata.org/wiki/Wikidata:Main_Page), a global knowledge base\n\nvalue typically follows `Qxxx` pattern, where `xxx` is a number generated by [Wikidata](https://www.wikidata.org/wiki/Wikidata:Main_Page), e.g. `Q535473`',
+              anyOf: [
+                {
+                  $ref: '#/definitions/WikidataIdentifier',
+                },
+                {
+                  type: 'array',
+                  items: {
+                    $ref: '#/definitions/WikidataIdentifier',
+                  },
+                },
+              ],
+            },
+          },
+          patternProperties: {
+            '^.*$': {
+              anyOf: [
+                {
+                  $ref: '#/definitions/AnyScalar',
+                },
+                {
+                  type: 'array',
+                  items: {
+                    $ref: '#/definitions/AnyScalar',
+                  },
+                },
+              ],
+            },
+          },
+          additionalProperties: false,
+        },
+        tags: {
+          type: 'array',
+          description:
+            'list of tags (categories/keywords) that can be assigned to the format\n\nused in the [format gallery](https://github.com/kaitai-io/kaitai_struct_formats) to display formats at https://formats.kaitai.io/ also in categories other than the main one, which corresponds to the directory where the `.ksy` file is located\n\nshould match the directory names in https://github.com/kaitai-io/kaitai_struct_formats\n\nshould be written in `lower_snake_case` and sorted in alphabetical order',
+          items: {
+            type: 'string',
+          },
+        },
+        license: {
+          type: 'string',
+          description:
+            "license under which the KSY file is released\n\nrequired for all KSY specifications in the [format gallery](https://github.com/kaitai-io/kaitai_struct_formats) (otherwise optional, but [highly recommended](https://choosealicense.com/no-permission/))\n\nmust be a valid [SPDX expression](https://spdx.github.io/spdx-spec/v3.0.1/annexes/spdx-license-expressions/) (however, a single license identifier from [this list](https://spdx.org/licenses/) is usually enough)\n\nto clarify, this is not a license of the original format description, but a license of the particular KSY implementation - if you're writing one, you can choose any open source license you want, regardless of what resources you use (as long as you only reproduce the idea and you don't copy long excerpts); we recommend [`CC0-1.0`](https://spdx.org/licenses/CC0-1.0.html) or [`MIT`](https://spdx.org/licenses/MIT.html)\n\ngenerated files from a KSY spec retain the same license as the original KSY",
+          examples: ['CC0-1.0', 'MIT'],
+        },
+        'ks-version': {
+          description:
+            "minimum Kaitai Struct compiler (KSC) version required to compile this .ksy file (older versions will refuse to compile and inform the user that they need at least the specified version)\n\nonly versions 0.6 or higher are accepted (KSC 0.6 was the first to support `ks-version`, so there is no point in entering any lower version)\n\nthe value must be sometimes enclosed in quotes to ensure correct interpretation, for example `ks-version: '0.10'` (without the quotes it is parsed as a float in YAML and gets interpreted as 0.1, which will be rejected)",
+          anyOf: [
+            {
+              type: 'string',
+              pattern: '^(0\\.([1-5][0-9]+|[6-9][0-9]*)|([1-9][0-9]*)\\.(0|[1-9][0-9]*))(\\.(0|[1-9][0-9]*))?$',
+            },
+            {
+              type: 'number',
+              minimum: 0.1,
+              not: {
+                enum: [0.1, 0.2, 0.3, 0.4, 0.5],
+              },
+            },
+          ],
+        },
+        'ks-debug': {
+          type: 'boolean',
+          description: 'advise the Kaitai Struct Compiler (KSC) to use debug mode',
+          default: false,
+        },
+        'ks-opaque-types': {
+          type: 'boolean',
+          description:
+            'advise the Kaitai Struct Compiler (KSC) to ignore missing types in the .ksy file, and assume that these types are already provided externally by the environment the classes are generated for',
+          default: false,
+        },
+        imports: {
+          description:
+            'list of relative or absolute paths to another `.ksy` files to import (**without** the `.ksy` extension)\n\nthe top-level type of the imported file will be accessible in the current spec under the name specified in the top-level `/meta/id` of the imported file',
+          anyOf: [
+            {
+              type: 'string',
+              pattern: '^(.*/)?[a-z][a-z0-9_]*$',
+            },
+            {
+              type: 'array',
+              items: {
+                type: 'string',
+                pattern: '^(.*/)?[a-z][a-z0-9_]*$',
+              },
+            },
+          ],
+        },
+        encoding: {
+          $ref: '#/definitions/CharacterEncoding',
+          description:
+            'default character encoding for string fields (of type `str` or `strz`) in the current type and its subtypes',
+        },
+        endian: {
+          anyOf: [
+            {
+              enum: ['le', 'be'],
+            },
+            {
+              type: 'object',
+              required: ['switch-on', 'cases'],
+              properties: {
+                'switch-on': {
+                  $ref: '#/definitions/AnyScalar',
+                },
+                cases: {
+                  type: 'object',
+                  patternProperties: {
+                    '^.*$': {
+                      enum: ['le', 'be'],
+                    },
+                  },
+                  additionalProperties: false,
+                },
+              },
+              patternProperties: {
+                '^-': true,
+              },
+              additionalProperties: false,
+            },
+          ],
+          description:
+            'default endianness (byte order) of built-in multibyte numeric types, i.e. integers (`sX` and `uX`, where `X` is 2, 4 or 8) and floating-point numbers (`fX`, where `X` is 4 or 8)\n\napplies to the current type and its subtypes\n\nthis key is required if you use any `sX`, `uX` or `fX` types (other than `s1` and `u1`) without an explicit `le` or `be` suffix (as in `u2be` or `f4le`)',
+        },
+        'bit-endian': {
+          enum: ['le', 'be'],
+          default: 'be',
+          description:
+            'default parsing direction (*bit endianness*) of bit-sized integers (built-in `bX` types)\n\nbig-endian (`be`) order is default, but it is recommended to specify it explicitly\n\ncan only have the literal value `le` or `be` (runtime switching [as with the `endian` key](https://doc.kaitai.io/user_guide.html#calc-endian) is not supported)\n\nfor more information, see https://doc.kaitai.io/user_guide.html#_bit_sized_integers',
+        },
+      },
+      patternProperties: {
+        '^-': true,
+      },
+      additionalProperties: false,
+    },
+    TypeRef: {
+      anyOf: [
+        {
+          description:
+            'name of or path to existing type name\n\nif name is single path element, then type resolved in such order:\n- from subtypes of current type\n- current type (so, recursive types is possible)\n- parent type\n\none can reference a nested user-defined type by specifying a relative path to it from the current type, with a double colon as a path delimiter (e.g. `foo::bar::my_type`)',
+          type: 'string',
+          pattern: '^\\s*([a-z][a-z0-9_]*\\s*::\\s*)*[a-z][a-z0-9_]*\\s*(\\([\\s\\S]+\\)\\s*)?$',
+        },
+        {
+          enum: [
+            'u1',
+            'u2',
+            'u2le',
+            'u2be',
+            'u4',
+            'u4le',
+            'u4be',
+            'u8',
+            'u8le',
+            'u8be',
+            's1',
+            's2',
+            's2le',
+            's2be',
+            's4',
+            's4le',
+            's4be',
+            's8',
+            's8le',
+            's8be',
+            'f4',
+            'f4be',
+            'f4le',
+            'f8',
+            'f8be',
+            'f8le',
+            'str',
+            'strz',
+          ],
+        },
+      ],
+    },
+    Attribute: {
+      type: 'object',
+      properties: {
+        id: {
+          type: 'string',
+          pattern: '^[a-z][a-z0-9_]*$',
+          description: 'contains a string used to identify one attribute among others',
+        },
+        doc: {
+          $ref: '#/definitions/Doc',
+        },
+        'doc-ref': {
+          $ref: '#/definitions/DocRef',
+        },
+        contents: {
+          description:
+            "specify fixed contents that the parser should encounter at this point. If the content of the stream doesn't match the given bytes, an error is thrown and it's meaningless to continue parsing",
+          anyOf: [
+            {
+              type: 'string',
+            },
+            {
+              type: 'array',
+              items: {
+                $ref: '#/definitions/StringOrInteger',
+              },
+            },
+          ],
+        },
+        valid: {
+          description:
+            'validation constraints that the actual value of the attribute must satisfy, otherwise a subclass of `ValidationFailedError` will be raised',
+          $ref: '#/definitions/ValidationSpec',
+        },
+        type: {
+          description:
+            'defines data type for an attribute\n\nthe type can also be user-defined in the `types` key\n\none can reference a nested user-defined type by specifying a relative path to it from the current type, with a double colon as a path delimiter (e.g. `foo::bar::my_type`)',
+          anyOf: [
+            {
+              $ref: '#/definitions/TypeRef',
+            },
+            {
+              type: 'object',
+              required: ['switch-on', 'cases'],
+              properties: {
+                'switch-on': {
+                  $ref: '#/definitions/AnyScalar',
+                },
+                cases: {
+                  type: 'object',
+                  patternProperties: {
+                    '^.*$': {
+                      $ref: '#/definitions/TypeRef',
+                    },
+                  },
+                  additionalProperties: false,
+                },
+              },
+              patternProperties: {
+                '^-': true,
+              },
+              additionalProperties: false,
+            },
+          ],
+        },
+        repeat: {
+          description:
+            'designates repeated attribute in a structure\n\n| Value     | Description\n|-\n| `eos`     | repeat until the end of the current stream\n| `expr`    | repeat as many times as specified in `repeat-expr`\n| `until`   | repeat until the expression in `repeat-until` becomes **`true`**\n\nattribute read as array/list/sequence',
+          enum: ['expr', 'eos', 'until'],
+        },
+        'repeat-expr': {
+          description: 'specify number of repetitions for repeated attribute',
+          $ref: '#/definitions/StringOrInteger',
+        },
+        'repeat-until': {
+          description:
+            'specifies a condition to be checked **after** each parsed item, repeating while the expression is `false`\n\none can use `_` in the expression, which is a special **local** variable that references the last read element',
+          anyOf: [
+            {
+              type: 'string',
+            },
+            {
+              type: 'boolean',
+            },
+          ],
+        },
+        if: {
+          description:
+            'marks the attribute as optional (attribute is parsed only if the condition specified evaluates to `true`)',
+          anyOf: [
+            {
+              type: 'string',
+            },
+            {
+              type: 'boolean',
+            },
+          ],
+        },
+        size: {
+          description: "the number of bytes to read if `type` isn't defined.\n\ncan also be an expression",
+          $ref: '#/definitions/StringOrInteger',
+        },
+        'size-eos': {
+          description: 'if `true`, reads all the bytes till the end of the stream\n\ndefault is `false`',
+          default: false,
+          type: 'boolean',
+        },
+        process: {
+          description:
+            'specifies an algorithm to be applied to the underlying byte buffer of the attribute before parsing\n\ncan be used only if the size is known (either `size`, `size-eos: true` or `terminator` are specified), see [Applying `process` without a size](https://doc.kaitai.io/user_guide.html#_applying_process_without_a_size) in the User Guide\n\n| Value | Description\n|-\n| `xor(key)` | <p>apply a bitwise XOR (written as `^` in most C-like languages) to every byte of the buffer using the provided `key`</p><p>**`key`** is required, and can be either <ul><li>a single byte value — will be XORed with every byte of the input stream <ul><li>make sure that the **`key`** is in range **0-255**, otherwise you may get unexpected results</li></ul></li><li>a byte array — first byte of the input will be XORed with the first byte of the key, second byte of the input with the second byte of the key, etc. <ul><li>when the end of the key is reached, it starts again from the first byte</li></ul></li></ul></p><p>_the output length remains the same as the input length_</p>\n| `rol(n)`, `ror(n)` | <p>apply a [bitwise rotation](https://en.wikipedia.org/wiki/Bitwise_operation#bit_rotation) (also known as a [circular shift](https://en.wikipedia.org/wiki/Circular_shift)) by **`n`** bits to every byte of the buffer</p><p>`rol` = left circular shift, `ror` = right circular shift</p><p>**`n`** is required, and should be in range **0-7** for consistent results (to be safe, use `shift_amount % 8` as the **`n`** parameter, if the value of `shift_amount` itself may not fall into that range)</p>\n| `zlib` | <p>apply a _zlib_ decompression to the input buffer, expecting it to be a full-fledged _zlib_ stream, i.e. having a regular 2-byte _zlib_ header.</p><p>typical _zlib_ header values: <ul><li>`78 01` — low compression</li><li>`78 9C` — default compression</li><li>`78 DA` — best compression</li></ul></p>\n| <p>`{my_custom_processor}(a, b, ...)`</p><p><i>(`{my_custom_processor}` is an arbitrary name matching `[a-z][a-z0-9_.]*`)</i></p> | <p>use a custom processing routine, which you implement in imperative code in the target language</p><p>the generated code will use the class name `{my_custom_processor}` using the naming convention of the target language (in most languages `MyCustomProcessor`, but e.g. `my_custom_processor_t` in C++: check the generated code)</p><p>the processing class **must** define the method `public byte[] decode(byte[] src)` and should implement the interface `CustomDecoder` (available in [C++](https://github.com/kaitai-io/kaitai_struct_cpp_stl_runtime/blob/d020781b96ea1e2fe7e0ecf47ff3ae3c829ccd31/kaitai/custom_decoder.h#L8-L12), [C#](https://github.com/kaitai-io/kaitai_struct_csharp_runtime/blob/1b66a9a85f39c52728893400a23504844cc78e34/KaitaiStruct.cs#L24-L37) and [Java](https://github.com/kaitai-io/kaitai_struct_java_runtime/blob/c342c6e836ddba03c9ec33a59034e209bb04a976/src/main/java/io/kaitai/struct/CustomDecoder.java#L26-L39))</p><p>you can pass any parameters `(a, b, ...)` to your `{my_custom_processor}` class constructor (**omit** the `()` brackets for parameter-less invocation)</p><p></p><p>one can reference a class in a different namespace/package like `com.example.my_rle(5, 3)`</p><p><i>see [Custom processing routines](https://doc.kaitai.io/user_guide.html#custom-process) in the User Guide for more info</i></p>',
+          type: 'string',
+          pattern: '^zlib|(xor|rol|ror)\\(.*\\)$',
+        },
+        enum: {
+          description: 'name of existing enum field data type becomes given enum',
+          type: 'string',
+          pattern: '^([a-z][a-z0-9_]*::)*[a-z][a-z0-9_]*$',
+        },
+        encoding: {
+          $ref: '#/definitions/CharacterEncoding',
+        },
+        'pad-right': {
+          type: 'integer',
+          minimum: 0,
+          maximum: 255,
+          description:
+            "specify a byte which is the string or byte array padded with after the end up to the total size\n\ncan be used only with `size` or `size-eos: true` (when the size is fixed)\n\nwhen `terminator`:\n - isn't specified, then the `pad-right` controls where the string ends (basically acts like a terminator)\n - is specified, padding comes after the terminator, not before. The value is terminated immediately after the terminator occurs, so the `pad-right` has no effect on parsing and is only relevant for serialization",
+        },
+        terminator: {
+          type: 'integer',
+          minimum: 0,
+          maximum: 255,
+          description:
+            'string or byte array reading will stop when it encounters this byte\n\ncannot be used with `type: strz` (which already implies `terminator: 0` - null-terminated string)',
+        },
+        consume: {
+          type: 'boolean',
+          description:
+            'specify if terminator byte should be "consumed" when reading\n\nif true: the stream pointer will point to the byte after the terminator byte\n\nif false: the stream pointer will point to the terminator byte itself\n\ndefault is true',
+          default: true,
+        },
+        include: {
+          type: 'boolean',
+          description:
+            'specifies if terminator byte should be considered part of the string read and thus be appended to it\n\ndefault is false',
+          default: false,
+        },
+        'eos-error': {
+          type: 'boolean',
+          description:
+            'allows the compiler to ignore the lack of a terminator if eos-error is disabled, string reading will stop at either:\n\n1. terminator being encountered\n\n2. end of stream is reached\n\ndefault is `true`',
+          default: true,
+        },
+        pos: {
+          description: 'specifies position at which the value should be parsed',
+          $ref: '#/definitions/StringOrInteger',
+        },
+        io: {
+          type: 'string',
+          description: 'specifies an IO stream from which a value should be parsed',
+        },
+        value: {
+          description:
+            'overrides any reading & parsing. Instead, just calculates function specified in value and returns the result as this instance. Has many purposes',
+        },
+      },
+      patternProperties: {
+        '^-': true,
+      },
+      additionalProperties: false,
+      allOf: [
+        {
+          if: {
+            required: ['type'],
+            properties: {
+              type: {
+                const: 'strz',
+              },
+            },
+          },
+          then: {
+            not: {
+              required: ['terminator'],
+            },
+          },
+        },
+        {
+          if: {
+            required: ['pad-right'],
+          },
+          then: {
+            anyOf: [
+              {
+                required: ['size'],
+              },
+              {
+                required: ['size-eos'],
+                properties: {
+                  'size-eos': {
+                    const: true,
+                  },
+                },
+              },
+            ],
+          },
+        },
+        {
+          if: {
+            required: ['valid'],
+            properties: {
+              valid: {
+                type: 'object',
+                required: ['in-enum'],
+              },
+            },
+          },
+          then: {
+            required: ['enum'],
+          },
+        },
+      ],
+    },
+    Attributes: {
+      type: 'array',
+      items: {
+        $ref: '#/definitions/Attribute',
+      },
+    },
+    StringOrInteger: {
+      anyOf: [
+        {
+          type: 'string',
+        },
+        {
+          type: 'integer',
+        },
+      ],
+    },
+    TypeSpec: {
+      type: 'object',
+      properties: {
+        meta: {
+          $ref: '#/definitions/MetaSpec',
+        },
+        doc: {
+          $ref: '#/definitions/Doc',
+        },
+        'doc-ref': {
+          $ref: '#/definitions/DocRef',
+        },
+        'to-string': {
+          $ref: '#/definitions/ToString',
+        },
+        params: {
+          $ref: '#/definitions/ParamsSpec',
+        },
+        seq: {
+          $ref: '#/definitions/Attributes',
+        },
+        instances: {
+          $ref: '#/definitions/InstancesSpec',
+        },
+        types: {
+          $ref: '#/definitions/TypesSpec',
+        },
+        enums: {
+          $ref: '#/definitions/EnumsSpec',
+        },
+      },
+      patternProperties: {
+        '^-': true,
+      },
+      additionalProperties: false,
+    },
+    TypesSpec: {
+      type: 'object',
+      patternProperties: {
+        '^[a-z][a-z0-9_]*$': {
+          $ref: '#/definitions/TypeSpec',
+        },
+      },
+      additionalProperties: false,
+    },
+    ParamSpec: {
+      type: 'object',
+      required: ['id'],
+      properties: {
+        id: {
+          allOf: [
+            {
+              type: 'string',
+              pattern: '^[a-z][a-z0-9_]*$',
+            },
+            {
+              not: {
+                enum: ['true', 'false', 'null'],
+              },
+            },
+          ],
+        },
+        type: {
+          description:
+            "specifies \"pure\" type of the parameter, without any serialization details (like endianness, sizes, encodings)\n\n| Value                  | Description\n|-\n| `u1`, `u2`, `u4`, `u8` | unsigned integer\n| `s1`, `s2`, `s4`, `s8` | signed integer\n| `bX`                   | bit-sized integer (if `X` != 1)\n| `f4`, `f8`             | floating point number\n| `type` key missing<br>or `bytes` | byte array\n| `str`                  | string\n| `bool` (or `b1`)       | boolean\n| `struct`               | arbitrary KaitaiStruct-compatible user type\n| `io`                   | KaitaiStream-compatible IO stream\n| `any`                  | allow any type (if target language supports that)\n| other identifier       | user-defined type, without parameters<br>a nested type can be referenced with double colon (e.g. `type: 'foo::bar'`)\n\none can specify arrays by appending `[]` after the type identifier (e.g. `type: u2[]`, `type: 'foo::bar[]'`, `type: struct[]` etc.)",
+          type: 'string',
+        },
+        doc: {
+          $ref: '#/definitions/Doc',
+        },
+        'doc-ref': {
+          $ref: '#/definitions/DocRef',
+        },
+        enum: {
+          description:
+            'path to an enum type (defined in the `enums` map), which will become the type of the parameter\n\nonly integer-based enums are supported, so `type` must be an integer type (`type: uX`, `type: sX` or `type: bX`) for this property to work\n\nyou can use `enum` with `type: b1` as well: `b1` means a 1-bit **integer** (0 or 1) when used with `enum` (**not** a boolean)\n\none can reference an enum type of a subtype by specifying a relative path to it from the current type, with a double colon as a path delimiter (e.g. `foo::bar::my_enum`)',
+          type: 'string',
+          pattern: '^([a-z][a-z0-9_]*::)*[a-z][a-z0-9_]*$',
+        },
+      },
+      patternProperties: {
+        '^-': true,
+      },
+      additionalProperties: false,
+    },
+    ParamsSpec: {
+      type: 'array',
+      items: {
+        $ref: '#/definitions/ParamSpec',
+      },
+    },
+    InstancesSpec: {
+      type: 'object',
+      patternProperties: {
+        '^[a-z][a-z0-9_]*$': {
+          $ref: '#/definitions/Attribute',
+        },
+      },
+      additionalProperties: false,
+    },
+    EnumValueSpec: {
+      anyOf: [
+        {
+          $ref: '#/definitions/Identifier',
+        },
+        {
+          type: 'object',
+          required: ['id'],
+          properties: {
+            id: {
+              $ref: '#/definitions/Identifier',
+            },
+            doc: {
+              $ref: '#/definitions/Doc',
+            },
+            'doc-ref': {
+              $ref: '#/definitions/DocRef',
+            },
+            '-orig-id': {
+              anyOf: [
+                {
+                  type: 'string',
+                },
+                {
+                  type: 'array',
+                  items: {
+                    type: 'string',
+                  },
+                },
+              ],
+            },
+          },
+          patternProperties: {
+            '^-': true,
+          },
+          additionalProperties: false,
+        },
+      ],
+    },
+    ValidationSpec: {
+      anyOf: [
+        {
+          description:
+            'expression that specifies the only valid value for this attribute\n\nshorthand for `eq: value`\n\nif the actual value does not satisfy this constraint, a `ValidationNotEqualError` exception will be thrown',
+          $ref: '#/definitions/AnyScalar',
+        },
+        {
+          type: 'object',
+          required: ['eq'],
+          properties: {
+            eq: {
+              description:
+                'expression that specifies the only valid value for this attribute\n\nmore explicit, long form of `valid: value`\n\nif the actual value does not satisfy this constraint, a `ValidationNotEqualError` exception will be thrown',
+              $ref: '#/definitions/AnyScalar',
+            },
+          },
+          patternProperties: {
+            '^-': true,
+          },
+          additionalProperties: false,
+        },
+        {
+          type: 'object',
+          required: ['expr'],
+          properties: {
+            expr: {
+              description:
+                'boolean expression that must evaluate to `true` for the attribute value to be considered valid\n\nactual value can be referenced via a special built-in local variable `_`\n\nfor better declarativeness, it should only be used to enforce validation constraints that cannot be captured by any of the other dedicated `valid` subkeys (in other words, other subkeys should be preferred: for example, prefer `max: 5` to `expr: _ <= 5`)\n\nif the actual value does not satisfy this constraint, a `ValidationExprError` exception will be thrown',
+              anyOf: [
+                {
+                  type: 'string',
+                },
+                {
+                  type: 'boolean',
+                },
+              ],
+              examples: ['_ % 2 == 0'],
+            },
+          },
+          patternProperties: {
+            '^-': true,
+          },
+          additionalProperties: false,
+        },
+        {
+          type: 'object',
+          required: ['any-of'],
+          properties: {
+            'any-of': {
+              description:
+                'list of expressions that specify a set of valid values for this attribute (the actual value must be equal to **any of** the values in the list)\n\nif the actual value does not satisfy this constraint, a `ValidationNotAnyOfError` exception will be thrown',
+              type: 'array',
+              items: {
+                $ref: '#/definitions/AnyScalar',
+              },
+            },
+          },
+          patternProperties: {
+            '^-': true,
+          },
+          additionalProperties: false,
+        },
+        {
+          type: 'object',
+          anyOf: [
+            {
+              required: ['min'],
+            },
+            {
+              required: ['max'],
+            },
+          ],
+          properties: {
+            min: {
+              description:
+                'expression that specifies the **minimum** valid value for this attribute\n\nactual value must be greater than or equal to this value (i.e. `min: value` is functionally equivalent to `expr: _ >= value`)\n\nif the actual value does not satisfy this constraint, a `ValidationLessThanError` exception will be thrown\n\ncan be combined with the `max` key to specify a range',
+              $ref: '#/definitions/AnyScalar',
+            },
+            max: {
+              description:
+                'expression that specifies the **maximum** valid value for this attribute\n\nactual value must be less than or equal to this value (i.e. `max: value` is functionally equivalent to `expr: _ <= value`)\n\nif the actual value does not satisfy this constraint, a `ValidationGreaterThanError` exception will be thrown\n\ncan be combined with the `min` key to specify a range',
+              $ref: '#/definitions/AnyScalar',
+            },
+          },
+          patternProperties: {
+            '^-': true,
+          },
+          additionalProperties: false,
+        },
+        {
+          type: 'object',
+          required: ['in-enum'],
+          properties: {
+            'in-enum': {
+              description:
+                'consider only values defined in the enum as valid\n\ncan only be used on enum attributes (i.e. those that use the `enum` key)\n\nif the actual integer value does not correspond to any defined member of the enum, a `ValidationNotInEnumError` exception will be thrown',
+              const: true,
+            },
+          },
+          patternProperties: {
+            '^-': true,
+          },
+          additionalProperties: false,
+        },
+      ],
+    },
+    EnumSpec: {
+      type: 'object',
+      patternProperties: {
+        '^.*$': {
+          $ref: '#/definitions/EnumValueSpec',
+        },
+      },
+      additionalProperties: false,
+    },
+    EnumsSpec: {
+      type: 'object',
+      patternProperties: {
+        '^[a-z][a-z0-9_]*$': {
+          $ref: '#/definitions/EnumSpec',
+        },
+      },
+      additionalProperties: false,
+    },
+    Identifier: {
+      anyOf: [
+        {
+          type: 'string',
+          pattern: '^[a-z][a-z0-9_]*$',
+        },
+        {
+          type: 'boolean',
+        },
+      ],
+    },
+    AnyScalar: {
+      anyOf: [
+        {
+          type: 'string',
+        },
+        {
+          type: 'number',
+        },
+        {
+          type: 'integer',
+        },
+        {
+          type: 'boolean',
+        },
+        {
+          type: 'null',
+        },
+      ],
+    },
+    CharacterEncoding: {
+      description:
+        'canonical names of character encodings supported by Kaitai Struct\n\nin addition to these canonical names, the compiler (since version 0.11) also recognizes their popular aliases, but issues a warning for them',
+      enum: [
+        'ASCII',
+        'UTF-8',
+        'UTF-16BE',
+        'UTF-16LE',
+        'UTF-32BE',
+        'UTF-32LE',
+        'ISO-8859-1',
+        'ISO-8859-2',
+        'ISO-8859-3',
+        'ISO-8859-4',
+        'ISO-8859-5',
+        'ISO-8859-6',
+        'ISO-8859-7',
+        'ISO-8859-8',
+        'ISO-8859-9',
+        'ISO-8859-10',
+        'ISO-8859-11',
+        'ISO-8859-13',
+        'ISO-8859-14',
+        'ISO-8859-15',
+        'ISO-8859-16',
+        'windows-1250',
+        'windows-1251',
+        'windows-1252',
+        'windows-1253',
+        'windows-1254',
+        'windows-1255',
+        'windows-1256',
+        'windows-1257',
+        'windows-1258',
+        'IBM437',
+        'IBM866',
+        'Shift_JIS',
+        'Big5',
+        'EUC-KR',
+      ],
+    },
+  },
+};

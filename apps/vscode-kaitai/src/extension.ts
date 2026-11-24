@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import { registerCommands } from './commands.ts';
 import { registerFormatGallery } from './formats.ts';
 import { registerHexEditor } from './hexEditor.ts';
@@ -7,6 +7,7 @@ import { registerKsyLanguage } from './ksy/index.ts';
 import { Session } from './session.ts';
 import { StructureView } from './structureView.ts';
 import { Templates } from './templates.ts';
+import { registerUriHandler } from './uriHandler.ts';
 
 export function activate(context: vscode.ExtensionContext) {
   const templates = new Templates();
@@ -20,6 +21,7 @@ export function activate(context: vscode.ExtensionContext) {
     registerFormatGallery(context, session),
     registerKsyLanguage(context, session),
     registerCommands(context, session),
+    registerUriHandler(session),
   );
 }
 

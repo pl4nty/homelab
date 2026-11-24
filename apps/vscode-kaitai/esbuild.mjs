@@ -15,7 +15,13 @@ const targets = [
   // Desktop / code-server extension host (Node).
   { ...common, entryPoints: ['src/extension.ts'], platform: 'node', format: 'cjs', outfile: 'dist/node/extension.js' },
   // VS Code for the Web extension host (web worker).
-  { ...common, entryPoints: ['src/extension.ts'], platform: 'browser', format: 'cjs', outfile: 'dist/web/extension.js' },
+  {
+    ...common,
+    entryPoints: ['src/extension.ts'],
+    platform: 'browser',
+    format: 'cjs',
+    outfile: 'dist/web/extension.js',
+  },
   // Webviews (browser, no vscode module).
   {
     ...common,

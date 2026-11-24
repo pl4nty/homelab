@@ -55,11 +55,12 @@ export class StructureView implements vscode.TreeDataProvider<Item>, vscode.Disp
       : doc.specError
         ? `Spec error: ${doc.specError}`
         : doc.result?.error
-          ? `Parse error: ${doc.result.error}`
+          ? `Parse error: ${doc.result.error}${t?.params.length && !doc.params ? ' (this spec takes params: use Set Spec Params…)' : ''}`
           : !doc.specUri
             ? 'No spec loaded. Use Load Spec… or pick one from the Format Gallery.'
             : undefined;
     void vscode.commands.executeCommand('setContext', 'kaitai.hasSpec', !!doc?.specUri);
+    void vscode.commands.executeCommand('setContext', 'kaitai.hasParams', !!t?.params.length);
     this.changeEmitter.fire();
   }
 
@@ -77,7 +78,13 @@ export class StructureView implements vscode.TreeDataProvider<Item>, vscode.Disp
     item.iconPath = node.error
       ? new vscode.ThemeIcon('error', new vscode.ThemeColor('errorForeground'))
       : new vscode.ThemeIcon(iconFor(node));
-    item.contextValue = [node.hasChildren ? 'branch' : 'leaf', node.range ? 'ranged' : '', node.def ? 'def' : '']
+    item.contextValue = [
+      node.hasChildren ? 'branch' : 'leaf',
+      node.range ? 'ranged' : '',
+      node.def ? 'def' : '',
+      node.streamBytes || node.kind === 'bytes' ? 'stream' : '',
+      !node.parent && this.doc && this.doc.roots.indexOf(node) > 0 ? 'extraRoot' : '',
+    ]
       .filter(Boolean)
       .join(' ');
     const tip = new vscode.MarkdownString();

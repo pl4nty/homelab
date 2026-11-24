@@ -45,7 +45,8 @@ export function importReader(specUri: vscode.Uri | undefined, onResolve?: (uri: 
         dir = parent;
       }
     }
-    for (const folder of vscode.workspace.workspaceFolders ?? []) candidates.push(vscode.Uri.joinPath(folder.uri, file));
+    for (const folder of vscode.workspace.workspaceFolders ?? [])
+      candidates.push(vscode.Uri.joinPath(folder.uri, file));
     for (const uri of candidates) {
       const text = await tryRead(uri);
       if (text !== undefined) {

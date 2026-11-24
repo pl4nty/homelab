@@ -19,12 +19,25 @@ export type ToHex =
    * `version` increases with each parse; replies to older `requestRegions` must be ignored.
    */
   | { type: 'parsed'; version: number; hasSpec: boolean; error?: string }
-  | { type: 'regions'; requestId: number; version: number; start: number; end: number; regions: Region[] }
+  | {
+      type: 'regions';
+      requestId: number;
+      version: number;
+      start: number;
+      end: number;
+      regions: Region[];
+      /** Colour key per region (parallel to `regions`), from `keyedRegionsInRange`. */
+      keys?: number[];
+      /** The region list hit its size limit, so it may not cover all of [start, end). */
+      truncated?: boolean;
+    }
   /** Select (and optionally scroll to) a byte range. `end` is exclusive. */
   | { type: 'select'; start: number; end: number; reveal: boolean }
   /** Outline a range without changing the selection, e.g. while hovering in the tree. */
   | { type: 'highlight'; start?: number; end?: number }
-  | { type: 'config'; bytesPerRow: number };
+  | { type: 'config'; bytesPerRow: number }
+  /** Reply to `find`. No range: nothing found in that direction. */
+  | { type: 'found'; requestId: number; range?: { start: number; end: number }; label?: string };
 
 /** Hex editor webview -> extension host. */
 export type FromHex =
@@ -36,7 +49,9 @@ export type FromHex =
   /** User asked for the field at the offset to be revealed in the tree (e.g. double-click). */
   | { type: 'revealInTree'; offset: number }
   /** Context-menu style actions from the webview. */
-  | { type: 'command'; command: 'goToOffset' | 'loadSpec' | 'exportJson' };
+  | { type: 'command'; command: 'goToOffset' | 'loadSpec' | 'exportJson' }
+  /** Stepper: next/previous unparsed gap or field from `from` (the selection start). */
+  | { type: 'find'; requestId: number; what: 'gap' | 'field'; direction: 1 | -1; from: number };
 
 /** Extension host -> value inspector webview. */
 export type ToInspector =
@@ -54,4 +69,8 @@ export type ToInspector =
   | { type: 'empty' };
 
 /** Value inspector webview -> extension host. */
-export type FromInspector = { type: 'ready' } | { type: 'setEndian'; endian: 'le' | 'be' };
+export type FromInspector =
+  | { type: 'ready' }
+  | { type: 'setEndian'; endian: 'le' | 'be' }
+  /** User clicked a value: copy `text` to the clipboard. `label` names it in the status bar message. */
+  | { type: 'copy'; text: string; label: string };

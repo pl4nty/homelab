@@ -1,0 +1,78 @@
+body {
+  padding: 0 4px;
+  color: var(--vscode-foreground);
+  background: var(--vscode-sideBar-background, transparent);
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+}
+
+.empty {
+  color: var(--vscode-descriptionForeground);
+  padding: 4px 8px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+th,
+td {
+  padding: 1px 6px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+th.label {
+  width: 5.5em;
+  font-weight: normal;
+  color: var(--vscode-descriptionForeground);
+}
+
+thead th {
+  position: sticky;
+  top: 0;
+  background: var(--vscode-sideBar-background, var(--vscode-editor-background));
+  border-bottom: 1px solid var(--vscode-panel-border, transparent);
+}
+
+thead th.col {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+td.value {
+  font-family: var(--vscode-editor-font-family);
+  font-size: var(--vscode-editor-font-size);
+  font-variant-numeric: tabular-nums;
+}
+
+th.active,
+td.active {
+  background: var(--vscode-list-inactiveSelectionBackground);
+  color: var(--vscode-list-inactiveSelectionForeground, inherit);
+}
+
+td.copy {
+  cursor: pointer;
+}
+
+td.copy:hover {
+  background: var(--vscode-list-hoverBackground);
+}
+
+td.copy:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+td.missing {
+  color: var(--vscode-disabledForeground, var(--vscode-descriptionForeground));
+}
+
+tbody tr:hover th.label {
+  color: var(--vscode-foreground);
+}
