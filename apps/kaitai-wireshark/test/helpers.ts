@@ -36,7 +36,7 @@ const dir = mkdtempSync(join(tmpdir(), 'kaitai-wireshark-'));
 chmodSync(dir, 0o755);
 process.on('exit', () => rmSync(dir, { recursive: true, force: true }));
 let files = 0;
-function write(ext: string, data: string | Uint8Array): string {
+export function write(ext: string, data: string | Uint8Array): string {
   const path = join(dir, `${files++}.${ext}`);
   writeFileSync(path, data, { mode: 0o644 });
   return path;

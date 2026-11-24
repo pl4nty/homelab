@@ -1,5 +1,6 @@
 // The generator against tshark, with the specs in test/fixtures.
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { describe, test } from 'node:test';
 import { deflateSync } from 'node:zlib';
 import { toLua } from '../src/index.ts';
@@ -66,7 +67,8 @@ test('fields come from the spec: types, filter names, descriptions and enums', {
 });
 
 describe('TCP framing (DO peer protocol)', { skip }, async () => {
-  const file = `${h.FIXTURES}/do_peer.pcap`;
+  // a copy, since tshark 4.4 in CI can't open the checked-out fixture ("You don't have permission")
+  const file = h.write('pcap', readFileSync(`${h.FIXTURES}/do_peer.pcap`));
   const lua = skip ? '' : await h.generate('do_peer');
   // a capture of a 40 kB download, one PDU per segment (loopback, so nothing is split)
   const PDUS = [
