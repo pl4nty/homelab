@@ -1,0 +1,99 @@
+name: vscode-extensions
+
+# Packages every VS Code extension in apps/ (any apps/*/package.json with engines.vscode) on PRs, as downloadable
+# .vsix artifacts, and publishes them from main with Trusted Publishing (OIDC, no stored secrets) to the Visual
+# Studio Marketplace and Open VSX. Only extensions whose directory changed are built; a workflow change or a manual
+# run builds all of them. A version already on a registry is skipped, so bump "version" in package.json to release.
+#
+# Registry setup: a Trusted Publishing policy for pl4nty/homelab, workflow vscode-extensions.yaml, on the Marketplace
+# publisher pl4nty (covers every extension) and on each Open VSX extension. Open VSX only trusts extensions that
+# already exist, so each extension's first version there is published by hand.
+on:
+  pull_request:
+    paths: [apps/**, .github/workflows/vscode-extensions.yaml]
+  push:
+    branches: [main]
+    paths: [apps/**, .github/workflows/vscode-extensions.yaml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vscode-extensions-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      apps: ${{ steps.find.outputs.apps }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - id: find
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.sha }}
+        run: |
+          all=$(for f in apps/*/package.json; do
+            jq -e '.engines.vscode and .publisher' "$f" >/dev/null && dirname "$f" | cut -d/ -f2
+          done)
+          if [ "$EVENT" = workflow_dispatch ] || ! changed=$(git diff --name-only "$BASE" "$HEAD" 2>/dev/null) \
+            || grep -qx .github/workflows/vscode-extensions.yaml <<<"$changed"; then
+            apps=$all
+          else
+            apps=$(grep -Fxf <(cut -d/ -f2 <<<"$(grep '^apps/' <<<"$changed")" | sort -u) <<<"$all" || true)
+          fi
+          echo "apps=$(jq -cn '$ARGS.positional' --args $apps)" | tee -a "$GITHUB_OUTPUT"
+
+  package:
+    needs: changes
+    if: needs.changes.outputs.apps != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.changes.outputs.apps) }}
+    runs-on: ubuntu-latest
+    container: node:24-slim
+    defaults:
+      run:
+        working-directory: apps/${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm test --if-present
+      - run: npm run build --if-present
+      - run: npx --yes @vscode/vsce@4 package --out extension.vsix
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ matrix.app }}-vsix
+          path: apps/${{ matrix.app }}/extension.vsix
+
+  publish:
+    needs: [changes, package]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && needs.changes.outputs.apps != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.changes.outputs.apps) }}
+    runs-on: ubuntu-latest
+    container: node:24-slim
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: apps/${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: npm ci
+      - run: npm run build --if-present
+      - run: npx --yes @vscode/vsce@4 package --out extension.vsix
+      - name: Publish to the Visual Studio Marketplace
+        run: npx --yes @vscode/vsce@4 publish --packagePath extension.vsix --oidc --skip-duplicate
+      - name: Publish to Open VSX
+        run: npx --yes ovsx@1 publish extension.vsix --trusted-publishing --skip-duplicate
