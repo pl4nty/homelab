@@ -43,11 +43,18 @@ async function runCommand(title) {
   await pause(800);
 }
 
-async function quickOpen(text) {
-  await page.keyboard.press('Control+P');
-  await page.locator('.quick-input-widget input').fill(text);
-  await page.locator('.quick-input-list .monaco-list-row').first().waitFor({ timeout: 15000 });
-  await page.keyboard.press('Enter');
+/** Opens a workspace file from the Explorer (quick open needs a file search provider, which test-web lacks). */
+async function openFromExplorer(...path) {
+  await page.keyboard.press('Control+Shift+E');
+  const tree = page.locator('.explorer-folders-view');
+  for (const [i, name] of path.entries()) {
+    const row = tree.locator('.monaco-list-row', { has: page.getByText(name, { exact: true }) }).first();
+    await row.waitFor({ timeout: 15000 });
+    if (i < path.length - 1) {
+      if ((await row.getAttribute('aria-expanded')) !== 'true') await row.click();
+    } else await row.dblclick();
+    await pause(500);
+  }
 }
 
 const rows = (selector) =>
@@ -85,7 +92,7 @@ await step('load workbench', async () => {
 });
 
 await step('open sample.png in hex editor', async () => {
-  await quickOpen('sample.png');
+  await openFromExplorer('sample.png');
   await pause(1500);
   await runCommand('Kaitai: Open in Kaitai Hex Editor');
   await page.locator('iframe.webview').first().waitFor({ timeout: 20000 });
@@ -126,7 +133,7 @@ await step('select first tree node', async () => {
 });
 
 await step('png.ksy language features', async () => {
-  await quickOpen('png.ksy');
+  await openFromExplorer('image', 'png.ksy');
   await pause(3000);
   log('png.ksy language features', {
     languageStatus: await rows('.statusbar-item'),

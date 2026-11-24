@@ -167,11 +167,37 @@ export function registerCommands(session: Session): vscode.Disposable {
 }
 
 /** Asks for a spec: a .ksy file of the workspace, one from an open dialog, or the format gallery. */
-async function pickSpec(fileName: string): Promise<vscode.Uri | undefined> {
-  const found = await vscode.workspace.findFiles('**/*.ksy', '**/node_modules/**', 500).then(
+/**
+ * Workspace .ksy files. Falls back to walking the folders when file search finds nothing, because some web file
+ * systems (e.g. vscode-test-web's mount) have no search provider.
+ */
+async function findSpecs(limit = 500): Promise<vscode.Uri[]> {
+  const found = await vscode.workspace.findFiles('**/*.ksy', '**/node_modules/**', limit).then(
     (uris) => uris,
     () => [],
   );
+  if (found.length) return found;
+  const out: vscode.Uri[] = [];
+  const walk = async (dir: vscode.Uri, depth: number): Promise<void> => {
+    const entries = await vscode.workspace.fs.readDirectory(dir).then(
+      (e) => e,
+      () => [],
+    );
+    for (const [name, type] of entries) {
+      if (out.length >= limit) return;
+      if (name.startsWith('.') || name === 'node_modules') continue;
+      const uri = vscode.Uri.joinPath(dir, name);
+      if (type & vscode.FileType.Directory) {
+        if (depth > 0) await walk(uri, depth - 1);
+      } else if (name.toLowerCase().endsWith('.ksy')) out.push(uri);
+    }
+  };
+  for (const folder of vscode.workspace.workspaceFolders ?? []) await walk(folder.uri, 6);
+  return out;
+}
+
+async function pickSpec(fileName: string): Promise<vscode.Uri | undefined> {
+  const found = await findSpecs();
   const browse: vscode.QuickPickItem = { label: '$(folder-opened) Browse…' };
   const gallery: vscode.QuickPickItem = { label: '$(library) Format Gallery…' };
   const files = found.map((uri) => ({
