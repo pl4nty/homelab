@@ -4,11 +4,14 @@ Parse binary files with [Kaitai Struct](https://kaitai.io/) `.ksy` specs inside 
 
 ## Try it on vscode.dev
 
-`https://vscode-kaitai.${PUBLIC_DOMAIN}` serves the web extension with CORS headers ([`server/serve.mjs`](server/serve.mjs)).
+vscode.dev's Content Security Policy only lets **Developer: Install Extension from Location…** fetch from `localhost` (and Microsoft's Marketplace hosts), so a hosted copy can't be installed from another domain.
 
-1. Open https://vscode.dev (or a github.dev repository) and run **Developer: Install Extension from Location…** with that URL.
-2. Open a binary file, then right-click its tab or explorer entry and select **Open in Kaitai Hex Editor**.
-3. In the **Kaitai Struct** activity bar, use **Load Spec…**, or pick a format from the **Format Gallery**.
+1. Build and serve it locally: `npm install && npm run build && PUBLIC_DIR=. bun server/serve.mjs 8787`.
+2. Open https://vscode.dev (or a github.dev repository) in Chrome or Edge, run **Developer: Install Extension from Location…**, and enter `http://localhost:8787`.
+3. Open a binary file, then right-click its tab or explorer entry and select **Open in Kaitai Hex Editor**.
+4. In the **Kaitai Struct** activity bar, use **Load Spec…**, or pick a format from the **Format Gallery**.
+
+The container image (`server/serve.mjs` behind `https://vscode-kaitai.${PUBLIC_DOMAIN}`) serves the same files with CORS for code-server and other self-hosted workbenches whose CSP allows it.
 
 ## Features
 
