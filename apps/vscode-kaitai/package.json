@@ -106,7 +106,7 @@
     "viewsWelcome": [
       {
         "view": "kaitai.structure",
-        "contents": "Open a binary file with the Kaitai Hex Editor, then load a .ksy spec.\n[Open File in Kaitai Hex Editor](command:kaitai.openInHexEditor)\n[Load Spec\u2026](command:kaitai.loadTemplate)"
+        "contents": "Open a binary file with the Kaitai Hex Editor, then load a .ksy spec.\n[Open File in Kaitai Hex Editor](command:kaitai.openInHexEditor)\n[Load Spec…](command:kaitai.loadTemplate)"
       }
     ],
     "commands": [
@@ -118,7 +118,7 @@
       },
       {
         "command": "kaitai.loadTemplate",
-        "title": "Load Spec\u2026",
+        "title": "Load Spec…",
         "category": "Kaitai",
         "icon": "$(folder-opened)"
       },
@@ -142,13 +142,13 @@
       },
       {
         "command": "kaitai.showGeneratedCode",
-        "title": "Show Generated Code\u2026",
+        "title": "Show Generated Code…",
         "category": "Kaitai",
         "icon": "$(code)"
       },
       {
         "command": "kaitai.goToOffset",
-        "title": "Go to Offset\u2026",
+        "title": "Go to Offset…",
         "category": "Kaitai"
       },
       {
@@ -173,7 +173,7 @@
       },
       {
         "command": "kaitai.exportBytes",
-        "title": "Save Bytes As\u2026",
+        "title": "Save Bytes As…",
         "category": "Kaitai"
       },
       {
@@ -196,13 +196,13 @@
       },
       {
         "command": "kaitai.setParams",
-        "title": "Set Spec Params\u2026",
+        "title": "Set Spec Params…",
         "category": "Kaitai",
         "icon": "$(symbol-parameter)"
       },
       {
         "command": "kaitai.parseSelectionAs",
-        "title": "Parse Selection as Type\u2026",
+        "title": "Parse Selection as Type…",
         "category": "Kaitai",
         "icon": "$(symbol-class)"
       },
@@ -220,13 +220,13 @@
       },
       {
         "command": "kaitai.find",
-        "title": "Find Value in File\u2026",
+        "title": "Find Value in File…",
         "category": "Kaitai",
         "icon": "$(search)"
       },
       {
         "command": "kaitai.addFieldFromSelection",
-        "title": "Add Field from Selection\u2026",
+        "title": "Add Field from Selection…",
         "category": "Kaitai",
         "icon": "$(add)"
       }
@@ -396,7 +396,7 @@
         "kaitai.formatsRepository": {
           "type": "string",
           "default": "kaitai-io/kaitai_struct_formats",
-          "markdownDescription": "GitHub `owner/repo` of the format gallery. Used for the Format Gallery view and to resolve absolute imports (`/common/\u2026`) that are not found in the workspace."
+          "markdownDescription": "GitHub `owner/repo` of the format gallery. Used for the Format Gallery view and to resolve absolute imports (`/common/…`) that are not found in the workspace."
         },
         "kaitai.formatsRef": {
           "type": "string",
@@ -446,7 +446,8 @@
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --no-warnings --test test/*.test.ts",
     "package": "npm run build && vsce package",
-    "serve:web": "npm run build && npx vscode-test-web --browserType=none --extensionDevelopmentPath=. --port 3000 test/fixtures"
+    "serve:web": "npm run build && npx vscode-test-web --browserType=none --extensionDevelopmentPath=. --port 3000 test/fixtures",
+    "smoke:web": "node scripts/web-smoke.mjs"
   },
   "dependencies": {
     "fflate": "^0.8.3",
