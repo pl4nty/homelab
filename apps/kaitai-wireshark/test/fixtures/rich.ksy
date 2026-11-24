@@ -18,13 +18,15 @@ seq:
       cases:
         'kind::a': sub
         'kind::b': u4
+  - {type: u1}
   - {id: rest, size-eos: true}
 instances:
   dbl: {value: ver * 2}
   first: {pos: 0, type: u1}
+  far: {pos: 64, type: u1, if: ver == 3}
 types:
   body:
     seq:
-      - {id: x, type: u2}
+      - {id: x, type: u2, valid: {max: 1000}}
 enums:
   kind: {1: a, 2: b}
