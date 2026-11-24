@@ -177,6 +177,8 @@ class Gallery implements vscode.TreeDataProvider<Node>, vscode.Disposable {
     }
     const fromRoot = normalizePath(path);
     if (fromRoot) candidates.add(fromRoot);
+    // A relative import of a spec opened from the mirror (not served here yet): any listed file of that name.
+    if (!path.startsWith('/')) for (const e of this.entries) if (e.path.endsWith(`/${path}`)) candidates.add(e.path);
     for (const p of candidates) {
       // Offline: let the compiler report the missing import.
       const text = await this.fetchText(p).catch(() => undefined);
