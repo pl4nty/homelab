@@ -8,6 +8,8 @@ const { HOST = '127.0.0.1', PUBLIC_DIR = '.' } = process.env;
 const cors = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Private-Network': 'true',
+  // Webview frames are cross-origin isolated and reject files without CORP.
+  'Cross-Origin-Resource-Policy': 'cross-origin',
   'Cache-Control': 'no-cache',
 };
 
