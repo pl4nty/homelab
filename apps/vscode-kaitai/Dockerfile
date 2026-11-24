@@ -12,6 +12,7 @@ COPY --from=build /src/package.json /src/README.md /src/language-configuration.j
 COPY --from=build /src/syntaxes/ public/syntaxes/
 COPY --from=build /src/dist/web/ public/dist/web/
 COPY --from=build /src/dist/webview/ public/dist/webview/
+COPY --from=build /src/media/ public/media/
 ENV HOST=0.0.0.0 PUBLIC_DIR=/app/public
 USER 65532
 EXPOSE 8080

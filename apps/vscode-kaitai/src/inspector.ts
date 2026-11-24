@@ -2,6 +2,7 @@
 import * as vscode from 'vscode';
 import type { KaitaiDocument, Session } from './session.ts';
 import type { FromInspector, ToInspector } from './shared/protocol.ts';
+import { webviewHtml, webviewRoot } from './webviewHtml.ts';
 
 const BYTES = 16;
 
@@ -29,22 +30,10 @@ class InspectorProvider implements vscode.WebviewViewProvider, vscode.Disposable
   resolveWebviewView(view: vscode.WebviewView) {
     this.view = view;
     const { webview } = view;
-    const root = vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'webview');
-    webview.options = { enableScripts: true, localResourceRoots: [root] };
-    webview.html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src ${webview.cspSource};">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="${webview.asWebviewUri(vscode.Uri.joinPath(root, 'inspector.css'))}">
-<title>Value Inspector</title>
-</head>
-<body>
-<div id="root"></div>
-<script src="${webview.asWebviewUri(vscode.Uri.joinPath(root, 'inspector.js'))}"></script>
-</body>
-</html>`;
+    webview.options = { enableScripts: true, localResourceRoots: [] };
+    void webviewHtml(webviewRoot(this.context), 'inspector', 'Value Inspector', '<div id="root"></div>').then((h) => {
+      webview.html = h;
+    });
     // These listeners go away with the view. The webview posts `ready` each time its page (re)loads.
     webview.onDidReceiveMessage((msg: FromInspector) => {
       if (msg.type === 'ready') this.update();

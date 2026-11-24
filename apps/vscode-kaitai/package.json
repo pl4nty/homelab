@@ -81,7 +81,7 @@
         {
           "id": "kaitai",
           "title": "Kaitai Struct",
-          "icon": "$(symbol-structure)"
+          "icon": "media/kaitai.svg"
         }
       ]
     },
@@ -462,5 +462,6 @@
     "esbuild": "^0.28.2",
     "playwright-core": "^1.65.1",
     "typescript": "^7.0.2"
-  }
+  },
+  "icon": "media/icon.png"
 }

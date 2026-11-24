@@ -4,6 +4,7 @@ import { findDeepestNode, regionsInRange } from './engine/structure.ts';
 import type { KaitaiDocument, Session } from './session.ts';
 import type { FromHex, ToHex } from './shared/protocol.ts';
 import { findStep } from './webview/hex/model.ts';
+import { webviewHtml, webviewRoot } from './webviewHtml.ts';
 
 export const VIEW_TYPE = 'kaitai.hexEditor';
 
@@ -80,9 +81,15 @@ class HexEditorProvider implements vscode.CustomReadonlyEditorProvider<HexDocume
   }
 
   resolveCustomEditor({ kdoc }: HexDocument, panel: vscode.WebviewPanel): void {
-    const root = vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'webview');
-    panel.webview.options = { enableScripts: true, localResourceRoots: [root] };
-    panel.webview.html = html(panel.webview, root);
+    panel.webview.options = { enableScripts: true, localResourceRoots: [] };
+    void webviewHtml(
+      webviewRoot(this.context),
+      'hex',
+      'Kaitai Hex Editor',
+      '<div id="app" tabindex="0" role="grid" aria-label="Hex view"></div>',
+    ).then((h) => {
+      panel.webview.html = h;
+    });
     this.panels.set(panel, kdoc);
     const session = this.session;
 
@@ -160,27 +167,6 @@ function parsedMessage(doc: KaitaiDocument): ToHex {
 
 function post(panel: vscode.WebviewPanel, message: ToHex) {
   void panel.webview.postMessage(message).then(undefined, () => {});
-}
-
-function html(webview: vscode.Webview, root: vscode.Uri) {
-  const script = webview.asWebviewUri(vscode.Uri.joinPath(root, 'hex.js'));
-  const style = webview.asWebviewUri(vscode.Uri.joinPath(root, 'hex.css'));
-  // Only the two bundled files load; the page has no inline script or style.
-  const csp = `default-src 'none'; style-src ${webview.cspSource}; script-src ${webview.cspSource}`;
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="${csp}">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="${style}">
-<title>Kaitai Hex Editor</title>
-</head>
-<body>
-<div id="app" tabindex="0" role="grid" aria-label="Hex view"></div>
-<script src="${script}"></script>
-</body>
-</html>`;
 }
 
 async function openInHexEditor(arg?: unknown) {
