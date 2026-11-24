@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { completionContext, computeCompletions } from '../src/ksy/completion.ts';
-import { definitionTarget, diagnosticTargetPath, hoverInfo } from '../src/ksy/language.ts';
+import { definitionTarget, diagnosticTargetPath, hoverInfo, symbolRange } from '../src/ksy/language.ts';
 import {
   buildTypeTree,
   closeMatches,
@@ -106,6 +106,10 @@ test('maps error paths to ranges', () => {
   assert.equal(slice(rangeForPath(p, SPEC, ['seq', '0'])), 'magic');
   assert.equal(slice(rangeForPath(p, SPEC, ['types', 'header', 'types', 'inner', 'seq', '0', 'type'])), 'u1');
   assert.equal(slice(rangeForPath(p, SPEC, ['meta', 'imports', '0'])), 'common/vlq');
+  // An empty value is reported on its key rather than as an empty range.
+  const empty = 'seq:\n  - id: a\n    type:\n';
+  const e = rangeForPath(parseKsyDocument(empty), empty, ['seq', '0', 'type']);
+  assert.equal(empty.slice(e.start, e.end), 'type');
 });
 
 test('diagnostic path for errors inside imports', () => {
@@ -129,7 +133,7 @@ test('diagnostic path for errors inside imports', () => {
 
 test('resolves types and enums by scope', () => {
   const p = parseKsyDocument(SPEC);
-  const root = buildTypeTree(p.js);
+  const root = p.root;
   const header = typeAt(root, ['header']);
   const inner = typeAt(root, ['header', 'inner']);
   assert.equal(resolveType(root, 'header'), header);
@@ -218,7 +222,7 @@ test('computes completions', () => {
 
 test('extracts outline symbols', () => {
   const p = parseKsyDocument(SPEC);
-  const syms = documentSymbols(p, SPEC);
+  const syms = documentSymbols(p);
   assert.deepEqual(
     syms.map((s) => s.name),
     ['meta', 'seq', 'instances', 'types', 'enums'],
@@ -267,7 +271,13 @@ test('finds definitions and hovers', () => {
   d = definitionTarget(p, SPEC, off('_parent.hdr.ofs', 9));
   assert.equal(d?.kind === 'local' && d.range.start, off('id: hdr', 4));
   d = definitionTarget(p, SPEC, off('common/vlq', 2));
-  assert.deepEqual(d, { kind: 'import', name: 'common/vlq', mode: 'rel' });
+  assert.deepEqual(d, { kind: 'import', name: 'common/vlq' });
+  const imp = parseKsyDocument('meta:\n  id: vlq\ntypes:\n  group:\n    seq:\n      - id: b\n        type: u1\n');
+  const viaImport = SPEC.replace('type: header\n', 'type: vlq::group\n');
+  d = definitionTarget(parseKsyDocument(viaImport), viaImport, viaImport.indexOf('vlq::group') + 6, [imp.root]);
+  assert.equal(d?.kind, 'imported');
+  const ir = d?.kind === 'imported' ? symbolRange(imp, d) : undefined;
+  assert.equal(ir && imp.doc.toString().slice(ir.start, ir.end), 'group');
   d = definitionTarget(p, SPEC, off('enum: kinds', 7));
   assert.equal(d?.kind === 'local' && SPEC.slice(d.range.start, d.range.end), 'kinds');
 

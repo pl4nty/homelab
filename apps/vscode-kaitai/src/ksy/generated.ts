@@ -2,53 +2,41 @@
 // read-only virtual document (scheme `kaitai-gen`) that refreshes when the spec changes.
 import * as vscode from 'vscode';
 import { generateCode, LANGUAGES, toKsyError } from '../engine/kaitai.ts';
-import { importReader } from '../imports.ts';
+import { importReader, readSpec } from '../imports.ts';
 import { formatSpecError, type Session } from '../session.ts';
 
-export const GEN_SCHEME = 'kaitai-gen';
+const GEN_SCHEME = 'kaitai-gen';
 
-const LANGUAGE_IDS: Record<string, string> = {
-  construct: 'python',
-  cpp_stl: 'cpp',
-  csharp: 'csharp',
-  go: 'go',
-  graphviz: 'dot',
-  html: 'html',
-  java: 'java',
-  javascript: 'javascript',
-  lua: 'lua',
-  nim: 'nim',
-  perl: 'perl',
-  php: 'php',
-  python: 'python',
-  ruby: 'ruby',
-  rust: 'rust',
-};
+/** VS Code language ids of compiler targets, where the two differ. */
+const LANGUAGE_IDS: Record<string, string> = { construct: 'python', cpp_stl: 'cpp', graphviz: 'dot' };
+
+interface GenTarget {
+  spec: vscode.Uri;
+  lang: string;
+  debug: boolean;
+}
 
 /** `kaitai-gen:/<lang>[-debug]/<file>?<spec uri>` */
-function genUri(spec: vscode.Uri, lang: string, debug: boolean, file: string) {
+function genUri({ spec, lang, debug }: GenTarget, file: string) {
   return vscode.Uri.from({
     scheme: GEN_SCHEME,
-    path: `/${lang}${debug ? '-debug' : ''}/${file.replace(/^\/+/, '')}`,
+    path: `/${lang}${debug ? '-debug' : ''}/${file}`,
     query: spec.toString(),
   });
 }
 
-function parseGenUri(uri: vscode.Uri) {
+function parseGenUri(uri: vscode.Uri): (GenTarget & { file: string }) | undefined {
   const m = /^\/([^/]+?)(-debug)?\/(.+)$/.exec(uri.path);
-  if (!m) return undefined;
-  return { lang: m[1], debug: !!m[2], file: m[3], spec: vscode.Uri.parse(uri.query) };
+  return m ? { lang: m[1], debug: !!m[2], file: m[3], spec: vscode.Uri.parse(uri.query) } : undefined;
 }
 
-async function specText(uri: vscode.Uri) {
-  const open = vscode.workspace.textDocuments.find((d) => d.uri.toString() === uri.toString());
-  return open ? open.getText() : new TextDecoder().decode(await vscode.workspace.fs.readFile(uri));
-}
-
-async function generate(spec: vscode.Uri, lang: string, debug: boolean): Promise<Record<string, string>> {
-  const files = await generateCode(await specText(spec), lang, importReader(spec), debug);
+/** Generated files by relative path. */
+async function generate({ spec, lang, debug }: GenTarget): Promise<Record<string, string>> {
+  const files = await generateCode(await readSpec(spec), lang, importReader(spec), debug);
   return Object.fromEntries(Object.entries(files).map(([k, v]) => [k.replace(/^\/+/, ''), v]));
 }
+
+const compileError = (e: unknown) => `// Compile error: ${formatSpecError(toKsyError(e))}`;
 
 export function registerGeneratedCode(session: Session): vscode.Disposable {
   const contents = new Map<string, string>();
@@ -62,45 +50,31 @@ export function registerGeneratedCode(session: Session): vscode.Disposable {
       const g = parseGenUri(uri);
       if (!g) return '';
       try {
-        const files = await generate(g.spec, g.lang, g.debug);
-        return files[g.file] ?? `// ${g.file} is no longer generated`;
+        return (await generate(g))[g.file] ?? `// ${g.file} is no longer generated`;
       } catch (e) {
-        return `// Compile error: ${formatSpecError(toKsyError(e))}`;
+        return compileError(e);
       }
     },
   };
 
   // Any open generated doc may import the changed spec, so all of them are regenerated.
   const refresh = async () => {
-    const groups = new Map<string, vscode.Uri[]>();
-    for (const d of vscode.workspace.textDocuments) {
-      if (d.uri.scheme !== GEN_SCHEME) continue;
-      const g = parseGenUri(d.uri);
+    const jobs = new Map<string, Promise<Record<string, string> | string>>();
+    for (const { uri } of vscode.workspace.textDocuments) {
+      const g = uri.scheme === GEN_SCHEME ? parseGenUri(uri) : undefined;
       if (!g) continue;
-      const key = `${g.spec.toString()}\0${g.lang}\0${g.debug}`;
-      groups.set(key, [...(groups.get(key) ?? []), d.uri]);
-    }
-    for (const [key, uris] of groups) {
-      const [specStr, lang, debug] = key.split('\0');
-      let files: Record<string, string> | undefined;
-      let error: string | undefined;
-      try {
-        files = await generate(vscode.Uri.parse(specStr), lang, debug === 'true');
-      } catch (e) {
-        error = formatSpecError(toKsyError(e));
-      }
-      for (const uri of uris) {
-        const g = parseGenUri(uri);
-        if (!g) continue;
-        const prev = contents.get(uri.toString());
-        // Keep the last good code on errors, with the error on top.
-        const next = files
-          ? (files[g.file] ?? '')
-          : `// Compile error: ${error}\n\n${(prev ?? '').replace(/^\/\/ Compile error: .*\n\n/, '')}`;
-        if (next !== prev) {
-          contents.set(uri.toString(), next);
-          emitter.fire(uri);
-        }
+      const job = `${g.spec.toString()}\0${g.lang}\0${g.debug}`;
+      if (!jobs.has(job)) jobs.set(job, generate(g).catch(compileError));
+      const files = await (jobs.get(job) as Promise<Record<string, string> | string>);
+      const prev = contents.get(uri.toString());
+      // Keep the last good code on errors, with the error on top.
+      const next =
+        typeof files === 'string'
+          ? `${files}\n\n${(prev ?? '').replace(/^\/\/ Compile error: .*\n\n/, '')}`
+          : (files[g.file] ?? '');
+      if (next !== prev) {
+        contents.set(uri.toString(), next);
+        emitter.fire(uri);
       }
     }
   };
@@ -123,9 +97,10 @@ export function registerGeneratedCode(session: Session): vscode.Disposable {
     ]);
     const pick = await vscode.window.showQuickPick(picks, { title: 'Generate code', placeHolder: 'Target language' });
     if (!pick) return;
+    const target = { spec, lang: pick.lang, debug: pick.debug };
     let files: Record<string, string>;
     try {
-      files = await generate(spec, pick.lang, pick.debug);
+      files = await generate(target);
     } catch (e) {
       void vscode.window.showErrorMessage(`Cannot compile spec: ${formatSpecError(toKsyError(e))}`);
       return;
@@ -135,21 +110,20 @@ export function registerGeneratedCode(session: Session): vscode.Disposable {
       void vscode.window.showWarningMessage('The compiler produced no files.');
       return;
     }
-    for (const name of names) contents.set(genUri(spec, pick.lang, pick.debug, name).toString(), files[name]);
+    for (const name of names) contents.set(genUri(target, name).toString(), files[name]);
     let chosen = names;
     if (names.length > 1) {
       const all = '$(files) Open all';
       const f = await vscode.window.showQuickPick([...names, all], { title: `${pick.label}: ${names.length} files` });
       if (!f) return;
-      chosen = f === all ? names : [f];
+      if (f !== all) chosen = [f];
     }
     const known = new Set(await vscode.languages.getLanguages());
     for (const name of chosen) {
-      let doc = await vscode.workspace.openTextDocument(genUri(spec, pick.lang, pick.debug, name));
-      const lang = /\.h$/.test(name) ? 'cpp' : (LANGUAGE_IDS[pick.lang] ?? 'plaintext');
-      if (doc.languageId !== lang) {
-        doc = await vscode.languages.setTextDocumentLanguage(doc, known.has(lang) ? lang : 'plaintext');
-      }
+      let doc = await vscode.workspace.openTextDocument(genUri(target, name));
+      const wanted = name.endsWith('.h') ? 'cpp' : (LANGUAGE_IDS[pick.lang] ?? pick.lang);
+      const lang = known.has(wanted) ? wanted : 'plaintext';
+      if (doc.languageId !== lang) doc = await vscode.languages.setTextDocumentLanguage(doc, lang);
       await vscode.window.showTextDocument(doc, { preview: chosen.length === 1, viewColumn: vscode.ViewColumn.Beside });
     }
   };

@@ -1,8 +1,11 @@
 // KSY schema knowledge: which keys are allowed where, their docs, and value hints. Pure (no vscode).
-import { KSY_SCHEMA } from './schemaData.ts';
+import ksySchema from '../../schema/ksy_schema.json' with { type: 'json' };
 
 // biome-ignore lint/suspicious/noExplicitAny: JSON schema nodes
 type Json = any;
+
+const SCHEMA: Json = ksySchema;
+const DEFS = SCHEMA.definitions;
 
 /** Kind of YAML mapping (or scalar slot) at a path in a .ksy document. */
 export type KsyContext =
@@ -39,92 +42,102 @@ export interface PathContext {
   parentCtx?: KsyContext;
 }
 
+const TYPE_KEYS = {
+  meta: 'meta',
+  seq: 'seq',
+  instances: 'instances',
+  types: 'types',
+  enums: 'enums',
+  params: 'params',
+} as const;
+const ATTRIBUTE_KEYS = { type: 'switch', valid: 'valid' } as const;
+
+/** Keys of each mapping context that open another context; its other keys hold scalars. */
+const NESTED: Partial<Record<KsyContext, Record<string, KsyContext>>> = {
+  root: TYPE_KEYS,
+  type: TYPE_KEYS,
+  meta: { xref: 'xref', imports: 'imports' },
+  attribute: ATTRIBUTE_KEYS,
+  instance: ATTRIBUTE_KEYS,
+  switch: { cases: 'cases' },
+  cases: {},
+  valid: {},
+  xref: {},
+  imports: {},
+  enumValue: {},
+  param: {},
+};
+
 const isIndex = (s: string) => s === '*' || /^\d+$/.test(s);
+
+function childContext(ctx: KsyContext, seg: string): KsyContext {
+  switch (ctx) {
+    case 'seq':
+      return isIndex(seg) ? 'attribute' : 'unknown';
+    case 'params':
+      return isIndex(seg) ? 'param' : 'unknown';
+    case 'instances':
+      return 'instance';
+    case 'types':
+      return 'type';
+    case 'enums':
+      return 'enum';
+    case 'enum':
+      return 'enumValue';
+    default: {
+      const nested = NESTED[ctx];
+      if (!nested) return 'unknown';
+      return Object.hasOwn(nested, seg) ? nested[seg] : 'scalar';
+    }
+  }
+}
 
 /** Classifies a YAML path such as `['types', 'chunk', 'seq', '0', 'type']`. `*` stands for any list index. */
 export function classifyPath(path: readonly string[]): PathContext {
   let ctx: KsyContext = 'root';
-  const typePath: string[] = [];
-  let enumName: string | undefined;
-  let key: string | undefined;
   let parentCtx: KsyContext | undefined;
+  let enumName: string | undefined;
+  const typePath: string[] = [];
   for (const seg of path) {
+    if (ctx === 'types') typePath.push(seg);
+    else if (ctx === 'enums') enumName = seg;
     parentCtx = ctx;
-    key = seg;
-    switch (ctx) {
-      case 'root':
-      case 'type':
-        ctx =
-          seg === 'meta'
-            ? 'meta'
-            : seg === 'seq'
-              ? 'seq'
-              : seg === 'instances'
-                ? 'instances'
-                : seg === 'types'
-                  ? 'types'
-                  : seg === 'enums'
-                    ? 'enums'
-                    : seg === 'params'
-                      ? 'params'
-                      : 'scalar';
-        break;
-      case 'meta':
-        ctx = seg === 'xref' ? 'xref' : seg === 'imports' ? 'imports' : 'scalar';
-        break;
-      case 'seq':
-        ctx = isIndex(seg) ? 'attribute' : 'unknown';
-        break;
-      case 'instances':
-        ctx = 'instance';
-        break;
-      case 'types':
-        typePath.push(seg);
-        ctx = 'type';
-        break;
-      case 'enums':
-        enumName = seg;
-        ctx = 'enum';
-        break;
-      case 'enum':
-        ctx = 'enumValue';
-        break;
-      case 'params':
-        ctx = isIndex(seg) ? 'param' : 'unknown';
-        break;
-      case 'attribute':
-      case 'instance':
-        ctx = seg === 'type' ? 'switch' : seg === 'valid' ? 'valid' : 'scalar';
-        break;
-      case 'switch':
-        ctx = seg === 'cases' ? 'cases' : 'scalar';
-        break;
-      case 'cases':
-      case 'valid':
-      case 'xref':
-      case 'imports':
-      case 'enumValue':
-      case 'param':
-        ctx = 'scalar';
-        break;
-      default:
-        ctx = 'unknown';
-    }
+    ctx = childContext(ctx, seg);
   }
-  return {
-    ctx,
-    typePath,
-    enumName,
-    key: path.length ? key : undefined,
-    parentCtx: path.length ? parentCtx : undefined,
-  };
+  return { ctx, typePath, enumName, key: path.at(-1), parentCtx };
 }
+
+/** Keys whose values are Kaitai expressions. */
+const EXPRESSION_KEYS = new Set([
+  'if',
+  'size',
+  'repeat-expr',
+  'repeat-until',
+  'value',
+  'pos',
+  'switch-on',
+  'io',
+  'eq',
+  'min',
+  'max',
+  'expr',
+  'to-string',
+]);
+
+/** The value at this path names a type (`type: foo`, or a `cases` value). */
+export const isTypeSlot = (c: PathContext) =>
+  c.parentCtx === 'cases' ||
+  (c.key === 'type' && (c.parentCtx === 'attribute' || c.parentCtx === 'instance' || c.parentCtx === 'param'));
+
+/** The value at this path is a Kaitai expression. */
+export const isExpressionSlot = (c: PathContext) =>
+  c.key !== undefined && (EXPRESSION_KEYS.has(c.key) || c.parentCtx === 'valid');
 
 function resolveRef(node: Json): Json {
   let n = node;
   for (let i = 0; i < 10 && n?.$ref; i++) {
-    const name = String(n.$ref).replace('#/definitions/', '');
-    n = { ...KSY_SCHEMA.definitions[name], ...Object.fromEntries(Object.entries(n).filter(([k]) => k !== '$ref')) };
+    const { $ref, ...own } = n;
+    n = { ...DEFS[String($ref).replace('#/definitions/', '')], ...own };
   }
   return n;
 }
@@ -132,7 +145,7 @@ function resolveRef(node: Json): Json {
 /** All object properties of a schema node, merging anyOf/allOf variants. */
 function propertiesOf(node: Json): Record<string, Json> {
   const n = resolveRef(node);
-  const out: Record<string, Json> = { ...(n?.properties ?? {}) };
+  const out: Record<string, Json> = { ...n?.properties };
   for (const variant of [...(n?.anyOf ?? []), ...(n?.allOf ?? [])]) {
     for (const [k, v] of Object.entries(propertiesOf(variant))) out[k] ??= v;
   }
@@ -140,8 +153,6 @@ function propertiesOf(node: Json): Record<string, Json> {
 }
 
 function descriptionOf(node: Json): string | undefined {
-  if (!node) return undefined;
-  if (typeof node.description === 'string') return node.description;
   const r = resolveRef(node);
   if (typeof r?.description === 'string') return r.description;
   for (const v of r?.anyOf ?? []) {
@@ -155,27 +166,19 @@ function descriptionOf(node: Json): string | undefined {
 function valuesOf(node: Json): string[] {
   const r = resolveRef(node);
   if (!r) return [];
-  const out = new Set<string>();
-  for (const v of r.enum ?? []) out.add(String(v));
-  if (r.type === 'boolean') {
-    out.add('true');
-    out.add('false');
-  }
-  for (const v of r.anyOf ?? []) for (const x of valuesOf(v)) out.add(x);
-  return [...out];
+  return [
+    ...new Set<string>([
+      ...(r.enum ?? []).map(String),
+      ...(r.type === 'boolean' ? ['true', 'false'] : []),
+      ...(r.anyOf ?? []).flatMap(valuesOf),
+    ]),
+  ];
 }
-
-const DEFS = KSY_SCHEMA.definitions;
-
-const SWITCH = {
-  'switch-on': { description: 'expression whose value selects the type from `cases`' },
-  cases: { description: 'map of `switch-on` values (expressions) to types; `_` is the default case' },
-};
 
 function schemaForContext(ctx: KsyContext): Record<string, Json> {
   switch (ctx) {
     case 'root':
-      return KSY_SCHEMA.properties;
+      return SCHEMA.properties;
     case 'type':
       return propertiesOf(DEFS.TypeSpec);
     case 'meta':
@@ -193,7 +196,10 @@ function schemaForContext(ctx: KsyContext): Record<string, Json> {
     case 'param':
       return propertiesOf(DEFS.ParamSpec);
     case 'switch':
-      return SWITCH;
+      return {
+        'switch-on': { description: 'expression whose value selects the type from `cases`' },
+        cases: { description: 'map of `switch-on` values (expressions) to types; `_` is the default case' },
+      };
     case 'valid':
       return propertiesOf(DEFS.ValidationSpec);
     case 'enumValue':
@@ -208,38 +214,31 @@ export interface KeyInfo {
   doc?: string;
   /** Literal values the key accepts (enum values or booleans). */
   values: string[];
-  /** The value is a block (mapping or list) rather than a scalar. */
-  block: 'map' | 'list' | undefined;
 }
 
-const BLOCK_KEYS: Record<string, 'map' | 'list'> = {
-  meta: 'map',
-  seq: 'list',
-  instances: 'map',
-  types: 'map',
-  enums: 'map',
-  params: 'list',
-  xref: 'map',
-  imports: 'list',
-  cases: 'map',
-};
-
-/** Keys allowed in the mapping of the given context. */
-export function keysFor(ctx: KsyContext): KeyInfo[] {
-  return Object.entries(schemaForContext(ctx)).map(([key, node]) => ({
-    key,
-    doc: descriptionOf(node) ?? descriptionOf(DOC_FALLBACK[key]),
-    values: valuesOf(node),
-    block: BLOCK_KEYS[key],
-  }));
-}
-
+/** Where the schema documents a key on its definition rather than at each use. */
 const DOC_FALLBACK: Record<string, Json> = {
   doc: DEFS.Doc,
   'doc-ref': DEFS.DocRef,
   'to-string': DEFS.ToString,
   encoding: DEFS.CharacterEncoding,
 };
+
+const keysCache = new Map<KsyContext, KeyInfo[]>();
+
+/** Keys allowed in the mapping of the given context. */
+export function keysFor(ctx: KsyContext): KeyInfo[] {
+  let keys = keysCache.get(ctx);
+  if (!keys) {
+    keys = Object.entries(schemaForContext(ctx)).map(([key, node]) => ({
+      key,
+      doc: descriptionOf(node) ?? descriptionOf(DOC_FALLBACK[key]),
+      values: valuesOf(node),
+    }));
+    keysCache.set(ctx, keys);
+  }
+  return keys;
+}
 
 /** Documentation of one key in a context. */
 export function keyInfo(ctx: KsyContext, key: string): KeyInfo | undefined {
@@ -248,20 +247,3 @@ export function keyInfo(ctx: KsyContext, key: string): KeyInfo | undefined {
 
 /** Canonical character encodings known to the compiler. */
 export const ENCODINGS: readonly string[] = DEFS.CharacterEncoding.enum;
-
-/** Keys whose values are Kaitai expressions. */
-export const EXPRESSION_KEYS = new Set([
-  'if',
-  'size',
-  'repeat-expr',
-  'repeat-until',
-  'value',
-  'pos',
-  'switch-on',
-  'io',
-  'eq',
-  'min',
-  'max',
-  'expr',
-  'to-string',
-]);

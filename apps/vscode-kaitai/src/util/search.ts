@@ -60,7 +60,7 @@ export function parseNeedle(query: string, defaultEndian: 'le' | 'be' = 'le'): N
     if (str) {
       const enc = t.replace(/[-_]/g, '');
       if (enc === 'utf16le' || enc === 'utf16be') {
-        const s = unescape(str[2]);
+        const s = unescapeText(str[2]);
         const bytes = new Uint8Array(s.length * 2);
         for (let i = 0; i < s.length; i++) {
           const c = s.charCodeAt(i);
@@ -70,12 +70,12 @@ export function parseNeedle(query: string, defaultEndian: 'le' | 'be' = 'le'): N
         return { bytes, label: `${type} ${value.trim()}` };
       }
       if (enc === 'utf8' || enc === 'ascii')
-        return { bytes: new TextEncoder().encode(unescape(str[2])), label: `${type} ${value.trim()}` };
+        return { bytes: new TextEncoder().encode(unescapeText(str[2])), label: `${type} ${value.trim()}` };
       return `Unsupported encoding: ${type}`;
     }
   }
   const str = /^(["'])(.*)\1$/s.exec(q);
-  if (str) return { bytes: new TextEncoder().encode(unescape(str[2])), label: q };
+  if (str) return { bytes: new TextEncoder().encode(unescapeText(str[2])), label: q };
   const hex = q.replace(/^0x/i, '').replace(/[\s,]+/g, '');
   if (/^([0-9a-f]{2}|\?\?)+$/i.test(hex)) {
     const n = hex.length / 2;
@@ -95,7 +95,7 @@ export function parseNeedle(query: string, defaultEndian: 'le' | 'be' = 'le'): N
   return 'Use e.g. u4le 1234, f4 1.5, "text", utf-16le "text", or hex bytes like 89 50 ?? 47';
 }
 
-function unescape(s: string) {
+function unescapeText(s: string) {
   return s.replace(/\\(x[0-9a-fA-F]{2}|n|r|t|0|\\|"|')/g, (_, e: string) =>
     e[0] === 'x'
       ? String.fromCharCode(Number.parseInt(e.slice(1), 16))

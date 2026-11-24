@@ -5,7 +5,7 @@ const common = {
   bundle: true,
   sourcemap: true,
   minify: !watch,
-  target: 'es2022',
+  target: 'es2023',
   logLevel: 'info',
   // The Kaitai runtime falls back to these for encodings/zlib; we supply fflate and TextDecoder.
   external: ['vscode', 'zlib', 'iconv-lite'],

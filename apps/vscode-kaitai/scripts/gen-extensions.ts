@@ -2,20 +2,20 @@
 //
 //   node --experimental-strip-types scripts/gen-extensions.ts [--repo owner/repo] [--ref master] [--paths list.txt]
 //
-// The listing comes from the GitHub tree API (GITHUB_TOKEN is used when set), then jsDelivr. With `--paths`, a
-// file of candidate repo paths (one per line, `.ksy` optional) is used instead; missing ones are skipped and
-// imports are followed, which helps where only raw.githubusercontent.com is reachable.
+// The listing comes from the GitHub tree API (GITHUB_TOKEN is used when set). With `--paths`, a file of candidate
+// repo paths (one per line, `.ksy` optional) is used instead; missing ones are skipped and imports are followed,
+// which helps where only raw.githubusercontent.com is reachable.
 import { readFileSync, writeFileSync } from 'node:fs';
-import { gitTreeUrl, jsdelivrListUrl, parseGitTree, parseJsdelivrFlat, rawUrls } from '../src/gallery/listing.ts';
+import { fetchGitTree, rawUrl } from '../src/gallery/listing.ts';
 import { readMeta, resolveImport } from '../src/gallery/spec.ts';
 
 const args = process.argv.slice(2);
-const opt = (name: string, def?: string) => {
+const opt = (name: string) => {
   const i = args.indexOf(`--${name}`);
-  return i >= 0 ? args[i + 1] : def;
+  return i >= 0 ? args[i + 1] : undefined;
 };
-const repo = opt('repo', 'kaitai-io/kaitai_struct_formats')!;
-const ref = opt('ref', 'master')!;
+const repo = opt('repo') ?? 'kaitai-io/kaitai_struct_formats';
+const ref = opt('ref') ?? 'master';
 const pathsFile = opt('paths');
 const out = new URL('../src/gallery/extensions.ts', import.meta.url);
 
@@ -27,31 +27,16 @@ async function listing(): Promise<string[]> {
       .filter((l) => l && !l.startsWith('#'))
       .map((l) => (l.endsWith('.ksy') ? l : `${l}.ksy`));
   }
-  const headers: Record<string, string> = { Accept: 'application/vnd.github+json' };
-  if (process.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
-  try {
-    const res = await fetch(gitTreeUrl(repo, ref), { headers });
-    const { entries, truncated } = parseGitTree(await res.json());
-    if (truncated) console.warn('warning: tree listing is truncated');
-    return entries.map((e) => e.path);
-  } catch (e) {
-    console.warn(`GitHub tree API failed (${(e as Error).message}), trying jsDelivr`);
-    const res = await fetch(jsdelivrListUrl(repo, ref));
-    return parseJsdelivrFlat(await res.json()).map((e) => e.path);
-  }
+  const { entries, truncated } = await fetchGitTree(repo, ref, process.env.GITHUB_TOKEN);
+  if (truncated) console.warn('warning: tree listing is truncated');
+  return entries.map((e) => e.path);
 }
 
 async function fetchText(path: string): Promise<string | undefined> {
-  for (const url of rawUrls(repo, ref, path)) {
-    try {
-      const res = await fetch(url);
-      if (res.ok) return await res.text();
-      if (res.status === 404) return undefined;
-    } catch {
-      // try the next mirror
-    }
-  }
-  return undefined;
+  const res = await fetch(rawUrl(repo, ref, path));
+  if (res.ok) return res.text();
+  if (res.status === 404) return undefined;
+  throw new Error(`${path}: HTTP ${res.status}`);
 }
 
 const queue = [...new Set(await listing())];
@@ -82,8 +67,8 @@ const map = new Map<string, Set<string>>();
 for (const [path, exts] of found) {
   for (const ext of exts) {
     if (!/^[a-z0-9_+-]+$/.test(ext)) continue;
-    if (!map.has(ext)) map.set(ext, new Set());
-    map.get(ext)!.add(path);
+    const paths = map.get(ext) ?? new Set();
+    map.set(ext, paths.add(path));
   }
 }
 const lines = [...map]

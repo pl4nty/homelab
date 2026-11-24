@@ -25,14 +25,14 @@ const apply = (src: string, e: ReturnType<typeof insertSeqItems>) => {
 };
 
 test('inserts between root seq items', () => {
-  const out = apply(SPEC, insertSeqItems(SPEC, 'MyFmt', 1, [{ id: 'len', attrs: { type: 'u2' } }]));
+  const out = apply(SPEC, insertSeqItems(SPEC, 'MyFmt', 'body', [{ id: 'len', attrs: { type: 'u2' } }]));
   assert.match(out, /contents: \[1, 2\]\n {2}- id: len\n {4}type: u2\n {2}- id: body/);
 });
 
 test('appends to a nested type seq with its indentation', () => {
   const out = apply(
     SPEC,
-    insertSeqItems(SPEC, 'BodyT', 5, [
+    insertSeqItems(SPEC, 'BodyT', undefined, [
       { id: 'gap', attrs: { size: 3 } },
       { id: 'b', attrs: { type: 'u4' } },
     ]),
@@ -40,9 +40,15 @@ test('appends to a nested type seq with its indentation', () => {
   assert.ok(out.endsWith('        type: u1\n      - id: gap\n        size: 3\n      - id: b\n        type: u4\n'), out);
 });
 
+test('appends to a file without a final newline', () => {
+  const src = 'meta:\n  id: x\nseq:\n  - id: a\n    type: u1';
+  const out = apply(src, insertSeqItems(src, 'X', 'missing', [{ id: 'b', attrs: { size: 2 } }]));
+  assert.ok(out.endsWith('    type: u1\n  - id: b\n    size: 2\n'), out);
+});
+
 test('errors', () => {
-  assert.equal(typeof insertSeqItems(SPEC, 'Nope', 0, []), 'string');
-  assert.equal(typeof insertSeqItems('meta: {id: x}\nseq: [{id: a, type: u1}]\n', 'X', 0, []), 'string');
+  assert.equal(typeof insertSeqItems(SPEC, 'Nope', undefined, []), 'string');
+  assert.equal(typeof insertSeqItems('meta: {id: x}\nseq: [{id: a, type: u1}]\n', 'X', undefined, []), 'string');
 });
 
 test('typeChoices', () => {

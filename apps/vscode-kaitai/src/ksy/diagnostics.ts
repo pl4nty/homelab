@@ -3,8 +3,8 @@
 import * as vscode from 'vscode';
 import type { Session } from '../session.ts';
 import { diagnosticTargetPath, isImportedError, suggestionsFor, unresolvedName } from './language.ts';
-import { forgetImports, importedSpecs } from './resolve.ts';
-import { parseKsyDocument, rangeForPath } from './yamlAst.ts';
+import { forgetImports, importedSpecs, parsedOf } from './resolve.ts';
+import { rangeForPath } from './yamlAst.ts';
 
 const DEBOUNCE_MS = 400;
 
@@ -41,17 +41,14 @@ export class KsyDiagnostics implements vscode.Disposable {
         forgetImports();
         for (const d of vscode.workspace.textDocuments) {
           if (d.languageId !== 'ksy' || d.uri.toString() === uri.toString()) continue;
-          session.templates.invalidate(d.uri);
           this.schedule(d, 0);
         }
       }),
       vscode.window.onDidChangeActiveTextEditor(() => this.updateStatus()),
       vscode.languages.registerCodeActionsProvider(
         'ksy',
-        { provideCodeActions: (doc, _r, ctx) => this.codeActions(doc, ctx) },
-        {
-          providedCodeActionKinds: [vscode.CodeActionKind.QuickFix],
-        },
+        { provideCodeActions: (doc, _range, ctx) => this.codeActions(doc, ctx) },
+        { providedCodeActionKinds: [vscode.CodeActionKind.QuickFix] },
       ),
     );
     for (const d of vscode.workspace.textDocuments) this.schedule(d, 0);
@@ -62,39 +59,43 @@ export class KsyDiagnostics implements vscode.Disposable {
     if (doc.languageId !== 'ksy') return;
     const key = doc.uri.toString();
     clearTimeout(this.timers.get(key));
-    this.timers.set(
-      key,
-      setTimeout(() => {
-        this.timers.delete(key);
-        void this.validate(doc);
-      }, delay),
-    );
+    // The entry stays until validation ends, so the status bar shows it as busy.
+    const timer = setTimeout(async () => {
+      try {
+        await this.validate(doc);
+      } finally {
+        if (this.timers.get(key) === timer) this.timers.delete(key);
+        this.updateStatus();
+      }
+    }, delay);
+    this.timers.set(key, timer);
+    this.updateStatus();
   }
 
-  async validate(doc: vscode.TextDocument) {
+  private async validate(doc: vscode.TextDocument) {
     const version = doc.version;
     const text = doc.getText();
-    const parsed = parseKsyDocument(text);
-    const diags: vscode.Diagnostic[] = [];
-    const toRange = (start: number, end: number) =>
-      new vscode.Range(doc.positionAt(start), doc.positionAt(Math.max(end, start)));
-    for (const [list, severity] of [
-      [parsed.doc.errors, vscode.DiagnosticSeverity.Error],
-      [parsed.doc.warnings, vscode.DiagnosticSeverity.Warning],
-    ] as const) {
-      for (const e of list) {
-        const [s, en] = e.pos;
-        const d = new vscode.Diagnostic(toRange(s, en === s ? s + 1 : en), e.message.split('\n')[0], severity);
-        d.source = 'yaml';
-        diags.push(d);
-      }
-    }
+    const parsed = parsedOf(doc);
+    const toRange = (start: number, end: number) => new vscode.Range(doc.positionAt(start), doc.positionAt(end));
+    const yaml = (severity: vscode.DiagnosticSeverity) => (e: { pos: [number, number]; message: string }) => {
+      const d = new vscode.Diagnostic(
+        toRange(e.pos[0], Math.max(e.pos[1], e.pos[0] + 1)),
+        e.message.split('\n')[0],
+        severity,
+      );
+      d.source = 'yaml';
+      return d;
+    };
+    const diags = [
+      ...parsed.doc.errors.map(yaml(vscode.DiagnosticSeverity.Error)),
+      ...parsed.doc.warnings.map(yaml(vscode.DiagnosticSeverity.Warning)),
+    ];
     if (!parsed.doc.errors.length) {
       const result = await this.session.templates.compile(doc.uri, text);
       if (doc.isClosed || doc.version !== version) return;
       const err = result.error;
       if (err) {
-        const ownId = typeof parsed.js?.meta?.id === 'string' ? parsed.js.meta.id : undefined;
+        const ownId = parsed.root.specId || undefined;
         const target = diagnosticTargetPath(parsed, err, ownId);
         const r = rangeForPath(parsed, text, target);
         const where = err.path?.length ? `/${err.path.join('/')}` : '';
@@ -104,7 +105,7 @@ export class KsyDiagnostics implements vscode.Disposable {
           : r.match === 'ancestor' && where
             ? `${where}: ${err.message}`
             : err.message;
-        const d = new vscode.Diagnostic(toRange(r.start, r.end), message, vscode.DiagnosticSeverity.Error);
+        const d = new vscode.Diagnostic(toRange(r.start, r.end), message);
         d.source = 'kaitai';
         const unresolved = !imported ? unresolvedName(err.message) : undefined;
         if (unresolved) {
@@ -114,9 +115,7 @@ export class KsyDiagnostics implements vscode.Disposable {
         diags.push(d);
       }
     }
-    if (doc.isClosed || doc.version !== version) return;
     this.collection.set(doc.uri, diags);
-    this.updateStatus();
   }
 
   private updateStatus() {
@@ -142,30 +141,28 @@ export class KsyDiagnostics implements vscode.Disposable {
   }
 
   private async codeActions(doc: vscode.TextDocument, ctx: vscode.CodeActionContext): Promise<vscode.CodeAction[]> {
-    const out: vscode.CodeAction[] = [];
-    const parsed = parseKsyDocument(doc.getText());
-    for (const d of ctx.diagnostics) {
+    const fixable = ctx.diagnostics.flatMap((d) => {
       const fix = this.fixes.get(d);
-      if (!fix) continue;
-      const imported = (await importedSpecs(doc, parsed)).map((s) => s.root);
-      const candidates = suggestionsFor(parsed, fix.path, fix.what, fix.name, imported);
+      return fix ? [{ d, fix }] : [];
+    });
+    if (!fixable.length) return [];
+    const imported = (await importedSpecs(doc)).map((s) => s.parsed.root);
+    return fixable.flatMap(({ d, fix }) => {
       // Replace the name inside the diagnostic range (leaves `(args)` or `[]` alone).
-      const rangeText = doc.getText(d.range);
-      const at = rangeText.indexOf(fix.name);
+      const at = doc.getText(d.range).indexOf(fix.name);
       const range =
         at >= 0
           ? new vscode.Range(d.range.start.translate(0, at), d.range.start.translate(0, at + fix.name.length))
           : d.range;
-      for (const [i, c] of candidates.entries()) {
+      return suggestionsFor(parsedOf(doc), fix.path, fix.what, fix.name, imported).map((c, i) => {
         const action = new vscode.CodeAction(`Change to '${c}'`, vscode.CodeActionKind.QuickFix);
         action.edit = new vscode.WorkspaceEdit();
         action.edit.replace(doc.uri, range, c);
         action.diagnostics = [d];
         action.isPreferred = i === 0;
-        out.push(action);
-      }
-    }
-    return out;
+        return action;
+      });
+    });
   }
 
   dispose() {

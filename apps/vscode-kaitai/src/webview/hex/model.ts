@@ -1,12 +1,9 @@
 // Pure logic for the Kaitai hex editor: layout maths, scroll mapping, region colouring and
 // gap/field stepping. No DOM and no `vscode` import, so the extension host, the webview and the
 // unit tests can all use it.
-import type { Region, StructureNode } from '../../engine/structure.ts';
+import { type ByteRange, type Region, regionsInRange, type StructureNode, TONES } from '../../engine/structure.ts';
 
-export interface Range {
-  start: number;
-  end: number;
-}
+export type Range = ByteRange;
 
 // ---------------------------------------------------------------------------------------------
 // Rows and offsets
@@ -31,7 +28,7 @@ export function hexByte(b: number): string {
   return HEX2[b];
 }
 
-/** Printable in the ASCII column (as the Web IDE: <32, 0x7f-0xa0 and 0xad are not). */
+/** Shown as itself in the ASCII column; other bytes are drawn as a dimmed dot. */
 export function isPrintable(b: number): boolean {
   return b >= 0x20 && b < 0x7f;
 }
@@ -41,7 +38,7 @@ export function asciiChar(b: number): string {
 }
 
 export function clamp(v: number, lo: number, hi: number): number {
-  return v < lo ? lo : v > hi ? hi : v;
+  return Math.max(lo, Math.min(v, hi));
 }
 
 /** `0x1A (26)` */
@@ -183,121 +180,29 @@ export function selectionRange(s: Selection): Range {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Region colouring
-
-/** Hue families. Adjacent nesting levels use different families. */
-export const HUES = 6;
-/** Tone variants per hue: two alternating tones plus a third used to break rare ties. */
-export const TONES = 3;
+// Regions: sorted lists from `regionsInRange`
 
 /**
- * Colour key of a leaf from its path of sibling indices (root first). Siblings are counted among
- * ranged, non-instance children, with array buckets flattened, so consecutive ranged fields of one
- * struct differ in tone, and leaves of sibling structs differ in hue.
+ * Final palette index per region. A region touching its predecessor with the same key gets the
+ * third tone. Only the predecessor's own key is used, so colours do not depend on which part of
+ * the file was loaded first.
  */
-export function colourKey(path: readonly number[]): number {
-  const d = path.length - 1;
-  if (d <= 0) return 0;
-  const tone = path[d] & 1;
-  const hue = ((d - 1) * 2 + (path[d - 1] & 1)) % HUES;
-  return hue * TONES + tone;
-}
-
-export function keyHue(key: number): number {
-  return Math.floor(key / TONES) % HUES;
-}
-
-export function keyTone(key: number): number {
-  return key % TONES;
-}
-
-/**
- * Final colour per region (sorted by start). A region touching its predecessor with the same key
- * gets the third tone. Only the predecessor's own key is used, so colours do not depend on which
- * part of the file was loaded first.
- */
-export function assignColours(regions: readonly Region[], keys: readonly number[]): number[] {
-  const out = new Array<number>(regions.length);
-  for (let i = 0; i < regions.length; i++) {
-    const k = keys[i] ?? 0;
-    const prev = i > 0 ? regions[i - 1] : undefined;
-    out[i] = prev && prev.end === regions[i].start && keys[i - 1] === k ? k - keyTone(k) + 2 : k;
-  }
-  return out;
-}
-
-export interface KeyedRegions {
-  regions: Region[];
-  keys: number[];
-}
-
-/**
- * Same regions as `regionsInRange` from engine/structure.ts, plus a colour key for each (see
- * test/hex.test.ts). One deliberate difference: a struct is reported as a region of its own only
- * when none of its fields has a range (they were read from a processed stream), not whenever
- * none of them falls inside the window, so the result does not depend on the window.
- */
-export function keyedRegionsInRange(roots: StructureNode[], start: number, end: number, limit = 20000): KeyedRegions {
-  const items: { r: Region; k: number }[] = [];
-  const path: number[] = [];
-  const visit = (node: StructureNode, depth: number) => {
-    if (items.length >= limit) return;
-    const r = node.range;
-    if (r && (r.end <= start || r.start >= end)) return;
-    if (node.hasChildren && node.kind !== 'bytes') {
-      let index = 0;
-      let rangedChild = false;
-      const walk = (children: StructureNode[], d: number) => {
-        for (const child of children) {
-          if (child.instance) continue;
-          if (child.range) rangedChild = true;
-          if (child.kind === 'bucket') {
-            // Buckets are a display device of the tree: colour array items as one sequence.
-            const cr = child.range;
-            if (!cr || (cr.end > start && cr.start < end)) walk(child.children(), d + 1);
-            continue;
-          }
-          // Array items carry their absolute index, which keeps parity stable across buckets.
-          const item = /^\[(\d+)\]$/.exec(child.name);
-          path.push(item ? Number(item[1]) : index);
-          visit(child, d);
-          path.pop();
-          if (child.range && child.range.end > child.range.start) index++;
-        }
-      };
-      walk(node.children(), depth + 1);
-      // A struct whose fields all live in a processed stream still covers its raw bytes. (Unlike
-      // regionsInRange, a struct whose fields merely lie outside the window does not count.)
-      if (!rangedChild && r && r.end > r.start) items.push({ r: region(node, depth), k: colourKey(path) });
-      return;
-    }
-    if (r && r.end > r.start) items.push({ r: region(node, depth), k: colourKey(path) });
-  };
-  roots.forEach((root, i) => {
-    path.push(i);
-    visit(root, 0);
-    path.pop();
+export function assignColours(regions: readonly Region[]): number[] {
+  return regions.map((r, i) => {
+    const prev = regions[i - 1];
+    return prev?.end === r.start && prev.key === r.key ? r.key - (r.key % TONES) + TONES - 1 : r.key;
   });
-  items.sort((a, b) => a.r.start - b.r.start || b.r.end - a.r.end);
-  return { regions: items.map((x) => x.r), keys: items.map((x) => x.k) };
 }
 
-function region(node: StructureNode, depth: number): Region {
-  return {
-    start: node.range!.start,
-    end: node.range!.end,
-    id: node.id,
-    depth,
-    label: node.value === undefined ? node.id : `${node.id} = ${node.value}`,
-    error: node.error !== undefined || undefined,
-  };
+/** Merges region lists, dropping duplicates of the same node and range (blocks overlap). */
+export function mergeRegions(lists: readonly Region[][]): Region[] {
+  const byId = new Map<string, Region>();
+  for (const r of lists.flat()) byId.set(`${r.start}:${r.end}:${r.id}`, r);
+  return [...byId.values()].sort((a, b) => a.start - b.start || b.end - a.end);
 }
 
-// ---------------------------------------------------------------------------------------------
-// Lookups over a sorted region list
-
-/** Index of the smallest region containing `offset`, or -1. Regions are sorted by start. */
-export function regionAt(regions: readonly Region[], offset: number): number {
+/** The smallest region containing `offset`. */
+export function regionAt(regions: readonly Region[], offset: number): Region | undefined {
   // Last region with start <= offset, then scan back for containment (leaves rarely overlap).
   let lo = 0;
   let hi = regions.length;
@@ -306,80 +211,25 @@ export function regionAt(regions: readonly Region[], offset: number): number {
     if (regions[mid].start <= offset) lo = mid + 1;
     else hi = mid;
   }
-  let best = -1;
-  for (let i = lo - 1, scanned = 0; i >= 0 && scanned < 64; i--, scanned++) {
+  let best: Region | undefined;
+  for (let i = lo - 1; i >= Math.max(0, lo - 64); i--) {
     const r = regions[i];
-    if (r.start <= offset && offset < r.end) {
-      if (best < 0 || r.end - r.start < regions[best].end - regions[best].start) best = i;
-    }
+    if (offset < r.end && (!best || r.end - r.start < best.end - best.start)) best = r;
   }
   return best;
 }
 
-/**
- * Bytes in [start, end) that no region covers. `coveredEnd` limits the search when the region
- * list was truncated: nothing at or after it is reported.
- */
-export function gapsIn(regions: readonly Region[], start: number, end: number, coveredEnd = end): Range[] {
+/** Bytes in [start, end) that no region covers. */
+export function gapsIn(regions: readonly Region[], start: number, end: number): Range[] {
   const out: Range[] = [];
-  const stop = Math.min(end, coveredEnd);
   let pos = start;
   for (const r of regions) {
-    if (r.end <= pos) continue;
-    if (r.start >= stop) break;
+    if (r.start >= end) break;
     if (r.start > pos) out.push({ start: pos, end: r.start });
     pos = Math.max(pos, r.end);
-    if (pos >= stop) break;
   }
-  if (pos < stop) out.push({ start: pos, end: stop });
+  if (pos < end) out.push({ start: pos, end });
   return out;
-}
-
-/** First gap that starts after `from`. Gaps must be sorted. */
-export function nextGap(gaps: readonly Range[], from: number): Range | undefined {
-  return gaps.find((g) => g.start > from);
-}
-
-/** Last gap that starts before `from`. */
-export function prevGap(gaps: readonly Range[], from: number): Range | undefined {
-  for (let i = gaps.length - 1; i >= 0; i--) if (gaps[i].start < from) return gaps[i];
-  return undefined;
-}
-
-/** First region that starts after `from`. */
-export function nextField(regions: readonly Region[], from: number): Region | undefined {
-  let best: Region | undefined;
-  for (const r of regions) {
-    if (r.start > from && (!best || r.start < best.start)) best = r;
-    if (best && r.start > best.start) break;
-  }
-  return best;
-}
-
-/** Last region that starts before `from`. */
-export function prevField(regions: readonly Region[], from: number): Region | undefined {
-  let best: Region | undefined;
-  for (const r of regions) {
-    if (r.start >= from) break;
-    if (!best || r.start >= best.start) best = r;
-  }
-  return best;
-}
-
-/** Merges region lists (each sorted), dropping duplicates of the same node and range. */
-export function mergeRegions(lists: readonly KeyedRegions[]): KeyedRegions {
-  const seen = new Set<string>();
-  const items: { r: Region; k: number }[] = [];
-  for (const l of lists) {
-    l.regions.forEach((r, i) => {
-      const id = `${r.start}:${r.end}:${r.id}`;
-      if (seen.has(id)) return;
-      seen.add(id);
-      items.push({ r, k: l.keys[i] ?? 0 });
-    });
-  }
-  items.sort((a, b) => a.r.start - b.r.start || b.r.end - a.r.end);
-  return { regions: items.map((x) => x.r), keys: items.map((x) => x.k) };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -388,56 +238,46 @@ export function mergeRegions(lists: readonly KeyedRegions[]): KeyedRegions {
 const STEP_CHUNK = 1 << 16;
 const STEP_LIMIT = 20000;
 
-/** Regions of [start, end), halving the window until the list is not truncated. */
-function regionsChunk(roots: StructureNode[], start: number, end: number, fromEnd: boolean) {
-  for (;;) {
-    const { regions } = keyedRegionsInRange(roots, start, end, STEP_LIMIT);
-    if (regions.length < STEP_LIMIT || end - start <= 64) return { regions, start, end };
-    const half = Math.max(1, Math.floor((end - start) / 2));
-    if (fromEnd) start = end - half;
-    else end = start + half;
+interface Chunk extends Range {
+  regions: Region[];
+}
+
+/**
+ * Walks the file from `from` towards its end (direction 1) or its start (-1) in windows whose
+ * region lists are complete: a window is halved until its list is under the limit.
+ */
+function* chunks(roots: StructureNode[], size: number, from: number, direction: 1 | -1): Generator<Chunk> {
+  for (let pos = from; direction > 0 ? pos < size : pos > 0; ) {
+    let start = direction > 0 ? pos : Math.max(0, pos - STEP_CHUNK);
+    let end = direction > 0 ? Math.min(size, pos + STEP_CHUNK) : pos;
+    let regions = regionsInRange(roots, start, end, STEP_LIMIT);
+    while (regions.length >= STEP_LIMIT && end - start > 64) {
+      const half = (end - start) >> 1;
+      if (direction > 0) end = start + half;
+      else start = end - half;
+      regions = regionsInRange(roots, start, end, STEP_LIMIT);
+    }
+    yield { regions, start, end };
+    pos = direction > 0 ? end : start;
   }
 }
 
-/** Maximal unparsed gaps from `from` towards the end of the file, in order. */
-export function* gapsForward(roots: StructureNode[], size: number, from: number): Generator<Range> {
+/** Maximal unparsed gaps, nearest first: from `from` onwards, or (direction -1) ending at or before it. */
+function* gaps(roots: StructureNode[], size: number, from: number, direction: 1 | -1): Generator<Range> {
   let open: Range | undefined;
-  for (let cs = from; cs < size; ) {
-    const chunk = regionsChunk(roots, cs, Math.min(size, cs + STEP_CHUNK), false);
-    for (const g of gapsIn(chunk.regions, chunk.start, chunk.end)) {
-      if (open && g.start === open.end) {
-        open.end = g.end;
-        continue;
+  for (const chunk of chunks(roots, size, from, direction)) {
+    const found = gapsIn(chunk.regions, chunk.start, chunk.end);
+    for (const g of direction > 0 ? found : found.reverse()) {
+      // A gap that continues the open one across the chunk edge is the same gap.
+      if (open && direction > 0 && g.start === open.end) open.end = g.end;
+      else if (open && direction < 0 && g.end === open.start) open.start = g.start;
+      else {
+        if (open) yield open;
+        open = g;
       }
-      if (open) yield open;
-      open = { ...g };
     }
-    cs = chunk.end;
-    if (open && open.end < cs) {
-      yield open;
-      open = undefined;
-    }
-  }
-  if (open) yield open;
-}
-
-/** Maximal unparsed gaps ending at or before `from`, nearest first. */
-export function* gapsBackward(roots: StructureNode[], from: number): Generator<Range> {
-  let open: Range | undefined;
-  for (let ce = from; ce > 0; ) {
-    const chunk = regionsChunk(roots, Math.max(0, ce - STEP_CHUNK), ce, true);
-    const gaps = gapsIn(chunk.regions, chunk.start, chunk.end);
-    for (let i = gaps.length - 1; i >= 0; i--) {
-      const g = gaps[i];
-      if (open && g.end === open.start) {
-        open.start = g.start;
-        continue;
-      }
-      if (open) yield open;
-      open = { ...g };
-    }
-    ce = chunk.start;
-    if (open && open.start > ce) {
+    // Finished unless it reaches the far edge of the chunk, where the next chunk may extend it.
+    if (open && (direction > 0 ? open.end < chunk.end : open.start > chunk.start)) {
       yield open;
       open = undefined;
     }
@@ -455,37 +295,30 @@ export function findStep(
   what: 'gap' | 'field',
   direction: 1 | -1,
   from: number,
-): Region | Range | undefined {
-  if (what === 'gap') {
-    if (direction > 0) {
-      for (const g of gapsForward(roots, size, from)) if (g.start > from) return g;
-      return undefined;
-    }
-    const g = gapsBackward(roots, from).next().value;
-    if (!g) return undefined;
-    // The gap may continue past `from` (the caret was inside it).
-    if (g.end === from) {
-      const rest = gapsForward(roots, size, from).next().value;
-      if (rest && rest.start === from) g.end = rest.end;
-    }
-    return g;
-  }
-  if (direction > 0) {
-    for (let cs = from; cs < size; ) {
-      const chunk = regionsChunk(roots, cs, Math.min(size, cs + STEP_CHUNK), false);
-      const r = nextField(chunk.regions, from);
-      if (r) return r;
-      cs = chunk.end;
+): Range | undefined {
+  if (what === 'field') {
+    for (const chunk of chunks(roots, size, from, direction)) {
+      // Backwards, a field that starts before the chunk is left to the chunk it starts in: a
+      // later-starting field may lie wholly before this one.
+      const r =
+        direction > 0
+          ? chunk.regions.find((r) => r.start > from)
+          : chunk.regions.filter((r) => r.start < from && r.start >= chunk.start).pop();
+      if (r) return { start: r.start, end: r.end };
     }
     return undefined;
   }
-  for (let ce = from; ce > 0; ) {
-    const chunk = regionsChunk(roots, Math.max(0, ce - STEP_CHUNK), ce, true);
-    const r = prevField(chunk.regions, from);
-    if (r) return r;
-    ce = chunk.start;
+  if (direction > 0) {
+    for (const g of gaps(roots, size, from, 1)) if (g.start > from) return g;
+    return undefined;
   }
-  return undefined;
+  const g = gaps(roots, size, from, -1).next().value;
+  // The gap may continue past `from` (the caret was inside it).
+  if (g?.end === from) {
+    const rest = gaps(roots, size, from, 1).next().value;
+    if (rest?.start === from) g.end = rest.end;
+  }
+  return g;
 }
 
 /**

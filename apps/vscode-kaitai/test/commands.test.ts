@@ -8,6 +8,9 @@ test('parseRange', () => {
   assert.deepEqual(parseRange('16+4', 100), { start: 16, end: 20 });
   assert.equal(parseRange('200', 100), undefined);
   assert.equal(parseRange('zz', 100), undefined);
+  assert.equal(parseRange('0x20-0x10', 100), undefined);
+  assert.equal(parseRange('0x10+zz', 100), undefined);
+  assert.deepEqual(parseRange(' 100 ', 100), { start: 100, end: 100 });
 });
 
 test('parseParamValue', () => {
@@ -20,6 +23,8 @@ test('parseParamValue', () => {
   assert.equal(parseParamValue('"hi"'), 'hi');
   assert.equal(parseParamValue('hi', 'str'), 'hi');
   assert.equal(parseParamValue('1.5'), 1.5);
+  assert.equal(parseParamValue('[1, 256]'), INVALID);
+  assert.equal(parseParamValue('[1, x]'), INVALID);
 });
 
 test('parseOpenQuery', async () => {

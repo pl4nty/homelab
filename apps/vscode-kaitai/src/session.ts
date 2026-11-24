@@ -13,7 +13,7 @@ export class KaitaiDocument {
   specUri?: vscode.Uri;
   template?: Template;
   result?: ParseResult;
-  /** Compile error of the applied spec. */
+  /** Why the applied spec could not be read or compiled. */
   specError?: string;
   /** Increases on every parse (or clear). */
   version = 0;
@@ -47,11 +47,18 @@ export interface SelectionEvent {
   node?: StructureNode;
 }
 
+/** Remembered spec URIs, in workspace state: per file URI, and per file extension. */
+type Remembered = 'kaitai.byFile' | 'kaitai.byExtension';
+
+const autoApplyByExtension = () => vscode.workspace.getConfiguration('kaitai').get('autoApplyByExtension', true);
+const extensionOf = (uri: vscode.Uri) => /\.([^./]+)$/.exec(uri.path)?.[1].toLowerCase();
+const setContext = (key: string, value: boolean) => void vscode.commands.executeCommand('setContext', key, value);
+
 export class Session implements vscode.Disposable {
   private readonly docs = new Map<string, KaitaiDocument>();
   private activeDoc?: KaitaiDocument;
-  /** Spec URI chosen for each file extension, for kaitai.autoApplyByExtension. */
-  private readonly byExtension = new Map<string, vscode.Uri>();
+  /** Latest reparse of each document. `stale`: its data, params or spec changed since the last parse. */
+  private readonly runs = new WeakMap<KaitaiDocument, { stale: boolean }>();
   private readonly memento: vscode.Memento;
 
   private readonly activeEmitter = new vscode.EventEmitter<KaitaiDocument | undefined>();
@@ -63,41 +70,27 @@ export class Session implements vscode.Disposable {
   readonly onDidChangeSelection = this.selectionEmitter.event;
   private readonly highlightEmitter = new vscode.EventEmitter<{ doc: KaitaiDocument; range?: ByteRange }>();
   readonly onDidHighlight = this.highlightEmitter.event;
-  private readonly disposables: vscode.Disposable[] = [
-    this.activeEmitter,
-    this.parseEmitter,
-    this.selectionEmitter,
-    this.highlightEmitter,
-  ];
+  private readonly disposables: vscode.Disposable[];
 
   readonly templates: Templates;
 
   constructor(templates: Templates, memento: vscode.Memento) {
     this.templates = templates;
     this.memento = memento;
-    for (const [ext, uri] of Object.entries(memento.get<Record<string, string>>('kaitai.byExtension', {}))) {
-      this.byExtension.set(ext, vscode.Uri.parse(uri));
-    }
-    this.disposables.push(
-      templates.onDidChangeSpec((uri) => {
-        templates.invalidate(uri);
-        for (const doc of this.docs.values()) {
-          if (doc.specUri && (doc.specUri.toString() === uri.toString() || doc.template)) {
-            // Imports may have changed too; reparse every doc that has a spec. Compiles are cached.
-            if (doc.specUri.toString() !== uri.toString()) templates.invalidate(doc.specUri);
-            void this.reparse(doc);
-          }
-        }
+    this.disposables = [
+      this.activeEmitter,
+      this.parseEmitter,
+      this.selectionEmitter,
+      this.highlightEmitter,
+      // Specs the change does not affect come back from the compile cache, and are not parsed again.
+      templates.onDidChangeSpec(() => {
+        for (const doc of this.docs.values()) if (doc.specUri) void this.reparse(doc, false);
       }),
-    );
+    ];
   }
 
   get active() {
     return this.activeDoc;
-  }
-
-  get documents(): Iterable<KaitaiDocument> {
-    return this.docs.values();
   }
 
   get(uri: vscode.Uri) {
@@ -106,21 +99,18 @@ export class Session implements vscode.Disposable {
 
   /** Called by the hex editor when it opens a file. Applies a remembered spec. */
   open(uri: vscode.Uri, data: Uint8Array): KaitaiDocument {
-    let doc = this.docs.get(uri.toString());
+    let doc = this.get(uri);
     if (doc) {
       doc.data = data;
       return doc;
     }
     doc = new KaitaiDocument(uri, data);
     this.docs.set(uri.toString(), doc);
-    const perFile = this.memento.get<Record<string, string>>('kaitai.byFile', {})[uri.toString()];
     const ext = extensionOf(uri);
-    const spec = perFile
-      ? vscode.Uri.parse(perFile)
-      : vscode.workspace.getConfiguration('kaitai').get('autoApplyByExtension', true) && ext
-        ? this.byExtension.get(ext)
-        : undefined;
-    if (spec) void this.setSpec(doc, spec, false);
+    const spec =
+      this.remembered('kaitai.byFile')[uri.toString()] ??
+      (ext && autoApplyByExtension() ? this.remembered('kaitai.byExtension')[ext] : undefined);
+    if (spec) void this.setSpec(doc, vscode.Uri.parse(spec), false);
     return doc;
   }
 
@@ -132,8 +122,7 @@ export class Session implements vscode.Disposable {
   setActive(doc: KaitaiDocument | undefined) {
     if (this.activeDoc === doc) return;
     this.activeDoc = doc;
-    void vscode.commands.executeCommand('setContext', 'kaitai.hasActiveDocument', !!doc);
-    void vscode.commands.executeCommand('setContext', 'kaitai.hasSpec', !!doc?.specUri);
+    this.updateContext();
     this.activeEmitter.fire(doc);
   }
 
@@ -150,70 +139,67 @@ export class Session implements vscode.Disposable {
       doc.extraParses = [];
     }
     doc.specUri = specUri;
-    if (remember) {
-      const byFile = { ...this.memento.get<Record<string, string>>('kaitai.byFile', {}) };
-      if (specUri) byFile[doc.uri.toString()] = specUri.toString();
-      else delete byFile[doc.uri.toString()];
-      await this.memento.update('kaitai.byFile', byFile);
-    }
-    if (doc === this.activeDoc) void vscode.commands.executeCommand('setContext', 'kaitai.hasSpec', !!specUri);
+    if (remember) await this.remember('kaitai.byFile', { [doc.uri.toString()]: specUri });
     await this.reparse(doc);
-    if (remember && specUri && doc.template) {
-      for (const ext of doc.template.fileExtensions) this.byExtension.set(ext.toLowerCase(), specUri);
-      await this.memento.update(
-        'kaitai.byExtension',
-        Object.fromEntries([...this.byExtension].map(([k, v]) => [k, v.toString()])),
-      );
-      // Apply to other open files that match and have no spec yet.
-      if (vscode.workspace.getConfiguration('kaitai').get('autoApplyByExtension', true)) {
-        for (const other of this.docs.values()) {
-          const ext = extensionOf(other.uri);
-          if (other !== doc && !other.specUri && ext && doc.template.fileExtensions.includes(ext)) {
-            void this.setSpec(other, specUri, false);
-          }
-        }
-      }
+    const extensions = doc.template?.fileExtensions;
+    if (!remember || !specUri || !extensions?.length || doc.specUri !== specUri) return;
+    await this.remember('kaitai.byExtension', Object.fromEntries(extensions.map((ext) => [ext, specUri])));
+    if (!autoApplyByExtension()) return;
+    // Apply to other open files that match and have no spec yet.
+    for (const other of this.docs.values()) {
+      if (!other.specUri && extensions.includes(extensionOf(other.uri) ?? '')) void this.setSpec(other, specUri, false);
     }
   }
 
-  /** Compiles the spec (cached) and parses the file. */
-  async reparse(doc: KaitaiDocument) {
-    const version = ++doc.version;
-    if (!doc.specUri) {
-      doc.template = doc.result = doc.specError = undefined;
-      this.parseEmitter.fire(doc);
-      return;
+  private remembered(key: Remembered) {
+    return this.memento.get<Record<string, string>>(key, {});
+  }
+
+  private remember(key: Remembered, specs: Record<string, vscode.Uri | undefined>) {
+    const all = { ...this.remembered(key) };
+    for (const [name, uri] of Object.entries(specs)) {
+      if (uri) all[name] = uri.toString();
+      else delete all[name];
     }
-    const max = vscode.workspace.getConfiguration('kaitai').get('maxFileSizeMB', 256) * 1024 * 1024;
-    let compiled: Awaited<ReturnType<Templates['compileUri']>>;
-    try {
-      compiled = await this.templates.compileUri(doc.specUri);
-    } catch (e) {
-      if (version !== doc.version) return;
-      doc.template = doc.result = undefined;
-      doc.specError = `Cannot read ${doc.specUri.path}: ${(e as Error).message}`;
-      this.parseEmitter.fire(doc);
-      return;
-    }
-    if (version !== doc.version) return; // a newer reparse started
-    doc.template = compiled.template;
-    doc.specError = compiled.error && formatSpecError(compiled.error);
-    doc.result = !compiled.template
-      ? undefined
-      : doc.data.byteLength > max
-        ? { roots: [], error: `File is larger than kaitai.maxFileSizeMB (${max / 1048576} MB)` }
-        : compiled.template.parse(doc.data, { params: doc.params });
-    if (doc.result && compiled.template) {
-      for (const x of doc.extraParses) {
-        const r = compiled.template.parse(doc.data.subarray(x.start, x.end), {
-          typeName: x.typeName,
-          baseOffset: x.start,
-          rootName: `${x.typeName}@0x${x.start.toString(16).toUpperCase()}`,
-        });
-        doc.result.roots.push(...r.roots);
+    return this.memento.update(key, all);
+  }
+
+  /**
+   * Compiles the spec (cached) and parses the file. With `stale` false, the file is parsed only
+   * when the spec compiled anew.
+   */
+  async reparse(doc: KaitaiDocument, stale = true) {
+    // A run that gets superseded hands its staleness on.
+    const run = { stale: stale || !!this.runs.get(doc)?.stale };
+    this.runs.set(doc, run);
+    const { specUri } = doc;
+    let template: Template | undefined;
+    let specError: string | undefined;
+    if (specUri) {
+      try {
+        const compiled = await this.templates.compileUri(specUri);
+        template = compiled.template;
+        specError = compiled.error && formatSpecError(compiled.error);
+      } catch (e) {
+        specError = `Cannot read ${specUri.path}: ${(e as Error).message}`;
       }
+      if (this.runs.get(doc) !== run) return; // a newer reparse started
+      if (!run.stale && template && template === doc.template) return;
     }
+    run.stale = false;
+    doc.template = template;
+    doc.specError = specError;
+    doc.result = template && parse(doc, template);
+    doc.version++;
+    if (doc === this.activeDoc) this.updateContext();
     this.parseEmitter.fire(doc);
+  }
+
+  private updateContext() {
+    const doc = this.activeDoc;
+    setContext('kaitai.hasActiveDocument', !!doc);
+    setContext('kaitai.hasSpec', !!doc?.specUri);
+    setContext('kaitai.hasParams', !!doc?.template?.params.length);
   }
 
   /** Changes the selection and notifies views. The tree passes its node; the hex view does not. */
@@ -224,7 +210,7 @@ export class Session implements vscode.Disposable {
     opts: { reveal?: boolean; node?: StructureNode } = {},
   ) {
     doc.selection = range;
-    const node = opts.node ?? (doc.result ? findDeepestNode(doc.roots, range.start) : undefined);
+    const node = opts.node ?? findDeepestNode(doc.roots, range.start);
     this.selectionEmitter.fire({ doc, range, source, reveal: opts.reveal ?? source !== 'hex', node });
   }
 
@@ -237,9 +223,20 @@ export class Session implements vscode.Disposable {
   }
 }
 
-function extensionOf(uri: vscode.Uri) {
-  const m = /\.([^./]+)$/.exec(uri.path);
-  return m?.[1].toLowerCase();
+/** Parses the whole file with the template, then each "parse selection as" range as an extra root. */
+function parse(doc: KaitaiDocument, template: Template): ParseResult {
+  const maxMB = vscode.workspace.getConfiguration('kaitai').get('maxFileSizeMB', 256);
+  if (doc.data.byteLength > maxMB * 1024 * 1024) {
+    return { roots: [], error: `File is larger than kaitai.maxFileSizeMB (${maxMB} MB)` };
+  }
+  const result = template.parse(doc.data, { params: doc.params });
+  for (const { typeName, start, end } of doc.extraParses) {
+    const rootName = `${typeName}@0x${start.toString(16).toUpperCase()}`;
+    result.roots.push(
+      ...template.parse(doc.data.subarray(start, end), { typeName, baseOffset: start, rootName }).roots,
+    );
+  }
+  return result;
 }
 
 export function formatSpecError(e: { message: string; path?: string[]; file?: string }) {

@@ -1,17 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { EXTENSIONS } from '../src/gallery/extensions.ts';
-import {
-  gitTreeUrl,
-  groupByCategory,
-  isFresh,
-  LISTING_TTL_MS,
-  parseGitTree,
-  parseJsdelivrFlat,
-  rawUrls,
-  toEntries,
-} from '../src/gallery/listing.ts';
-import { normalizePath, readMeta, relativeTo, resolveImport } from '../src/gallery/spec.ts';
+import { gitTreeUrl, groupByCategory, parseGitTree, rawUrl, toEntries } from '../src/gallery/listing.ts';
+import { dirname, normalizePath, readMeta, resolveImport } from '../src/gallery/spec.ts';
 import { bundledPaths, extensionOf, suggestFor } from '../src/gallery/suggest.ts';
 
 test('parses the GitHub git tree API', () => {
@@ -39,24 +30,6 @@ test('parses the GitHub git tree API', () => {
   assert.throws(() => parseGitTree({ message: 'API rate limit exceeded' }), /rate limit/);
 });
 
-test('parses the jsDelivr flat listing', () => {
-  const json = {
-    type: 'gh',
-    name: 'kaitai-io/kaitai_struct_formats',
-    version: 'master',
-    files: [
-      { name: '/archive/zip.ksy', hash: 'x', size: 1 },
-      { name: '/media/tracker_modules/s3m.ksy', hash: 'y', size: 2 },
-      { name: '/LICENSE', hash: 'z', size: 3 },
-    ],
-  };
-  assert.deepEqual(parseJsdelivrFlat(json), [
-    { path: 'archive/zip.ksy', category: 'archive', name: 'zip' },
-    { path: 'media/tracker_modules/s3m.ksy', category: 'media', name: 's3m' },
-  ]);
-  assert.throws(() => parseJsdelivrFlat({ status: 404, message: "Couldn't find the requested release." }), /release/);
-});
-
 test('groups by category and sorts', () => {
   const groups = groupByCategory(toEntries(['b/z.ksy', 'a/y.ksy', 'b/a.ksy', 'top.ksy']));
   assert.deepEqual(
@@ -69,17 +42,9 @@ test('groups by category and sorts', () => {
   );
 });
 
-test('urls and cache freshness', () => {
+test('urls', () => {
   assert.equal(gitTreeUrl('o/r', 'main'), 'https://api.github.com/repos/o/r/git/trees/main?recursive=1');
-  assert.deepEqual(rawUrls('o/r', 'v1', '/a b/c.ksy'), [
-    'https://raw.githubusercontent.com/o/r/v1/a%20b/c.ksy',
-    'https://cdn.jsdelivr.net/gh/o/r@v1/a%20b/c.ksy',
-  ]);
-  const cache = { repo: 'o/r', ref: 'm', fetchedAt: 1000, paths: [], source: 'github' as const };
-  assert.equal(isFresh(cache, 'o/r', 'm', 1000 + LISTING_TTL_MS - 1), true);
-  assert.equal(isFresh(cache, 'o/r', 'm', 1000 + LISTING_TTL_MS), false);
-  assert.equal(isFresh(cache, 'o/r', 'other', 1001), false);
-  assert.equal(isFresh(undefined, 'o/r', 'm', 0), false);
+  assert.equal(rawUrl('o/r', 'v1', '/a b/c.ksy'), 'https://raw.githubusercontent.com/o/r/v1/a%20b/c.ksy');
 });
 
 test('resolves relative and absolute imports', () => {
@@ -89,18 +54,20 @@ test('resolves relative and absolute imports', () => {
   assert.equal(resolveImport('root.ksy', 'sibling'), 'sibling.ksy');
   assert.equal(resolveImport('a/b.ksy', '../../escape'), undefined);
   assert.equal(normalizePath('/a/./b/../c'), 'a/c');
-  assert.equal(relativeTo('/g/o/r/m', '/g/o/r/m/image/png.ksy'), 'image/png.ksy');
-  assert.equal(relativeTo('/g/o/r/m', '/g/o/r/master/x.ksy'), undefined);
+  assert.equal(normalizePath('a/../..'), undefined);
+  assert.equal(dirname('a/b/c.ksy'), 'a/b');
+  assert.equal(dirname('c.ksy'), '');
 });
 
 test('reads meta, tolerating broken YAML and scalar file-extension', () => {
   const m = readMeta(
     'meta:\n  id: png\n  title: PNG file\n  file-extension: [PNG, .apng]\n  imports:\n    - /common/x\n    - y\n',
   );
-  assert.deepEqual(m, { id: 'png', title: 'PNG file', fileExtensions: ['png', 'apng'], imports: ['/common/x', 'y'] });
+  assert.deepEqual(m, { title: 'PNG file', fileExtensions: ['png', 'apng'], imports: ['/common/x', 'y'] });
   assert.deepEqual(readMeta('meta:\n  id: z\n  file-extension: zip\n').fileExtensions, ['zip']);
   assert.deepEqual(readMeta(': : [').fileExtensions, []);
   assert.deepEqual(readMeta('seq: []').imports, []);
+  assert.deepEqual(readMeta('meta:\n  imports: [a, null]\n').imports, ['a']);
 });
 
 test('extension map lookup and suggestions', () => {
@@ -117,7 +84,10 @@ test('extension map lookup and suggestions', () => {
   const entries = toEntries(['image/png.ksy', 'misc/foo.ksy', 'misc/bar.ksy']);
   assert.deepEqual(suggestFor('png', entries), ['image/png.ksy']);
   assert.deepEqual(suggestFor('zip', entries), []);
-  assert.deepEqual(suggestFor('foo', entries, new Map([['misc/bar.ksy', ['foo']]])), ['misc/bar.ksy', 'misc/foo.ksy']);
+  assert.deepEqual(suggestFor('foo', entries, new Map([['misc/bar.ksy', { fileExtensions: ['foo'] }]])), [
+    'misc/bar.ksy',
+    'misc/foo.ksy',
+  ]);
   const all = bundledPaths();
   assert.ok(all.includes('image/png.ksy') && all.length > 100);
 });

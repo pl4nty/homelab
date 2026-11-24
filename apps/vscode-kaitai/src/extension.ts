@@ -20,9 +20,7 @@ export function activate(context: vscode.ExtensionContext) {
     registerInspector(context, session),
     registerFormatGallery(context, session),
     registerKsyLanguage(context, session),
-    registerCommands(context, session),
+    registerCommands(session),
     registerUriHandler(session),
   );
 }
-
-export function deactivate() {}

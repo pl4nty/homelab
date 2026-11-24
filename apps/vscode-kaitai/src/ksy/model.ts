@@ -16,17 +16,19 @@ export interface TypeInfo {
   specId: string;
 }
 
-export function buildTypeTree(spec: Json, specId?: string): TypeInfo {
-  const id = specId ?? (typeof spec?.meta?.id === 'string' ? spec.meta.id : '');
+export function buildTypeTree(spec: Json): TypeInfo {
+  const specId = typeof spec?.meta?.id === 'string' ? spec.meta.id : '';
   const visit = (name: string, path: string[], s: Json, parent?: TypeInfo): TypeInfo => {
-    const info: TypeInfo = { name, path, spec: s, parent, children: new Map(), specId: id };
-    const types = s && typeof s === 'object' ? s.types : undefined;
-    if (types && typeof types === 'object' && !Array.isArray(types)) {
-      for (const [k, v] of Object.entries(types)) info.children.set(k, visit(k, [...path, k], v, info));
-    }
+    const info: TypeInfo = { name, path, spec: s, parent, children: new Map(), specId };
+    for (const [k, v] of Object.entries(mapOf(s?.types))) info.children.set(k, visit(k, [...path, k], v, info));
     return info;
   };
-  return visit(id, [], spec);
+  return visit(specId, [], spec);
+}
+
+/** `v` if it is a YAML mapping, otherwise an empty one. */
+function mapOf(v: Json): Record<string, Json> {
+  return v && typeof v === 'object' && !Array.isArray(v) ? v : {};
 }
 
 /** The type at a path of nested type names, or the deepest existing one. */
@@ -40,12 +42,17 @@ export function typeAt(root: TypeInfo, path: readonly string[]): TypeInfo {
   return t;
 }
 
-const ancestors = function* (t: TypeInfo) {
+function* ancestors(t: TypeInfo) {
   for (let c: TypeInfo | undefined = t; c; c = c.parent) yield c;
-};
+}
+
+/** The spec root a type belongs to. */
+export function rootOf(t: TypeInfo): TypeInfo {
+  return t.parent ? rootOf(t.parent) : t;
+}
 
 /** Strips arguments, array suffixes and spaces: `foo :: bar(1, 2)` -> `['foo', 'bar']`. */
-export function splitTypeRef(ref: string): string[] {
+function splitTypeRef(ref: string): string[] {
   return ref
     .replace(/\(.*$/s, '')
     .replace(/\[\]\s*$/, '')
@@ -91,29 +98,20 @@ export interface EnumRef {
   spec: Json;
 }
 
-function enumsOf(t: TypeInfo): Record<string, Json> {
-  const e = t.spec?.enums;
-  return e && typeof e === 'object' && !Array.isArray(e) ? e : {};
-}
+const enumsOf = (t: TypeInfo) => mapOf(t.spec?.enums);
 
 /** Resolves `name` or `type::name` the same way as types. */
 export function resolveEnum(scope: TypeInfo, ref: string, imported: readonly TypeInfo[] = []): EnumRef | undefined {
-  const parts = ref
-    .split('::')
-    .map((s) => s.trim())
-    .filter(Boolean);
-  if (!parts.length) return undefined;
-  const name = parts.pop() as string;
-  let owners: TypeInfo[];
-  if (parts.length) {
-    const t = resolveType(scope, parts.join('::'), imported);
+  const at = ref.lastIndexOf('::');
+  const name = ref.slice(at < 0 ? 0 : at + 2).trim();
+  let owners: Iterable<TypeInfo> = ancestors(scope);
+  if (at >= 0) {
+    const t = resolveType(scope, ref.slice(0, at), imported);
     owners = t ? [t] : [];
-  } else {
-    owners = [...ancestors(scope)];
   }
-  for (const o of owners) {
-    const spec = enumsOf(o)[name];
-    if (spec !== undefined) return { owner: o, name, spec };
+  for (const owner of owners) {
+    const spec = enumsOf(owner)[name];
+    if (spec !== undefined) return { owner, name, spec };
   }
   return undefined;
 }
@@ -140,7 +138,7 @@ export function visibleEnums(scope: TypeInfo, imported: readonly TypeInfo[] = []
   return [...out].map(([name, ref]) => ({ name, ref }));
 }
 
-/** Labels of an enum: `[label, value]`. */
+/** Members of an enum spec (`value: label` or `value: { id: label, doc }`). */
 export function enumMembers(spec: Json): { id: string; value: string; doc?: string }[] {
   if (!spec || typeof spec !== 'object') return [];
   return Object.entries(spec).map(([value, v]) =>
@@ -155,22 +153,41 @@ export interface FieldInfo {
   doc?: string;
 }
 
-/** seq fields, instances and params of a type. */
+/** Params, seq fields and instances of a type. */
 export function fieldsOf(t: TypeInfo): FieldInfo[] {
-  const out: FieldInfo[] = [];
   const s = t.spec;
-  if (!s || typeof s !== 'object') return out;
-  for (const f of Array.isArray(s.params) ? s.params : []) {
-    if (typeof f?.id === 'string') out.push({ id: f.id, kind: 'param', spec: f, doc: f.doc });
+  const list = (v: Json, kind: 'param' | 'seq'): FieldInfo[] =>
+    (Array.isArray(v) ? v : [])
+      .filter((f) => typeof f?.id === 'string')
+      .map((f) => ({ id: f.id, kind, spec: f, doc: f.doc }));
+  return [
+    ...list(s?.params, 'param'),
+    ...list(s?.seq, 'seq'),
+    ...Object.entries(mapOf(s?.instances)).map(([id, v]) => ({ id, kind: 'instance' as const, spec: v, doc: v?.doc })),
+  ];
+}
+
+/**
+ * The type an expression chain such as `['_parent', 'hdr']` leads to from `scope`, `'io'` for a
+ * stream, or undefined when it cannot be followed.
+ */
+export function walkChain(
+  scope: TypeInfo,
+  chain: readonly string[],
+  imported: readonly TypeInfo[] = [],
+): TypeInfo | 'io' | undefined {
+  let cur: TypeInfo | 'io' | undefined = scope;
+  for (const p of chain) {
+    if (cur === undefined || cur === 'io') return undefined;
+    if (p === '_root') cur = rootOf(cur);
+    else if (p === '_parent') cur = cur.parent;
+    else if (p === '_io') cur = 'io';
+    else {
+      const type: unknown = fieldsOf(cur).find((f) => f.id === p)?.spec?.type;
+      cur = typeof type === 'string' ? resolveType(cur, type, imported) : undefined;
+    }
   }
-  for (const f of Array.isArray(s.seq) ? s.seq : []) {
-    if (typeof f?.id === 'string') out.push({ id: f.id, kind: 'seq', spec: f, doc: f.doc });
-  }
-  if (s.instances && typeof s.instances === 'object') {
-    for (const [k, v] of Object.entries(s.instances))
-      out.push({ id: k, kind: 'instance', spec: v, doc: (v as Json)?.doc });
-  }
-  return out;
+  return cur;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -252,7 +269,7 @@ export const IO_MEMBERS = [
 ];
 
 /** Levenshtein distance, for "did you mean" suggestions. */
-export function editDistance(a: string, b: string): number {
+function editDistance(a: string, b: string): number {
   const prev = Array.from({ length: b.length + 1 }, (_, i) => i);
   for (let i = 1; i <= a.length; i++) {
     let diag = prev[0];

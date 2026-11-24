@@ -1,9 +1,9 @@
 // Browser harness for the hex editor webview: plays the extension host with the real engine.
 // Built and driven by scripts/hex-harness.mjs (Playwright). Not part of the extension.
 import { compileTemplate } from '../src/engine/kaitai.ts';
-import { findDeepestNode, type StructureNode } from '../src/engine/structure.ts';
+import { findDeepestNode, regionsInRange, type StructureNode } from '../src/engine/structure.ts';
 import type { FromHex, ToHex } from '../src/shared/protocol.ts';
-import { findStep, keyedRegionsInRange } from '../src/webview/hex/model.ts';
+import { findStep } from '../src/webview/hex/model.ts';
 
 declare const SPECS: Record<string, string>;
 declare const MAIN: string;
@@ -34,11 +34,10 @@ function handle(m: FromHex) {
     toWebview({ type: 'init', fileName: 'sample.bin', data, bytesPerRow: (w.bpr as number) ?? 16 });
     toWebview({ type: 'parsed', version: 1, hasSpec: !!MAIN, error });
   } else if (m.type === 'requestRegions') {
-    const { regions, keys } = keyedRegionsInRange(roots, m.start, m.end);
-    toWebview({ type: 'regions', requestId: m.requestId, version: 1, start: m.start, end: m.end, regions, keys });
+    const regions = regionsInRange(roots, m.start, m.end);
+    toWebview({ type: 'regions', version: 1, start: m.start, end: m.end, regions });
   } else if (m.type === 'find') {
-    const r = findStep(roots, data.byteLength, m.what, m.direction, m.from);
-    toWebview({ type: 'found', requestId: m.requestId, range: r && { start: r.start, end: r.end } });
+    toWebview({ type: 'found', range: findStep(roots, data.byteLength, m.what, m.direction, m.from) });
   } else if (m.type === 'revealInTree') {
     const n = findDeepestNode(roots, m.offset);
     if (n?.range) toWebview({ type: 'select', ...n.range, reveal: true });

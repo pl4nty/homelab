@@ -30,11 +30,12 @@ export interface StructureNode {
   readonly value?: string;
   /** Raw JS value for leaves (number, bigint, string, Uint8Array, boolean). */
   readonly raw?: unknown;
-  /** Absolute byte range, when it is in the document (not inside a processed stream). */
+  /**
+   * Absolute byte range, when it is in the document (not inside a processed stream). For
+   * bit-sized fields it covers the bytes the bits were read from.
+   */
   readonly range?: ByteRange;
-  /** Set for bit-sized fields. Byte range then covers the bytes the bits were read from. */
-  readonly bits?: number;
-  /** Instance (lazy `instances:` entry) rather than a `seq` field. */
+  /** Instance (`instances:` entry) rather than a `seq` field. */
   readonly instance?: boolean;
   /** Error raised while parsing this node. */
   readonly error?: string;
@@ -77,47 +78,87 @@ export interface Region {
   end: number;
   /** Node id, for selection sync. */
   id: string;
-  /** Nesting depth, for colouring. */
-  depth: number;
+  /** Colour key, see `colourKey`. */
+  key: number;
   /** Tooltip text: `path = value`. */
   label: string;
   error?: boolean;
 }
 
+/** Hue families of region colours. Adjacent nesting levels use different families. */
+export const HUES = 6;
+/** Tone variants per hue: two alternating tones plus a third that views use to break rare ties. */
+export const TONES = 3;
+
 /**
- * Leaf regions that intersect [start, end), sorted by start. Instances are not expanded here
- * (reading them could trigger expensive parses); only seq fields, arrays and buckets are.
+ * Colour key (`hue * TONES + tone`) of a leaf from its path of sibling indices, root first.
+ * Consecutive fields of one struct differ in tone, and leaves of sibling structs differ in hue.
+ */
+export function colourKey(path: readonly number[]): number {
+  const d = path.length - 1;
+  if (d <= 0) return 0;
+  const hue = ((d - 1) * 2 + (path[d - 1] & 1)) % HUES;
+  return hue * TONES + (path[d] & 1);
+}
+
+/**
+ * Leaf regions that intersect [start, end), sorted by start; at most `limit` of them. Instances
+ * are not expanded here (reading them could trigger expensive parses); only seq fields, arrays
+ * and buckets are. The result for a byte does not depend on the window, so views can load a file
+ * block by block.
  */
 export function regionsInRange(roots: StructureNode[], start: number, end: number, limit = 20000): Region[] {
   const out: Region[] = [];
-  const visit = (node: StructureNode, depth: number) => {
-    if (out.length >= limit) return;
+  // Sibling indices from the root to the node being visited, counted among ranged, non-empty
+  // seq fields. Buckets only group the tree display, so array items count as one sequence.
+  const path: number[] = [];
+  const outside = (r: ByteRange | undefined) => r !== undefined && (r.end <= start || r.start >= end);
+  const visit = (node: StructureNode) => {
     const r = node.range;
-    if (r && (r.end <= start || r.start >= end)) return;
-    if (node.hasChildren && node.kind !== 'bytes') {
-      const children = node.children().filter((c) => !c.instance);
-      for (const child of children) visit(child, depth + 1);
-      // A struct whose fields all live in a processed stream still covers its raw bytes. Decided
-      // from all children, not the ones in the window, so the result does not depend on the window.
-      if (!children.some((c) => c.range) && r && r.end > r.start) out.push(region(node, depth));
-      return;
+    if (out.length >= limit || outside(r)) return;
+    let leaf = !node.hasChildren || node.kind === 'bytes';
+    if (!leaf) {
+      // A struct whose fields all live in a processed stream still covers its raw bytes.
+      leaf = true;
+      let index = 0;
+      const walk = (children: StructureNode[]) => {
+        for (const child of children) {
+          // Instances can point anywhere (or back at a parent, via `value: _parent`), so they are
+          // left out to keep regions non-overlapping and the walk finite; the tree still shows them.
+          // Range-less children (processed streams, value instances) have nothing to colour.
+          if (child.instance || !child.range) continue;
+          leaf = false;
+          if (child.kind === 'bucket') {
+            if (!outside(child.range)) walk(child.children());
+            continue;
+          }
+          // Array items carry their absolute index, which keeps tones stable across buckets.
+          const item = /^\[(\d+)\]$/.exec(child.name);
+          path.push(item ? Number(item[1]) : index);
+          visit(child);
+          path.pop();
+          if (child.range && child.range.end > child.range.start) index++;
+        }
+      };
+      walk(node.children());
     }
-    if (r && r.end > r.start) out.push(region(node, depth));
+    if (leaf && r && r.end > r.start) {
+      out.push({
+        start: r.start,
+        end: r.end,
+        id: node.id,
+        key: colourKey(path),
+        label: node.value === undefined ? node.id : `${node.id} = ${node.value}`,
+        error: node.error !== undefined || undefined,
+      });
+    }
   };
-  for (const root of roots) visit(root, 0);
-  out.sort((a, b) => a.start - b.start || b.end - a.end);
-  return out;
-}
-
-function region(node: StructureNode, depth: number): Region {
-  return {
-    start: node.range!.start,
-    end: node.range!.end,
-    id: node.id,
-    depth,
-    label: node.value === undefined ? node.id : `${node.id} = ${node.value}`,
-    error: node.error !== undefined || undefined,
-  };
+  roots.forEach((root, i) => {
+    path.push(i);
+    visit(root);
+    path.pop();
+  });
+  return out.sort((a, b) => a.start - b.start || b.end - a.end);
 }
 
 /** Finds a node by id, expanding along the path. */

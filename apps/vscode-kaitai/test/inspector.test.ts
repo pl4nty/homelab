@@ -49,6 +49,8 @@ test('unix times are ISO UTC, with invalid for out-of-range i64', () => {
   assert.equal(formatUnixTime(0), '1970-01-01T00:00:00Z');
   assert.equal(formatUnixTime(-1n), '1969-12-31T23:59:59Z');
   assert.equal(formatUnixTime(2n ** 62n), 'invalid');
+  assert.equal(formatUnixTime(8.64e12), '+275760-09-13T00:00:00Z');
+  assert.equal(formatUnixTime(8.64e12 + 1), 'invalid');
   const rows = decode(new Uint8Array([0x00, 0x5e, 0xd0, 0xb2]), 0);
   assert.equal(row(rows, 'unix u32').le, '2065-01-24T05:20:00Z');
   assert.equal(row(rows, 'unix u32').be, '1970-03-13T22:03:30Z');

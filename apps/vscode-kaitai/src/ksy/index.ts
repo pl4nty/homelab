@@ -6,7 +6,6 @@ import type { Session } from '../session.ts';
 import { KsyDiagnostics } from './diagnostics.ts';
 import { registerGeneratedCode } from './generated.ts';
 import { registerProviders } from './providers.ts';
-import { forgetImports } from './resolve.ts';
 import { revealDefinition } from './reveal.ts';
 
 export function registerKsyLanguage(_context: vscode.ExtensionContext, session: Session): vscode.Disposable {
@@ -17,6 +16,5 @@ export function registerKsyLanguage(_context: vscode.ExtensionContext, session: 
     vscode.commands.registerCommand('kaitai.revealDefinition', (node?: StructureNode) =>
       revealDefinition(session, node),
     ),
-    vscode.workspace.onDidCloseTextDocument((d) => forgetImports(d.uri)),
   );
 }

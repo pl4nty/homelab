@@ -29,12 +29,6 @@ types:
       - { id: b, type: u2 }
 `;
 
-function sample(): Uint8Array {
-  const packed = deflateSync(Buffer.from([7, 8, 0]));
-  assert.equal(packed.length, 11);
-  return new Uint8Array([0x54, 0x58, 9, 1, 0, 1, 2, 0, ...packed.subarray(0, 9), 4, 5, 6]);
-}
-
 test('compiles and builds a tree with ksy names, ranges and enums', async () => {
   const t = await compileTemplate(SPEC.replace('size: 9', 'size: 11'), noImports);
   assert.deepEqual(t.fileExtensions, ['tx', 'txx']);
@@ -114,7 +108,6 @@ test('large arrays are bucketed', async () => {
   );
   assert.equal(findDeepestNode(roots, 150)!.name, '[150]');
   assert.equal((toJson(a) as unknown[]).length, 250);
-  void sample;
 });
 
 test('params, parse-as-type with base offset, representation, stream bytes', async () => {

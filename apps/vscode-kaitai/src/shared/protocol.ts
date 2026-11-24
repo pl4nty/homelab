@@ -8,7 +8,7 @@ export type ToHex =
   | {
       type: 'init';
       fileName: string;
-      /** Whole file. Transferred, not copied. */
+      /** Whole file. */
       data: Uint8Array;
       bytesPerRow: number;
     }
@@ -16,28 +16,21 @@ export type ToHex =
   | { type: 'data'; data: Uint8Array }
   /**
    * A new parse finished (or the spec was cleared). Drop cached regions and request them again.
-   * `version` increases with each parse; replies to older `requestRegions` must be ignored.
+   * `version` increases with each parse; `regions` of an older version must be ignored.
    */
   | { type: 'parsed'; version: number; hasSpec: boolean; error?: string }
-  | {
-      type: 'regions';
-      requestId: number;
-      version: number;
-      start: number;
-      end: number;
-      regions: Region[];
-      /** Colour key per region (parallel to `regions`), from `keyedRegionsInRange`. */
-      keys?: number[];
-      /** The region list hit its size limit, so it may not cover all of [start, end). */
-      truncated?: boolean;
-    }
+  /**
+   * Reply to `requestRegions`: the leaf regions overlapping [start, end) in parse `version`,
+   * sorted by start. The list is cut off at a size limit, which a block of dense bit fields can hit.
+   */
+  | { type: 'regions'; version: number; start: number; end: number; regions: Region[] }
   /** Select (and optionally scroll to) a byte range. `end` is exclusive. */
   | { type: 'select'; start: number; end: number; reveal: boolean }
   /** Outline a range without changing the selection, e.g. while hovering in the tree. */
   | { type: 'highlight'; start?: number; end?: number }
   | { type: 'config'; bytesPerRow: number }
   /** Reply to `find`. No range: nothing found in that direction. */
-  | { type: 'found'; requestId: number; range?: { start: number; end: number }; label?: string };
+  | { type: 'found'; range?: { start: number; end: number } };
 
 /** Hex editor webview -> extension host. */
 export type FromHex =
@@ -45,13 +38,15 @@ export type FromHex =
   /** User changed the selection. `end` is exclusive; start === end is a caret. */
   | { type: 'select'; start: number; end: number }
   /** Regions overlapping [start, end) are needed, usually the visible rows plus some margin. */
-  | { type: 'requestRegions'; requestId: number; start: number; end: number }
-  /** User asked for the field at the offset to be revealed in the tree (e.g. double-click). */
+  | { type: 'requestRegions'; start: number; end: number }
+  /** User asked for the field at the offset to be revealed in the tree (Enter). */
   | { type: 'revealInTree'; offset: number }
-  /** Context-menu style actions from the webview. */
-  | { type: 'command'; command: 'goToOffset' | 'loadSpec' | 'exportJson' }
-  /** Stepper: next/previous unparsed gap or field from `from` (the selection start). */
-  | { type: 'find'; requestId: number; what: 'gap' | 'field'; direction: 1 | -1; from: number };
+  | { type: 'command'; command: 'goToOffset' | 'loadSpec' }
+  /**
+   * Stepper: next/previous unparsed gap or field from `from` (the selection start). The webview
+   * sends one at a time and waits for `found`.
+   */
+  | { type: 'find'; what: 'gap' | 'field'; direction: 1 | -1; from: number };
 
 /** Extension host -> value inspector webview. */
 export type ToInspector =
@@ -71,6 +66,5 @@ export type ToInspector =
 /** Value inspector webview -> extension host. */
 export type FromInspector =
   | { type: 'ready' }
-  | { type: 'setEndian'; endian: 'le' | 'be' }
   /** User clicked a value: copy `text` to the clipboard. `label` names it in the status bar message. */
   | { type: 'copy'; text: string; label: string };

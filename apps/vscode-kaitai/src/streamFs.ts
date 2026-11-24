@@ -4,42 +4,41 @@ import * as vscode from 'vscode';
 
 export const SCHEME = 'kaitai-bytes';
 
-export class StreamFs implements vscode.FileSystemProvider {
+const uriOf = (tab: vscode.Tab) => (tab.input as { uri?: vscode.Uri } | undefined)?.uri;
+
+export class StreamFs implements vscode.FileSystemProvider, vscode.Disposable {
   private readonly files = new Map<string, Uint8Array>();
   private next = 1;
   private readonly emitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
   readonly onDidChangeFile = this.emitter.event;
+  // Frees a stream once its last editor tab is closed.
+  private readonly tabs = vscode.window.tabGroups.onDidChangeTabs(({ closed }) => {
+    for (const uri of closed.map(uriOf)) {
+      if (uri?.scheme !== SCHEME) continue;
+      const open = vscode.window.tabGroups.all.some((g) => g.tabs.some((t) => uriOf(t)?.path === uri.path));
+      if (!open) this.files.delete(uri.path);
+    }
+  });
 
-  add(name: string, data: Uint8Array): vscode.Uri {
+  /** Adds a file and opens it in the hex editor. */
+  async open(name: string, data: Uint8Array) {
     const uri = vscode.Uri.from({ scheme: SCHEME, path: `/${this.next++}/${name.replace(/[/\\]/g, '_')}` });
     this.files.set(uri.path, data);
-    return uri;
-  }
-
-  private get(uri: vscode.Uri) {
-    const d = this.files.get(uri.path);
-    if (!d) throw vscode.FileSystemError.FileNotFound(uri);
-    return d;
+    await vscode.commands.executeCommand('vscode.openWith', uri, 'kaitai.hexEditor');
   }
 
   stat(uri: vscode.Uri): vscode.FileStat {
-    if (!this.files.has(uri.path)) {
-      if ([...this.files.keys()].some((k) => k.startsWith(`${uri.path.replace(/\/$/, '')}/`))) {
-        return { type: vscode.FileType.Directory, ctime: 0, mtime: 0, size: 0 };
-      }
-      throw vscode.FileSystemError.FileNotFound(uri);
-    }
-    return {
-      type: vscode.FileType.File,
-      ctime: 0,
-      mtime: 0,
-      size: this.get(uri).byteLength,
-      permissions: vscode.FilePermission.Readonly,
-    };
+    const size = this.files.get(uri.path)?.byteLength;
+    // Every file has a folder of its own.
+    if (size === undefined && !/^\/\d*$/.test(uri.path)) throw vscode.FileSystemError.FileNotFound(uri);
+    const type = size === undefined ? vscode.FileType.Directory : vscode.FileType.File;
+    return { type, ctime: 0, mtime: 0, size: size ?? 0, permissions: vscode.FilePermission.Readonly };
   }
 
   readFile(uri: vscode.Uri) {
-    return this.get(uri);
+    const data = this.files.get(uri.path);
+    if (!data) throw vscode.FileSystemError.FileNotFound(uri);
+    return data;
   }
 
   watch(): vscode.Disposable {
@@ -50,11 +49,15 @@ export class StreamFs implements vscode.FileSystemProvider {
     return [];
   }
 
-  createDirectory(uri: vscode.Uri): void {
+  createDirectory(uri: vscode.Uri): never {
     throw vscode.FileSystemError.NoPermissions(uri);
   }
 
-  writeFile(uri: vscode.Uri): void {
+  writeFile(uri: vscode.Uri): never {
+    throw vscode.FileSystemError.NoPermissions(uri);
+  }
+
+  rename(uri: vscode.Uri): never {
     throw vscode.FileSystemError.NoPermissions(uri);
   }
 
@@ -62,7 +65,8 @@ export class StreamFs implements vscode.FileSystemProvider {
     this.files.delete(uri.path);
   }
 
-  rename(uri: vscode.Uri): void {
-    throw vscode.FileSystemError.NoPermissions(uri);
+  dispose() {
+    this.tabs.dispose();
+    this.emitter.dispose();
   }
 }

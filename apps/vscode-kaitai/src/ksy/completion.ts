@@ -1,12 +1,11 @@
 // Completion for .ksy files. Context detection works on raw text (indentation and flow brackets),
 // because the line being typed is usually not valid YAML yet. Pure (no vscode).
+import type * as vscode from 'vscode';
 import {
   BUILTIN_TYPES,
-  buildTypeTree,
   describeBuiltin,
   EXPRESSION_BUILTINS,
   enumMembers,
-  type FieldInfo,
   fieldsOf,
   IO_MEMBERS,
   PROCESS_VALUES,
@@ -16,16 +15,9 @@ import {
   typeAt,
   visibleEnums,
   visibleTypes,
+  walkChain,
 } from './model.ts';
-import {
-  classifyPath,
-  ENCODINGS,
-  EXPRESSION_KEYS,
-  type KsyContext,
-  keyInfo,
-  keysFor,
-  type PathContext,
-} from './schema.ts';
+import { classifyPath, ENCODINGS, isExpressionSlot, isTypeSlot, keyInfo, keysFor, type PathContext } from './schema.ts';
 import { parseKsyDocument } from './yamlAst.ts';
 
 export interface CompletionContext {
@@ -71,7 +63,7 @@ function stripComment(s: string) {
   return (m ? s.slice(0, m.index) : s).trimEnd();
 }
 
-export function parseLine(line: string): LineInfo {
+function parseLine(line: string): LineInfo {
   const indent = /^ */.exec(line)?.[0].length ?? 0;
   const dashes: number[] = [];
   let i = indent;
@@ -145,10 +137,9 @@ interface FlowFrame {
 
 /** Detects what is being completed at `offset`. */
 export function completionContext(text: string, offset: number): CompletionContext {
-  const lineStart = text.lastIndexOf('\n', offset - 1) + 1;
   const lines = text.split('\n');
-  const lineNo = text.slice(0, lineStart).split('\n').length - 1;
-  const before = text.slice(lineStart, offset);
+  const lineNo = text.slice(0, offset).split('\n').length - 1;
+  const before = text.slice(text.lastIndexOf('\n', offset - 1) + 1, offset);
   const li = parseLine(before);
 
   // Scan the content after the list markers for flow collections.
@@ -168,7 +159,7 @@ export function completionContext(text: string, offset: number): CompletionConte
       continue;
     }
     if (c === '#' && (i === 0 || /\s/.test(content[i - 1]))) break;
-    const top = frames[frames.length - 1];
+    const top = frames.at(-1);
     if (c === '{' || c === '[') {
       frames.push({ kind: c === '{' ? 'map' : 'list', keys: [] });
       segStart = i + 1;
@@ -202,17 +193,14 @@ export function completionContext(text: string, offset: number): CompletionConte
   const flow = frames.length > 0;
   if (flow) {
     if (blockKey !== undefined) path.push(blockKey);
-    for (let f = 0; f < frames.length - 1; f++) {
-      const fr = frames[f];
-      path.push(fr.kind === 'map' ? (fr.key ?? '?') : '*');
-    }
+    for (const fr of frames.slice(0, -1)) path.push(fr.kind === 'map' ? (fr.key ?? '?') : '*');
     const top = frames[frames.length - 1];
     if (top.kind === 'map' && top.key === undefined) {
       mode = 'key';
       existing = top.keys;
     } else {
       mode = 'value';
-      path.push(top.kind === 'map' ? (top.key as string) : '*');
+      path.push(top.key ?? '*');
     }
   } else if (blockKey !== undefined) {
     mode = 'value';
@@ -226,18 +214,16 @@ export function completionContext(text: string, offset: number): CompletionConte
   if (mode === 'key' && (classified.ctx === 'scalar' || classified.ctx === 'imports')) mode = 'value';
   if (classified.key === '*') {
     // `imports: [a, |]` or `- |` under `imports:`: name the slot after the list's key.
-    classified = { ...classified, key: [...path].reverse().find((s) => s !== '*') };
+    classified = { ...classified, key: path.filter((s) => s !== '*').at(-1) };
   }
   return { mode, path, existing, prefix, flow, indent: li.contentCol, classified };
 }
 
 // ---------------------------------------------------------------------------------------------
 
-export type ItemKind = 'property' | 'value' | 'type' | 'enum' | 'enumMember' | 'field' | 'keyword' | 'module';
-
 export interface KsyCompletion {
   label: string;
-  kind: ItemKind;
+  kind: keyof typeof vscode.CompletionItemKind;
   detail?: string;
   doc?: string;
   /** Text to insert; a snippet when `snippet` is set. */
@@ -246,11 +232,6 @@ export interface KsyCompletion {
   sortText?: string;
   /** Suggest again after inserting (the value has completions of its own). */
   retrigger?: boolean;
-}
-
-export interface CompletionEnv {
-  /** Root types of imported specs (by meta/id), for type and enum completion. */
-  imported?: readonly TypeInfo[];
 }
 
 const BLOCK_SNIPPET: Record<string, string> = {
@@ -265,59 +246,42 @@ const BLOCK_SNIPPET: Record<string, string> = {
   cases: `cases:\n%I  $0`,
 };
 
-/** Model of the document, built with the line being edited removed so the rest still parses. */
+/** Type tree of the document, built with the line being edited removed so the rest still parses. */
 function modelFor(text: string, offset: number): TypeInfo {
   const start = text.lastIndexOf('\n', offset - 1) + 1;
-  const endNl = text.indexOf('\n', offset);
-  const end = endNl < 0 ? text.length : endNl;
-  const parsed = parseKsyDocument(text.slice(0, start) + text.slice(end));
-  return buildTypeTree(parsed.js && typeof parsed.js === 'object' ? parsed.js : {});
+  const end = text.indexOf('\n', offset);
+  return parseKsyDocument(text.slice(0, start) + (end < 0 ? '' : text.slice(end))).root;
 }
 
 export interface CompletionResult {
   items: KsyCompletion[];
   /** Offset where the replaced text starts (the cursor is the end). */
   from: number;
-  context: CompletionContext;
 }
 
-export function computeCompletions(text: string, offset: number, env: CompletionEnv = {}): CompletionResult {
+export function computeCompletions(text: string, offset: number, imported: readonly TypeInfo[] = []): CompletionResult {
   const cc = completionContext(text, offset);
-  const imported = env.imported ?? [];
+  const c = cc.classified;
+  let items: KsyCompletion[];
+  // The part of the prefix that a completion replaces: one name in an expression, else a whole reference.
+  let word = /[\w:-]*$/;
   if (cc.mode === 'key') {
-    return { items: keyCompletions(cc), from: offset - (/[\w-]*$/.exec(cc.prefix)?.[0].length ?? 0), context: cc };
+    items = keyCompletions(cc);
+    word = /[\w-]*$/;
+  } else if (!c.key) {
+    items = [];
+  } else {
+    const scope = typeAt(modelFor(text, offset), c.typePath);
+    const fixed = fixedValues(c, scope, imported);
+    items = fixed ?? (isExpressionSlot(c) ? expressionCompletions(cc.prefix, scope, imported, c.key) : []);
+    if (!fixed) word = /\w*$/;
   }
-  const root = modelFor(text, offset);
-  const scope = typeAt(root, cc.classified.typePath);
-  const r = valueCompletions(cc, root, scope, imported);
-  const word = r.expression ? /\w*$/ : /[\w:-]*$/;
-  return { items: r.items, from: offset - (word.exec(cc.prefix)?.[0].length ?? 0), context: cc };
-}
-
-function keyCompletions(cc: CompletionContext): KsyCompletion[] {
-  const ctx: KsyContext = cc.classified.ctx;
-  const indent = ' '.repeat(cc.indent);
-  return keysFor(ctx)
-    .filter((k) => !cc.existing.includes(k.key))
-    .map((k) => {
-      const block = !cc.flow ? BLOCK_SNIPPET[k.key] : undefined;
-      const insert = block ? block.replaceAll('%I', indent) : `${k.key}: `;
-      return {
-        label: k.key,
-        kind: 'property' as const,
-        doc: k.doc,
-        insertText: insert,
-        snippet: !!block,
-        retrigger: !block && (VALUE_KEYS.has(k.key) || k.values.length > 0) && k.key !== 'id',
-        // Common keys first.
-        sortText: `${COMMON_KEYS.includes(k.key) ? '0' : '1'}${k.key}`,
-      };
-    });
+  return { items, from: offset - (word.exec(cc.prefix)?.[0].length ?? 0) };
 }
 
 const VALUE_KEYS = new Set(['type', 'enum', 'process', 'encoding', 'endian', 'bit-endian']);
 
-const COMMON_KEYS = [
+const COMMON_KEYS = new Set([
   'id',
   'type',
   'size',
@@ -331,88 +295,83 @@ const COMMON_KEYS = [
   'enum',
   'title',
   'endian',
-];
+]);
 
-function valueCompletions(
-  cc: CompletionContext,
-  root: TypeInfo,
-  scope: TypeInfo,
-  imported: readonly TypeInfo[],
-): { items: KsyCompletion[]; expression?: boolean } {
-  const items = valueItems(cc, root, scope, imported);
-  return Array.isArray(items) ? { items } : items;
+function keyCompletions(cc: CompletionContext): KsyCompletion[] {
+  const indent = ' '.repeat(cc.indent);
+  return keysFor(cc.classified.ctx)
+    .filter((k) => !cc.existing.includes(k.key))
+    .map((k) => {
+      const block = cc.flow ? undefined : BLOCK_SNIPPET[k.key];
+      return {
+        label: k.key,
+        kind: 'Property',
+        doc: k.doc,
+        insertText: block ? block.replaceAll('%I', indent) : `${k.key}: `,
+        snippet: !!block,
+        retrigger: !block && (VALUE_KEYS.has(k.key) || k.values.length > 0) && k.key !== 'id',
+        // Common keys first.
+        sortText: `${COMMON_KEYS.has(k.key) ? '0' : '1'}${k.key}`,
+      };
+    });
 }
 
-function valueItems(
-  cc: CompletionContext,
-  root: TypeInfo,
-  scope: TypeInfo,
-  imported: readonly TypeInfo[],
-): KsyCompletion[] | { items: KsyCompletion[]; expression: boolean } {
-  const { key, parentCtx } = cc.classified;
-  const out: KsyCompletion[] = [];
-  if (!key) return out;
-  const isTypeSlot =
-    parentCtx === 'cases' ||
-    (key === 'type' && (parentCtx === 'attribute' || parentCtx === 'instance' || parentCtx === 'param'));
-  if (isTypeSlot) {
-    for (const b of BUILTIN_TYPES)
-      out.push({ label: b.name, kind: 'keyword', detail: 'built-in', doc: b.doc, sortText: `1${b.name}` });
-    if (parentCtx === 'param') {
-      for (const n of ['bytes', 'bool', 'struct', 'io', 'any']) {
-        out.push({ label: n, kind: 'keyword', detail: 'built-in', doc: describeBuiltin(n), sortText: `1${n}` });
-      }
-    }
-    for (const { name, type } of visibleTypes(scope, imported)) {
-      out.push({
-        label: name,
-        kind: 'type',
-        detail: type.specId !== root.specId ? `type from ${type.specId}` : 'user type',
-        doc: typeof type.spec?.doc === 'string' ? type.spec.doc : undefined,
-        sortText: `0${name}`,
-      });
-    }
-    return out;
+const PARAM_TYPES = ['bytes', 'bool', 'struct', 'io', 'any'];
+
+/** Completions for a value slot that takes names or literals; undefined if it takes something else. */
+function fixedValues(c: PathContext, scope: TypeInfo, imported: readonly TypeInfo[]): KsyCompletion[] | undefined {
+  const { key, parentCtx } = c;
+  const value = (label: string, doc?: string): KsyCompletion => ({ label, kind: 'Value', doc });
+  if (isTypeSlot(c)) {
+    const builtins = [
+      ...BUILTIN_TYPES,
+      ...(parentCtx === 'param' ? PARAM_TYPES.map((name) => ({ name, doc: describeBuiltin(name) })) : []),
+    ];
+    return [
+      ...builtins.map(
+        (b): KsyCompletion => ({
+          label: b.name,
+          kind: 'Keyword',
+          detail: 'built-in',
+          doc: b.doc,
+          sortText: `1${b.name}`,
+        }),
+      ),
+      ...visibleTypes(scope, imported).map(
+        ({ name, type }): KsyCompletion => ({
+          label: name,
+          kind: 'Class',
+          detail: type.specId !== scope.specId ? `type from ${type.specId}` : 'user type',
+          doc: typeof type.spec?.doc === 'string' ? type.spec.doc : undefined,
+          sortText: `0${name}`,
+        }),
+      ),
+    ];
   }
-  if (key === 'enum') {
-    for (const { name, ref } of visibleEnums(scope, imported)) {
-      const members = enumMembers(ref.spec);
-      out.push({
+  switch (key) {
+    case 'enum':
+      return visibleEnums(scope, imported).map(({ name, ref }) => ({
         label: name,
-        kind: 'enum',
+        kind: 'Enum',
         detail: `enum in ${ref.owner.name || 'root'}`,
-        doc: members
+        doc: enumMembers(ref.spec)
           .slice(0, 20)
           .map((m) => `${m.value}: ${m.id}`)
           .join('\n'),
+      }));
+    case 'process':
+      return PROCESS_VALUES.map((p) => {
+        const insertText = p.name.replace(/\((\w+)\)/, `(\${1:$1})`);
+        return { ...value(p.name, p.doc), insertText, snippet: insertText !== p.name };
       });
-    }
-    return out;
+    case 'encoding':
+      return ENCODINGS.map((e) => value(e));
+    case 'endian':
+    case 'bit-endian':
+      return [value('le', 'little-endian'), value('be', 'big-endian')];
   }
-  if (key === 'process') {
-    for (const p of PROCESS_VALUES) {
-      const snippet = p.name.replace(/\((\w+)\)/, `(\${1:$1})`);
-      out.push({ label: p.name, kind: 'value', doc: p.doc, insertText: snippet, snippet: snippet !== p.name });
-    }
-    return out;
-  }
-  if (key === 'encoding') {
-    for (const e of ENCODINGS) out.push({ label: e, kind: 'value' });
-    return out;
-  }
-  if (key === 'endian' || key === 'bit-endian') {
-    out.push({ label: 'le', kind: 'value', doc: 'little-endian' }, { label: 'be', kind: 'value', doc: 'big-endian' });
-    return out;
-  }
-  const info = parentCtx ? keyInfo(parentCtx, key) : undefined;
-  if (info?.values.length && key !== 'id') {
-    for (const v of info.values) out.push({ label: v, kind: 'value' });
-    return out;
-  }
-  if (EXPRESSION_KEYS.has(key) || parentCtx === 'valid' || (parentCtx === 'switch' && key === 'switch-on')) {
-    return { items: expressionCompletions(cc.prefix, root, scope, imported, key), expression: true };
-  }
-  return out;
+  const values = (key !== 'id' && parentCtx && key && keyInfo(parentCtx, key)?.values) || [];
+  return values.length ? values.map((v) => value(v)) : undefined;
 }
 
 const GENERIC_MEMBERS = [
@@ -429,93 +388,70 @@ const GENERIC_MEMBERS = [
 ];
 
 /** Completion inside an expression: fields, `_root`/`_parent`/`_io`, enum members after `::`. */
-export function expressionCompletions(
+function expressionCompletions(
   prefix: string,
-  root: TypeInfo,
   scope: TypeInfo,
-  imported: readonly TypeInfo[] = [],
-  key?: string,
+  imported: readonly TypeInfo[],
+  key: string,
 ): KsyCompletion[] {
-  const m = /((?:[A-Za-z_]\w*\s*(?:\.|::)\s*)*)(\w*)$/.exec(prefix);
-  const chain = (m?.[1] ?? '').replace(/\s+/g, '');
-  const out: KsyCompletion[] = [];
-  const addFields = (t: TypeInfo) => {
-    for (const f of fieldsOf(t)) {
-      out.push({
+  const chain = (/((?:[A-Za-z_]\w*\s*(?:\.|::)\s*)*)\w*$/.exec(prefix)?.[1] ?? '').replace(/\s+/g, '');
+  const fields = (t: TypeInfo) =>
+    fieldsOf(t).map(
+      (f): KsyCompletion => ({
         label: f.id,
-        kind: 'field',
+        kind: 'Field',
         detail: `${f.kind}${typeof f.spec?.type === 'string' ? `: ${f.spec.type}` : ''}`,
         doc: typeof f.doc === 'string' ? f.doc : undefined,
         sortText: `0${f.id}`,
-      });
-    }
-  };
-  if (!chain) {
-    addFields(scope);
-    for (const b of EXPRESSION_BUILTINS) {
-      if (b.name === '_' && key !== 'repeat-until' && key !== 'expr') continue;
-      out.push({ label: b.name, kind: 'keyword', doc: b.doc, sortText: `1${b.name}` });
-    }
-    for (const { name, ref } of visibleEnums(scope, imported)) {
-      out.push({
+      }),
+    );
+  const keywords = (list: readonly { name: string; doc?: string }[], order: number) =>
+    list.map((b): KsyCompletion => ({ label: b.name, kind: 'Keyword', doc: b.doc, sortText: `${order}${b.name}` }));
+  const enums = (list: ReturnType<typeof visibleEnums>) =>
+    list.map(
+      ({ name, ref }): KsyCompletion => ({
         label: name,
-        kind: 'enum',
+        kind: 'Enum',
         detail: `enum in ${ref.owner.name}`,
         insertText: `${name}::`,
         sortText: `2${name}`,
-      });
-    }
-    for (const k of ['not', 'and', 'or', 'true', 'false']) out.push({ label: k, kind: 'keyword', sortText: `3${k}` });
-    return out;
+      }),
+    );
+
+  if (!chain) {
+    const current = key === 'repeat-until' || key === 'expr';
+    return [
+      ...fields(scope),
+      ...keywords(
+        EXPRESSION_BUILTINS.filter((b) => b.name !== '_' || current),
+        1,
+      ),
+      ...enums(visibleEnums(scope, imported)),
+      ...keywords(
+        ['not', 'and', 'or', 'true', 'false'].map((name) => ({ name })),
+        3,
+      ),
+    ];
   }
   if (chain.endsWith('::')) {
     const ref = chain.slice(0, -2);
     const e = resolveEnum(scope, ref, imported);
     if (e) {
-      for (const mem of enumMembers(e.spec))
-        out.push({ label: mem.id, kind: 'enumMember', detail: `= ${mem.value}`, doc: mem.doc });
-      return out;
+      return enumMembers(e.spec).map((m) => ({ label: m.id, kind: 'EnumMember', detail: `= ${m.value}`, doc: m.doc }));
     }
+    // `type::` lists that type's own enums.
     const t = resolveType(scope, ref, imported);
-    if (t) {
-      for (const { name } of visibleEnums(t, []).filter((x) => x.ref.owner === t)) {
-        out.push({ label: name, kind: 'enum', insertText: `${name}::` });
-      }
-    }
-    return out;
+    return t ? enums(visibleEnums(t).filter((x) => x.ref.owner === t)) : [];
   }
   // Member access: walk the chain through known types.
-  const parts = chain.slice(0, -1).split('.');
-  let cur: TypeInfo | 'io' | undefined = scope;
-  for (const p of parts) {
-    if (cur === undefined || cur === 'io') {
-      cur = undefined;
-      break;
-    }
-    if (p === '_root') {
-      let r: TypeInfo = cur;
-      while (r.parent) r = r.parent;
-      cur = r;
-    } else if (p === '_parent') cur = cur.parent;
-    else if (p === '_io') cur = 'io';
-    else {
-      const f: FieldInfo | undefined = fieldsOf(cur).find((x) => x.id === p);
-      const t: TypeInfo | undefined =
-        typeof f?.spec?.type === 'string' ? resolveType(cur, f.spec.type, imported) : undefined;
-      cur = t;
-      if (!t) break;
-    }
-  }
-  if (cur === 'io') {
-    for (const i of IO_MEMBERS) out.push({ label: i.name, kind: 'field', doc: i.doc });
-  } else if (cur) {
-    addFields(cur);
-    for (const b of EXPRESSION_BUILTINS.filter((x) => x.name === '_parent' || x.name === '_io')) {
-      out.push({ label: b.name, kind: 'keyword', doc: b.doc, sortText: `1${b.name}` });
-    }
-  } else {
-    for (const g of GENERIC_MEMBERS) out.push({ label: g.name, kind: 'field', doc: g.doc, sortText: `1${g.name}` });
-  }
-  void root;
-  return out;
+  const owner = walkChain(scope, chain.slice(0, -1).split('.'), imported);
+  if (owner === 'io') return IO_MEMBERS.map((i) => ({ label: i.name, kind: 'Field', doc: i.doc }));
+  if (!owner) return GENERIC_MEMBERS.map((g) => ({ label: g.name, kind: 'Field', doc: g.doc, sortText: `1${g.name}` }));
+  return [
+    ...fields(owner),
+    ...keywords(
+      EXPRESSION_BUILTINS.filter((b) => b.name === '_parent' || b.name === '_io'),
+      1,
+    ),
+  ];
 }

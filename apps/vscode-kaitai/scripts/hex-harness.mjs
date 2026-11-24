@@ -2,7 +2,7 @@
 // Usage: node scripts/hex-harness.mjs <out-dir> [spec.ksy sample.bin]
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { basename, dirname, join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import * as esbuild from 'esbuild';
 
 // Prefer a Playwright whose browsers are installed (PLAYWRIGHT_MODULE), else the local one.
@@ -80,6 +80,7 @@ await page.keyboard.press('n');
 await page.waitForTimeout(200);
 await page.screenshot({ path: join(out, '3-next-gap.png') });
 for (let i = 0; i < 3; i++) await page.keyboard.press(']');
+await page.waitForTimeout(100);
 await page.keyboard.press('Control+End');
 await page.waitForTimeout(200);
 await page.screenshot({ path: join(out, '4-end.png') });
@@ -93,6 +94,16 @@ await page.mouse.move(box.x + 200, box.y + 200);
 await page.mouse.wheel(0, 60);
 await page.waitForTimeout(200);
 await page.screenshot({ path: join(out, '5-middle-wheel.png') });
+// Host-driven: select and reveal a range, outline another across rows, then change the row width.
+await page.evaluate(() => {
+  window.toWebview({ type: 'select', start: 40, end: 60, reveal: true });
+  window.toWebview({ type: 'highlight', start: 70, end: 130 });
+});
+await page.waitForTimeout(200);
+await page.screenshot({ path: join(out, '6-select-highlight.png') });
+await page.evaluate(() => window.toWebview({ type: 'config', bytesPerRow: 32 }));
+await page.waitForTimeout(200);
+await page.screenshot({ path: join(out, '7-wide.png') });
 const log = await page.evaluate(() => window.hostLog.filter((m) => m.type !== 'requestRegions'));
 const state = await page.evaluate(() => window.savedState);
 writeFileSync(join(out, 'log.json'), JSON.stringify({ errors, log, state }, null, 1));

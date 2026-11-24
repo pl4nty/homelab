@@ -1,15 +1,15 @@
 // Compiles .ksy specs with the Kaitai Struct compiler (debug mode) and turns parsed objects into
 // StructureNodes. No `vscode` import, so it runs under plain Node for tests.
 import { unzlibSync } from 'fflate';
+import KaitaiStreamModule from 'kaitai-struct/KaitaiStream.js';
+import compilerModule from 'kaitai-struct-compiler';
 import { parse as parseYaml } from 'yaml';
+import { toLowerCamel, toSnake, toUpperCamel } from '../util/names.ts';
 import type { ByteRange, FieldDef, NodeKind, ParseResult, StructureNode } from './structure.ts';
 
 // The packages ship UMD without usable typings for this TS config.
 // biome-ignore lint/suspicious/noExplicitAny: untyped UMD modules
 type Any = any;
-
-import KaitaiStreamModule from 'kaitai-struct/KaitaiStream.js';
-import compilerModule from 'kaitai-struct-compiler';
 
 const KaitaiStream: Any = KaitaiStreamModule;
 const compiler: Any = compilerModule;
@@ -20,7 +20,6 @@ KaitaiStream.processZlib = (buf: Uint8Array) => unzlibSync(buf);
 
 /** Compiler target languages, as accepted by {@link generateCode}. */
 export const LANGUAGES: readonly string[] = compiler.languages;
-export const COMPILER_VERSION: string = compiler.version;
 
 /**
  * Reads an imported spec. `mode` is `rel` for a path relative to the importing spec and `abs`
@@ -44,6 +43,7 @@ export interface Template {
   /** meta/id */
   readonly id: string;
   readonly title: string;
+  /** meta/file-extension, lower case. */
   readonly fileExtensions: readonly string[];
   readonly endian?: string;
   /** All specs that took part (root first): id -> parsed YAML. */
@@ -82,33 +82,34 @@ interface DebugInfo {
   validationError?: unknown;
 }
 
-type KObject = { _io: Any; _debug?: Record<string, DebugInfo>; _parent?: KObject; constructor: Any };
+type KObject = { _io: Any; _debug?: Record<string, DebugInfo>; constructor: Any; [field: string]: Any };
 
 const MAX_CHILDREN = 100;
 const BYTES_PREVIEW = 16;
 const STRING_PREVIEW = 100;
 
-export function parseKsy(source: string): Any {
+function parseKsy(source: string): Any {
   const spec = parseYaml(source, { uniqueKeys: false, maxAliasCount: -1 });
   if (!spec || typeof spec !== 'object') throw new KsyError('Spec is not a YAML mapping');
   return spec;
 }
 
-async function compileRaw(lang: string, spec: Any, readImport: ImportReader, debug: boolean, specs: Map<string, Any>) {
+/** Runs the compiler. Imported specs are added to `specs` by their meta/id. */
+async function compile(
+  lang: string,
+  spec: Any,
+  readImport: ImportReader,
+  debug: boolean,
+  specs?: Map<string, Any>,
+): Promise<Record<string, string>> {
+  const importYaml = async (name: string, mode: 'rel' | 'abs') => {
+    const imported = parseKsy(await readImport(name, mode));
+    const id = imported.meta?.id;
+    if (typeof id === 'string' && !specs?.has(id)) specs?.set(id, imported);
+    return imported;
+  };
   try {
-    return (await compiler.compile(
-      lang,
-      spec,
-      {
-        importYaml: async (name: string, mode: 'rel' | 'abs') => {
-          const imported = parseKsy(await readImport(name, mode));
-          const id = imported?.meta?.id;
-          if (typeof id === 'string' && !specs.has(id)) specs.set(id, imported);
-          return imported;
-        },
-      },
-      debug,
-    )) as Record<string, string>;
+    return await compiler.compile(lang, spec, { importYaml }, debug);
   } catch (e) {
     throw toKsyError(e);
   }
@@ -122,81 +123,80 @@ export function toKsyError(e: unknown): KsyError {
   const msg = String((e as Error)?.message && !String(e).includes('Exception') ? (e as Error).message : e)
     .replace(/^[\w.$]+(Exception|Error): /, '')
     .trim();
-  const m = /^(\S+): (\/[^\s:]*):\s*(?:(error|warning): )?(.*)$/s.exec(msg);
-  if (m) {
-    const file = m[1] === '(main)' ? undefined : m[1];
-    return new KsyError(m[4].trim(), m[2].split('/').filter(Boolean), file);
-  }
-  return new KsyError(msg);
+  const m = /^(\S+): (\/[^\s:]*):\s*(?:(?:error|warning): )?(.*)$/s.exec(msg);
+  if (!m) return new KsyError(msg);
+  return new KsyError(m[3].trim(), m[2].split('/').filter(Boolean), m[1] === '(main)' ? undefined : m[1]);
 }
 
 /** Compiles to another language for the "generated code" view. Returns file name -> source. */
 export async function generateCode(source: string, lang: string, readImport: ImportReader, debug = false) {
-  return compileRaw(lang, parseKsy(source), readImport, debug, new Map());
+  return compile(lang, parseKsy(source), readImport, debug);
 }
 
 /** Compiles a .ksy into a template whose parser builds StructureNodes. */
 export async function compileTemplate(source: string, readImport: ImportReader): Promise<Template> {
   const spec = parseKsy(source);
-  const id: unknown = spec?.meta?.id;
+  const id: unknown = spec.meta?.id;
   if (typeof id !== 'string') throw new KsyError('Spec has no meta/id', ['meta', 'id']);
   const specs = new Map<string, Any>([[id, spec]]);
-  const files = await compileRaw('javascript', spec, readImport, true, specs);
-  const modules = evaluateModules(files);
+  const modules = evaluateModules(await compile('javascript', spec, readImport, true, specs));
   const className = toUpperCamel(id);
   const RootClass = modules.get(className)?.[className];
   if (typeof RootClass !== 'function') throw new KsyError(`Compiled spec does not export ${className}`);
 
-  const names = fieldNames(specs.values());
-  const classes = typeSpecs(id, spec, specs.values());
-  const ext = spec.meta['file-extension'];
-  const params: TemplateParam[] = (Array.isArray(spec.params) ? spec.params : [])
-    .filter((p: Any) => typeof p?.id === 'string')
-    .map((p: Any) => ({ id: p.id, type: typeof p.type === 'string' ? p.type : undefined, doc: p.doc }));
+  const names = new Map<string, string>();
+  const classes = new Map<string, Any>();
+  for (const [specId, s] of specs) {
+    for (const t of types(specId, s)) {
+      // The root spec comes first, so its types win over imported ones of the same name.
+      if (!classes.has(toUpperCamel(t.name))) classes.set(toUpperCamel(t.name), t.spec);
+      for (const f of Array.isArray(t.spec.seq) ? t.spec.seq : [])
+        if (typeof f?.id === 'string') names.set(toLowerCamel(f.id), f.id);
+      for (const k of Object.keys(t.spec.instances ?? {})) names.set(toLowerCamel(k), k);
+    }
+  }
+  const ext = spec.meta['file-extension'] ?? [];
   return {
     id,
     title: spec.meta.title || id,
-    fileExtensions: (Array.isArray(ext) ? ext : ext ? [ext] : []).map(String),
+    fileExtensions: (Array.isArray(ext) ? ext : [ext]).map((e) => String(e).toLowerCase()),
     endian: typeof spec.meta.endian === 'string' ? spec.meta.endian : undefined,
     specs,
-    params,
-    typeNames: userTypeNames(spec),
-    parse(data, opts = {}) {
-      const buffer =
-        data.byteOffset === 0 && data.byteLength === data.buffer.byteLength
-          ? (data.buffer as ArrayBuffer)
-          : (data.slice().buffer as ArrayBuffer);
-      const base = opts.baseOffset ?? 0;
-      const ctx: Ctx = { buffer, modules, names, rootId: id, base, classes };
-      let Cls: Any = RootClass;
-      for (const part of opts.typeName ? opts.typeName.split('::') : []) Cls = Cls?.[toUpperCamel(part)];
-      if (typeof Cls !== 'function') return { roots: [], error: `Unknown type ${opts.typeName}` };
+    params: (Array.isArray(spec.params) ? spec.params : [])
+      .filter((p: Any) => typeof p?.id === 'string')
+      .map((p: Any) => ({ id: p.id, type: typeof p.type === 'string' ? p.type : undefined, doc: p.doc })),
+    typeNames: Array.from(types(id, spec), (t) => t.path).slice(1),
+    parse(data, { params = [], typeName, baseOffset: base = 0, rootName = id } = {}) {
+      // The stream needs an ArrayBuffer that holds exactly the data.
+      const exact = data.byteLength === data.buffer.byteLength ? data : data.slice();
+      const ctx: Ctx = { buffer: exact.buffer as ArrayBuffer, modules, names, base, classes };
+      let Class: Any = RootClass;
+      for (const part of typeName?.split('::') ?? []) Class = Class?.[toUpperCamel(part)];
+      if (typeof Class !== 'function') return { roots: [], error: `Unknown type ${typeName}` };
       let root: KObject;
       let error: string | undefined;
       try {
         // A non-root type's _root is itself; params apply to the root type only.
-        root = new Cls(new KaitaiStream(buffer), undefined, undefined, ...(opts.typeName ? [] : (opts.params ?? [])));
+        root = new Class(new KaitaiStream(ctx.buffer), undefined, undefined, ...(typeName ? [] : params));
       } catch (e) {
         return { roots: [], error: errorMessage(e) };
       }
       try {
-        (root as Any)._read();
+        root._read();
       } catch (e) {
         error = errorMessage(e);
       }
-      const name = opts.rootName ?? id;
-      const node = structNode(
-        ctx,
-        undefined,
-        name,
-        root,
-        { start: base, end: base + data.byteLength },
-        undefined,
-        error,
-      );
-      return { roots: [node], error };
+      const range = { start: base, end: base + data.byteLength };
+      return { roots: [structNode(ctx, undefined, rootName, root, { range, error })], error };
     },
   };
+}
+
+/** A type spec and the types nested in it, depth first, with `a::b` paths below the first one. */
+function* types(name: string, spec: Any, path = ''): Generator<{ name: string; path: string; spec: Any }> {
+  if (!spec || typeof spec !== 'object') return;
+  yield { name, path, spec };
+  for (const [k, sub] of Object.entries(spec.types ?? {})) yield* types(k, sub, path ? `${path}::${k}` : k);
 }
 
 /** Runs compiled UMD modules through a minimal CommonJS loader. */
@@ -225,95 +225,78 @@ function evaluateModules(files: Record<string, string>): Map<string, Any> {
 interface Ctx {
   buffer: ArrayBuffer;
   modules: Map<string, Any>;
-  /** Generated JS property name -> .ksy id. */
+  /** Generated JS property name -> .ksy id, so ids with digits (`icc_4` -> `icc4`) survive. */
   names: Map<string, string>;
-  rootId: string;
   /** Document offset of buffer[0]. */
   base: number;
   /** Generated class name -> type spec, for `-webide-representation`. */
   classes: Map<string, Any>;
 }
 
-class Node implements StructureNode {
-  readonly id: string;
-  declare readonly type?: string;
-  declare readonly value?: string;
-  declare readonly raw?: unknown;
-  declare readonly range?: ByteRange;
-  declare readonly bits?: number;
-  declare readonly instance?: boolean;
-  declare readonly error?: string;
-  declare readonly def?: FieldDef;
-  declare readonly streamBytes?: () => Uint8Array;
-  readonly parent: Node | undefined;
-  readonly name: string;
-  readonly kind: NodeKind;
-  private readonly getChildren?: (self: Node) => StructureNode[];
-  private cached?: StructureNode[];
+type NodeProps = Omit<StructureNode, 'id' | 'name' | 'parent' | 'kind' | 'hasChildren' | 'children'>;
 
-  constructor(
-    parent: Node | undefined,
-    name: string,
-    kind: NodeKind,
-    props: Partial<Omit<StructureNode, 'id' | 'name' | 'parent' | 'kind' | 'hasChildren' | 'children'>>,
-    getChildren?: (self: Node) => StructureNode[],
-  ) {
-    this.parent = parent;
-    this.name = name;
-    this.kind = kind;
-    this.getChildren = getChildren;
-    this.id = parent ? `${parent.id}/${name}` : name;
-    for (const [k, v] of Object.entries(props)) if (v !== undefined) (this as Any)[k] = v;
-  }
-
-  get hasChildren() {
-    return !!this.getChildren;
-  }
-
-  children() {
-    this.cached ??= this.getChildren?.(this) ?? [];
-    return this.cached;
-  }
+function makeNode(
+  parent: StructureNode | undefined,
+  name: string,
+  kind: NodeKind,
+  props: NodeProps,
+  getChildren?: (self: StructureNode) => StructureNode[],
+): StructureNode {
+  let cached: StructureNode[] | undefined;
+  const self: StructureNode = {
+    ...props,
+    id: parent ? `${parent.id}/${name}` : name,
+    name,
+    parent,
+    kind,
+    hasChildren: !!getChildren,
+    children() {
+      cached ??= getChildren?.(self) ?? [];
+      return cached;
+    },
+  };
+  return self;
 }
 
 const isStruct = (v: unknown): v is KObject => typeof v === 'object' && v !== null && '_io' in v;
+const isNumber = (v: unknown): v is number | bigint => typeof v === 'number' || typeof v === 'bigint';
 
-function absoluteRange(ctx: Ctx, io: Any, dbg: DebugInfo | undefined): ByteRange | undefined {
-  // Fields inside processed (e.g. decompressed) streams have no document offset. `_buffer` is
-  // read directly because the public `buffer` getter copies substream buffers.
-  if (dbg?.start === undefined || dbg.end === undefined || io?._buffer !== ctx.buffer) return undefined;
-  const base = ctx.base + (dbg.ioOffset ?? 0);
-  return { start: base + dbg.start, end: base + dbg.end };
+/**
+ * Document range of a debug entry. A field that started but never finished (where parsing
+ * failed) gets one byte. Fields inside processed (e.g. decompressed) streams have none.
+ */
+function documentRange(ctx: Ctx, io: Any, dbg: DebugInfo | undefined): ByteRange | undefined {
+  // `_buffer` is read directly because the public `buffer` getter copies substream buffers.
+  if (dbg?.start === undefined || io?._buffer !== ctx.buffer) return undefined;
+  const offset = dbg.ioOffset ?? 0;
+  const start = offset + dbg.start;
+  const end = dbg.end === undefined ? Math.min(start + 1, ctx.buffer.byteLength) : offset + dbg.end;
+  return end < start ? undefined : { start: ctx.base + start, end: ctx.base + end };
 }
 
 function structNode(
   ctx: Ctx,
-  parent: Node | undefined,
+  parent: StructureNode | undefined,
   name: string,
   obj: KObject,
-  range: ByteRange | undefined,
-  def: FieldDef | undefined,
-  error?: string,
-): Node {
-  const io = obj._io;
+  props: NodeProps,
+): StructureNode {
+  const buf = obj._io?._buffer;
+  const type: string | undefined = obj.constructor?.name;
   // Structs read from a processed (e.g. decompressed) stream expose those bytes, so they can be
   // opened in their own hex editor.
   const streamBytes =
-    io && io._buffer !== ctx.buffer && io._buffer instanceof ArrayBuffer
-      ? () => new Uint8Array(io._buffer, io._byteOffset ?? 0, io._byteLength ?? io._buffer.byteLength)
+    buf instanceof ArrayBuffer && buf !== ctx.buffer
+      ? () => new Uint8Array(buf, obj._io._byteOffset ?? 0, obj._io._byteLength ?? buf.byteLength)
       : undefined;
-  return new Node(
-    parent,
-    name,
-    'struct',
-    { type: obj.constructor?.name, range, error, def, value: representation(ctx, obj), streamBytes },
-    (self) => structFields(ctx, self, obj),
+  return makeNode(parent, name, 'struct', { ...props, type, value: representation(ctx, obj), streamBytes }, (self) =>
+    structFields(ctx, self, obj),
   );
 }
 
 /**
  * Renders a type's `-webide-representation`, e.g. `{name}: {value:dec}`. Field references are
- * seq ids or instances; `:dec`, `:hex` and `:str` pick the number format. Errors render as `?`.
+ * seq ids or instances; `:hex` and `:str` pick the format. Errors render as `?`.
  */
 function representation(ctx: Ctx, obj: KObject): string | undefined {
   const tmpl = ctx.classes.get(obj.constructor?.name)?.['-webide-representation'];
@@ -323,14 +306,8 @@ function representation(ctx: Ctx, obj: KObject): string | undefined {
       let v: Any = obj;
       for (const part of path.split('.')) v = v?.[toLowerCamel(part)];
       if (v === undefined || v === null) return '';
-      if (v instanceof Uint8Array) {
-        return fmt === 'str' ? new TextDecoder().decode(v) : formatValue(v);
-      }
-      if (typeof v === 'number' || typeof v === 'bigint') {
-        if (fmt === 'hex') return `0x${v.toString(16).toUpperCase()}`;
-        if (fmt === 'dec') return String(v);
-        return String(v);
-      }
+      if (v instanceof Uint8Array) return fmt === 'str' ? new TextDecoder().decode(v) : formatValue(v);
+      if (isNumber(v) && fmt === 'hex') return `0x${v.toString(16).toUpperCase()}`;
       if (isStruct(v)) return representation(ctx, v) ?? v.constructor?.name ?? '';
       return String(v);
     } catch {
@@ -339,38 +316,28 @@ function representation(ctx: Ctx, obj: KObject): string | undefined {
   });
 }
 
-function structFields(ctx: Ctx, self: Node, obj: KObject): StructureNode[] {
-  const nodes: StructureNode[] = [];
+function structFields(ctx: Ctx, self: StructureNode, obj: KObject): StructureNode[] {
   const debug = obj._debug ?? {};
   const type: string = obj.constructor?.name ?? '';
+  const def = (key: string): FieldDef => ({ type, field: ctx.names.get(key) ?? toSnake(key) });
+  const field = (key: string, value: unknown, dbg: DebugInfo | undefined, instance?: true) =>
+    valueNode(ctx, self, def(key).field, value, obj._io, dbg, def(key), instance);
 
-  for (const [key, dbg] of Object.entries(debug)) {
-    if (key.startsWith('_m_')) continue;
-    const field = ksyName(ctx, key);
-    nodes.push(valueNode(ctx, self, field, (obj as Any)[key], obj._io, dbg, { type, field }, false));
-  }
+  // Debug entries of instances are named `_m_<name>`; the rest are the seq fields, in order.
+  const nodes = Object.entries(debug)
+    .filter(([key]) => !key.startsWith('_m_'))
+    .map(([key, dbg]) => field(key, obj[key], dbg));
 
   // Instances are lazy getters on the prototype; reading one parses it.
   const proto = Object.getPrototypeOf(obj);
-  for (const key of Object.getOwnPropertyNames(proto)) {
-    if (!Object.getOwnPropertyDescriptor(proto, key)?.get) continue;
-    const field = ksyName(ctx, key);
+  for (const [key, desc] of Object.entries(Object.getOwnPropertyDescriptors(proto))) {
+    if (!desc.get) continue;
     try {
-      const value = (obj as Any)[key];
-      nodes.push(valueNode(ctx, self, field, value, obj._io, debug[`_m_${key}`], { type, field }, true));
+      nodes.push(field(key, obj[key], debug[`_m_${key}`], true));
     } catch (e) {
-      // A failed instance may still have a start position.
-      const dbg = debug[`_m_${key}`];
+      const range = documentRange(ctx, obj._io, debug[`_m_${key}`]);
       nodes.push(
-        new Node(self, field, 'other', {
-          error: errorMessage(e),
-          instance: true,
-          range:
-            dbg?.start !== undefined
-              ? absoluteRange(ctx, obj._io, { ...dbg, end: dbg.end ?? dbg.start + 1 })
-              : undefined,
-          def: { type, field },
-        }),
+        makeNode(self, def(key).field, 'other', { error: errorMessage(e), instance: true, range, def: def(key) }),
       );
     }
   }
@@ -379,62 +346,53 @@ function structFields(ctx: Ctx, self: Node, obj: KObject): StructureNode[] {
 
 function valueNode(
   ctx: Ctx,
-  parent: Node,
+  parent: StructureNode,
   name: string,
   value: unknown,
   io: Any,
   dbg: DebugInfo | undefined,
   def: FieldDef | undefined,
-  instance: boolean,
-): Node {
-  let range = absoluteRange(ctx, io, dbg);
-  // A field that started but never finished is where parsing failed.
-  const failed = dbg?.start !== undefined && dbg.end === undefined;
-  const error = dbg?.validationError
-    ? `Validation failed: ${errorMessage(dbg.validationError)}`
-    : failed
-      ? 'Parsing stopped here'
-      : undefined;
-  if (failed && io?._buffer === ctx.buffer) {
-    const s = (dbg.ioOffset ?? 0) + dbg.start!;
-    range = { start: ctx.base + s, end: ctx.base + Math.min(s + 1, ctx.buffer.byteLength) };
-  }
-  const base = { range, error, def, instance: instance || undefined };
-  if (isStruct(value)) return structNode(ctx, parent, name, value, range, def, error);
+  instance?: true,
+): StructureNode {
+  const struct = isStruct(value);
+  const props: NodeProps = {
+    // Bit fields: the debug range is in bytes, so a 3-bit field shows the byte it lives in.
+    range: documentRange(ctx, io, dbg),
+    error: dbg?.validationError
+      ? `Validation failed: ${errorMessage(dbg.validationError)}`
+      : dbg?.start !== undefined && dbg.end === undefined
+        ? 'Parsing stopped here'
+        : undefined,
+    def,
+    instance,
+  };
+  if (struct) return structNode(ctx, parent, name, value, props);
   if (Array.isArray(value)) {
-    return new Node(parent, name, 'array', { ...base, value: `[${value.length}]` }, (self) =>
+    return makeNode(parent, name, 'array', { ...props, value: `[${value.length}]` }, (self) =>
       arrayItems(ctx, self, value, io, dbg?.arr ?? [], 0, value.length, def),
     );
   }
-  if (value === undefined || value === null) return new Node(parent, name, 'other', base);
-  const enumLabel =
-    dbg?.enumName && (typeof value === 'number' || typeof value === 'bigint')
-      ? lookupEnum(ctx, dbg.enumName, value)
-      : undefined;
-  const kind: NodeKind =
-    value instanceof Uint8Array
-      ? 'bytes'
-      : typeof value === 'string'
-        ? 'string'
-        : typeof value === 'boolean'
-          ? 'boolean'
-          : dbg?.enumName
-            ? 'enum'
-            : typeof value === 'number' || typeof value === 'bigint'
-              ? 'number'
-              : 'other';
-  // Bit fields: the debug range is in bytes, so a 3-bit field shows the byte it lives in.
-  return new Node(parent, name, kind, {
-    ...base,
+  if (value === undefined || value === null) return makeNode(parent, name, 'other', props);
+  const enumName = isNumber(value) ? dbg?.enumName : undefined;
+  const label = enumName && lookupEnum(ctx, enumName, value as number | bigint);
+  return makeNode(parent, name, enumName ? 'enum' : kindOf(value), {
+    ...props,
     raw: value,
-    value: formatValue(value, enumLabel),
-    type: dbg?.enumName,
+    value: label ? `${label} = ${formatValue(value)}` : formatValue(value),
+    type: enumName,
   });
 }
 
+function kindOf(value: unknown): NodeKind {
+  if (value instanceof Uint8Array) return 'bytes';
+  if (isNumber(value)) return 'number';
+  return typeof value === 'string' || typeof value === 'boolean' ? (typeof value as NodeKind) : 'other';
+}
+
+/** Items `from..to` of an array, grouped into buckets of up to MAX_CHILDREN when there are more. */
 function arrayItems(
   ctx: Ctx,
-  parent: Node,
+  parent: StructureNode,
   array: unknown[],
   io: Any,
   arr: DebugInfo[],
@@ -444,45 +402,37 @@ function arrayItems(
 ): StructureNode[] {
   const nodes: StructureNode[] = [];
   if (to - from <= MAX_CHILDREN) {
-    for (let i = from; i < to; i++) nodes.push(valueNode(ctx, parent, `[${i}]`, array[i], io, arr[i], def, false));
+    for (let i = from; i < to; i++) nodes.push(valueNode(ctx, parent, `[${i}]`, array[i], io, arr[i], def));
     return nodes;
   }
   let step = MAX_CHILDREN;
   while ((to - from) / step > MAX_CHILDREN) step *= MAX_CHILDREN;
   for (let lo = from; lo < to; lo += step) {
     const hi = Math.min(lo + step, to);
-    const first = absoluteRange(ctx, io, arr[lo]);
-    const last = absoluteRange(ctx, io, arr[hi - 1]);
+    const first = documentRange(ctx, io, arr[lo]);
+    const last = documentRange(ctx, io, arr[hi - 1]);
+    const range = first && last && { start: first.start, end: last.end };
     nodes.push(
-      new Node(
-        parent,
-        `[${lo}..${hi - 1}]`,
-        'bucket',
-        { range: first && last && { start: first.start, end: last.end } },
-        (self) => arrayItems(ctx, self, array, io, arr, lo, hi, def),
+      makeNode(parent, `[${lo}..${hi - 1}]`, 'bucket', { range }, (self) =>
+        arrayItems(ctx, self, array, io, arr, lo, hi, def),
       ),
     );
   }
   return nodes;
 }
 
-export function formatValue(value: unknown, enumLabel?: string): string {
+function formatValue(value: unknown): string {
   if (value instanceof Uint8Array) {
-    const hex = Array.from(value.subarray(0, BYTES_PREVIEW), (b) => b.toString(16).padStart(2, '0').toUpperCase()).join(
-      ' ',
-    );
-    return value.length > BYTES_PREVIEW ? `${hex} … (${value.length} bytes)` : hex;
+    const hex = Array.from(value.subarray(0, BYTES_PREVIEW), (b) => b.toString(16).padStart(2, '0').toUpperCase());
+    return value.length > BYTES_PREVIEW ? `${hex.join(' ')} … (${value.length} bytes)` : hex.join(' ');
   }
   if (typeof value === 'string') {
     const json = JSON.stringify(value);
     return json.length > STRING_PREVIEW ? `${json.slice(0, STRING_PREVIEW)}…"` : json;
   }
-  if (typeof value === 'number' || typeof value === 'bigint') {
-    const num =
-      Number.isInteger(value) || typeof value === 'bigint'
-        ? `${value} (${value < 0 ? '-' : ''}0x${(value < 0 ? -value : value).toString(16).toUpperCase()})`
-        : String(value);
-    return enumLabel ? `${enumLabel} = ${num}` : num;
+  if (typeof value === 'bigint' || Number.isInteger(value)) {
+    const n = value as number | bigint;
+    return `${n} (${n < 0 ? '-' : ''}0x${(n < 0 ? -n : n).toString(16).toUpperCase()})`;
   }
   return String(value);
 }
@@ -496,71 +446,8 @@ function lookupEnum(ctx: Ctx, enumName: string, value: number | bigint) {
   return typeof label === 'string' ? label.toLowerCase() : undefined;
 }
 
-export function errorMessage(e: unknown): string {
+function errorMessage(e: unknown): string {
   if (e instanceof Error) return e.message || e.name;
   // KaitaiStream throws plain objects/strings in some versions.
   return String((e as Any)?.message ?? e);
-}
-
-/** `my_format` -> `MyFormat`, matching the compiler's class naming. */
-export function toUpperCamel(id: string) {
-  return id
-    .split('_')
-    .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
-    .join('');
-}
-
-/** `num_entries` -> `numEntries`, matching the compiler's JS field naming. */
-export function toLowerCamel(id: string) {
-  const u = toUpperCamel(id);
-  return u.charAt(0).toLowerCase() + u.slice(1);
-}
-
-function toSnake(name: string) {
-  return name.replace(/(?<=[a-z0-9])[A-Z]/g, (c) => `_${c.toLowerCase()}`).toLowerCase();
-}
-
-/** Maps generated JS names back to .ksy ids, so ids with digits (`icc_4` -> `icc4`) survive. */
-function fieldNames(specs: Iterable<Any>): Map<string, string> {
-  const names = new Map<string, string>();
-  const visitType = (t: Any) => {
-    if (!t || typeof t !== 'object') return;
-    for (const f of Array.isArray(t.seq) ? t.seq : [])
-      if (typeof f?.id === 'string') names.set(toLowerCamel(f.id), f.id);
-    for (const k of Object.keys(t.instances ?? {})) names.set(toLowerCamel(k), k);
-    for (const sub of Object.values(t.types ?? {})) visitType(sub);
-  };
-  for (const s of specs) visitType(s);
-  return names;
-}
-
-/** Maps generated class names (UpperCamel) to their type spec, root included. */
-function typeSpecs(rootId: string, root: Any, specs: Iterable<Any>): Map<string, Any> {
-  const out = new Map<string, Any>();
-  const visit = (name: string, t: Any) => {
-    if (!t || typeof t !== 'object') return;
-    if (!out.has(toUpperCamel(name))) out.set(toUpperCamel(name), t);
-    for (const [k, sub] of Object.entries(t.types ?? {})) visit(k, sub);
-  };
-  visit(rootId, root);
-  for (const s of specs) if (s !== root && typeof s?.meta?.id === 'string') visit(s.meta.id, s);
-  return out;
-}
-
-/** `a`, `a::b` paths of the root spec's user types, for parsing a selection as a type. */
-function userTypeNames(spec: Any): string[] {
-  const out: string[] = [];
-  const visit = (prefix: string, t: Any) => {
-    for (const [k, sub] of Object.entries(t?.types ?? {})) {
-      const name = prefix ? `${prefix}::${k}` : k;
-      out.push(name);
-      visit(name, sub);
-    }
-  };
-  visit('', spec);
-  return out;
-}
-
-function ksyName(ctx: Ctx, jsName: string) {
-  return ctx.names.get(jsName) ?? toSnake(jsName);
 }

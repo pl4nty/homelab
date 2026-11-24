@@ -2,24 +2,18 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { compileTemplate } from '../src/engine/kaitai.ts';
-import { type Region, regionsInRange } from '../src/engine/structure.ts';
+import { colourKey, type Region, regionsInRange, TONES } from '../src/engine/structure.ts';
 import {
   asciiCellX,
   assignColours,
-  colourKey,
   columns,
   findStep,
   gapsIn,
   hexCellX,
   hitColumn,
-  keyedRegionsInRange,
-  keyHue,
-  keyTone,
   mergeRegions,
   nativeToVirtual,
-  nextField,
   offsetDigits,
-  prevField,
   regionAt,
   rowContour,
   rowCount,
@@ -133,104 +127,113 @@ test('selection range', () => {
   assert.deepEqual(selectionRange({ anchor: 1, caret: 5, active: false }), { start: 5, end: 5 });
 });
 
-test('keyed regions match regionsInRange', async () => {
+const hue = (key: number) => Math.floor(key / TONES);
+
+test('regions are the leaf fields, whatever the window', async () => {
   const t = await compileTemplate(GAPPY, noImports);
   const { roots } = t.parse(gappyData());
+  const all = regionsInRange(roots, 0, 100);
+  assert.deepEqual(
+    all.map((r) => [r.id.replace('gappy/', ''), r.start, r.end]),
+    [
+      ['magic', 0, 4],
+      ['count', 4, 6],
+      ['recs/[0]/kind', 6, 7],
+      ['recs/[0]/len', 7, 8],
+      ['recs/[0]/body', 8, 10],
+      ['recs/[1]/kind', 10, 11],
+      ['recs/[1]/len', 11, 12],
+      ['recs/[2]/kind', 12, 13],
+      ['recs/[2]/len', 13, 14],
+      ['recs/[2]/body', 14, 15],
+      ['hdr/a', 15, 17],
+      ['hdr/b', 17, 19],
+      ['tail', 27, 29],
+    ],
+  );
   for (const [s, e] of [
-    [0, 100],
     [5, 9],
+    [8, 14],
     [14, 22],
   ]) {
-    assert.deepEqual(keyedRegionsInRange(roots, s, e).regions, regionsInRange(roots, s, e));
+    assert.deepEqual(
+      regionsInRange(roots, s, e),
+      all.filter((r) => r.end > s && r.start < e),
+    );
   }
   // Inside the unparsed part of hdr, the struct is not reported as covering the window.
-  assert.deepEqual(keyedRegionsInRange(roots, 20, 23).regions, []);
-  const read = (name: string) => readFileSync(new URL(`fixtures/image/${name}.ksy`, import.meta.url), 'utf8');
-  const png = await compileTemplate(read('png'), async (n) => read(n.split('/').pop()!));
-  const img = new Uint8Array(readFileSync(new URL('fixtures/sample.png', import.meta.url)));
-  const pr = png.parse(img).roots;
-  assert.deepEqual(keyedRegionsInRange(pr, 0, img.length).regions, regionsInRange(pr, 0, img.length));
+  assert.deepEqual(regionsInRange(roots, 20, 23), []);
+  assert.equal(regionsInRange(roots, 0, 100, 5).length, 5);
 });
 
-/** Every pair of touching regions gets different colours, and colours do not depend on the window. */
-function checkColours(regions: Region[], keys: number[]) {
-  const colours = assignColours(regions, keys);
-  for (let i = 1; i < regions.length; i++) {
-    if (regions[i - 1].end === regions[i].start) {
-      assert.notEqual(colours[i], colours[i - 1], `${regions[i - 1].id} vs ${regions[i].id}`);
+test('adjacent fields always get different colours', async () => {
+  const check = (regions: Region[]) => {
+    const colours = assignColours(regions);
+    for (let i = 1; i < regions.length; i++) {
+      if (regions[i - 1].end === regions[i].start) {
+        assert.notEqual(colours[i], colours[i - 1], `${regions[i - 1].id} vs ${regions[i].id}`);
+      }
     }
-  }
-  return colours;
-}
-
-test('adjacent fields always get different colours, stable across windows', async () => {
+  };
   const t = await compileTemplate(GAPPY, noImports);
-  const { roots } = t.parse(gappyData());
-  const all = keyedRegionsInRange(roots, 0, 100);
-  const colours = checkColours(all.regions, all.keys);
-  // Same colours when only part of the file is requested (as the webview does, block by block).
-  const part = keyedRegionsInRange(roots, 8, 14);
-  const partColours = assignColours(part.regions, part.keys);
-  part.regions.forEach((r, i) => {
-    const j = all.regions.findIndex((x) => x.id === r.id);
-    if (j > 0 && part.regions[i - 1]?.id === all.regions[j - 1].id) assert.equal(partColours[i], colours[j]);
-  });
+  const all = regionsInRange(t.parse(gappyData()).roots, 0, 100);
+  check(all);
   // Nesting shows: fields of a record differ in hue from the top-level fields.
-  const magic = all.regions.findIndex((r) => r.id === 'gappy/magic');
-  const kind = all.regions.findIndex((r) => r.id === 'gappy/recs/[0]/kind');
-  assert.notEqual(keyHue(all.keys[magic]), keyHue(all.keys[kind]));
+  const key = (id: string) => all.find((r) => r.id === id)!.key;
+  assert.notEqual(hue(key('gappy/magic')), hue(key('gappy/recs/[0]/kind')));
 
   // A big bucketed array: items alternate by absolute index even across bucket edges.
   const arr = await compileTemplate('meta: {id: arr}\nseq:\n  - {id: a, type: u1, repeat: eos}\n', noImports);
-  const ar = arr.parse(new Uint8Array(1000)).roots;
-  const k = keyedRegionsInRange(ar, 95, 105);
-  checkColours(k.regions, k.keys);
+  const items = regionsInRange(arr.parse(new Uint8Array(1000)).roots, 95, 105);
+  check(items);
   assert.deepEqual(
-    k.keys.map(keyTone),
-    k.regions.map((r) => r.start & 1),
+    items.map((r) => r.key % TONES),
+    items.map((r) => r.start & 1),
   );
+
+  const read = (name: string) => readFileSync(new URL(`fixtures/image/${name}.ksy`, import.meta.url), 'utf8');
+  const png = await compileTemplate(read('png'), async (n) => read(n.split('/').pop()!));
+  const img = new Uint8Array(readFileSync(new URL('fixtures/sample.png', import.meta.url)));
+  check(regionsInRange(png.parse(img).roots, 0, img.length));
 });
 
 test('colour keys', () => {
   assert.equal(colourKey([0]), 0);
   assert.notEqual(colourKey([0, 0]), colourKey([0, 1]));
-  assert.notEqual(keyHue(colourKey([0, 0, 0])), keyHue(colourKey([0, 1, 0])));
-  assert.notEqual(keyHue(colourKey([0, 0])), keyHue(colourKey([0, 0, 0])));
-  const r = (start: number, end: number): Region => ({ start, end, id: `${start}`, depth: 1, label: '' });
+  assert.notEqual(hue(colourKey([0, 0, 0])), hue(colourKey([0, 1, 0])));
+  assert.notEqual(hue(colourKey([0, 0])), hue(colourKey([0, 0, 0])));
+  const r = (start: number, end: number): Region => ({ start, end, id: `${start}`, key: 3, label: '' });
   // A run of equal keys gets the tie-break tone.
-  assert.deepEqual(assignColours([r(0, 1), r(1, 2), r(3, 4)], [3, 3, 3]), [3, 5, 3]);
+  assert.deepEqual(assignColours([r(0, 1), r(1, 2), r(3, 4)]), [3, 5, 3]);
 });
 
 test('region lookup, merge and gaps', () => {
-  const r = (start: number, end: number, id = `${start}`): Region => ({ start, end, id, depth: 1, label: id });
+  const r = (start: number, end: number, id = `${start}`): Region => ({ start, end, id, key: 0, label: id });
   const regions = [r(0, 4), r(4, 6), r(10, 20), r(12, 14, 'inner'), r(30, 31)];
-  assert.equal(regionAt(regions, 0), 0);
-  assert.equal(regionAt(regions, 5), 1);
-  assert.equal(regionAt(regions, 7), -1);
-  assert.equal(regions[regionAt(regions, 13)].id, 'inner');
-  assert.equal(regionAt(regions, 15), 2);
+  assert.equal(regionAt(regions, 0)?.id, '0');
+  assert.equal(regionAt(regions, 5)?.id, '4');
+  assert.equal(regionAt(regions, 7), undefined);
+  assert.equal(regionAt(regions, 13)?.id, 'inner');
+  assert.equal(regionAt(regions, 15)?.id, '10');
   assert.deepEqual(gapsIn(regions, 0, 40), [
     { start: 6, end: 10 },
     { start: 20, end: 30 },
     { start: 31, end: 40 },
   ]);
-  assert.deepEqual(gapsIn(regions, 2, 25, 22), [
+  assert.deepEqual(gapsIn(regions, 2, 22), [
     { start: 6, end: 10 },
     { start: 20, end: 22 },
   ]);
   assert.deepEqual(gapsIn([], 3, 9), [{ start: 3, end: 9 }]);
-  assert.equal(nextField(regions, 4)?.start, 10);
-  assert.equal(prevField(regions, 10)?.start, 4);
-  assert.equal(prevField(regions, 0), undefined);
-  const m = mergeRegions([
-    { regions: [r(0, 4), r(4, 6)], keys: [1, 2] },
-    { regions: [r(4, 6), r(10, 20)], keys: [2, 3] },
+  // Blocks overlap: a region on the edge arrives twice.
+  const merged = mergeRegions([
+    [r(0, 4), r(4, 6)],
+    [r(4, 6), r(10, 20)],
   ]);
   assert.deepEqual(
-    m.regions.map((x) => x.start),
+    merged.map((x) => x.start),
     [0, 4, 10],
   );
-  assert.deepEqual(m.keys, [1, 2, 3]);
 });
 
 test('steppers find unparsed gaps and fields in both directions', async () => {
@@ -246,10 +249,10 @@ test('steppers find unparsed gaps and fields in both directions', async () => {
   assert.equal(findStep(roots, size, 'gap', -1, 19), undefined);
   // Caret inside a gap: previous goes to the start of that whole gap.
   assert.deepEqual(findStep(roots, size, 'gap', -1, 33), { start: 29, end: 39 });
-  const next = findStep(roots, size, 'field', 1, 0) as Region;
-  assert.equal(next.id, 'gappy/count');
-  assert.equal((findStep(roots, size, 'field', 1, 19) as Region).id, 'gappy/tail');
-  assert.equal((findStep(roots, size, 'field', -1, 27) as Region).id, 'gappy/hdr/b');
+  // count, tail, hdr/b
+  assert.deepEqual(findStep(roots, size, 'field', 1, 0), { start: 4, end: 6 });
+  assert.deepEqual(findStep(roots, size, 'field', 1, 19), { start: 27, end: 29 });
+  assert.deepEqual(findStep(roots, size, 'field', -1, 27), { start: 17, end: 19 });
   assert.equal(findStep(roots, size, 'field', -1, 0), undefined);
   assert.equal(findStep(roots, size, 'field', 1, 27), undefined);
 });
@@ -272,8 +275,9 @@ types:
   const { roots } = t.parse(data);
   assert.deepEqual(findStep(roots, data.length, 'gap', 1, 0), { start: 5, end: 200004 });
   assert.deepEqual(findStep(roots, data.length, 'gap', -1, 200004), { start: 5, end: 200004 });
-  assert.equal((findStep(roots, data.length, 'field', 1, 4) as Region).id, 'big/trailer');
-  assert.equal((findStep(roots, data.length, 'field', -1, 200004) as Region).id, 'big/body/x');
+  // trailer, body/x
+  assert.deepEqual(findStep(roots, data.length, 'field', 1, 4), { start: 200004, end: 200008 });
+  assert.deepEqual(findStep(roots, data.length, 'field', -1, 200004), { start: 4, end: 5 });
 });
 
 test('outline contour of a multi-row range', () => {
