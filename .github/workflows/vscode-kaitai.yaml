@@ -37,7 +37,7 @@ jobs:
       - run: npx tsc --noEmit
       - run: npm test
       - run: npm run build
-      - run: npx --yes @vscode/vsce@3 package --out kaitai-ide.vsix
+      - run: npx --yes @vscode/vsce@4 package --out kaitai-ide.vsix
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: kaitai-ide-vsix
@@ -57,13 +57,13 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: npm ci
       - run: npm run build
-      - run: npx --yes @vscode/vsce@3 package --out kaitai-ide.vsix
+      - run: npx --yes @vscode/vsce@4 package --out kaitai-ide.vsix
       - name: Publish to the Visual Studio Marketplace
-        run: npx --yes @vscode/vsce@3 publish --packagePath kaitai-ide.vsix --oidc --skip-duplicate
+        run: npx --yes @vscode/vsce@4 publish --packagePath kaitai-ide.vsix --oidc --skip-duplicate
       - name: Publish to Open VSX
         env:
           # only for the first version; trusted publishing needs the extension to exist
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
         run: |
-          if [ -n "$OVSX_PAT" ]; then npx --yes ovsx@0 publish kaitai-ide.vsix --skip-duplicate
-          else npx --yes ovsx@0 publish kaitai-ide.vsix --trusted-publishing --skip-duplicate; fi
+          if [ -n "$OVSX_PAT" ]; then npx --yes ovsx@1 publish kaitai-ide.vsix --skip-duplicate
+          else npx --yes ovsx@1 publish kaitai-ide.vsix --trusted-publishing --skip-duplicate; fi

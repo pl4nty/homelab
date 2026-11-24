@@ -462,7 +462,7 @@
     "watch": "node esbuild.mjs --watch",
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --no-warnings --test test/*.test.ts",
-    "package": "npm run build && vsce package"
+    "package": "npm run build && npx --yes @vscode/vsce@4 package"
   },
   "dependencies": {
     "fflate": "^0.8.3",
