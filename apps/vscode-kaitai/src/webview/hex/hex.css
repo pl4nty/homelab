@@ -44,31 +44,6 @@ canvas.grid {
   pointer-events: none;
 }
 
-.tooltip {
-  position: absolute;
-  z-index: 10;
-  max-width: min(640px, 80vw);
-  padding: 4px 8px;
-  pointer-events: none;
-  white-space: pre-wrap;
-  word-break: break-all;
-  font-family: var(--vscode-editor-font-family);
-  font-size: var(--vscode-editor-font-size);
-  color: var(--vscode-editorHoverWidget-foreground, var(--vscode-editor-foreground));
-  background: var(--vscode-editorHoverWidget-background, var(--vscode-editor-background));
-  border: 1px solid var(--vscode-editorHoverWidget-border, var(--vscode-widget-border, transparent));
-  border-radius: 3px;
-  box-shadow: 0 2px 8px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.3));
-}
-
-.tooltip .muted {
-  color: var(--vscode-descriptionForeground);
-}
-
-.tooltip .err {
-  color: var(--vscode-errorForeground);
-}
-
 .status {
   display: flex;
   gap: 4px;

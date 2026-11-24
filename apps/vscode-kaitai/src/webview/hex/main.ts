@@ -66,8 +66,6 @@ const scroller = el('div', 'scroller', view);
 const spacer = el('div', 'spacer', scroller);
 const canvas = el('canvas', 'grid', view);
 const ctx = canvas.getContext('2d', { alpha: false })!;
-const tooltip = el('div', 'tooltip', view);
-tooltip.hidden = true;
 const status = el('div', 'status', app);
 const stPos = el('button', 'pos', status);
 stPos.title = 'Go to Offset… (Ctrl+G)';
@@ -479,7 +477,7 @@ function outline(range: Range, colour: string, width: number, fill?: string) {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Status bar and tooltip
+// Status bar
 
 /** Label of the field at `offset`: `unparsed` where a parsed file has none, nothing without a parse. */
 function fieldLabel(offset: number) {
@@ -518,34 +516,11 @@ function flash(text: string) {
   updateStatus();
 }
 
-/** Sets the hovered byte (-1: none) and shows its tooltip at the pointer. */
-function hover(offset: number, clientX = 0, clientY = 0) {
-  if (offset !== hoverOffset) {
-    hoverOffset = offset;
-    schedule();
-  }
-  tooltip.hidden = offset < 0;
-  if (offset < 0) return;
-  const reg = regionAt(windowRegions, offset);
-  const b = data[offset];
-  tooltip.replaceChildren();
-  if (reg) {
-    el('div', '', tooltip, reg.label);
-    const bytes = `${formatOffset(reg.start)} – ${formatOffset(reg.end - 1)}, ${reg.end - reg.start} bytes`;
-    el('div', 'muted', tooltip, bytes);
-    if (reg.error) el('div', 'err', tooltip, 'Parse error in this field');
-  } else if (fieldLabel(offset)) {
-    el('div', 'muted', tooltip, fieldLabel(offset));
-  }
-  el('div', reg ? '' : 'muted', tooltip, `Offset ${formatOffset(offset)}  ·  0x${hexByte(b)} = ${b}`);
-  // Below and right of the pointer, kept inside the view.
-  const rect = view.getBoundingClientRect();
-  let x = clientX - rect.left + 12;
-  let y = clientY - rect.top + 16;
-  if (x + tooltip.offsetWidth > rect.width - 4) x = Math.max(4, rect.width - tooltip.offsetWidth - 4);
-  if (y + tooltip.offsetHeight > rect.height - 4) y = Math.max(4, y - tooltip.offsetHeight - 24);
-  tooltip.style.left = `${x}px`;
-  tooltip.style.top = `${y}px`;
+/** Sets the hovered byte (-1: none), which outlines its field. */
+function hover(offset: number) {
+  if (offset === hoverOffset) return;
+  hoverOffset = offset;
+  schedule();
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -636,7 +611,7 @@ window.addEventListener('mousemove', (e) => {
     return;
   }
   const h = e.target === scroller && !onScrollbar(e) ? hit(e) : undefined;
-  hover(h?.inside ? h.offset : -1, e.clientX, e.clientY);
+  hover(h?.inside ? h.offset : -1);
 });
 
 window.addEventListener('mouseup', () => {
