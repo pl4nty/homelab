@@ -1,0 +1,28 @@
+{
+  "name": "canberra-3d",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:server": "npm run build:server && node dist/server.mjs",
+    "build": "tsc --noEmit && vite build && npm run build:server",
+    "build:server": "esbuild server/main.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/server.mjs",
+    "test": "esbuild test/*.test.ts --bundle --platform=node --format=esm --outdir=dist/test --out-extension:.js=.mjs --log-level=warning && node --test dist/test/*.mjs"
+  },
+  "dependencies": {
+    "@mapbox/vector-tile": "3.0.0",
+    "earcut": "3.2.4",
+    "fast-png": "8.0.0",
+    "fflate": "0.8.3",
+    "pbf": "5.2.0",
+    "pmtiles": "4.5.0",
+    "three": "0.187.0"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.6",
+    "@types/three": "0.187.0",
+    "esbuild": "0.28.2",
+    "typescript": "7.0.2",
+    "vite": "8.3.8"
+  }
+}
