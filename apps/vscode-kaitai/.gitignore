@@ -1,0 +1,3 @@
+*.vsix
+dist/
+node_modules/

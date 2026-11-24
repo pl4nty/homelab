@@ -1,0 +1,480 @@
+{
+  "name": "kaitai-ide",
+  "displayName": "Kaitai Struct IDE",
+  "description": "Parse binary files with Kaitai Struct (.ksy) specs: field-coloured hex view, structure tree, value inspector, .ksy diagnostics and code generation. Works in VS Code for the Web.",
+  "version": "0.1.0",
+  "publisher": "pl4nty",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pl4nty/homelab",
+    "directory": "apps/vscode-kaitai"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Visualization",
+    "Other"
+  ],
+  "keywords": [
+    "kaitai",
+    "ksy",
+    "binary",
+    "hex",
+    "reverse engineering",
+    "file format"
+  ],
+  "main": "./dist/node/extension.js",
+  "browser": "./dist/web/extension.js",
+  "activationEvents": [
+    "onCustomEditor:kaitai.hexEditor",
+    "onLanguage:ksy",
+    "onView:kaitai.structure",
+    "onUri",
+    "onView:kaitai.formats",
+    "onView:kaitai.inspector"
+  ],
+  "capabilities": {
+    "virtualWorkspaces": true,
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "Compiled .ksy parsers run as JavaScript in the extension host."
+    }
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "ksy",
+        "aliases": [
+          "Kaitai Struct",
+          "ksy"
+        ],
+        "extensions": [
+          ".ksy"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "ksy",
+        "scopeName": "source.ksy",
+        "path": "./syntaxes/ksy.tmLanguage.json"
+      }
+    ],
+    "customEditors": [
+      {
+        "viewType": "kaitai.hexEditor",
+        "displayName": "Kaitai Hex Editor",
+        "selector": [
+          {
+            "filenamePattern": "*"
+          }
+        ],
+        "priority": "option"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "kaitai",
+          "title": "Kaitai Struct",
+          "icon": "media/kaitai.svg"
+        }
+      ]
+    },
+    "views": {
+      "kaitai": [
+        {
+          "id": "kaitai.structure",
+          "name": "Structure"
+        },
+        {
+          "type": "webview",
+          "id": "kaitai.inspector",
+          "name": "Value"
+        },
+        {
+          "id": "kaitai.formats",
+          "name": "Formats",
+          "visibility": "collapsed"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "kaitai.structure",
+        "contents": "Open a binary file with the Kaitai Hex Editor, then load a .ksy spec.\n[Open File in Kaitai Hex Editor](command:kaitai.openInHexEditor)\n[Load Spec…](command:kaitai.loadTemplate)"
+      }
+    ],
+    "commands": [
+      {
+        "command": "kaitai.openInHexEditor",
+        "title": "Open in Kaitai Hex Editor",
+        "category": "Kaitai",
+        "icon": "$(file-binary)"
+      },
+      {
+        "command": "kaitai.loadTemplate",
+        "title": "Load Spec…",
+        "category": "Kaitai",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "kaitai.clearTemplate",
+        "title": "Clear Spec",
+        "category": "Kaitai",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "kaitai.reparse",
+        "title": "Reparse",
+        "category": "Kaitai",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "kaitai.exportJson",
+        "title": "Export Parsed Tree as JSON",
+        "category": "Kaitai",
+        "icon": "$(json)"
+      },
+      {
+        "command": "kaitai.showGeneratedCode",
+        "title": "Show Generated Code…",
+        "category": "Kaitai",
+        "icon": "$(code)"
+      },
+      {
+        "command": "kaitai.goToOffset",
+        "title": "Go to Offset…",
+        "category": "Kaitai"
+      },
+      {
+        "command": "kaitai.revealDefinition",
+        "title": "Go to Field Definition",
+        "category": "Kaitai"
+      },
+      {
+        "command": "kaitai.copyValue",
+        "title": "Copy Value",
+        "category": "Kaitai"
+      },
+      {
+        "command": "kaitai.copyPath",
+        "title": "Copy Path",
+        "category": "Kaitai"
+      },
+      {
+        "command": "kaitai.copyAs",
+        "category": "Kaitai",
+        "title": "Copy As…"
+      },
+      {
+        "command": "kaitai.exportNodeJson",
+        "title": "Copy as JSON",
+        "category": "Kaitai"
+      },
+      {
+        "command": "kaitai.exportBytes",
+        "title": "Save Bytes As…",
+        "category": "Kaitai"
+      },
+      {
+        "command": "kaitai.formats.refresh",
+        "title": "Refresh",
+        "category": "Kaitai",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "kaitai.formats.use",
+        "title": "Use for Active File",
+        "category": "Kaitai",
+        "icon": "$(play)"
+      },
+      {
+        "command": "kaitai.formats.open",
+        "title": "Open Spec",
+        "category": "Kaitai",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "kaitai.setParams",
+        "title": "Set Spec Params…",
+        "category": "Kaitai",
+        "icon": "$(symbol-parameter)"
+      },
+      {
+        "command": "kaitai.parseSelectionAs",
+        "title": "Parse Selection as Type…",
+        "category": "Kaitai",
+        "icon": "$(symbol-class)"
+      },
+      {
+        "command": "kaitai.removeParse",
+        "title": "Remove",
+        "category": "Kaitai",
+        "icon": "$(close)"
+      },
+      {
+        "command": "kaitai.openStream",
+        "title": "Open Bytes in Hex Editor",
+        "category": "Kaitai",
+        "icon": "$(file-binary)"
+      },
+      {
+        "command": "kaitai.find",
+        "title": "Find Value in File…",
+        "category": "Kaitai",
+        "icon": "$(search)"
+      },
+      {
+        "command": "kaitai.addFieldFromSelection",
+        "title": "Add Field from Selection…",
+        "category": "Kaitai",
+        "icon": "$(add)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "kaitai.loadTemplate",
+          "when": "view == kaitai.structure",
+          "group": "navigation@1"
+        },
+        {
+          "command": "kaitai.reparse",
+          "when": "view == kaitai.structure",
+          "group": "navigation@2"
+        },
+        {
+          "command": "kaitai.exportJson",
+          "when": "view == kaitai.structure",
+          "group": "navigation@3"
+        },
+        {
+          "command": "kaitai.clearTemplate",
+          "when": "view == kaitai.structure",
+          "group": "navigation@4"
+        },
+        {
+          "command": "kaitai.formats.refresh",
+          "when": "view == kaitai.formats",
+          "group": "navigation"
+        },
+        {
+          "command": "kaitai.setParams",
+          "when": "view == kaitai.structure && kaitai.hasParams",
+          "group": "navigation@5"
+        },
+        {
+          "command": "kaitai.parseSelectionAs",
+          "when": "view == kaitai.structure && kaitai.hasSpec",
+          "group": "1_parse"
+        },
+        {
+          "command": "kaitai.find",
+          "when": "view == kaitai.structure && kaitai.hasActiveDocument",
+          "group": "1_parse"
+        },
+        {
+          "command": "kaitai.addFieldFromSelection",
+          "when": "view == kaitai.structure && kaitai.hasSpec",
+          "group": "1_parse"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "kaitai.revealDefinition",
+          "when": "view == kaitai.structure",
+          "group": "1_nav"
+        },
+        {
+          "command": "kaitai.copyValue",
+          "when": "view == kaitai.structure && viewItem =~ /leaf/",
+          "group": "2_copy@1"
+        },
+        {
+          "command": "kaitai.copyPath",
+          "when": "view == kaitai.structure",
+          "group": "2_copy@2"
+        },
+        {
+          "command": "kaitai.copyAs",
+          "when": "view == kaitai.structure && viewItem =~ /ranged|stream/",
+          "group": "2_copy@3"
+        },
+        {
+          "command": "kaitai.exportNodeJson",
+          "when": "view == kaitai.structure",
+          "group": "2_copy@3"
+        },
+        {
+          "command": "kaitai.exportBytes",
+          "when": "view == kaitai.structure && viewItem =~ /ranged/",
+          "group": "3_export"
+        },
+        {
+          "command": "kaitai.formats.use",
+          "when": "view == kaitai.formats && viewItem == format",
+          "group": "inline"
+        },
+        {
+          "command": "kaitai.formats.open",
+          "when": "view == kaitai.formats && viewItem == format",
+          "group": "inline"
+        },
+        {
+          "command": "kaitai.openStream",
+          "when": "view == kaitai.structure && viewItem =~ /stream/",
+          "group": "3_export@0"
+        },
+        {
+          "command": "kaitai.removeParse",
+          "when": "view == kaitai.structure && viewItem =~ /extraRoot/",
+          "group": "inline"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "kaitai.loadTemplate",
+          "when": "resourceExtname == .ksy",
+          "group": "navigation@9"
+        },
+        {
+          "command": "kaitai.openInHexEditor",
+          "when": "!explorerResourceIsFolder",
+          "group": "navigation@9"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "kaitai.showGeneratedCode",
+          "when": "editorLangId == ksy",
+          "group": "navigation"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "command": "kaitai.openInHexEditor",
+          "when": "!explorerResourceIsFolder"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "kaitai.revealDefinition",
+          "when": "false"
+        },
+        {
+          "command": "kaitai.copyValue",
+          "when": "false"
+        },
+        {
+          "command": "kaitai.copyPath",
+          "when": "false"
+        },
+        {
+          "command": "kaitai.exportNodeJson",
+          "when": "false"
+        },
+        {
+          "command": "kaitai.exportBytes",
+          "when": "false"
+        },
+        {
+          "command": "kaitai.formats.use",
+          "when": "false"
+        },
+        {
+          "command": "kaitai.formats.open",
+          "when": "false"
+        },
+        {
+          "command": "kaitai.removeParse",
+          "when": "false"
+        },
+        {
+          "command": "kaitai.openStream",
+          "when": "false"
+        }
+      ],
+      "webview/context": [
+        {
+          "command": "kaitai.copyAs",
+          "when": "webviewId == kaitai.hexEditor",
+          "group": "9_cutcopypaste@1"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Kaitai Struct",
+      "properties": {
+        "kaitai.formatsRepository": {
+          "type": "string",
+          "default": "pl4nty/kaitai_struct_formats",
+          "markdownDescription": "GitHub `owner/repo` of the format gallery. Used for the Formats view and to resolve absolute imports (`/common/…`) that are not found in the workspace."
+        },
+        "kaitai.formatsRef": {
+          "type": "string",
+          "default": "master",
+          "description": "Branch, tag or commit of the format gallery."
+        },
+        "kaitai.maxFileSizeMB": {
+          "type": "number",
+          "default": 256,
+          "description": "Refuse to parse larger files (the parser needs the whole file in memory)."
+        },
+        "kaitai.hexEditor.bytesPerRow": {
+          "type": "number",
+          "default": 16,
+          "enum": [
+            8,
+            16,
+            32
+          ],
+          "description": "Bytes per row in the Kaitai Hex Editor."
+        },
+        "kaitai.autoApplyByExtension": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Apply a loaded spec to other files that match its `meta/file-extension`."
+        }
+      }
+    },
+    "keybindings": [
+      {
+        "command": "kaitai.find",
+        "key": "ctrl+f",
+        "mac": "cmd+f",
+        "when": "activeCustomEditorId == kaitai.hexEditor"
+      },
+      {
+        "command": "kaitai.goToOffset",
+        "key": "ctrl+g",
+        "mac": "cmd+g",
+        "when": "activeCustomEditorId == kaitai.hexEditor"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --no-warnings --test test/*.test.ts",
+    "package": "npm run build && npx --yes @vscode/vsce@4 package"
+  },
+  "dependencies": {
+    "fflate": "^0.8.3",
+    "kaitai-struct": "^0.11.0",
+    "kaitai-struct-compiler": "^0.11.0",
+    "yaml": "^2.9.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/vscode": "1.90.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
+  },
+  "icon": "media/icon.png"
+}

@@ -1,0 +1,12 @@
+src/**
+test/**
+node_modules/**
+tsconfig.json
+esbuild.mjs
+**/*.map
+scripts/**
+server/**
+Dockerfile
+.dockerignore
+media/kaitai.svg.map
+.gitignore

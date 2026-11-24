@@ -1,0 +1,5 @@
+{
+  "scopeName": "source.ksy",
+  "name": "Kaitai Struct",
+  "patterns": [{ "include": "source.yaml" }]
+}

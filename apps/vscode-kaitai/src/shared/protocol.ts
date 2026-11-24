@@ -1,0 +1,70 @@
+// Messages between the extension host and the webviews. Plain data only (structured clone).
+import type { Region } from '../engine/structure.ts';
+
+export type { Region };
+
+/** Extension host -> hex editor webview. */
+export type ToHex =
+  | {
+      type: 'init';
+      fileName: string;
+      /** Whole file. */
+      data: Uint8Array;
+      bytesPerRow: number;
+    }
+  /** The file content changed on disk; replaces the data. */
+  | { type: 'data'; data: Uint8Array }
+  /**
+   * A new parse finished (or the spec was cleared). Drop cached regions and request them again.
+   * `version` increases with each parse; `regions` of an older version must be ignored.
+   */
+  | { type: 'parsed'; version: number; hasSpec: boolean; error?: string }
+  /**
+   * Reply to `requestRegions`: the leaf regions overlapping [start, end) in parse `version`,
+   * sorted by start. The list is cut off at a size limit, which a block of dense bit fields can hit.
+   */
+  | { type: 'regions'; version: number; start: number; end: number; regions: Region[] }
+  /** Select (and optionally scroll to) a byte range. `end` is exclusive. */
+  | { type: 'select'; start: number; end: number; reveal: boolean }
+  /** Outline a range without changing the selection, e.g. while hovering in the tree. */
+  | { type: 'highlight'; start?: number; end?: number }
+  | { type: 'config'; bytesPerRow: number }
+  /** Reply to `find`. No range: nothing found in that direction. */
+  | { type: 'found'; range?: { start: number; end: number } };
+
+/** Hex editor webview -> extension host. */
+export type FromHex =
+  | { type: 'ready' }
+  /** User changed the selection. `end` is exclusive; start === end is a caret. */
+  | { type: 'select'; start: number; end: number }
+  /** Regions overlapping [start, end) are needed, usually the visible rows plus some margin. */
+  | { type: 'requestRegions'; start: number; end: number }
+  /** User asked for the field at the offset to be revealed in the tree (Enter). */
+  | { type: 'revealInTree'; offset: number }
+  | { type: 'command'; command: 'goToOffset' | 'loadSpec' }
+  /**
+   * Stepper: next/previous unparsed gap or field from `from` (the selection start). The webview
+   * sends one at a time and waits for `found`.
+   */
+  | { type: 'find'; what: 'gap' | 'field'; direction: 1 | -1; from: number };
+
+/** Extension host -> value inspector webview. */
+export type ToInspector =
+  | {
+      type: 'bytes';
+      /** Offset of bytes[0] in the document. */
+      offset: number;
+      /** Up to 16 bytes starting at the caret. */
+      bytes: Uint8Array;
+      /** Selection length, for a "N bytes selected" line. */
+      selectionLength: number;
+      /** Endianness from the active spec's meta/endian, if any. */
+      endian?: 'le' | 'be';
+    }
+  | { type: 'empty' };
+
+/** Value inspector webview -> extension host. */
+export type FromInspector =
+  | { type: 'ready' }
+  /** User clicked a value: copy `text` to the clipboard. `label` names it in the status bar message. */
+  | { type: 'copy'; text: string; label: string };
