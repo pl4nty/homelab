@@ -10,7 +10,7 @@ ADD https://github.com/pl4nty/kaitai_struct_formats.git#8d8353c5059e6cff0d950031
 WORKDIR /src
 COPY package.json package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci
-COPY . .
+COPY --chown=node:node . .
 # tshark won't load Lua plugins as root
 USER node
 ENV KSF_DIR=/ksf KAITAI_WIRESHARK_REQUIRE=1
