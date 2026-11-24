@@ -323,7 +323,9 @@ local function wire_value(f, v)
     return type(v) == "number" and v or nil
   elseif k == "bytes" then
     return type(v) == "string" and ByteArray.new(v, true) or nil
-  elseif k == "string" then
+  elseif type(v) == "string" and k == "string" then
+    return v
+  elseif k == "string" or k == "value" or k == "switch" then
     return show(v, k)
   end
 end
@@ -351,7 +353,7 @@ local function represent(n)
     end
     if how == "hex" and math.type(v) == "integer" then return string.format("0x%x", v) end
     if how == "dec" and type(v) == "number" then return tostring(v) end
-    if type(v) == "string" then return how == "str" and v or show(v) end
+    if type(v) == "string" then return (how == "str" or utf8.len(v) and not v:find("%c")) and v or hex(v, 16) end
     return show(v)
   end))
 end
@@ -559,6 +561,8 @@ local function dissect(tvb, pinfo, tree, over_tcp)
     if getmetatable(err) == EOF and over_tcp then
       pinfo.desegment_offset = off
       pinfo.desegment_len = err.need or DESEGMENT_ONE_MORE_SEGMENT
+      -- returning less than the buffer would tell TCP we rejected it, with desegment_* set
+      off = len
       break
     end
     if cls == FIRST and not err and not pinfo.visited then first_pdu[dir] = { frame = pinfo.number, off = off } end
@@ -595,8 +599,10 @@ local function dissect(tvb, pinfo, tree, over_tcp)
   end
 
   if tree and #raws > 0 then remember(pinfo.number, raws) end
-  pinfo.cols.protocol = SPEC.short or SPEC.name:upper()
-  if #infos > 0 then pinfo.cols.info = table.concat(infos, ", ") end
+  if #infos > 0 then
+    pinfo.cols.protocol = SPEC.name:upper()
+    pinfo.cols.info = table.concat(infos, ", ")
+  end
   return off
 end
 

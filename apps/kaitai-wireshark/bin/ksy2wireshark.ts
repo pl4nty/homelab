@@ -1,11 +1,11 @@
 #!/usr/bin/env -S node --experimental-strip-types --no-warnings
-// ksy2wireshark <spec.ksy> [-o out.lua] [-I import-dir]...
+// ksy2wireshark <spec.ksy> [-o out.lua] [-I import-dir]... [--ksy-uri uri]
 // Writes a Wireshark Lua dissector for the spec. Imports resolve relative to the spec, then to each -I directory.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
-import compiler from 'kaitai-struct-compiler';
 import { load } from 'js-yaml';
+import compiler from 'kaitai-struct-compiler';
 import { generateDissector, type Importer } from '../src/index.ts';
 import type { Ksy } from '../src/schema.ts';
 
@@ -14,10 +14,12 @@ const { values, positionals } = parseArgs({
   options: {
     output: { type: 'string', short: 'o' },
     import: { type: 'string', short: 'I', multiple: true, default: [] },
+    // the .ksy "Open in Kaitai IDE" opens; defaults to the input's absolute path
+    'ksy-uri': { type: 'string' },
   },
 });
 if (positionals.length !== 1) {
-  console.error('usage: ksy2wireshark <spec.ksy> [-o out.lua] [-I import-dir]...');
+  console.error('usage: ksy2wireshark <spec.ksy> [-o out.lua] [-I import-dir]... [--ksy-uri uri]');
   process.exit(2);
 }
 
@@ -42,6 +44,11 @@ const importer: Importer = {
   },
 };
 
-const { name, lua, warnings } = await generateDissector({ ksy: read(input), compiler, importer, ksyUri: input });
+const { name, lua, warnings } = await generateDissector({
+  ksy: read(input),
+  compiler,
+  importer,
+  ksyUri: values['ksy-uri'] ?? input,
+});
 for (const w of warnings) console.error(`warning: ${w}`);
 writeFileSync(values.output ?? name, lua);
