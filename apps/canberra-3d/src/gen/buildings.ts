@@ -358,7 +358,9 @@ export function buildBuildings(
       const tris = earcut(flat, holes);
       const first = mb.count;
       const roof = look.style === STYLE_HOUSE ? look.roof : shade(look.roof, 0.96 + seed * 0.08);
-      for (let i = 0; i < flat.length; i += 2) mb.vertex(flat[i], top, -flat[i + 1], 0, 1, 0, roof);
+      // Plan coordinates in metres, for the shader to lay roofing sheets.
+      for (let i = 0; i < flat.length; i += 2)
+        mb.vertex(flat[i], top, -flat[i + 1], 0, 1, 0, roof, flat[i], flat[i + 1], 20 + seed2 * 0.9, 0);
       for (let i = 0; i < tris.length; i += 3) {
         const a = tris[i];
         const bI = tris[i + 1];

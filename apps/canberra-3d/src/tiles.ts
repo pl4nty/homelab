@@ -4,7 +4,7 @@ import { TILE_SIZE, TILE_Z, tileBoundsWorld, tileInExtent, worldToTile } from '.
 import { DEM_N } from '../shared/tile.ts';
 import { CAR } from './gen/palette.ts';
 import type { BuildReply, BuildRequest, Built, Label, MeshData } from './gen/types.ts';
-import { buildingMaterial, groundMaterial, vertexColourMaterial, waterMaterial } from './materials.ts';
+import { buildingMaterial, groundMaterial, noPhoto, vertexColourMaterial, waterMaterial } from './materials.ts';
 import type { TreeFactory } from './trees.ts';
 
 const N = DEM_N + 1;
@@ -30,6 +30,9 @@ interface Entry {
   lamps?: THREE.Points;
   lanes?: { start: number; count: number; oneway: boolean; cum: Float32Array }[];
   traffic?: { mesh: THREE.InstancedMesh; cars: Float32Array };
+  /** The tile's aerial photograph, shared by its ground and its roofs. */
+  photo?: THREE.Texture;
+  walls?: THREE.MeshLambertMaterial;
   retryAt?: number;
   originX: number;
   originZ: number;
@@ -97,7 +100,6 @@ export class TileManager {
   private idle: Worker[] = [];
   private jobs = new Map<number, { entry: Entry; worker: Worker; ground: boolean }>();
   private nextId = 1;
-  private buildings = buildingMaterial();
   private plain = vertexColourMaterial();
   private water = waterMaterial();
   readonly carGeo = carGeometry();
@@ -398,18 +400,36 @@ export class TileManager {
         if (alive && e.ground) {
           e.ground.material.map?.dispose();
           e.ground.material.map = this.texture(reply.ground);
+          const mask = e.ground.material.userData.mask as { value: THREE.Texture };
+          mask.value.dispose();
+          mask.value = this.texture(reply.mask, false);
+          if (reply.photo) {
+            // A sharper photograph for the ground and for this tile's roofs.
+            if (e.photo !== noPhoto) e.photo?.dispose();
+            e.photo = this.texture(reply.photo);
+            (e.ground.material.userData.photo as { value: THREE.Texture }).value = e.photo;
+            if (e.walls) (e.walls.userData.photo as { value: THREE.Texture }).value = e.photo;
+          }
           e.res = reply.ground.width;
-        } else reply.ground.close();
+        } else {
+          reply.ground.close();
+          reply.mask.close();
+          reply.photo?.close();
+        }
       } else if (alive) this.attach(e, reply.built);
-      else reply.built.ground.close();
+      else {
+        reply.built.ground.close();
+        reply.built.mask.close();
+        reply.built.photo?.close();
+      }
     }
     this.pump();
     this.onChange?.();
   }
 
-  private texture(bitmap: ImageBitmap): THREE.Texture {
+  private texture(bitmap: ImageBitmap, colour = true): THREE.Texture {
     const t = new THREE.Texture(bitmap);
-    t.colorSpace = THREE.SRGBColorSpace;
+    t.colorSpace = colour ? THREE.SRGBColorSpace : THREE.NoColorSpace;
     t.flipY = false;
     t.anisotropy = this.maxAnisotropy;
     t.generateMipmaps = true;
@@ -427,17 +447,22 @@ export class TileManager {
     group.matrixAutoUpdate = false;
     group.updateMatrix();
 
+    const photo = b.photo ? this.texture(b.photo) : noPhoto;
+    e.photo = photo;
     const tg = new THREE.BufferGeometry();
     tg.setAttribute('position', new THREE.BufferAttribute(b.terrain.pos, 3));
     tg.setAttribute('normal', new THREE.BufferAttribute(b.terrain.normal, 3));
     tg.setAttribute('uv', new THREE.BufferAttribute(b.terrain.uv, 2));
     tg.setIndex(new THREE.BufferAttribute(b.terrain.index, 1));
-    const ground = new THREE.Mesh(tg, groundMaterial(this.texture(b.ground)));
+    const ground = new THREE.Mesh(tg, groundMaterial(this.texture(b.ground), this.texture(b.mask, false), photo));
     ground.receiveShadow = true;
     group.add(ground);
     e.ground = ground;
 
-    if (b.buildings) group.add(meshFrom(b.buildings, this.buildings));
+    if (b.buildings) {
+      e.walls = buildingMaterial(photo, TILE_SIZE);
+      group.add(meshFrom(b.buildings, e.walls));
+    }
     if (b.bridges) group.add(meshFrom(b.bridges, this.plain));
     if (b.water) {
       const wg = new THREE.BufferGeometry();
@@ -558,6 +583,9 @@ export class TileManager {
     this.onLabels?.(e.key, null, [0, 0]);
     this.group.remove(e.group);
     e.ground?.material.map?.dispose();
+    if (e.photo !== noPhoto) e.photo?.dispose();
+    e.walls?.dispose();
+    (e.ground?.material.userData.mask as { value: THREE.Texture } | undefined)?.value.dispose();
     e.ground?.material.dispose();
     for (const o of [...e.group.children]) this.dispose(o);
     e.built?.ground.close();

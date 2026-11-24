@@ -26,6 +26,10 @@ export interface Built {
   /** (DEM_N + 1)^2 heights above BASE, row-major from the south-west. */
   heights: Float32Array;
   ground: ImageBitmap;
+  /** What the ground is made of: red asphalt, green paving, blue vegetation. */
+  mask: ImageBitmap;
+  /** Aerial photograph of the tile, where the survey covers it. */
+  photo: ImageBitmap | null;
   terrain: { pos: Float32Array; normal: Float32Array; uv: Float32Array; index: Uint32Array };
   buildings: MeshData | null;
   bridges: MeshData | null;
@@ -61,7 +65,7 @@ export interface BuildRequest {
 
 export type BuildReply =
   | { id: number; ok: true; built: Built }
-  | { id: number; ok: true; ground: ImageBitmap }
+  | { id: number; ok: true; ground: ImageBitmap; mask: ImageBitmap; photo: ImageBitmap | null }
   | { id: number; ok: false; error: string };
 
 export function hash2(x: number, y: number): number {

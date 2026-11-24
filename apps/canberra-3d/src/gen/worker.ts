@@ -6,6 +6,7 @@ import type { BuildReply, BuildRequest, Built } from './types.ts';
 function transferables(b: Built): Transferable[] {
   const out: Transferable[] = [
     b.ground,
+    b.mask,
     b.heights.buffer,
     b.terrain.pos.buffer,
     b.terrain.normal.buffer,
@@ -26,6 +27,40 @@ function transferables(b: Built): Transferable[] {
   }
   if (b.water) out.push(b.water.pos.buffer, b.water.index.buffer);
   return out;
+}
+
+// ACT Government aerial photography (CC BY, ACT and Aerometrex), in the same tile scheme as the model.
+const PHOTO =
+  'https://tiles.arcgis.com/tiles/E5n4f1VY84i0xSjy/arcgis/rest/services/ACT_Aerial_Imagery_Current_3857/MapServer/tile';
+
+/** The photograph of one tile, stitched from 256 px pieces: 2 m a pixel far off, half a metre up close. */
+async function photograph(x: number, y: number, res: number): Promise<ImageBitmap | null> {
+  const k = res >= 2048 ? 3 : res >= 1024 ? 2 : 1;
+  const n = 2 ** k;
+  const canvas = new OffscreenCanvas(n * 256, n * 256);
+  const ctx = canvas.getContext('2d')!;
+  let got = 0;
+  const jobs: Promise<void>[] = [];
+  for (let j = 0; j < n; j++) {
+    for (let i = 0; i < n; i++) {
+      jobs.push(
+        (async () => {
+          try {
+            const r = await fetch(`${PHOTO}/${15 + k}/${y * n + j}/${x * n + i}`);
+            if (!r.ok) return;
+            const piece = await createImageBitmap(await r.blob());
+            ctx.drawImage(piece, i * 256, j * 256);
+            piece.close();
+            got++;
+          } catch {
+            // A missing piece stays transparent and the drawn colours show through.
+          }
+        })(),
+      );
+    }
+  }
+  await Promise.all(jobs);
+  return got ? canvas.transferToImageBitmap() : null;
 }
 
 // Recently built tiles, kept so the ground can be repainted sharper without another download.
@@ -50,13 +85,16 @@ const post = (reply: BuildReply, transfer: Transferable[] = []) =>
 self.onmessage = async (e: MessageEvent<BuildRequest>) => {
   const { id, x, y, res, groundOnly } = e.data;
   try {
-    const { tile, missing } = await load(x, y);
+    const [{ tile, missing }, photo] = await Promise.all([load(x, y), photograph(x, y, res)]);
     if (groundOnly) {
-      const ground = paintGround(tile, res).transferToImageBitmap();
-      post({ id, ok: true, ground }, [ground]);
+      const painted = paintGround(tile, res);
+      const ground = painted.colour.transferToImageBitmap();
+      const mask = painted.mask.transferToImageBitmap();
+      post({ id, ok: true, ground, mask, photo }, photo ? [ground, mask, photo] : [ground, mask]);
     } else {
       const built = buildTile(tile, res, missing);
-      post({ id, ok: true, built }, transferables(built));
+      built.photo = photo;
+      post({ id, ok: true, built }, photo ? [...transferables(built), photo] : transferables(built));
     }
   } catch (err) {
     post({ id, ok: false, error: (err as Error).message });

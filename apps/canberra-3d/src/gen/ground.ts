@@ -143,30 +143,64 @@ function areaColour(k: string): string | null {
   }
 }
 
-export function paintGround(tile: Tile, res: number): OffscreenCanvas {
+// What a surface is made of, as a colour in the mask: red asphalt, green paving, blue vegetation,
+// black bare earth or water. Kept in separate channels so a blend at an edge is still meaningful.
+const ASPHALT = '#f00';
+const PAVED = '#0f0';
+const GREEN = '#00f';
+const BARE = '#000';
+const SURFACE = new Map<string, string>([
+  ...[G.asphalt, G.asphaltLight, G.carpark, G.apron].map((c) => [c, ASPHALT] as [string, string]),
+  ...[G.paved, G.plaza, G.kerb, G.footway, G.cycleway, G.court, G.courtClay, G.tramBed, G.pad].map(
+    (c) => [c, PAVED] as [string, string],
+  ),
+  ...[G.dirt, G.barren, G.rock, G.sand, G.track, G.ballast, G.rail, G.water, G.pool, '#dcc9a0'].map(
+    (c) => [c, BARE] as [string, string],
+  ),
+]);
+
+export interface Ground {
+  /** The painted ground. */
+  colour: OffscreenCanvas;
+  /** What each part is made of, at half the resolution; the renderer textures it accordingly. */
+  mask: OffscreenCanvas;
+}
+
+export function paintGround(tile: Tile, res: number): Ground {
   const canvas = new OffscreenCanvas(res, res);
   const ctx = canvas.getContext('2d', { alpha: false })!;
+  const maskRes = Math.max(256, res / 2);
+  const maskCanvas = new OffscreenCanvas(maskRes, maskRes);
+  const mk = maskCanvas.getContext('2d', { alpha: false })!;
   // Tile coordinates are decimetres with y north; the canvas has y down from the north edge.
   const s = res / (TILE_SIZE * 10);
   const m = res / TILE_SIZE; // pixels per metre
   ctx.setTransform(s, 0, 0, -s, 0, res);
+  mk.setTransform(maskRes / (TILE_SIZE * 10), 0, 0, -maskRes / (TILE_SIZE * 10), 0, maskRes);
+  mk.lineJoin = mk.lineCap = 'round';
 
-  const trace = (rings: number[][]) => {
-    ctx.beginPath();
+  type Ctx = OffscreenCanvasRenderingContext2D;
+  const trace = (rings: number[][], c: Ctx = ctx) => {
+    c.beginPath();
     for (const r of rings) {
-      ctx.moveTo(r[0], r[1]);
-      for (let i = 2; i < r.length; i += 2) ctx.lineTo(r[i], r[i + 1]);
-      ctx.closePath();
+      c.moveTo(r[0], r[1]);
+      for (let i = 2; i < r.length; i += 2) c.lineTo(r[i], r[i + 1]);
+      c.closePath();
     }
   };
   const fillArea = (a: Area, colour: string) => {
     trace(a.p);
     ctx.fillStyle = colour;
     ctx.fill('evenodd');
+    trace(a.p, mk);
+    mk.fillStyle = SURFACE.get(colour) ?? GREEN;
+    mk.fill('evenodd');
   };
 
   ctx.fillStyle = G.base;
   ctx.fillRect(-100, -100, TILE_SIZE * 10 + 200, TILE_SIZE * 10 + 200);
+  mk.fillStyle = GREEN;
+  mk.fillRect(-100, -100, TILE_SIZE * 10 + 200, TILE_SIZE * 10 + 200);
 
   for (const a of tile.areas) {
     const colour = areaColour(a.k);
@@ -217,6 +251,12 @@ export function paintGround(tile: Tile, res: number): OffscreenCanvas {
     ctx.globalAlpha = st.k.startsWith('river') ? 1 : 0.7;
     ctx.lineWidth = st.k.startsWith('river') ? 60 : st.k.startsWith('canal') || st.k.includes('drain') ? 16 : 22;
     ctx.stroke();
+    mk.beginPath();
+    mk.moveTo(st.p[0], st.p[1]);
+    for (let i = 2; i < st.p.length; i += 2) mk.lineTo(st.p[i], st.p[i + 1]);
+    mk.strokeStyle = BARE;
+    mk.lineWidth = ctx.lineWidth;
+    mk.stroke();
   }
   ctx.globalAlpha = 1;
 
@@ -260,14 +300,19 @@ export function paintGround(tile: Tile, res: number): OffscreenCanvas {
     }
     ctx.strokeStyle = colour;
     ctx.setLineDash(dash ?? []);
+    // Painted lines sit on a surface; they are not one.
+    const surface = colour === G.marking ? undefined : (SURFACE.get(colour) ?? GREEN);
     for (const [w, list] of byWidth) {
-      ctx.beginPath();
-      for (const r of list) {
-        ctx.moveTo(r.p[0], r.p[1]);
-        for (let i = 2; i < r.p.length; i += 2) ctx.lineTo(r.p[i], r.p[i + 1]);
+      for (const c of surface ? [ctx, mk] : [ctx]) {
+        c.beginPath();
+        for (const r of list) {
+          c.moveTo(r.p[0], r.p[1]);
+          for (let i = 2; i < r.p.length; i += 2) c.lineTo(r.p[i], r.p[i + 1]);
+        }
+        c.lineWidth = w * 10;
+        if (c === mk) c.strokeStyle = surface!;
+        c.stroke();
       }
-      ctx.lineWidth = w * 10;
-      ctx.stroke();
     }
     ctx.setLineDash([]);
   };
@@ -373,6 +418,9 @@ export function paintGround(tile: Tile, res: number): OffscreenCanvas {
     if (b.mh) continue;
     trace(b.p);
     ctx.fill('evenodd');
+    trace(b.p, mk);
+    mk.fillStyle = PAVED;
+    mk.fill('evenodd');
   }
   ctx.restore();
 
@@ -389,5 +437,5 @@ export function paintGround(tile: Tile, res: number): OffscreenCanvas {
     ctx.fillStyle = g;
     ctx.fillRect(px - r, py - r, r * 2, r * 2);
   }
-  return canvas;
+  return { colour: canvas, mask: maskCanvas };
 }

@@ -239,6 +239,9 @@ const ui = buildUi(
     setLabels: (on) => {
       labels.enabled = on;
     },
+    setPhoto: (on) => {
+      shared.photo.value = on ? 1 : 0;
+    },
     setAutumn: (on) => {
       trees.season = on ? 'autumn' : 'summer';
       tiles.refreshTrees();
@@ -364,6 +367,7 @@ function applySky() {
   u.time.value = shared.time.value;
   (scene.fog as THREE.Fog).color.copy(s.horizon);
   shared.night.value = s.night;
+  shared.sky.value.copy(s.horizon);
   tiles.lampMat.opacity = s.night;
   post.exposure = 1 - s.night * 0.1;
   return s;

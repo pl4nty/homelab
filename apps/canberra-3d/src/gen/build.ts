@@ -345,12 +345,16 @@ export function buildTile(tile: Tile, res: number, missing: string): Built {
     });
   }
 
-  const ground = paintGround(tile, res).transferToImageBitmap();
+  const painted = paintGround(tile, res);
+  const ground = painted.colour.transferToImageBitmap();
+  const mask = painted.mask.transferToImageBitmap();
   return {
     x: tile.x,
     y: tile.y,
     heights,
     ground,
+    mask,
+    photo: null,
     terrain: { pos, normal, uv, index },
     buildings: buildings.finish(true),
     bridges: bridges.finish(false),

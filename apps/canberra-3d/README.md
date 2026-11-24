@@ -18,6 +18,7 @@ The view is in the URL (`#lat,lon,distance,bearing,tilt,hour`), so a link reopen
 | --- | --- | --- |
 | Building footprints and use, tree crowns (2020 LiDAR), tree register, street lights, car parks, sports fields, bus stops | [ACT Government open data](https://actmapi-actgov.opendata.arcgis.com/), ArcGIS feature services | CC BY 4.0 |
 | Building outlines and heights, roads, rail, bridges, land use, water | [Overture Maps](https://overturemaps.org/) PMTiles: OpenStreetMap, Microsoft ML Buildings | ODbL |
+| Roof and ground photography | [ACT aerial imagery](https://actmapi-actgov.opendata.arcgis.com/), map tiles, loaded by the browser | CC BY, © Australian Capital Territory and Aerometrex |
 | Terrain | [Terrain Tiles](https://registry.opendata.aws/terrain-tiles/) on AWS | per source |
 | Light rail timetable and arrival predictions | Canberra Metro GTFS and GTFS-realtime | CC BY 4.0 |
 | Bus positions (optional) | Transport Canberra GTFS-realtime | CC BY 4.0, needs a key |
@@ -26,6 +27,7 @@ How the sources combine:
 
 - **Buildings.** OpenStreetMap outlines win where they exist. Elsewhere an ACT footprint replaces the machine-traced one and keeps its height estimate. A building no source measured takes its storey count, then the median of measured neighbours, then a guess from its use and area.
 - **Trees.** The LiDAR survey gives position, height and canopy area. A crown takes the genus of the nearest registered tree within its radius; registered trees with no crown are drawn young.
+- **Surfaces.** Roofs take the aerial photograph at their plan position, and the ground blends it in under the drawn roads and paths. The photograph is not a true orthophoto, so the roof of a tall building is displaced by its lean, and tree canopy over a roof is photographed onto it. Walls, where no open data exists, are drawn by rule: brickwork, windows and floor lines. The `Aerial photo` switch turns the photograph off.
 - **Trams.** The realtime feed carries arrival predictions, not vehicle positions. Each running trip's timetable is shifted to its predicted arrival at the terminus, and the tram is drawn where that puts it.
 
 Known gaps: no open surface model of the ACT exists, so building heights are only as good as OpenStreetMap and Microsoft's estimates, which top out near 30 m. The terrain is not LiDAR-derived, and its source has stray pixels thousands of metres off: a sweep of the 1,568 zoom-14 tiles over the ACT found 2,715 of them in 28 tiles, as clusters and as one-pixel seams along 149°E. The server fills implausible heights from their valid neighbours and replaces any pixel far from the median of its neighbourhood; after that the sweep finds none.

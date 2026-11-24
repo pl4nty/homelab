@@ -6,6 +6,7 @@ export interface UiHooks {
   setBlur(on: boolean): void;
   setLabels(on: boolean): void;
   setAutumn(on: boolean): void;
+  setPhoto(on: boolean): void;
   setLive(on: boolean): void;
   followTram(): boolean;
   setMode(mode: Mode): void;
@@ -121,6 +122,7 @@ export function buildUi(root: HTMLElement, hooks: UiHooks, initial: { hour: numb
         toggle('Miniature focus', true, hooks.setBlur),
         toggle('Labels', true, hooks.setLabels),
         toggle('Live transport', true, hooks.setLive),
+        toggle('Aerial photo', true, hooks.setPhoto),
         toggle('Autumn leaves', false, hooks.setAutumn),
       ),
       el('div', { className: 'row' }, dot, live, follow),
@@ -138,7 +140,7 @@ export function buildUi(root: HTMLElement, hooks: UiHooks, initial: { hour: numb
       {},
       'Buildings, trees, street lights, car parks and sports fields: ACT Government open data (CC BY 4.0), with tree crowns from the 2020 LiDAR survey. ',
       'Building heights, roads, land use and water: Overture Maps, which includes © OpenStreetMap contributors and Microsoft building footprints (ODbL). ',
-      'Terrain: Mapzen Terrain Tiles on AWS. Light rail: Canberra Metro and Transport Canberra GTFS (CC BY 4.0); tram positions are worked out from live arrival predictions.',
+      'Roofs and ground colour: ACT Government aerial photography, © Australian Capital Territory and Aerometrex (CC BY). Terrain: Mapzen Terrain Tiles on AWS. Light rail: Canberra Metro and Transport Canberra GTFS (CC BY 4.0); tram positions are worked out from live arrival predictions.',
     ),
   );
   const hint = el('p', { className: 'hint' }, 'Drag to move · right-drag or two fingers to turn · scroll to zoom');
