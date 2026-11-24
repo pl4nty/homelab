@@ -24,7 +24,7 @@ The container image (`server/serve.mjs` behind `https://vscode-kaitai.${PUBLIC_D
 | Language features | Completion, hover docs, go to definition (types, enums, imports, fields), outline for `.ksy`. |
 | Generated code | **Show Generated Code…** for every compiler target (C++, C#, Go, Java, JavaScript, Lua, Nim, Perl, PHP, Python, Ruby, Rust, Construct, Graphviz, HTML), with debug variants. |
 | Value inspector | Integers (8 to 64 bit), floats, Unix times and string previews at the caret, both endiannesses side by side. |
-| Format gallery | Browse and use specs from `kaitai-io/kaitai_struct_formats` (configurable, e.g. a fork). Absolute imports such as `/common/vlq_base128_le` resolve from the gallery when they are not in the workspace. |
+| Format gallery | Browse and use specs from `pl4nty/kaitai_struct_formats` (configurable). Absolute imports such as `/common/vlq_base128_le` resolve from the gallery when they are not in the workspace. |
 | Export | Whole tree to JSON, a subtree to the clipboard, a field's bytes to a file. |
 
 Beyond the Web IDE:
@@ -41,7 +41,7 @@ Beyond the Web IDE:
 
 | Setting | Default | Purpose |
 | --- | --- | --- |
-| `kaitai.formatsRepository` | `kaitai-io/kaitai_struct_formats` | GitHub repo of the format gallery |
+| `kaitai.formatsRepository` | `pl4nty/kaitai_struct_formats` | GitHub repo of the format gallery |
 | `kaitai.formatsRef` | `master` | Branch, tag or commit of the gallery |
 | `kaitai.maxFileSizeMB` | `256` | Refuse to parse larger files (the parser needs the whole file in memory) |
 | `kaitai.hexEditor.bytesPerRow` | `16` | Bytes per row |

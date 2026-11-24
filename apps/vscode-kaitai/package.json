@@ -395,7 +395,7 @@
       "properties": {
         "kaitai.formatsRepository": {
           "type": "string",
-          "default": "kaitai-io/kaitai_struct_formats",
+          "default": "pl4nty/kaitai_struct_formats",
           "markdownDescription": "GitHub `owner/repo` of the format gallery. Used for the Format Gallery view and to resolve absolute imports (`/common/…`) that are not found in the workspace."
         },
         "kaitai.formatsRef": {

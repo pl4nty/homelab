@@ -14,7 +14,7 @@ const opt = (name: string) => {
   const i = args.indexOf(`--${name}`);
   return i >= 0 ? args[i + 1] : undefined;
 };
-const repo = opt('repo') ?? 'kaitai-io/kaitai_struct_formats';
+const repo = opt('repo') ?? 'pl4nty/kaitai_struct_formats';
 const ref = opt('ref') ?? 'master';
 const pathsFile = opt('paths');
 const out = new URL('../src/gallery/extensions.ts', import.meta.url);

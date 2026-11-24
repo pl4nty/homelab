@@ -8,7 +8,7 @@ import { bundledPaths, extensionOf, suggestFor } from './gallery/suggest.ts';
 import { setGalleryFetch } from './imports.ts';
 import type { KaitaiDocument, Session } from './session.ts';
 
-const DEFAULT_REPO = 'kaitai-io/kaitai_struct_formats';
+const DEFAULT_REPO = 'pl4nty/kaitai_struct_formats';
 const CACHE_KEY = 'kaitai.gallery.listing';
 const LISTING_TTL_MS = 24 * 60 * 60 * 1000;
 const TIMEOUT_MS = 20_000;
