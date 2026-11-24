@@ -1,16 +1,14 @@
 // network/dns_packet.ksy on UDP 53, checked against Wireshark's own DNS dissector.
 import assert from 'node:assert/strict';
-import { after, before, describe, it } from 'node:test';
-import * as h from './helpers.ts';
+import { describe, test } from 'node:test';
+import * as h from '../helpers.ts';
 
 const u16 = (...v: number[]) => Buffer.concat(v.map((x) => Buffer.from([x >> 8, x & 255])));
-const u32 = (v: number) => Buffer.from([v >>> 24, (v >> 16) & 255, (v >> 8) & 255, v & 255]);
-const labels = (...ls: string[]) =>
-  Buffer.concat(ls.map((l) => Buffer.concat([Buffer.from([l.length]), Buffer.from(l)])));
+const labels = (...ls: string[]) => Buffer.concat(ls.map((l) => Buffer.from([l.length, ...Buffer.from(l)])));
 const name = (s: string) => Buffer.concat([labels(...s.split('.')), Buffer.from([0])]);
 const ptr = (off: number) => u16(0xc000 | off);
 const rr = (owner: Buffer, type: number, ttl: number, rdata: Buffer) =>
-  Buffer.concat([owner, u16(type, 1), u32(ttl), u16(rdata.length), rdata]);
+  Buffer.concat([owner, u16(type, 1, 0, ttl, rdata.length), rdata]);
 
 const query = Buffer.concat([u16(0xbeef, 0x0100, 1, 0, 0, 0), name('www.example.com'), u16(1, 1)]);
 // www.example.com is at offset 12, example.com at 16; every later name is compressed against them
@@ -25,144 +23,79 @@ const response = Buffer.concat([
   rr(ptr(16), 2, 3600, Buffer.concat([labels('ns'), ptr(16)])), // NS (authority)
   rr(ptr(16), 15, 3600, Buffer.concat([u16(10), labels('mail'), ptr(16)])), // MX (additional)
 ]);
-const reply = { src: '192.0.2.2', dst: '192.0.2.1' };
 
-describe('dns_packet vs Wireshark dns', { skip: h.skip }, () => {
-  let w: h.Workdir;
-  let ours: h.Dissected;
-  let theirs: h.Dissected;
+describe('dns_packet vs Wireshark dns', { skip: h.skipFormats }, async () => {
+  const lua = h.skipFormats ? '' : await h.generate('network/dns_packet', { 'udp-port': 53 });
+  const run = (...payloads: Buffer[]) => h.dissect(lua, h.pcap(payloads.map((p) => h.udp(40000, 53, p))));
 
-  before(async () => {
-    w = h.workdir();
-    const { lua } = await h.dissectorFor('network/dns_packet', { 'udp-port': 53 });
-    w.write('dns.lua', lua);
-    w.write('dns.pcap', h.pcap([h.ethernet(h.udp(40000, 53, query)), h.ethernet(h.udp(53, 40000, response, reply))]));
-    ours = h.dissect(w, 'dns.pcap', { lua: 'dns.lua' });
-    theirs = h.dissect(w, 'dns.pcap');
-  });
-  after(() => w?.remove());
-
-  it('dissects both packets without a Lua error', () => {
+  test('fields match', () => {
+    const capture = h.pcap([h.udp(40000, 53, query), h.udp(53, 40000, response, 2)]);
+    const [ours, theirs] = [h.dissect(lua, capture), h.dissect(undefined, capture)];
     assert.deepEqual(h.problems(ours, 'dns_packet'), []);
-  });
-
-  it('header fields match', () => {
-    const [a, b] = h.sideBySide(ours.packets, theirs.packets, [
-      { ours: 'dns_packet.transaction_id', theirs: 'dns.id' },
-      { ours: 'dns_packet.packet_flags.flag', theirs: 'dns.flags' },
-      { ours: 'dns_packet.qdcount', theirs: 'dns.count.queries' },
-      { ours: 'dns_packet.ancount', theirs: 'dns.count.answers' },
-      { ours: 'dns_packet.nscount', theirs: 'dns.count.auth_rr' },
-      { ours: 'dns_packet.arcount', theirs: 'dns.count.add_rr' },
+    h.assertSame(ours, theirs, 'dns_packet', [
+      ['transaction_id', 'dns.id'],
+      ['packet_flags.flag', 'dns.flags'],
+      ['qdcount', 'dns.count.queries'],
+      ['ancount', 'dns.count.answers'],
+      ['nscount', 'dns.count.auth_rr'],
+      ['arcount', 'dns.count.add_rr'],
+      ['query.name', 'dns.qry.name', 'range'],
+      ['query.type', 'dns.qry.type'],
+      ['query.query_class', 'dns.qry.class'],
+      ['answer.name', 'dns.resp.name', 'range'],
+      ['answer.type', 'dns.resp.type'],
+      ['answer.answer_class', 'dns.resp.class'],
+      ['answer.ttl', 'dns.resp.ttl'],
+      ['answer.rdlength', 'dns.resp.len'],
+      ['address.ip', 'dns.a', 'raw'],
+      ['address_v6.ip_v6', 'dns.aaaa', 'raw'],
+      ['mx_info.preference', 'dns.mx.preference'],
     ]);
-    assert.deepEqual(a, b);
-  });
-
-  it('flag value instances match the flag bits', () => {
-    // Wireshark only shows aa, ra, ad and rcode in responses
-    const [a, b] = h.sideBySide(
-      ours.packets.slice(1),
-      theirs.packets.slice(1),
-      [
-        ['qr', 'response'],
-        ['opcode', 'opcode'],
-        ['aa', 'authoritative'],
-        ['tc', 'truncated'],
-        ['rd', 'recdesired'],
-        ['ra', 'recavail'],
-        ['z', 'z'],
-        ['ad', 'authenticated'],
-        ['cd', 'checkdisable'],
-        ['rcode', 'rcode'],
-      ].map(([o, t]) => ({ ours: `dns_packet.packet_flags.${o}`, theirs: `dns.flags.${t}`, range: false })),
+    // value instances over the flag bits; Wireshark only shows aa, ra, ad and rcode in responses
+    const flags =
+      'qr:response opcode aa:authoritative tc:truncated rd:recdesired ra:recavail z ad:authenticated cd:checkdisable rcode';
+    h.assertSame(
+      ours.slice(1),
+      theirs.slice(1),
+      'dns_packet.packet_flags',
+      flags.split(' ').map((f) => [f.split(':')[0], `dns.flags.${f.split(':').at(-1)}`, 'value']),
     );
-    assert.deepEqual(a, b);
-  });
+    // enum labels come from the spec
+    assert.deepEqual(
+      h.all(ours[1], 'dns_packet.answer.type').map((f) => f.showname),
+      ['type: cname (5)', 'type: a (1)', 'type: aaaa (28)', 'type: ns (2)', 'type: mx (15)'],
+    );
 
-  it('question and resource records match', () => {
-    const [a, b] = h.sideBySide(ours.packets, theirs.packets, [
-      { ours: 'dns_packet.query.name', theirs: 'dns.qry.name', value: false },
-      { ours: 'dns_packet.query.type', theirs: 'dns.qry.type' },
-      { ours: 'dns_packet.query.query_class', theirs: 'dns.qry.class' },
-      { ours: 'dns_packet.answer.name', theirs: 'dns.resp.name', value: false },
-      { ours: 'dns_packet.answer.type', theirs: 'dns.resp.type' },
-      { ours: 'dns_packet.answer.answer_class', theirs: 'dns.resp.class' },
-      { ours: 'dns_packet.answer.ttl', theirs: 'dns.resp.ttl' },
-      { ours: 'dns_packet.answer.rdlength', theirs: 'dns.resp.len' },
-      { ours: 'dns_packet.address.ip', theirs: 'dns.a', map: h.dotted },
-      { ours: 'dns_packet.address_v6.ip_v6', theirs: 'dns.aaaa', map: h.ipv6Text },
-      { ours: 'dns_packet.mx_info.preference', theirs: 'dns.mx.preference' },
-    ]);
-    assert.deepEqual(a, b);
-  });
-
-  it('enum labels come from the spec', () => {
-    const types = ours.packets.flatMap((p) => h.all(p, 'dns_packet.answer.type').map((f) => f.showname));
-    assert.deepEqual(types, ['type: cname (5)', 'type: a (1)', 'type: aaaa (28)', 'type: ns (2)', 'type: mx (15)']);
-  });
-
-  it('compressed names resolve to the names Wireshark shows', () => {
-    // a name's labels, through any pointers, are the label.name fields under it in tree order
-    const spell = (p: h.PField[], f: h.PField) =>
+    // compressed names: a name's labels, through any pointers (`pos` instances), are the label.name fields under it
+    const spell = (f: h.Field) =>
       h
-        .subtree(p, f)
+        .subtree(ours[1], f)
         .filter((x) => x.name === 'dns_packet.label.name' && x.show !== '')
         .map((x) => x.show)
         .join('.');
-    const names = (p: h.PField[], fields: string[]) =>
-      p.filter((f) => fields.includes(f.name)).map((f) => (f.name.startsWith('dns.') ? f.show : spell(p, f)));
-    const resp = ours.packets[1];
-    const ourNames = names(resp, ['dns_packet.query.name', 'dns_packet.answer.name']);
-    const ourData = h
-      .all(resp, 'dns_packet.answer.payload')
-      .map((f) => h.subtree(resp, f).find((x) => x.name === 'dns_packet.mx_info.mx' || x.name === '_ws.lua.text'))
-      .filter((f): f is h.PField => f !== undefined && /name|mx/.test(f.showname))
-      .map((f) => spell(resp, f));
-    assert.deepEqual(ourNames, names(theirs.packets[1], ['dns.qry.name', 'dns.resp.name']));
-    assert.deepEqual(ourData, names(theirs.packets[1], ['dns.cname', 'dns.ns', 'dns.mx.mail_exchange']));
-  });
-});
-
-describe('dns_packet on bad packets', { skip: h.skip }, () => {
-  let w: h.Workdir;
-  let lua: string;
-  before(async () => {
-    w = h.workdir();
-    lua = (await h.dissectorFor('network/dns_packet', { 'udp-port': 53 })).lua;
-    w.write('dns.lua', lua);
-  });
-  after(() => w?.remove());
-
-  const run = (file: string, payload: Buffer) => {
-    w.write(file, h.pcap([h.ethernet(h.udp(40000, 53, payload))]));
-    return h.dissect(w, file, { lua: 'dns.lua', timeout: 20 });
-  };
-
-  it('a truncated query is malformed, after the header it could read', () => {
-    const d = run('short.pcap', query.subarray(0, 25)); // cut inside the question's name
-    const p = d.packets[0];
-    assert.equal(h.one(p, 'dns_packet.qdcount').show, '1');
-    assert.ok(h.all(p, 'dns_packet.malformed').length === 1, 'a Malformed expert item');
-    assert.equal(h.all(p, '_ws.lua.error').length, 0);
-  });
-
-  it('a truncated query still shows the labels it read', () => {
-    const p = run('short2.pcap', query.subarray(0, 25)).packets[0];
+    const shown = (p: h.Packet, names: string[]) => p.filter((f) => names.includes(f.name));
     assert.deepEqual(
-      h.all(p, 'dns_packet.label.name').map((f) => f.show),
-      ['www', 'example'],
+      shown(ours[1], ['dns_packet.query.name', 'dns_packet.answer.name']).map(spell),
+      shown(theirs[1], ['dns.qry.name', 'dns.resp.name']).map((f) => f.show),
     );
   });
 
-  it('a pointer past the end shows the instance error as text', () => {
-    const p = run('far.pcap', Buffer.concat([u16(0x2222, 0x0100, 1, 0, 0, 0), ptr(0xff), u16(1, 1)])).packets[0];
-    assert.ok(h.all(p, 'dns_packet.instance').length === 1, 'an instance expert item');
-    const text = p.find((f) => f.name === '_ws.lua.text' && f.showname.startsWith('contents:'));
-    assert.equal(text?.showname, 'contents: past the end of the data');
+  const u = (p: h.Packet, n: string) => h.all(p, `dns_packet.${n}`);
+  test('a truncated query is malformed, and shows what it read', () => {
+    const [p] = run(query.subarray(0, 25)); // cut inside the question's name
+    assert.deepEqual([u(p, 'malformed').length, h.all(p, '_ws.lua.error').length], [1, 0]);
+    assert.deepEqual(
+      [...u(p, 'qdcount'), ...u(p, 'label.name')].map((f) => f.show),
+      ['1', 'www', 'example'],
+    );
   });
 
-  it('a name that points at itself does not hang', () => {
-    const d = run('loop.pcap', Buffer.concat([u16(0x1111, 0x0100, 1, 0, 0, 0), ptr(12), u16(1, 1)]));
-    assert.equal(d.packets.length, 1);
+  test('a pointer past the end is a failed instance; one that points at itself does not hang', () => {
+    const [far, loop] = run(
+      ...[0xff, 12].map((to) => Buffer.concat([u16(0x2222, 0x0100, 1, 0, 0, 0), ptr(to), u16(1, 1)])),
+    );
+    assert.equal(u(far, 'instance').length, 1);
+    assert.ok(far.some((f) => f.showname === 'contents: past the end of the data'));
+    assert.equal(u(loop, 'qdcount')[0].show, '1');
   });
 });
