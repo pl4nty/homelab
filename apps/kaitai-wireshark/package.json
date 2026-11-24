@@ -12,7 +12,9 @@
   "scripts": {
     "embed": "node --experimental-strip-types --no-warnings scripts/embed.ts",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --no-warnings scripts/embed.ts --check && node --experimental-strip-types --no-warnings --test \"test/**/*.test.ts\""
+    "pretest": "npm run embed",
+    "pretypecheck": "npm run embed",
+    "test": "node --experimental-strip-types --no-warnings --test \"test/**/*.test.ts\""
   },
   "devDependencies": {
     "@types/js-yaml": "4.0.9",

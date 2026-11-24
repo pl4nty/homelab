@@ -5,7 +5,7 @@
 // Pure ESM with no Node APIs, so the VS Code extension can bundle it for vscode.dev. The caller passes its own
 // kaitai-struct-compiler (0.11+) rather than this module bundling a second copy.
 
-import { GLUE, RUNTIME } from './lua-sources.generated.ts';
+import { GLUE, RUNTIME, RUNTIME_LICENSE } from './lua-sources.generated.ts';
 
 // biome-ignore lint/suspicious/noExplicitAny: .ksy is untyped YAML
 export type Ksy = Record<string, any>;
@@ -80,6 +80,7 @@ export async function generateDissector({ ksy, compiler, importer, ksyUri }: Opt
     `-- Wireshark dissector for ${ksy.meta.title ?? id}, generated from ${id}.ksy by kaitai-wireshark. Do not edit.`,
     '-- Load with: wireshark -X lua_script:<this file>, or copy it to the personal Lua plugins folder.',
     '-- Needs Wireshark 4.4 or later (Lua 5.4).',
+    RUNTIME_LICENSE,
     `local MODULES = ${toLua(modules)}`,
     `local SPECS = ${toLua(specs)}`,
     `local KSY = ${toLua(ksyUri ?? '')}`,

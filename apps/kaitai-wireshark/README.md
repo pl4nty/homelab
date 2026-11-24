@@ -7,6 +7,7 @@ traces the Kaitai Lua runtime to recover each field's byte range and builds the 
 
 ```sh
 npm ci
+npm run embed   # fetches the Kaitai Lua runtime at the commit pinned in scripts/embed.ts
 node --experimental-strip-types bin/ksy2wireshark.ts spec.ksy -o spec.lua [-I import-dir]...
 wireshark -X lua_script:spec.lua capture.pcap   # or copy spec.lua to the personal Lua plugins folder
 ```
@@ -44,7 +45,9 @@ several places has one set of filters.
 - `src/index.ts` (no Node APIs, so the VS Code extension bundles it for vscode.dev) is a concatenator. It compiles
   the spec with the caller's kaitai-struct-compiler (`-t lua`) and writes one Lua file: the Kaitai Lua runtime and
   the compiled modules as strings, the spec and its imports as Lua tables, and the glue. The generator is
-  JavaScript only because the compiler is (it ships for npm and the JVM); everything else is Lua.
+  JavaScript only because the compiler is (it ships for npm and the JVM); everything else is Lua. The runtime isn't
+  checked in: `npm run embed` (run before `typecheck` and `test`) fetches it and writes the git-ignored
+  `src/lua-sources.generated.ts`, so a bundler using `src/index.ts` runs it first.
 - At load, the glue runs the modules in a private environment (so two Kaitai dissectors don't share runtime state)
   and walks the spec for what Wireshark needs before the first packet: a field per attribute and instance, typed
   from its `type`, with its enum's labels and the first line of its `doc`.
