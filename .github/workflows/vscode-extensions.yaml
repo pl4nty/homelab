@@ -83,6 +83,7 @@ jobs:
     runs-on: ubuntu-latest
     container: node:24-slim
     permissions:
+      attestations: write
       contents: read
       id-token: write
     defaults:
@@ -93,6 +94,10 @@ jobs:
       - run: npm ci
       - run: npm run build --if-present
       - run: npx --yes @vscode/vsce@4 package --out extension.vsix
+      # SLSA build provenance for the exact .vsix that is published; check with `gh attestation verify <vsix> -R pl4nty/homelab`
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: apps/${{ matrix.app }}/extension.vsix
       - name: Publish to the Visual Studio Marketplace
         run: npx --yes @vscode/vsce@4 publish --packagePath extension.vsix --oidc --skip-duplicate
       - name: Publish to Open VSX
