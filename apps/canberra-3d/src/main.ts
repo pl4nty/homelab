@@ -272,14 +272,27 @@ window.addEventListener('keydown', (e) => {
   if (key === ' ' || key.startsWith('arrow')) e.preventDefault();
 });
 const stick = new TouchStick(ui.stick);
+// In flight the wheel sets the pace, from a crawl to sixteen times normal.
+let gear = 1;
+canvas.addEventListener(
+  'wheel',
+  (e) => {
+    if (mode !== 'fly') return;
+    gear = THREE.MathUtils.clamp(gear * (e.deltaY < 0 ? 1.25 : 0.8), 0.125, 16);
+    e.preventDefault();
+  },
+  { passive: false },
+);
 const held = (...names: string[]) => names.some((k) => keys.has(k));
 function readInput(): Input {
   const input: Input = {
     throttle: (held('w', 'arrowup') ? 1 : 0) - (held('s', 'arrowdown') ? 1 : 0) + stick.y,
     steer: (held('d', 'arrowright') ? 1 : 0) - (held('a', 'arrowleft') ? 1 : 0) + stick.x,
-    lift: (held(' ', 'r') || ui.lift.up ? 1 : 0) - (held('shift', 'f') || ui.lift.down ? 1 : 0),
+    lift: (held(' ', 'r') || ui.lift.up ? 1 : 0) - (held('c', 'f', 'control') || ui.lift.down ? 1 : 0),
     strafe: (held('e') ? 1 : 0) - (held('q') ? 1 : 0),
     brake: mode === 'drive' && held(' '),
+    boost: held('shift'),
+    gear,
     lookX: look.x,
     lookY: look.y,
     dragging: look.id !== -1,
@@ -348,6 +361,7 @@ function applySky() {
   u.sunDir.value.copy(s.dir);
   u.sunColor.value.copy(s.sun);
   u.night.value = s.night;
+  u.time.value = shared.time.value;
   (scene.fog as THREE.Fog).color.copy(s.horizon);
   shared.night.value = s.night;
   tiles.lampMat.opacity = s.night;

@@ -4,7 +4,7 @@ import { TILE_SIZE, TILE_Z, tileBoundsWorld, tileInExtent, worldToTile } from '.
 import { DEM_N } from '../shared/tile.ts';
 import { CAR } from './gen/palette.ts';
 import type { BuildReply, BuildRequest, Built, Label, MeshData } from './gen/types.ts';
-import { buildingMaterial, vertexColourMaterial, waterMaterial } from './materials.ts';
+import { buildingMaterial, groundMaterial, vertexColourMaterial, waterMaterial } from './materials.ts';
 import type { TreeFactory } from './trees.ts';
 
 const N = DEM_N + 1;
@@ -432,7 +432,7 @@ export class TileManager {
     tg.setAttribute('normal', new THREE.BufferAttribute(b.terrain.normal, 3));
     tg.setAttribute('uv', new THREE.BufferAttribute(b.terrain.uv, 2));
     tg.setIndex(new THREE.BufferAttribute(b.terrain.index, 1));
-    const ground = new THREE.Mesh(tg, new THREE.MeshLambertMaterial({ map: this.texture(b.ground) }));
+    const ground = new THREE.Mesh(tg, groundMaterial(this.texture(b.ground)));
     ground.receiveShadow = true;
     group.add(ground);
     e.ground = ground;

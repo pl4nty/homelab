@@ -2,7 +2,7 @@
 
 Explore Canberra as a 3D miniature in the browser. Built with [three.js](https://threejs.org/) from open data, streamed in as you move.
 
-- Buildings, with measured heights where a source has them and pitched roofs on houses.
+- Buildings, with measured heights where a source has them and pitched roofs on houses. Brickwork, windows, roof tiles and solar panels are drawn by the shader; they are texture, not data.
 - Every tree the ACT's 2020 LiDAR survey picked out, at its surveyed height and crown width, with species from the tree register.
 - Terrain, lakes, roads, bridges, car parks with parked cars, street lights. The moving cars are set dressing, not data.
 - Hand-built landmarks: Black Mountain Tower, the Parliament House flag mast, the National Carillon, the Captain Cook Memorial Jet, the Australian-American Memorial.
@@ -28,7 +28,7 @@ How the sources combine:
 - **Trees.** The LiDAR survey gives position, height and canopy area. A crown takes the genus of the nearest registered tree within its radius; registered trees with no crown are drawn young.
 - **Trams.** The realtime feed carries arrival predictions, not vehicle positions. Each running trip's timetable is shifted to its predicted arrival at the terminus, and the tram is drawn where that puts it.
 
-Known gaps: no open surface model of the ACT exists, so building heights are only as good as OpenStreetMap and Microsoft's estimates, which top out near 30 m. The terrain is not LiDAR-derived, and its source has stray pixels thousands of metres off; the server replaces any pixel far from the median of its neighbourhood.
+Known gaps: no open surface model of the ACT exists, so building heights are only as good as OpenStreetMap and Microsoft's estimates, which top out near 30 m. The terrain is not LiDAR-derived, and its source has stray pixels thousands of metres off: a sweep of the 1,568 zoom-14 tiles over the ACT found 2,715 of them in 28 tiles, as clusters and as one-pixel seams along 149°E. The server fills implausible heights from their valid neighbours and replaces any pixel far from the median of its neighbourhood; after that the sweep finds none.
 
 ## Server
 
@@ -59,6 +59,6 @@ npm run dev                                           # client with hot reload, 
 
 Keys in the overhead view: arrows or WASD move, Q and E turn, R and F tilt, plus and minus zoom.
 
-Keys at street level: WASD or arrows drive, Space brakes, V swaps chase and first-person view, a drag looks around, Esc returns to the overhead view. Flying: W and S fly where you look, A and D turn, Q and E slide sideways, Space and Shift climb and descend. Touch screens get a thumb stick.
+Keys at street level: WASD or arrows drive, Space brakes, V swaps chase and first-person view, a drag looks around, Esc returns to the overhead view. Flying: W and S fly where you look, A and D turn, Q and E slide sideways, Space and C climb and descend, Shift is a fourfold boost, and the wheel sets the pace. Touch screens get a thumb stick.
 
 Rendering resolution follows the frame rate. `?ratio=1` pins it, for benchmarks and screenshots.

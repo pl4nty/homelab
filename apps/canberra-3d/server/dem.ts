@@ -8,11 +8,57 @@ import { fetchBuffer } from './net.ts';
 const DEM_URL = 'https://elevation-tiles-prod.s3.amazonaws.com/terrarium';
 const PX = 256;
 
+/** No ground in south-east Australia is outside this range of metres above sea level. */
+const PLAUSIBLE: [number, number] = [0, 2300];
+
 /**
- * The mosaic has stray pixels thousands of metres off (one cluster sits beside Scrivener Dam).
- * Any pixel far from the median of its neighbourhood is replaced by that median.
+ * The mosaic has stray pixels thousands of metres off: clusters, and whole one-pixel seams along
+ * 149 degrees east. A sweep of the ACT found them in 28 of 1,568 zoom-14 tiles.
+ *
+ * Two passes. Heights that cannot be ground here are grown over from their valid neighbours,
+ * whatever the size of the cluster. Then any pixel far from the median of its neighbourhood is
+ * replaced by that median, which catches the smear around a spike that is still a plausible height.
+ * Returns how many pixels changed.
  */
-export function despike(h: Float32Array, threshold: number, size = PX): number {
+export function despike(h: Float32Array, threshold: number, size = PX, range = PLAUSIBLE): number {
+  let changed = 0;
+  let bad: number[] = [];
+  for (let i = 0; i < h.length; i++) if (!(h[i] >= range[0] && h[i] <= range[1])) bad.push(i);
+  // A tile with no valid pixel at all has nothing to grow from; leave it for the caller's fallback.
+  if (bad.length && bad.length < h.length) {
+    const invalid = new Uint8Array(h.length);
+    for (const i of bad) invalid[i] = 1;
+    changed += bad.length;
+    const near: number[] = [];
+    while (bad.length) {
+      const next: number[] = [];
+      const filled: [number, number][] = [];
+      for (const i of bad) {
+        const x = i % size;
+        const y = (i - x) / size;
+        // The median of the valid neighbours, so a half-wrong pixel beside the spike does not leak in.
+        near.length = 0;
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const nx = x + dx;
+            const ny = y + dy;
+            if (nx < 0 || ny < 0 || nx >= size || ny >= size || invalid[ny * size + nx]) continue;
+            near.push(h[ny * size + nx]);
+          }
+        }
+        if (near.length) filled.push([i, near.sort((p, q) => p - q)[near.length >> 1]]);
+        else next.push(i);
+      }
+      // Apply a whole ring at once, so the fill grows evenly inwards.
+      for (const [i, v] of filled) {
+        h[i] = v;
+        invalid[i] = 0;
+      }
+      if (!filled.length) break;
+      bad = next;
+    }
+  }
+
   const at = (x: number, y: number) =>
     h[Math.min(size - 1, Math.max(0, y)) * size + Math.min(size - 1, Math.max(0, x))];
   const fixes: [number, number][] = [];
@@ -22,7 +68,7 @@ export function despike(h: Float32Array, threshold: number, size = PX): number {
       const v = h[y * size + x];
       const cross = (at(x - 2, y) + at(x + 2, y) + at(x, y - 2) + at(x, y + 2)) / 4;
       // Cheap test first: most pixels sit close to their neighbours and need no median.
-      if (v > -200 && v < 6000 && Math.abs(v - cross) < threshold / 2) continue;
+      if (Math.abs(v - cross) < threshold / 2) continue;
       win.length = 0;
       for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) win.push(at(x + dx, y + dy));
       win.sort((a, b) => a - b);
@@ -31,7 +77,7 @@ export function despike(h: Float32Array, threshold: number, size = PX): number {
     }
   }
   for (const [i, v] of fixes) h[i] = v;
-  return fixes.length;
+  return changed + fixes.length;
 }
 
 export class Dem {

@@ -119,13 +119,30 @@ test('vehicle positions decode to world metres', () => {
 
 test('despike replaces stray elevation pixels and leaves a slope alone', () => {
   const size = 32;
-  const h = new Float32Array(size * size);
-  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) h[y * size + x] = 556 + x * 3;
+  const slope = () => {
+    const h = new Float32Array(size * size);
+    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) h[y * size + x] = 556 + x * 3;
+    return h;
+  };
+  const h = slope();
   h[10 * size + 10] = -1405;
-  h[10 * size + 11] = 120;
+  // A smeared neighbour: wrong, but still a height that could be ground.
+  h[10 * size + 11] = 320;
   h[20 * size + 5] = -32768;
   assert.equal(despike(h, 60, size), 3);
   assert.ok(Math.abs(h[10 * size + 10] - (556 + 30)) < 6);
+  assert.ok(Math.abs(h[10 * size + 11] - (556 + 33)) < 6);
   assert.ok(Math.abs(h[20 * size + 5] - (556 + 15)) < 6);
   assert.equal(h[4 * size + 20], 556 + 60);
+  assert.equal(despike(slope(), 60, size), 0);
+});
+
+test('despike fills a cluster too large for the median, a seam, and one at the tile edge', () => {
+  const size = 32;
+  const h = new Float32Array(size * size).fill(600);
+  for (let y = 12; y < 20; y++) for (let x = 12; x < 20; x++) h[y * size + x] = -4908;
+  for (let y = 0; y < size; y++) h[y * size + 27] = -5600;
+  for (let y = 0; y < 6; y++) for (let x = 0; x < 6; x++) h[y * size + x] = 9000;
+  assert.equal(despike(h, 60, size), 64 + 32 + 36);
+  for (const v of h) assert.equal(v, 600);
 });

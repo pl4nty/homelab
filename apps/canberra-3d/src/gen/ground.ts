@@ -335,6 +335,35 @@ export function paintGround(tile: Tile, res: number): OffscreenCanvas {
   }
   ctx.lineCap = 'round';
 
+  // Bay lines either side of each car park aisle, at the spacing the parked cars use.
+  if (m >= 0.9) {
+    ctx.beginPath();
+    for (const r of byClass.get('service') ?? []) {
+      if (r.s !== 'parking_aisle') continue;
+      for (let i = 0; i + 3 < r.p.length; i += 2) {
+        const dx = r.p[i + 2] - r.p[i];
+        const dy = r.p[i + 3] - r.p[i + 1];
+        const len = Math.hypot(dx, dy);
+        if (len < 1) continue;
+        const ux = dx / len;
+        const uy = dy / len;
+        for (let d = 0; d <= len; d += 27) {
+          for (const side of [1, -1]) {
+            const bx = r.p[i] + ux * d;
+            const by = r.p[i + 1] + uy * d;
+            ctx.moveTo(bx - uy * 29 * side, by + ux * 29 * side);
+            ctx.lineTo(bx - uy * 78 * side, by + ux * 78 * side);
+          }
+        }
+      }
+    }
+    ctx.strokeStyle = 'rgba(232,232,224,0.75)';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'butt';
+    ctx.stroke();
+    ctx.lineCap = 'round';
+  }
+
   // --- shade: a soft dark skirt round each building, a pad beneath it, and a blot under each tree
   ctx.save();
   ctx.shadowColor = 'rgba(20,30,40,0.55)';

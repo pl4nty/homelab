@@ -193,7 +193,7 @@ export function buildUi(root: HTMLElement, hooks: UiHooks, initial: { hour: numb
       keysHint.textContent =
         mode === 'drive'
           ? 'W A S D drive · Space brake · V view · drag to look · Esc exit'
-          : 'W S fly · A D turn · Q E sideways · Space / Shift up and down · drag to look · Esc exit';
+          : 'W S fly · A D turn · Q E sideways · Space / C up and down · Shift boost · wheel sets speed · Esc exit';
     },
     setSpeed: (kmh) => {
       const t = String(Math.round(kmh));

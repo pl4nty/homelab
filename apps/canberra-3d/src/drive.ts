@@ -17,6 +17,9 @@ export interface Input {
   lift: number;
   strafe: number;
   brake: boolean;
+  /** Fly only: held for a burst of speed, and the wheel's speed setting (1 is normal). */
+  boost: boolean;
+  gear: number;
   /** Pointer drag since the last frame, radians. */
   lookX: number;
   lookY: number;
@@ -205,8 +208,9 @@ export class Drone {
     this.heading += c.steer * 1.2 * dt + c.lookX;
     this.tilt = THREE.MathUtils.clamp(this.tilt + c.lookY, -1.4, 1.2);
     const ground = g.surfaceAt(this.x, this.z);
-    // Faster the higher it is, so both a street and the whole city are a comfortable flight.
-    const pace = THREE.MathUtils.clamp((this.y - ground) * 0.9, 14, 280);
+    // Faster the higher it is, so a street and the whole city are both a comfortable flight; the
+    // wheel sets the pace and Shift quadruples it.
+    const pace = THREE.MathUtils.clamp((this.y - ground) * 1.3, 25, 700) * c.gear * (c.boost ? 4 : 1);
     const sin = Math.sin(this.heading);
     const cos = Math.cos(this.heading);
     const ct = Math.cos(this.tilt);

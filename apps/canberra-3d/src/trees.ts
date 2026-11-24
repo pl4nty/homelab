@@ -3,6 +3,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { TreeKind } from '../shared/tile.ts';
+import { foliageMaterial } from './materials.ts';
 
 /** Face colours are stored relative to the species colour, which each instance supplies. */
 function tinted(g: THREE.BufferGeometry, hex: number, species: number, jitter = 0, seed = 1): THREE.BufferGeometry {
@@ -40,7 +41,8 @@ function tinted(g: THREE.BufferGeometry, hex: number, species: number, jitter = 
     }
   }
   geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
-  geo.deleteAttribute('uv');
+  // Solid parts sample the atlas's opaque white cell.
+  geo.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(pos.count * 2).fill(0.75), 2));
   geo.computeVertexNormals();
   return geo;
 }
@@ -56,15 +58,129 @@ const SPECIES: Record<TreeKind, number> = {
   [TreeKind.Evergreen]: 0x4a8744,
 };
 
+/**
+ * A crown as a cluster of flat cards, each showing a spray of leaves from the atlas. Normals point
+ * out from the crown's centre, so the cluster is lit as one rounded mass, not as separate planes.
+ */
+function cards(
+  count: number,
+  centre: [number, number, number],
+  radii: [number, number, number],
+  size: number,
+  seed: number,
+): THREE.BufferGeometry {
+  let s = seed * 7919 + 104729;
+  const rnd = () => {
+    s = (s * 9301 + 49297) % 233280;
+    return s / 233280;
+  };
+  const pos: number[] = [];
+  const nor: number[] = [];
+  const col: number[] = [];
+  const uv: number[] = [];
+  for (let c = 0; c < count; c++) {
+    // Towards the outside of the crown, where the leaves are.
+    const r = 0.45 + rnd() * 0.5;
+    const th = rnd() * Math.PI * 2;
+    const ph = Math.acos(1 - 2 * rnd());
+    const px = centre[0] + Math.sin(ph) * Math.cos(th) * radii[0] * r;
+    const py = centre[1] + Math.cos(ph) * radii[1] * r;
+    const pz = centre[2] + Math.sin(ph) * Math.sin(th) * radii[2] * r;
+    const yaw = rnd() * Math.PI * 2;
+    const tilt = (rnd() - 0.5) * 1.1;
+    const half = (size * (0.8 + rnd() * 0.45)) / 2;
+    const u = [Math.cos(yaw) * half, 0, Math.sin(yaw) * half];
+    const v = [-Math.sin(yaw) * Math.sin(tilt) * half, Math.cos(tilt) * half, Math.cos(yaw) * Math.sin(tilt) * half];
+    const cell = Math.floor(rnd() * 3);
+    const u0 = (cell % 2) * 0.5 + 0.01;
+    const v0 = Math.floor(cell / 2) * 0.5 + 0.01;
+    const tone = 0.9 + rnd() * 0.38;
+    const corner = (su: number, sv: number) => {
+      const x = px + u[0] * su + v[0] * sv;
+      const y = py + u[1] * su + v[1] * sv;
+      const z = pz + u[2] * su + v[2] * sv;
+      pos.push(x, y, z);
+      let nx = (x - centre[0]) / radii[0];
+      let ny = (y - centre[1]) / radii[1] + 0.35;
+      let nz = (z - centre[2]) / radii[2];
+      const l = Math.hypot(nx, ny, nz) || 1;
+      nx /= l;
+      ny /= l;
+      nz /= l;
+      nor.push(nx, ny, nz);
+      col.push(tone, tone, tone);
+      uv.push(u0 + ((su + 1) / 2) * 0.48, v0 + ((sv + 1) / 2) * 0.48);
+    };
+    corner(-1, -1);
+    corner(1, -1);
+    corner(1, 1);
+    corner(-1, -1);
+    corner(1, 1);
+    corner(-1, 1);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  return g;
+}
+
+/** Three sprays of leaves and one opaque cell, drawn pale so species and season colour them. */
+function leafAtlas(): THREE.CanvasTexture {
+  const size = 512;
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d')!;
+  let s = 4242;
+  const rnd = () => {
+    s = (s * 9301 + 49297) % 233280;
+    return s / 233280;
+  };
+  const half = size / 2;
+  for (let cell = 0; cell < 3; cell++) {
+    const ox = (cell % 2) * half + half / 2;
+    const oy = Math.floor(cell / 2) * half + half / 2;
+    for (let i = 0; i < 230; i++) {
+      // Dense in the middle, ragged at the rim.
+      const r = Math.sqrt(rnd()) * half * 0.46 * (0.7 + rnd() * 0.3);
+      const a = rnd() * Math.PI * 2;
+      const tone = 150 + Math.floor(rnd() * 105);
+      ctx.fillStyle = `rgb(${tone - 12},${tone},${tone - 30})`;
+      ctx.beginPath();
+      ctx.ellipse(
+        ox + Math.cos(a) * r,
+        oy + Math.sin(a) * r,
+        9 + rnd() * 9,
+        5 + rnd() * 5,
+        rnd() * Math.PI,
+        0,
+        Math.PI * 2,
+      );
+      ctx.fill();
+    }
+  }
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(half, half, half, half);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  // Unflipped, so v runs down the canvas: cells 0 to 2 hold leaves and the last one is opaque.
+  t.flipY = false;
+  t.anisotropy = 4;
+  return t;
+}
+
 /** Unit trees: 1 tall, crown about 1 wide; the instance scales them to the measured tree. */
 function shapes(): Record<TreeKind, THREE.BufferGeometry> {
   const make = (kind: TreeKind) => {
     const sp = SPECIES[kind];
+    const dark = new THREE.Color(sp).multiplyScalar(0.62).getHex();
     return {
       trunk: (h: number, r: number, hex: number) =>
         tinted(at(new THREE.CylinderGeometry(r * 0.7, r, h, 5), 0, h / 2, 0), hex, sp),
-      blob: (r: number, x: number, y: number, z: number, hex: number, sy = 1, detail = 0, seed = 1) =>
-        tinted(at(new THREE.IcosahedronGeometry(r, detail), x, y, z, 1, sy, 1), hex, sp, r * 0.3, seed),
+      // A dark core, so the gaps between leaf cards show shade and not sky.
+      core: (r: number, x: number, y: number, z: number, sy = 1) =>
+        tinted(at(new THREE.IcosahedronGeometry(r, 0), x, y, z, 1, sy, 1), dark, sp, r * 0.2, 7),
       cone: (r: number, h: number, y: number, hex: number) =>
         tinted(at(new THREE.ConeGeometry(r, h, 7), 0, y, 0), hex, sp),
     };
@@ -75,33 +191,38 @@ function shapes(): Record<TreeKind, THREE.BufferGeometry> {
   const poplar = make(TreeKind.Columnar);
   const wattle = make(TreeKind.Evergreen);
   return {
-    // Gum: pale bare trunk, open grey-green crown in a few clumps.
+    // Gum: pale bare trunk, open crown in a few separate clumps.
     [TreeKind.Eucalypt]: mergeGeometries([
-      gum.trunk(0.62, 0.035, 0xd8cfbb),
-      gum.blob(0.3, 0.02, 0.72, 0.0, 0x6f9352, 0.8, 0, 1),
-      gum.blob(0.24, -0.22, 0.62, 0.12, 0x7da35b, 0.75, 0, 2),
-      gum.blob(0.22, 0.2, 0.6, -0.16, 0x628648, 0.75, 0, 3),
+      gum.trunk(0.66, 0.035, 0xd8cfbb),
+      gum.core(0.13, 0.02, 0.76, 0, 0.8),
+      cards(5, [0.02, 0.76, 0], [0.3, 0.2, 0.3], 0.44, 1),
+      cards(4, [-0.22, 0.62, 0.12], [0.22, 0.15, 0.22], 0.36, 2),
+      cards(4, [0.2, 0.6, -0.16], [0.2, 0.14, 0.2], 0.34, 3),
     ]),
     // Oak, elm, plane: short trunk, one dense round crown.
     [TreeKind.Deciduous]: mergeGeometries([
-      oak.trunk(0.34, 0.05, 0x6b5440),
-      oak.blob(0.46, 0, 0.62, 0, 0x5cab3b, 0.82, 1, 4),
+      oak.trunk(0.36, 0.05, 0x6b5440),
+      oak.core(0.24, 0, 0.62, 0, 0.85),
+      cards(14, [0, 0.64, 0], [0.44, 0.36, 0.44], 0.56, 4),
     ]),
-    // Pine and cedar: stacked cones.
+    // Pine and cedar: stacked cones under a fringe of needles.
     [TreeKind.Conifer]: mergeGeometries([
       pine.trunk(0.2, 0.04, 0x5a4636),
-      pine.cone(0.36, 0.55, 0.42, 0x2e6b3a),
-      pine.cone(0.26, 0.5, 0.74, 0x357a42),
+      pine.cone(0.3, 0.55, 0.42, 0x2e6b3a),
+      pine.cone(0.2, 0.5, 0.74, 0x357a42),
+      cards(8, [0, 0.5, 0], [0.34, 0.3, 0.34], 0.34, 8),
     ]),
     // Lombardy poplar: a tall narrow flame.
     [TreeKind.Columnar]: mergeGeometries([
       poplar.trunk(0.18, 0.04, 0x6b5a46),
-      poplar.blob(0.2, 0, 0.58, 0, 0x67a544, 2.1, 0, 5),
+      poplar.core(0.11, 0, 0.58, 0, 3.2),
+      cards(10, [0, 0.58, 0], [0.17, 0.4, 0.17], 0.36, 5),
     ]),
     // Wattle, casuarina, bottlebrush: small and dark.
     [TreeKind.Evergreen]: mergeGeometries([
       wattle.trunk(0.3, 0.045, 0x5d4a3a),
-      wattle.blob(0.42, 0, 0.62, 0, 0x4a8744, 0.8, 0, 6),
+      wattle.core(0.21, 0, 0.62, 0, 0.8),
+      cards(11, [0, 0.63, 0], [0.4, 0.32, 0.4], 0.5, 6),
     ]),
   };
 }
@@ -114,7 +235,14 @@ export type Season = 'summer' | 'autumn';
 export class TreeFactory {
   private near = shapes();
   private far: THREE.BufferGeometry;
-  private nearMat = new THREE.MeshLambertMaterial({ vertexColors: true });
+  private leaves = leafAtlas();
+  private nearMat = foliageMaterial(this.leaves);
+  // Shadows must follow the leaves, not the cards they are drawn on.
+  private nearDepth = new THREE.MeshDepthMaterial({
+    depthPacking: THREE.RGBADepthPacking,
+    map: this.leaves,
+    alphaTest: 0.3,
+  });
   private farMat = new THREE.MeshLambertMaterial();
   season: Season = 'summer';
 
@@ -171,6 +299,7 @@ export class TreeFactory {
       for (let i = 0; i < count; i++) if (trees[i * 7 + 5] === kind) place(mesh, slot++, i);
       mesh.castShadow = true;
       mesh.receiveShadow = true;
+      mesh.customDepthMaterial = this.nearDepth;
       out.push(mesh);
     }
     return out;

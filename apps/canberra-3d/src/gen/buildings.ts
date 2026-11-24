@@ -259,12 +259,70 @@ export function buildBuildings(
       const ridge = gabled ? a : Math.max(0, a - bb);
       const r1 = P(-ridge, 0, top);
       const r2 = P(ridge, 0, top);
+      // Each roof face carries [along the eave, down the slope] so the shader can lay tile courses.
+      // Only the first face keeps coordinates near zero, which is where a solar array is drawn.
+      const roofStyle = 10 + seed2 * 0.9;
+      const face = (pts: number[][], st: [number, number][], colour: number) => {
+        const [p0, pA, pB] = pts;
+        let nx = (pA[1] - p0[1]) * (pB[2] - p0[2]) - (pA[2] - p0[2]) * (pB[1] - p0[1]);
+        let ny = (pA[2] - p0[2]) * (pB[0] - p0[0]) - (pA[0] - p0[0]) * (pB[2] - p0[2]);
+        let nz = (pA[0] - p0[0]) * (pB[1] - p0[1]) - (pA[1] - p0[1]) * (pB[0] - p0[0]);
+        const l = Math.hypot(nx, ny, nz) || 1;
+        nx /= l;
+        ny /= l;
+        nz /= l;
+        const first = mb.count;
+        for (const [i, q] of pts.entries())
+          mb.vertex(q[0], q[1], q[2], nx, ny, nz, colour, st[i][0], st[i][1], roofStyle, 0);
+        for (let i = 1; i + 1 < pts.length; i++) mb.index.push(first, first + i, first + i + 1);
+      };
+      const side = Math.hypot(bb, roofH);
+      const end = Math.hypot(a - ridge, roofH);
       const roofA = look.roof;
       const roofB = shade(look.roof, 0.9);
-      mb.quad(p1, p2, r2, r1, roofA);
-      mb.quad(p3, p4, r1, r2, roofA);
-      mb.tri(p2[0], p2[1], p2[2], p3[0], p3[1], p3[2], r2[0], r2[1], r2[2], gabled ? look.wall : roofB);
-      mb.tri(p4[0], p4[1], p4[2], p1[0], p1[1], p1[2], r1[0], r1[1], r1[2], gabled ? look.wall : roofB);
+      face(
+        [p1, p2, r2, r1],
+        [
+          [-a, side],
+          [a, side],
+          [ridge, 0],
+          [-ridge, 0],
+        ],
+        roofA,
+      );
+      face(
+        [p3, p4, r1, r2],
+        [
+          [1000 - a, side],
+          [1000 + a, side],
+          [1000 + ridge, 0],
+          [1000 - ridge, 0],
+        ],
+        roofA,
+      );
+      if (gabled) {
+        mb.tri(p2[0], p2[1], p2[2], p3[0], p3[1], p3[2], r2[0], r2[1], r2[2], look.wall);
+        mb.tri(p4[0], p4[1], p4[2], p1[0], p1[1], p1[2], r1[0], r1[1], r1[2], look.wall);
+      } else {
+        face(
+          [p2, p3, r2],
+          [
+            [2000 - bb, end],
+            [2000 + bb, end],
+            [2000, 0],
+          ],
+          roofB,
+        );
+        face(
+          [p4, p1, r1],
+          [
+            [3000 - bb, end],
+            [3000 + bb, end],
+            [3000, 0],
+          ],
+          roofB,
+        );
+      }
       // Close the eaves so the overhang is not see-through from below.
       mb.quad(p4, p3, p2, p1, shade(look.wall, 0.8));
     } else if (domed) {

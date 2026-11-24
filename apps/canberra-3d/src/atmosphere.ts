@@ -73,6 +73,7 @@ export function makeSkyDome(): THREE.Mesh<THREE.SphereGeometry, THREE.ShaderMate
       sunDir: { value: new THREE.Vector3(0, 1, 0) },
       sunColor: { value: new THREE.Color() },
       night: { value: 0 },
+      time: { value: 0 },
     },
     vertexShader: /* glsl */ `
       varying vec3 vDir;
@@ -82,9 +83,16 @@ export function makeSkyDome(): THREE.Mesh<THREE.SphereGeometry, THREE.ShaderMate
         gl_Position = p.xyww;
       }`,
     fragmentShader: /* glsl */ `
-      uniform vec3 top; uniform vec3 horizon; uniform vec3 sunDir; uniform vec3 sunColor; uniform float night;
+      uniform vec3 top; uniform vec3 horizon; uniform vec3 sunDir; uniform vec3 sunColor; uniform float night; uniform float time;
       varying vec3 vDir;
       float hash(vec3 p) { p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
+      float n2(vec2 p) {
+        vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f);
+        float a = hash(vec3(i, 1.0)); float b = hash(vec3(i + vec2(1.0, 0.0), 1.0));
+        float c = hash(vec3(i + vec2(0.0, 1.0), 1.0)); float e = hash(vec3(i + vec2(1.0, 1.0), 1.0));
+        return mix(mix(a, b, f.x), mix(c, e, f.x), f.y);
+      }
+      float fbm(vec2 p) { float v = 0.0; float a = 0.5; for (int i = 0; i < 5; i++) { v += a * n2(p); p = p * 2.03 + 17.0; a *= 0.5; } return v; }
       void main() {
         vec3 d = normalize(vDir);
         float h = max(d.y, 0.0);
@@ -92,6 +100,15 @@ export function makeSkyDome(): THREE.Mesh<THREE.SphereGeometry, THREE.ShaderMate
         col = mix(col, horizon * 0.82, smoothstep(0.0, -0.25, d.y));
         float s = max(dot(d, sunDir), 0.0);
         col += sunColor * (pow(s, 900.0) * 6.0 + pow(s, 24.0) * 0.28) * (1.0 - night * 0.75);
+        // Fair-weather cumulus on a flat layer, drifting east, thinning into haze at the horizon.
+        if (d.y > 0.0) {
+          vec2 uv = d.xz / (d.y + 0.08) * 1.3 + vec2(time * 0.004, 0.0);
+          float cover = smoothstep(0.5, 0.78, fbm(uv));
+          float body = smoothstep(0.42, 0.9, fbm(uv + sunDir.xz * 0.06));
+          vec3 cloud = mix(sunColor * 1.05 + 0.1, mix(horizon, top, 0.35) * 0.85, body * 0.6);
+          cloud = mix(cloud, vec3(0.05, 0.06, 0.1), night * 0.9);
+          col = mix(col, cloud, cover * smoothstep(0.02, 0.22, d.y) * 0.9);
+        }
         // Stars: one bright cell in a few hundred.
         vec3 cell = floor(d * 180.0);
         float star = step(0.9965, hash(cell)) * night * smoothstep(0.02, 0.3, d.y);
