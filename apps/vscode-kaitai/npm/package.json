@@ -1,0 +1,39 @@
+{
+  "name": "kaitai-mcp",
+  "version": "0.1.0",
+  "description": "Parse binary files with Kaitai Struct (.ksy) specs from the command line or an AI agent (MCP server). No Java or ksc needed.",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pl4nty/homelab.git",
+    "directory": "apps/vscode-kaitai/npm"
+  },
+  "homepage": "https://github.com/pl4nty/homelab/tree/main/apps/vscode-kaitai/npm#readme",
+  "keywords": [
+    "kaitai",
+    "kaitai-struct",
+    "ksy",
+    "binary",
+    "parser",
+    "reverse-engineering",
+    "mcp",
+    "model-context-protocol"
+  ],
+  "bin": {
+    "kaitai": "dist/kaitai.cjs",
+    "kaitai-mcp": "dist/kaitai.cjs"
+  },
+  "files": [
+    "dist/kaitai.cjs",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "prepack": "cp ../LICENSE LICENSE"
+  }
+}

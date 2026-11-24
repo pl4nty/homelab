@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import * as esbuild from 'esbuild';
 
 const watch = process.argv.includes('--watch');
@@ -21,6 +22,22 @@ const targets = [
     platform: 'browser',
     format: 'cjs',
     outfile: 'dist/web/extension.js',
+  },
+  // `kaitai` CLI and MCP server, published to npm from npm/ and also run by the desktop extension.
+  {
+    ...common,
+    entryPoints: ['src/agent/main.ts'],
+    platform: 'node',
+    format: 'cjs',
+    target: 'node20',
+    outfile: 'npm/dist/kaitai.cjs',
+    // Not shipped in either package; keeps the .vsix small.
+    sourcemap: false,
+    external: ['iconv-lite'],
+    banner: { js: '#!/usr/bin/env node' },
+    define: {
+      __KAITAI_CLI_VERSION__: JSON.stringify(JSON.parse(readFileSync('npm/package.json', 'utf8')).version),
+    },
   },
   // Webviews (browser, no vscode module).
   {

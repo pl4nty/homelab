@@ -38,6 +38,12 @@ Beyond the Web IDE:
 - **`-webide-representation`** labels on structs, e.g. `'{name}: {value:dec}'`.
 - Each file remembers its spec, and a spec applies to other files that match its `meta/file-extension`.
 
+## Agents (MCP)
+
+The desktop extension registers a Kaitai MCP server with VS Code's agent mode (VS Code 1.101 or later), so agents can
+parse files, explain the bytes at an offset, find a gallery spec and check `.ksy` specs they write. Other MCP clients
+can run the same server with `npx -y kaitai-mcp`, and it has a CLI too; see [npm/README.md](npm/README.md).
+
 ## Settings
 
 | Setting | Default | Purpose |
@@ -54,7 +60,7 @@ Beyond the Web IDE:
 npm install
 npm test          # unit tests (node:test)
 npm run typecheck
-npm run build     # dist/node, dist/web, dist/webview
+npm run build     # dist/node, dist/web, dist/webview, npm/dist (CLI and MCP server)
 npm run package   # .vsix
 ```
 

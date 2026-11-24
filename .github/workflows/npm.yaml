@@ -1,0 +1,103 @@
+name: npm
+
+# Builds every npm package in apps/ (any apps/<app>/npm/package.json, built by the app's `npm run build`) on PRs, as
+# downloadable .tgz artifacts, and publishes them from main with Trusted Publishing (OIDC, no stored secrets). npm adds
+# provenance attestations automatically for trusted publishes from a public repository. Only packages whose app
+# directory changed are built; a workflow change or a manual run builds all of them. A version already on the registry
+# is skipped, so bump "version" in npm/package.json to release.
+#
+# Registry setup: npm only trusts packages that already exist, so each package's first version is published by hand
+# (`npm publish <artifact>.tgz`), then `npm trust github <name> --repo pl4nty/homelab --file npm.yaml --allow-publish`.
+on:
+  pull_request:
+    paths: [apps/**, .github/workflows/npm.yaml]
+  push:
+    branches: [main]
+    paths: [apps/**, .github/workflows/npm.yaml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: npm-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      apps: ${{ steps.find.outputs.apps }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - id: find
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.sha }}
+        run: |
+          all=$(for f in apps/*/npm/package.json; do [ -f "$f" ] && cut -d/ -f2 <<<"$f"; done)
+          if [ "$EVENT" = workflow_dispatch ] || ! changed=$(git diff --name-only "$BASE" "$HEAD" 2>/dev/null) \
+            || grep -qx .github/workflows/npm.yaml <<<"$changed"; then
+            apps=$all
+          else
+            apps=$(grep -Fxf <(cut -d/ -f2 <<<"$(grep '^apps/' <<<"$changed")" | sort -u) <<<"$all" || true)
+          fi
+          echo "apps=$(jq -cn '$ARGS.positional' --args $apps)" | tee -a "$GITHUB_OUTPUT"
+
+  package:
+    needs: changes
+    if: needs.changes.outputs.apps != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.changes.outputs.apps) }}
+    runs-on: ubuntu-latest
+    container: node:24-slim
+    defaults:
+      run:
+        working-directory: apps/${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm test --if-present
+      - run: npm run build
+      - run: npm pack --pack-destination ..
+        working-directory: apps/${{ matrix.app }}/npm
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ matrix.app }}-npm
+          path: apps/${{ matrix.app }}/*.tgz
+
+  publish:
+    needs: [changes, package]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && needs.changes.outputs.apps != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.changes.outputs.apps) }}
+    runs-on: ubuntu-latest
+    container: node:24-slim
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: apps/${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: npm ci
+      - run: npm run build
+      - name: Publish to npm
+        working-directory: apps/${{ matrix.app }}/npm
+        run: |
+          spec=$(jq -r '"\(.name)@\(.version)"' package.json)
+          if npm view "$spec" version >/dev/null 2>&1; then
+            echo "$spec is already published"
+            exit 0
+          fi
+          # Trusted Publishing needs npm 11.5.1 or later
+          npx --yes npm@11 publish

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0
+
+- Registers a Kaitai MCP server with VS Code's agent mode (VS Code 1.101 or later, desktop and remote): tools to parse a
+  file, explain the bytes at an offset, suggest a gallery spec, validate a .ksy and generate code. The same server and a
+  `kaitai` CLI are on npm as `kaitai-mcp`.
+
 ## 0.1.0
 
 First release.
