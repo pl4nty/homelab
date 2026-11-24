@@ -8,6 +8,7 @@ import { buildingMaterial, vertexColourMaterial, waterMaterial } from './materia
 import type { TreeFactory } from './trees.ts';
 
 const N = DEM_N + 1;
+const CLOSE_RES = 2048;
 const NEAR_RES = 1024;
 const FAR_RES = 512;
 export const MASK_SIZE = 128;
@@ -26,7 +27,8 @@ interface Entry {
   nearObjects: THREE.Object3D[];
   farTrees: THREE.InstancedMesh[];
   lamps?: THREE.Points;
-  lanes?: { start: number; count: number; length: number }[];
+  lanes?: { start: number; count: number; oneway: boolean; cum: Float32Array }[];
+  traffic?: { mesh: THREE.InstancedMesh; cars: Float32Array };
   retryAt?: number;
   originX: number;
   originZ: number;
@@ -45,7 +47,7 @@ function meshFrom(d: MeshData, material: THREE.Material): THREE.Mesh {
   return m;
 }
 
-function carGeometry(): THREE.BufferGeometry {
+export function carGeometry(): THREE.BufferGeometry {
   const body = new THREE.BoxGeometry(1.8, 0.62, 4.3).translate(0, 0.52, 0).toNonIndexed();
   const cabin = new THREE.BoxGeometry(1.62, 0.52, 2.3).translate(0, 1.08, -0.15).toNonIndexed();
   const paint = (g: THREE.BufferGeometry, v: number) => {
@@ -97,14 +99,15 @@ export class TileManager {
   private buildings = buildingMaterial();
   private plain = vertexColourMaterial();
   private water = waterMaterial();
-  private carGeo = carGeometry();
-  private carMat = new THREE.MeshLambertMaterial({ vertexColors: true });
+  readonly carGeo = carGeometry();
+  readonly carMat = new THREE.MeshLambertMaterial({ vertexColors: true });
   private poleGeo = new THREE.CylinderGeometry(0.07, 0.1, 1, 4).translate(0, 0.5, 0);
   private poleMat = new THREE.MeshLambertMaterial({ color: 0x8d9296 });
   readonly lampMat: THREE.PointsMaterial;
   maxAnisotropy = 8;
   onLabels?: (key: string, labels: Label[] | null, origin: [number, number]) => void;
   onChange?: () => void;
+  onLandmark?: (id: string, x: number, z: number) => void;
   focus = new THREE.Vector2();
   missing = new Set<string>();
 
@@ -169,7 +172,7 @@ export class TileManager {
   }
 
   /** Loads what lies within `radius` of the focus, drops what is well outside it, and sets detail. */
-  update(fx: number, fz: number, radius: number, nearRadius: number) {
+  update(fx: number, fz: number, radius: number, nearRadius: number, cameraDistance: number) {
     this.focus.set(fx, fz);
     const [cx, cy] = worldToTile(fx, -fz);
     const reach = Math.ceil(radius / TILE_SIZE);
@@ -214,7 +217,8 @@ export class TileManager {
       const d = this.distance(e.x, e.y, fx, fz);
       const near = d < (e.near ? nearRadius * 1.2 : nearRadius);
       if (near !== e.near) this.setDetail(e, near);
-      const res = d < nearRadius * 0.9 ? NEAR_RES : FAR_RES;
+      // Half a metre a pixel under a close camera, a metre nearby, two metres beyond.
+      const res = d < 250 && cameraDistance < 700 ? CLOSE_RES : d < nearRadius * 0.9 ? NEAR_RES : FAR_RES;
       if (res > e.res && !e.repainting) this.repaint(e, res);
     }
     this.pump();
@@ -345,17 +349,17 @@ export class TileManager {
       group.add(e.lamps);
     }
 
-    // Index the traffic lanes: where each starts in the buffer and how long it runs.
+    // Index the traffic lanes: where each starts in the buffer, and the running length at each point.
     e.lanes = [];
     for (let i = 0; i < b.lanes.length; ) {
       const count = b.lanes[i];
-      let length = 0;
+      const cum = new Float32Array(count);
       for (let k = 1; k < count; k++) {
-        const o = i + 1 + k * 3;
-        length += Math.hypot(b.lanes[o] - b.lanes[o - 3], b.lanes[o + 2] - b.lanes[o - 1]);
+        const o = i + 2 + k * 3;
+        cum[k] = cum[k - 1] + Math.hypot(b.lanes[o] - b.lanes[o - 3], b.lanes[o + 2] - b.lanes[o - 1]);
       }
-      e.lanes.push({ start: i + 1, count, length });
-      i += 1 + count * 3;
+      e.lanes.push({ start: i + 2, count, oneway: b.lanes[i + 1] === 1, cum });
+      i += 2 + count * 3;
     }
 
     e.group = group;
@@ -365,6 +369,7 @@ export class TileManager {
     this.group.add(group);
     this.setMask(e, true);
     this.onLabels?.(e.key, b.labels, [e.originX, e.originZ]);
+    for (const l of b.landmarks) this.onLandmark?.(l.id, l.x + e.originX, l.z + e.originZ);
   }
 
   private setDetail(e: Entry, near: boolean) {
@@ -372,6 +377,10 @@ export class TileManager {
     const b = e.built!;
     for (const o of e.nearObjects) this.dispose(o);
     e.nearObjects = [];
+    if (e.traffic) {
+      this.dispose(e.traffic.mesh);
+      e.traffic = undefined;
+    }
     for (const t of e.farTrees) t.visible = !near;
     if (!near) return;
     for (const t of this.trees.build(b.trees, true)) {

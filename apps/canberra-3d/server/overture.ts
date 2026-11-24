@@ -62,6 +62,8 @@ export interface OvSegment {
   s?: string;
   f?: number;
   l?: number;
+  /** One-way in the direction drawn. */
+  o?: 1;
   name?: string;
 }
 
@@ -224,6 +226,9 @@ export class Overture {
       const levels = parse<Rule<number>[]>(p.level_rules) ?? [];
       const subs = parse<Rule<string>[]>(p.subclass_rules) ?? [];
       const name = str(p['@name']);
+      const access =
+        parse<{ access_type?: string; when?: { heading?: string; mode?: string[] } }[]>(p.access_restrictions) ?? [];
+      const oneway = access.some((a) => a.access_type === 'denied' && a.when?.heading === 'backward' && !a.when.mode);
       const parts = f.loadGeometry();
       // A line the tile clipped has lost the length its rules are measured along.
       const whole =
@@ -264,6 +269,7 @@ export class Overture {
           if (sub) seg.s = sub;
           if (flag) seg.f = flag;
           if (level) seg.l = level;
+          if (oneway) seg.o = 1;
           if (name) seg.name = name;
           out.push(seg);
         }

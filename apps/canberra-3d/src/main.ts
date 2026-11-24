@@ -9,11 +9,18 @@ import { LiveLayer } from './live.ts';
 import { shared } from './materials.ts';
 import { Post } from './post.ts';
 import { TileManager } from './tiles.ts';
+import { Traffic } from './traffic.ts';
 import { TreeFactory } from './trees.ts';
 import { buildUi, canberraNow } from './ui.ts';
 import './style.css';
 
 const canvas = document.getElementById('view') as HTMLCanvasElement;
+// Probe on a spare canvas: a context made here would fix the real canvas's attributes.
+if (!document.createElement('canvas').getContext('webgl2')) {
+  document.getElementById('ui')!.innerHTML =
+    '<p class="fatal">This needs WebGL 2, which this browser or device does not provide.</p>';
+  throw new Error('WebGL 2 unavailable');
+}
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
@@ -51,6 +58,8 @@ scene.add(landmarks.group);
 const labels = new Labels(document.getElementById('labels')!);
 tiles.onLabels = (key, list, origin) => labels.set(key, list, origin);
 tiles.onChange = () => landmarks.unsettle();
+tiles.onLandmark = (id, x, z) => landmarks.moveTo(id, x, z);
+const traffic = new Traffic(tiles);
 const live = new LiveLayer(groundAt);
 scene.add(live.group);
 
@@ -288,7 +297,7 @@ function frame() {
   if (now - lastTileUpdate > 250) {
     lastTileUpdate = now;
     const radius = THREE.MathUtils.clamp(dist * 1.5, 1800, 6500);
-    tiles.update(controls.target.x, controls.target.z, radius, THREE.MathUtils.clamp(dist * 0.9, 900, 1700));
+    tiles.update(controls.target.x, controls.target.z, radius, THREE.MathUtils.clamp(dist * 0.9, 900, 1700), dist);
   }
 
   const s = applySky();
@@ -298,6 +307,7 @@ function frame() {
   );
   landmarks.update(shared.time.value, state.hour, s.night);
   live.update(dt);
+  traffic.update(dt);
   labels.update(camera, controls.target, window.innerWidth, window.innerHeight);
   const waiting = tiles.loading;
   ui.setStatus(

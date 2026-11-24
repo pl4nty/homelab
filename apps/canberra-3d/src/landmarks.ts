@@ -1,6 +1,7 @@
 // Hand-built models of the structures no footprint extrusion can stand in for.
 import * as THREE from 'three';
 import { lonLatToWorld } from '../shared/geo.ts';
+import { MAST } from './gen/sites.ts';
 
 const lambert = (hex: number, extra: THREE.MeshLambertMaterialParameters = {}) =>
   new THREE.MeshLambertMaterial({ color: hex, ...extra });
@@ -224,6 +225,7 @@ function balloon(hex: number, stripe: number): THREE.Group {
 }
 
 interface Placed {
+  id: string;
   object: THREE.Object3D;
   x: number;
   z: number;
@@ -342,21 +344,25 @@ export class Landmarks {
   private beacon: THREE.Object3D | undefined;
 
   constructor() {
-    const put = (object: THREE.Object3D, lon: number, lat: number, lift = 0) => {
+    const put = (id: string, object: THREE.Object3D, lon: number, lat: number, lift = 0) => {
       const [x, y] = lonLatToWorld(lon, lat);
       object.position.set(x, 0, -y);
-      this.placed.push({ object, x, z: -y, lift, settled: false });
+      this.placed.push({ id, object, x, z: -y, lift, settled: false });
       this.group.add(object);
       return object;
     };
-    const tower = put(blackMountainTower(), 149.09777, -35.27527);
+    const tower = put('tower', blackMountainTower(), 149.09777, -35.27554);
     this.beacon = tower.getObjectByName('beacon');
-    const mast = put(flagMast(), 149.12445, -35.30816, 16);
+    const mast = put('mast', flagMast(), 149.12445, -35.30816, 20);
+    const mastAt = this.placed[this.placed.length - 1];
+    mastAt.x = MAST[0];
+    mastAt.z = -MAST[1];
+    mast.position.set(MAST[0], 0, -MAST[1]);
     this.flag = mast.getObjectByName('flag') as THREE.Mesh;
     this.flagBase = (this.flag.geometry.attributes.position.array as Float32Array).slice();
-    put(carillon(), 149.14172, -35.29879);
-    put(eagle(), 149.15003, -35.29756);
-    this.jet = put(cookJet(), 149.12893, -35.28893);
+    put('carillon', carillon(), 149.14174, -35.2985);
+    put('eagle', eagle(), 149.15003, -35.29756);
+    this.jet = put('jet', cookJet(), 149.12893, -35.28893);
     const liveries: [number, number][] = [
       [0xd8452e, 0xf2c14e],
       [0x2f6fb5, 0xf4f2ec],
@@ -389,6 +395,17 @@ export class Landmarks {
       p.object.position.y = (h ?? coarse(p.x, p.z)) + p.lift;
       if (h != null) p.settled = true;
     }
+  }
+
+  /** Moves a model to where the source data maps the real structure. */
+  moveTo(id: string, x: number, z: number) {
+    const p = this.placed.find((q) => q.id === id);
+    if (!p) return;
+    p.x = x;
+    p.z = z;
+    p.object.position.x = x;
+    p.object.position.z = z;
+    p.settled = false;
   }
 
   /** Tiles reload when the camera returns, and the ground under a model may have been pressed down by water. */

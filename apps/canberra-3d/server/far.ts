@@ -12,7 +12,7 @@ export interface FarTerrain {
 
 let cached: Promise<FarTerrain> | null = null;
 
-export function farTerrain(_fine: Dem, disk: DiskCache): Promise<FarTerrain> {
+export function farTerrain(disk: DiskCache): Promise<FarTerrain> {
   if (!cached) {
     cached = (async () => {
       const coarse = new Dem(disk, 10);

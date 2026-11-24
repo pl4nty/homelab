@@ -105,8 +105,8 @@ export function waterMaterial(): THREE.MeshPhongMaterial {
         g += vec2(cos((wp.x + wp.y) * 0.53 - t * 1.7), sin((wp.x - wp.y) * 0.47 + t * 1.3)) * 0.35;
         g += vec2(cos(wp.y * 1.3 + t * 2.3), sin(wp.x * 1.1 + t * 2.1)) * 0.2;
         // Ripples fade with distance so the far lake is calm, not noisy.
-        float fade = 1.0 / (1.0 + length(vViewPosition) * 0.0016);
-        vec3 normal = normalize((viewMatrix * vec4(normalize(vec3(g.x * 0.09 * fade, 1.0, g.y * 0.09 * fade)), 0.0)).xyz);
+        float fade = 1.0 / (1.0 + length(vViewPosition) * 0.004);
+        vec3 normal = normalize((viewMatrix * vec4(normalize(vec3(g.x * 0.06 * fade, 1.0, g.y * 0.06 * fade)), 0.0)).xyz);
         vec3 nonPerturbedNormal = normal;`,
       );
   };

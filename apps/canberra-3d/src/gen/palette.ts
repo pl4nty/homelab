@@ -21,7 +21,7 @@ export const GROUND = {
   plaza: '#d8cfbd',
   dirt: '#c8b28a',
   apron: '#b6b6b1',
-  water: '#4a7fa6',
+  water: '#3d6f8f',
   pool: '#56c6df',
   asphalt: '#4b4e57',
   asphaltLight: '#595c65',

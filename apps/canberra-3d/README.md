@@ -4,7 +4,7 @@ Explore Canberra as a 3D miniature in the browser. Built with [three.js](https:/
 
 - Buildings, with measured heights where a source has them and pitched roofs on houses.
 - Every tree the ACT's 2020 LiDAR survey picked out, at its surveyed height and crown width, with species from the tree register.
-- Terrain, lakes, roads, bridges, car parks with parked cars, street lights.
+- Terrain, lakes, roads, bridges, car parks with parked cars, street lights. The moving cars are set dressing, not data.
 - Hand-built landmarks: Black Mountain Tower, the Parliament House flag mast, the National Carillon, the Captain Cook Memorial Jet, the Australian-American Memorial.
 - Live light rail.
 - Time of day from dawn balloons to lit windows at night, and an autumn switch for the deciduous streets.

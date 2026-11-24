@@ -224,7 +224,8 @@ export function buildTile(tile: Tile, res: number, missing: string): Built {
   }
 
   const labels: Label[] = [];
-  const buildings = buildBuildings(tile, hAt, labels);
+  const landmarks: Built['landmarks'] = [];
+  const buildings = buildBuildings(tile, hAt, labels, landmarks);
   const bridges = buildBridges(tile, hAt);
 
   // --- trees
@@ -295,7 +296,7 @@ export function buildTile(tile: Tile, res: number, missing: string): Built {
       lineLength(p) > 40
     ) {
       const profile = r.f === 1 ? deckProfile(r, hAt).pts : null;
-      lanes.push(p.length / 2);
+      lanes.push(p.length / 2, r.o ? 1 : 0);
       for (let i = 0; i < p.length; i += 2)
         lanes.push(p[i], profile ? profile[i / 2].h + 0.05 : hAt(p[i], p[i + 1]), -p[i + 1]);
     }
@@ -340,6 +341,7 @@ export function buildTile(tile: Tile, res: number, missing: string): Built {
     lights,
     lanes: new Float32Array(lanes),
     labels,
+    landmarks,
     stats: { buildings: tile.buildings.length, trees: tile.trees.length / 5, missing },
   };
 }

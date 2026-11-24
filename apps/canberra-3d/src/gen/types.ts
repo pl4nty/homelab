@@ -36,9 +36,11 @@ export interface Built {
   cars: Float32Array;
   /** Per street light: x, y, z, height. */
   lights: Float32Array;
-  /** Per traffic lane: count, then x, y, z triples; cars run along these. */
+  /** Per traffic lane: point count, one-way flag, then x, y, z triples; cars run along these. */
   lanes: Float32Array;
   labels: Label[];
+  /** Source buildings a hand-built model replaces: which model, and where the source puts it. */
+  landmarks: { id: string; x: number; z: number }[];
   stats: { buildings: number; trees: number; missing: string };
 }
 

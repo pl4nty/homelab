@@ -113,7 +113,7 @@ const server = createServer(async (req, res) => {
         ...(missing.length ? { 'x-missing': missing.join(', ') } : {}),
       });
     }
-    if (url.pathname === '/api/far') return sendJson(res, await farTerrain(dem, disk), 'public, max-age=604800');
+    if (url.pathname === '/api/far') return sendJson(res, await farTerrain(disk), 'public, max-age=604800');
     if (url.pathname === '/api/live') {
       const at = Number(url.searchParams.get('at')) || undefined;
       return sendJson(res, await live.current(at), 'no-store');

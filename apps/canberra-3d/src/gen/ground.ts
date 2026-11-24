@@ -354,8 +354,9 @@ export function paintGround(tile: Tile, res: number): OffscreenCanvas {
     const py = res - t[i + 1] * s;
     const r = Math.max(1.5, (t[i + 3] / 10) * m * 1.15);
     const g = ctx.createRadialGradient(px, py, r * 0.2, px, py, r);
-    g.addColorStop(0, 'rgba(28,58,22,0.42)');
-    g.addColorStop(1, 'rgba(28,58,22,0)');
+    // A mid green, so a thicket of overlapping blots settles on forest floor, not black.
+    g.addColorStop(0, 'rgba(58,96,48,0.5)');
+    g.addColorStop(1, 'rgba(58,96,48,0)');
     ctx.fillStyle = g;
     ctx.fillRect(px - r, py - r, r * 2, r * 2);
   }

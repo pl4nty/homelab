@@ -35,7 +35,7 @@ export function sunAngles(hour: number, dayOfYear: number): { azimuth: number; e
 const C = (hex: number) => new THREE.Color(hex);
 const DAY = { sun: C(0xfff3dc), top: C(0x3f86d8), horizon: C(0xc4dcf0), ground: C(0x7a7458) };
 const DUSK = { sun: C(0xff9a52), top: C(0x4a5f9e), horizon: C(0xf6b98a), ground: C(0x6a5648) };
-const NIGHT = { sun: C(0x8ea6d8), top: C(0x070b1a), horizon: C(0x1a2340), ground: C(0x0c0e16) };
+const NIGHT = { sun: C(0x8ea6d8), top: C(0x0a1024), horizon: C(0x27304f), ground: C(0x14171f) };
 
 export function skyAt(hour: number, dayOfYear: number): Sky {
   const { azimuth, elevation } = sunAngles(hour, dayOfYear);
@@ -50,11 +50,11 @@ export function skyAt(hour: number, dayOfYear: number): Sky {
   return {
     dir,
     sun: mix('sun'),
-    sunIntensity: 2.5 * (1 - night) * (0.35 + 0.65 * smooth(-2, 18, el)) + 0.32 * night,
+    sunIntensity: 2.5 * (1 - night) * (0.35 + 0.65 * smooth(-2, 18, el)) + 0.55 * night,
     skyTop: mix('top'),
     horizon: mix('horizon'),
     ground: mix('ground'),
-    ambient: 0.95 * (1 - night) + 0.34 * night,
+    ambient: 0.95 * (1 - night) + 0.55 * night,
     night,
     elevation,
   };

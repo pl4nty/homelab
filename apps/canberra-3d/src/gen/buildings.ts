@@ -1,9 +1,11 @@
 // Extrudes footprints into walls and roofs. Small houses get pitched roofs fitted to their
 // bounding rectangle; everything else gets a flat roof with a parapet line and plant on top.
 import earcut from 'earcut';
+import { TILE_Z, tileBoundsWorld } from '../../shared/geo.ts';
 import { pointInPolygon, ringArea } from '../../shared/poly.ts';
 import type { Building, Tile } from '../../shared/tile.ts';
 import { ROOF_FLAT, ROOF_HOUSE, WALL_APT, WALL_CIVIC, WALL_COM, WALL_HOUSE, WALL_SHED } from './palette.ts';
+import { MAST } from './sites.ts';
 import { hash2, type Label, MeshBuilder } from './types.ts';
 
 /** Window styles the wall shader understands. */
@@ -12,6 +14,12 @@ const STYLE_HOUSE = 1;
 const STYLE_GRID = 2;
 const STYLE_GLASS = 3;
 const STYLE_CIVIC = 4;
+
+/** Named source buildings that a hand-built model stands in for. */
+const REPLACED: [RegExp, string][] = [
+  [/^(black mountain|telstra) tower$/i, 'tower'],
+  [/^national carillon$/i, 'carillon'],
+];
 
 const pick = <T>(list: T[], r: number) => list[Math.min(list.length - 1, Math.floor(r * list.length))];
 
@@ -128,8 +136,16 @@ function lookOf(b: Building, area: number, seed: number, seed2: number): Look {
   return { wall, roof, style, pitched };
 }
 
-export function buildBuildings(tile: Tile, hAt: (x: number, y: number) => number, labels: Label[]): MeshBuilder {
+export function buildBuildings(
+  tile: Tile,
+  hAt: (x: number, y: number) => number,
+  labels: Label[],
+  landmarks: { id: string; x: number; z: number }[],
+): MeshBuilder {
   const mb = new MeshBuilder();
+  const origin = tileBoundsWorld(TILE_Z, tile.x, tile.y);
+  const mastX = MAST[0] - origin[0];
+  const mastY = MAST[1] - origin[1];
   for (const b of tile.buildings) {
     // Decimetres to metres; outline counter-clockwise, holes clockwise.
     const rings = b.p.map((r, i) => {
@@ -162,6 +178,14 @@ export function buildBuildings(tile: Tile, hAt: (x: number, y: number) => number
     }
     cx /= outline.length / 2;
     cy /= outline.length / 2;
+    const replaced = b.name ? REPLACED.find(([re]) => re.test(b.name!)) : undefined;
+    if (replaced) {
+      landmarks.push({ id: replaced[1], x: cx, z: -cy });
+      continue;
+    }
+    // The mast's legs: tall slivers, and the collars they stand on, within the mast's footprint.
+    if (Math.hypot(cx - mastX, cy - mastY) < 42 && (b.h >= 45 || ((b.mh ?? 0) >= 19 && b.h < 28 && area < 60)))
+      continue;
     // Floor sits a little above the low side; walls run below ground so no slope shows a gap.
     const base = lo + Math.min(1.2, (hi - lo) * 0.35);
     const top = base + b.h;

@@ -346,7 +346,7 @@ export class Baker {
       ),
       attempt(
         'overture transportation',
-        this.block<OvSegment[]>(`ov-${rel}/t/${bx}/${by}`, () => this.overture.segments(bx, by)),
+        this.block<OvSegment[]>(`ov-${rel}/t2/${bx}/${by}`, () => this.overture.segments(bx, by)),
         [],
       ),
       attempt(
@@ -513,6 +513,7 @@ export class Baker {
       };
       if (s.s) road.s = s.s;
       if (s.l) road.l = s.l;
+      if (s.o) road.o = 1;
       if (s.name) road.name = s.name;
       roads.push(road);
     }
@@ -525,6 +526,7 @@ export class Baker {
         if (s.s) road.s = s.s;
         if (s.f) road.f = s.f;
         if (s.l) road.l = s.l;
+        if (s.o) road.o = 1;
         if (s.name) road.name = s.name;
         roads.push(road);
       }

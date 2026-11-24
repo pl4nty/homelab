@@ -1,6 +1,6 @@
 // The baked tile the server sends. Planar coordinates are integers in decimetres from the
 // tile's south-west corner (x east, y north); heights are metres unless noted.
-export const TILE_VERSION = 2;
+export const TILE_VERSION = 3;
 export const DEM_N = 64;
 
 export interface Building {
@@ -35,6 +35,8 @@ export interface Road {
   f?: number;
   /** Vertical level from the source. */
   l?: number;
+  /** One-way in the direction drawn. */
+  o?: 1;
   /** For a bridge: ground height in metres at the first and last point. */
   e?: [number, number];
   name?: string;
