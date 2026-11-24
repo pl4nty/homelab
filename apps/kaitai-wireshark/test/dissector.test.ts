@@ -136,7 +136,10 @@ describe('UDP (rich.ksy: bits, xor, imports, switch, instances)', { skip }, () =
     const v3 = Buffer.from(good);
     v3[2] = 3;
     const out = await tshark(rich, pcap([udp(v3, 9999)]), ['-V', '-O', 'rich']);
-    assert.match(out, /\[far\]\n\s+\[Expert Info \(Warning\/Malformed\): past the end of the data\]/);
+    assert.match(
+      out,
+      /\[far: past the end of the data\]\n\s+\[Expert Info \(Warning\/Malformed\): past the end of the data\]/,
+    );
     assert.match(out, /first: 82/);
   });
 

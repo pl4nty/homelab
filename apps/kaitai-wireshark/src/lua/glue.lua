@@ -19,6 +19,8 @@ function env.require(name)
   local m = loaded[name]
   if m == nil then
     local src = MODULES[name] or error("kaitai: no module named " .. name, 2)
+    -- specs can import each other (ipv4_packet and protocol_body do), so a module counts as loaded while it runs
+    loaded[name] = true
     m = assert(load(src, "=" .. name .. ".lua", "t", env))(name)
     if m == nil then m = true end
     loaded[name] = m
@@ -48,6 +50,7 @@ for name, read in pairs(Stream) do
       local p, bits = io._io:seek(), io.bits_left
       local v = read(io, ...)
       S.seq = S.seq + 1
+      S.raw = nil
       -- a bit field that starts in a partly read byte starts one byte back
       S.io, S.a, S.b, S.val = io, bits > 0 and p - 1 or p, io._io:seek(), v
       return v
@@ -94,7 +97,7 @@ function Stream:_init(io)
   end
 end
 
--- Resolves a range of a stream to a TvbRange, following substreams to the PDU's tvb. Bytes made by `process`
+-- Resolves a range of a stream to a TvbRange and its Tvb, following substreams to the PDU's tvb. Bytes made by `process`
 -- become a new data source named after the field.
 local function locate(io, a, b)
   local m = S.streams[io]
@@ -106,7 +109,7 @@ local function locate(io, a, b)
   if not m.tvb then m.tvb = ByteArray.new(m.bytes, true):tvb(m.name or "Kaitai") end
   local len = m.tvb:len() - m.base
   if a > len then return nil end
-  return m.tvb:range(m.base + a, math.min(b, len) - a)
+  return m.tvb:range(m.base + a, math.min(b, len) - a), m.tvb
 end
 
 -- Wireshark has zlib; the runtime's pure Lua fallback (zzlib) isn't bundled.
@@ -128,6 +131,7 @@ function Struct._init(obj, io)
   if S then
     local n = { kind = "struct", obj = obj, io = io, a = io:pos(), kids = {} }
     S.nodes[obj] = n
+    S.order[#S.order + 1] = n
     S.root = S.root or n
   end
 end
@@ -166,8 +170,12 @@ local function make_node(name, v, owner)
     return arr
   end
   local n = { name = name, value = v, owner = owner }
+  local raw = S.raw
   if S.seq ~= S.mark then
     n.io, n.a, n.b, n.exact = S.io, S.a, S.b, v == S.val
+  elseif raw and raw.name == name then
+    -- `process` with no `type`: the value comes from the _raw_ bytes read just before
+    n.io, n.a, n.b = raw.io, raw.a, raw.b
   end
   S.mark = S.seq
   return n
@@ -179,8 +187,12 @@ local function type_of(obj) return CLASSES[getmetatable(obj)] end
 
 local function on_assign(obj, k, v)
   if k:find("^_raw_") then
-    -- _raw_x and _raw__raw_x hold the bytes of x's substream; x is _m_x for an instance
-    S.raw_name = k:gsub("^_raw_", ""):gsub("^_raw_", ""):gsub("^_m_", "")
+    -- _raw_x and _raw__raw_x hold the bytes of x's substream or `process` input; x is _m_x for an instance
+    local name = k:gsub("^_raw_", ""):gsub("^_raw_", ""):gsub("^_m_", "")
+    S.raw_name = name
+    if S.seq ~= S.mark then S.raw = { name = name, io = S.io, a = S.a, b = S.b } end
+    -- the read is x's, not that of whatever is assigned next (a value instance that a switch reads, say)
+    S.mark = S.seq
     return
   end
   local name = k:match("^_m_(.*)") or k
@@ -307,7 +319,7 @@ local function wire_value(f, v)
     if k == "s8" then return Int64.fromhex(string.format("%016x", v)) end
     return v
   elseif k == "bool" then
-    return type(v) == "boolean" and v or nil
+    if type(v) == "boolean" then return v end
   elseif k == "float" or k == "double" then
     return type(v) == "number" and v or nil
   elseif k == "bytes" then
@@ -374,9 +386,11 @@ local function span(n)
   if n.kind == "array" then
     local first, last = n.kids[1], n.kids[#n.kids]
     if not first then return nil end
-    local r1, r2 = span(first), span(last)
-    if r1 and r2 and r1:tvb() == r2:tvb() then return r1:tvb():range(r1:offset(), r2:offset() + r2:len() - r1:offset()) end
-    return r1
+    -- TvbRange:tvb() makes a new Tvb, so compare the Tvbs locate() resolved to
+    local r1, t1 = span(first)
+    local r2, t2 = span(last)
+    if r1 and r2 and t1 == t2 then return t1:range(r1:offset(), r2:offset() + r2:len() - r1:offset()), t1 end
+    return r1, t1
   end
   if n.io then return locate(n.io, n.a, n.b) end
 end
@@ -418,7 +432,7 @@ function render(tree, n)
     item = tree:add(n.name .. ": " .. (n.ref.summary or n.ref.name or ""))
     item:set_generated()
   elseif n.failed then
-    item = tree:add(n.name)
+    item = tree:add(n.name .. ": " .. n.failed)
     item:set_generated()
     add_expert(item, e_instance, n.failed)
   else
@@ -431,6 +445,7 @@ function render(tree, n)
       else
         item = tree:add(f.pf, v)
       end
+      if n.value == "" then item:set_text(label .. ": <empty>") end
       if n.index then item:prepend_text("[" .. n.index .. "] ") end
       if f.enum and type(n.value) ~= "table" then item:append_text(" (not in enum)") end
     else
@@ -452,9 +467,16 @@ end
 
 -- Evaluates every instance of every struct in the tree, breadth first, so the tree shows them. An instance that
 -- fails gets an expert warning and doesn't stop the others.
+-- Instances can recurse without end (a DNS name pointer to itself), so stop after this many structs.
+local MAX_STRUCTS = 4096
+
 local function force_instances(root)
   local queue, i = { root }, 1
   while queue[i] do
+    if i > MAX_STRUCTS then
+      add_kid(root, { name = "instances", owner = root, failed = "stopped after " .. MAX_STRUCTS .. " structs" })
+      return
+    end
     local n = queue[i]
     i = i + 1
     local t = type_of(n.obj)
@@ -472,15 +494,34 @@ local function force_instances(root)
   end
 end
 
+-- A struct joins the tree when its parent assigns it, which is after it's read. When a read fails, the structs being
+-- read were never assigned; hang each on the struct reading it, so the fields read before the failure still show.
+local function adopt_unfinished(st)
+  local open = {}
+  for _, n in ipairs(st.order) do
+    if n ~= st.root and not n.owner then
+      local parent = st.nodes[rawget(n.obj, "_parent")] or open[#open] or st.root
+      local t = type_of(n.obj)
+      n.name, n.owner, n.b = (t and t.path:match("[^.]+$") or "?") .. " (incomplete)", parent, n.io:pos()
+      parent.kids[#parent.kids + 1] = n
+      open[#open + 1] = n
+    end
+  end
+end
+
 -- Parses one PDU of schema type t at tvb offset off. Returns the state, the bytes consumed, and an error: nil, an
 -- EOF table (needs more data), or a message.
 local function parse(t, tvb, off)
   local io = Stream(StringStream(tvb:raw(off)))
-  local st = { top = io, streams = { [io] = { tvb = tvb, base = off } }, nodes = {}, sources = {}, seq = 0, mark = 0 }
+  local st = { top = io, streams = { [io] = { tvb = tvb, base = off } }, nodes = {}, order = {}, sources = {}, seq = 0,
+    mark = 0 }
   S = st
   local ok, err = pcall(t.cls, io)
   local used = io:pos()
-  if ok then force_instances(st.root) end
+  -- the field assigned last before the error, which instances would replace
+  st.last_read = st.last
+  if not ok then adopt_unfinished(st) end
+  force_instances(st.root)
   S = nil
   if ok then return st, used end
   return st, used, is_eof(err) and err or message(err)
@@ -546,7 +587,7 @@ local function dissect(tvb, pinfo, tree, stream)
     if err then used = len - off end
 
     local item = tree:add(proto, tvb(off, used))
-    local root, last = st.root, st.last
+    local root, last = st.root, st.last_read
     S = st
     local s = summarize(root)
     if s ~= "" then item:append_text(", " .. s) end
@@ -565,7 +606,6 @@ local function dissect(tvb, pinfo, tree, stream)
     render_kids(item, root)
     S = nil
     if err then
-      -- a struct whose parse failed isn't in the tree, so neither is a field of it
       if not (last and last.error and last.item) then add_expert(item, e_malformed, err) end
       if dir and not pinfo.visited then desync[dir] = pinfo.number end
     end

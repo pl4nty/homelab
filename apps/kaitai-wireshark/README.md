@@ -54,8 +54,10 @@ several places has one set of filters.
 - TCP: a read past the end of the buffer asks TCP for more bytes (the exact shortfall when known), then the PDU is
   parsed again from its start. Several PDUs in one segment are dissected in turn.
 - Errors: a failed `valid`/`contents` is marked on its field; a short read or bad data is marked on the PDU, naming
-  the last field read. Over TCP, an error stops dissection of that direction, since record boundaries after it can't
-  be trusted. An instance that fails is marked and doesn't stop the others.
+  the last field read, and the structs being read show as `<type> (incomplete)` with the fields read so far. Over
+  TCP, an error stops dissection of that direction, since record boundaries after it can't be trusted. An instance
+  that fails is marked and doesn't stop the others; instance evaluation stops after 4096 structs (a DNS name that
+  points at itself).
 - `-webide-representation` (the Web IDE's key) gives a type's summary in the tree and the Info column:
   `'{index} begin={begin} len={data.length}'`, with `:hex`, `:dec` or `:str` after a path.
 
@@ -74,10 +76,15 @@ protocol preference, set from where the dissector was generated).
 - A TCP PDU type ending in `size-eos` or `repeat: eos` consumes the rest of the segment, so set `pdu` to a
   length-delimited record type.
 - A capture that starts mid-connection fails on its first segment when `first-pdu` is set.
+- A `pdu` or `first-pdu` type is parsed on its own, so it can't use `_root` or `_parent`.
+- Value instances are string fields, so filters compare them as text.
 
 ## Tests
 
 `npm test` runs the generator against tshark (skipped when tshark is missing; run as a non-root user, or as root
 with a `ws` user, since tshark won't load Lua plugins as root): the DO peer protocol capture as captured and
 resegmented at 7 to 65000 bytes, a UDP spec covering bit fields, xor, imports, switch and instances, zlib, error
-marking, and specs from kaitai_struct_formats cross-checked against Wireshark's own dissectors (`test/formats`).
+marking, and specs from kaitai_struct_formats (`KSF_DIR`, default a sibling checkout) cross-checked against
+Wireshark's own DNS, Ethernet/VLAN/IPv4/IPv6/TCP/UDP/ICMP, RTP and TLS dissectors, values and byte ranges
+(`test/formats`). `KAITAI_WIRESHARK_REQUIRE=1` (set in CI) fails instead of skipping when tshark or the specs are
+missing.

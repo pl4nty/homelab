@@ -13,9 +13,12 @@ export const fixtures = new URL('fixtures/', import.meta.url).pathname;
 // tshark won't load Lua plugins as root, so as root run it as another user.
 const asUser = process.getuid?.() === 0 ? 'ws' : undefined;
 export const tsharkMissing = (() => {
-  if (spawnSync('tshark', ['--version']).status !== 0) return 'tshark is not installed';
-  if (asUser && spawnSync('id', [asUser]).status !== 0) return `running as root and there is no user ${asUser}`;
-  return false;
+  let why: string | false = false;
+  if (spawnSync('tshark', ['--version']).status !== 0) why = 'tshark is not installed';
+  else if (asUser && spawnSync('id', [asUser]).status !== 0) why = `running as root and there is no user ${asUser}`;
+  // CI sets this, so a broken environment fails instead of skipping everything
+  if (why && process.env.KAITAI_WIRESHARK_REQUIRE) throw new Error(why);
+  return why;
 })();
 
 export function readKsy(path: string): Ksy {
