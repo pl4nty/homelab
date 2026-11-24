@@ -242,7 +242,7 @@ class Gallery implements vscode.TreeDataProvider<Node>, vscode.Disposable {
 
   private suggest() {
     const doc = this.session.active;
-    const ext = doc && !doc.specUri ? extensionOf(doc.uri.path) : undefined;
+    const ext = doc ? extensionOf(doc.uri.path) : undefined;
     const paths = new Set(suggestFor(ext, this.entries, this.meta));
     this.suggested = ext && paths.size ? { ext, paths } : undefined;
     return this.suggested;
@@ -295,8 +295,9 @@ class Gallery implements vscode.TreeDataProvider<Node>, vscode.Disposable {
     const s = this.suggested?.paths.has(path) ? this.suggested : undefined;
     const item = new vscode.TreeItem(name);
     item.id = `${node.suggested ? 'suggested' : 'file'}:${path}`;
-    item.iconPath = new vscode.ThemeIcon(s ? 'star-full' : 'file-code');
-    item.description = s ? `suggested for .${s.ext} · ${path}` : path;
+    const loaded = this.session.active?.specUri?.toString() === this.uriOf(path).toString();
+    item.iconPath = new vscode.ThemeIcon(loaded ? 'check' : s ? 'star-full' : 'file-code');
+    item.description = [loaded && 'loaded', s && `suggested for .${s.ext}`, path].filter(Boolean).join(' · ');
     item.contextValue = 'format';
     item.command = { command: 'kaitai.formats.open', title: 'Open Spec', arguments: [node] };
     return item;
