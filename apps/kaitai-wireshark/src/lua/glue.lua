@@ -26,56 +26,30 @@ function env.require(name)
   return m
 end
 
+local class = env.require("class")
+env.require("kaitaistruct")
+local Struct, Stream = env.KaitaiStruct, env.KaitaiStream
+local StringStream = env.require("string_stream")
+
 -- S is the state of the parse in progress, nil outside a parse.
 local S
 
-local EOF = {} -- metatable of the error raised when a read runs past the end of the PDU's buffer
-
--- Assignment tracing ------------------------------------------------------------------------------------------------
-
-local class = env.require("class")
-local Struct -- KaitaiStruct, once loaded
-local on_assign
-
-local make_class = class.class
-function class.class(...)
-  local cls = make_class(...)
-  local set = cls.__newindex
-  function cls.__newindex(obj, k, v)
-    set(obj, k, v)
-    if S and Struct and cls.is_a[Struct] then on_assign(obj, k, v) end
-  end
-  return cls
-end
-
-env.require("kaitaistruct")
-Struct = env.KaitaiStruct
-local Stream = env.KaitaiStream
-local StringStream = env.require("string_stream")
-
-local struct_init = Struct._init
-function Struct._init(obj, io)
-  struct_init(obj, io)
-  if S then
-    local n = { kind = "struct", obj = obj, io = io, a = io:pos(), kids = {} }
-    S.nodes[obj] = n
-    S.root = S.root or n
-  end
-end
+-- Metatable of the error raised when a read runs past the end of the PDU's buffer.
+local EOF = {}
+local function is_eof(err) return getmetatable(err) == EOF end
 
 -- Read tracing ------------------------------------------------------------------------------------------------------
 
+-- Reads nest (read_u2le calls read_bytes). The outermost returns last, so its record is the one that stays.
 for name, read in pairs(Stream) do
   if type(read) == "function" and name:sub(1, 5) == "read_" then
     Stream[name] = function(io, ...)
-      if not S or S.depth > 0 then return read(io, ...) end
+      if not S then return read(io, ...) end
       local p, bits = io._io:seek(), io.bits_left
-      S.depth = 1
       local v = read(io, ...)
-      S.depth = 0
       S.seq = S.seq + 1
       -- a bit field that starts in a partly read byte starts one byte back
-      S.io, S.a, S.b, S.val = io, (bits and bits > 0) and p - 1 or p, io._io:seek(), v
+      S.io, S.a, S.b, S.val = io, bits > 0 and p - 1 or p, io._io:seek(), v
       return v
     end
   end
@@ -111,7 +85,8 @@ function Stream:_init(io)
   stream_init(self, io)
   if S and getmetatable(io) == StringStream then
     local buf = io._buf
-    if buf == S.val and S.io then
+    -- the bytes just read, or what `terminator` or `pad-right` kept of them
+    if S.io and type(S.val) == "string" and S.val:sub(1, #buf) == buf then
       S.streams[self] = { parent = S.io, base = S.a }
     else
       S.streams[self] = { bytes = buf, tvb = S.sources[buf], base = 0, name = S.raw_name }
@@ -147,15 +122,24 @@ end
 
 -- Parse tree ----------------------------------------------------------------------------------------------------------
 
+local struct_init = Struct._init
+function Struct._init(obj, io)
+  struct_init(obj, io)
+  if S then
+    local n = { kind = "struct", obj = obj, io = io, a = io:pos(), kids = {} }
+    S.nodes[obj] = n
+    S.root = S.root or n
+  end
+end
+
 local function is_struct(v) return type(v) == "table" and S.nodes[v] end
 
-local make_node
 local function add_kid(owner, n)
   owner.kids[#owner.kids + 1] = n
   S.last = n
 end
 
-function make_node(name, v, owner)
+local function make_node(name, v, owner)
   local child = is_struct(v)
   if child then
     if child.owner then
@@ -165,8 +149,7 @@ function make_node(name, v, owner)
     child.name, child.owner = name, owner
     child.b = child.io:pos()
     -- a struct over a whole substream (`size` + `type`) spans the substream, not only what it read
-    local m = S.streams[child.io]
-    if child.io ~= owner.io and m and child.a == 0 then child.b = child.io:size() end
+    if child.io ~= owner.io and child.a == 0 then child.b = child.io:size() end
     return child
   end
   if type(v) == "table" and getmetatable(v) == nil and next(v) == nil then
@@ -190,47 +173,51 @@ function make_node(name, v, owner)
   return n
 end
 
-function on_assign(obj, k, v)
-  local name = k
-  if k:byte(1) == 95 then -- "_"
-    if k:sub(1, 3) == "_m_" then
-      name = k:sub(4)
-    elseif k:sub(1, 5) == "_raw_" then
-      S.raw_name = (k:gsub("^_raw_", ""):gsub("^_raw_", ""))
-      return
-    elseif k:sub(1, 9) ~= "_unnamed" then
-      return
+-- Schema types by Lua class, filled in once the compiled modules are loaded.
+local CLASSES = {}
+local function type_of(obj) return CLASSES[getmetatable(obj)] end
+
+local function on_assign(obj, k, v)
+  if k:find("^_raw_") then
+    -- _raw_x and _raw__raw_x hold the bytes of x's substream; x is _m_x for an instance
+    S.raw_name = k:gsub("^_raw_", ""):gsub("^_raw_", ""):gsub("^_m_", "")
+    return
+  end
+  local name = k:match("^_m_(.*)") or k
+  if name:find("^_") and not name:find("^_unnamed") then return end -- _io, _parent, _root
+  local owner = S.nodes[obj]
+  local t = type_of(obj)
+  if not owner or (t and t.params[name]) then return end
+  add_kid(owner, make_node(name, v, owner))
+end
+
+local make_class = class.class
+function class.class(...)
+  local cls = make_class(...)
+  if cls.is_a[Struct] then
+    local set = cls.__newindex
+    function cls.__newindex(obj, k, v)
+      set(obj, k, v)
+      if S then on_assign(obj, k, v) end
     end
   end
-  local owner = S.nodes[obj]
-  if not owner then return end
-  local t = S.types[getmetatable(obj)]
-  if t and t.params[name] then return end
-  add_kid(owner, make_node(name, v, owner))
+  return cls
 end
 
 -- Schema ----------------------------------------------------------------------------------------------------------------
 
 -- Resolve each schema type's Lua class ("Rich.Body") in the environment.
 env.require(SPEC.root)
-local CLASSES = {}
 for path, t in pairs(SPEC.types) do
   local cls = env
   for part in t.lua:gmatch("[^.]+") do cls = cls and rawget(cls, part) end
   if not cls then error("kaitai: no Lua class " .. t.lua .. " for type " .. path) end
-  t.path = path
+  t.path, t.cls = path, cls
   t.params = {}
-  for _, p in ipairs(t.param_ids or {}) do t.params[p] = true end
+  for _, p in ipairs(t.param_ids) do t.params[p] = true end
   t.by_id = {}
   for _, f in ipairs(t.fields) do t.by_id[f.id] = f end
   CLASSES[cls] = t
-end
-
-local function class_of(type_path)
-  for cls, t in pairs(CLASSES) do
-    if t.path == type_path then return cls end
-  end
-  error("kaitai: unknown type " .. tostring(type_path))
 end
 
 -- Protocol and fields -----------------------------------------------------------------------------------------------
@@ -250,14 +237,16 @@ for path, e in pairs(SPEC.enums) do
 end
 
 local INT = {
-  u1 = "uint8", u2 = "uint16", u3 = "uint24", u4 = "uint32", u8 = "uint64",
+  u1 = "uint8", u2 = "uint16", u4 = "uint32", u8 = "uint64",
   s1 = "int8", s2 = "int16", s4 = "int32", s8 = "int64",
 }
 local fields = {}
 for path, t in pairs(SPEC.types) do
-  local prefix = SPEC.name .. (path == SPEC.root and "" or "." .. path:gsub("^" .. SPEC.root:gsub("%p", "%%%0") .. "%.", "")) .. "."
+  -- <name>.<field> for the top-level type, <name>.<type path>.<field> for the rest
+  local rel = path .. "."
+  if rel:sub(1, #SPEC.root + 1) == SPEC.root .. "." then rel = rel:sub(#SPEC.root + 2) end
   for _, f in ipairs(t.fields) do
-    local abbr, label, desc = prefix .. f.id, f.id, f.doc
+    local abbr, label, desc = SPEC.name .. "." .. rel .. f.id, f.id, f.doc
     local k, pf = f.kind
     if INT[k] then
       local vs = f.enum and VALUESTRINGS[f.enum]
@@ -287,10 +276,10 @@ proto.experts = { e_malformed, e_instance, e_desync }
 
 -- Values ----------------------------------------------------------------------------------------------------------------
 
-local function hex(s, max)
-  local n = math.min(#s, max or #s)
-  local h = s:sub(1, n):gsub(".", function(c) return string.format("%02x", c:byte()) end)
-  return n < #s and h .. "…" or h
+-- The first 16 bytes of s.
+local function hex(s)
+  local n = math.min(#s, 16)
+  return ("%02x"):rep(n):format(s:byte(1, n)) .. (n < #s and "…" or "")
 end
 
 local function show(v, kind)
@@ -303,7 +292,7 @@ local function show(v, kind)
   elseif t == "string" then
     local text = kind == "string" or ((kind == "value" or kind == "switch") and utf8.len(v) and not v:find("[%c]"))
     if text then return '"' .. v .. '"' end
-    return #v == 0 and "<empty>" or hex(v, 16)
+    return #v == 0 and "<empty>" or hex(v)
   end
   return tostring(v)
 end
@@ -311,8 +300,8 @@ end
 -- The value to give TreeItem:add for a field, or nil to show it as text.
 local function wire_value(f, v)
   local k = f.kind
-  if type(v) == "table" and v.value ~= nil then v = v.value end -- an enum
   if INT[k] then
+    if type(v) == "table" then v = v.value end -- an enum
     if math.type(v) ~= "integer" then return nil end
     if k == "u8" then return UInt64.fromhex(string.format("%016x", v)) end
     if k == "s8" then return Int64.fromhex(string.format("%016x", v)) end
@@ -332,7 +321,7 @@ end
 
 -- `-webide-representation`: "{a} {b.c:hex}"
 local function represent(n)
-  local t = S.types[getmetatable(n.obj)]
+  local t = type_of(n.obj)
   local fmt = t and t.repr
   if not fmt then return nil end
   return (fmt:gsub("{([^}:]+):?([^}]*)}", function(path, how)
@@ -353,7 +342,7 @@ local function represent(n)
     end
     if how == "hex" and math.type(v) == "integer" then return string.format("0x%x", v) end
     if how == "dec" and type(v) == "number" then return tostring(v) end
-    if type(v) == "string" then return (how == "str" or utf8.len(v) and not v:find("%c")) and v or hex(v, 16) end
+    if type(v) == "string" then return (how == "str" or utf8.len(v) and not v:find("%c")) and v or hex(v) end
     return show(v)
   end))
 end
@@ -382,7 +371,6 @@ end
 -- Rendering ---------------------------------------------------------------------------------------------------------------
 
 local function span(n)
-  if n.kind == "struct" then return locate(n.io, n.a, n.b or n.io:pos()) end
   if n.kind == "array" then
     local first, last = n.kids[1], n.kids[#n.kids]
     if not first then return nil end
@@ -393,8 +381,11 @@ local function span(n)
   if n.io then return locate(n.io, n.a, n.b) end
 end
 
+-- Error text can quote bytes from the packet, and a NUL would end it.
+local function add_expert(item, e, text) item:add_proto_expert_info(e, (text:gsub("%c", "."))) end
+
 local function field_of(n)
-  local t = S.types[getmetatable(n.owner.obj)]
+  local t = type_of(n.owner.obj)
   return t and t.by_id[n.name]
 end
 
@@ -426,6 +417,10 @@ function render(tree, n)
   elseif n.ref then
     item = tree:add(n.name .. ": " .. (n.ref.summary or n.ref.name or ""))
     item:set_generated()
+  elseif n.failed then
+    item = tree:add(n.name)
+    item:set_generated()
+    add_expert(item, e_instance, n.failed)
   else
     local v = f and wire_value(f, n.value)
     if v ~= nil then
@@ -445,22 +440,10 @@ function render(tree, n)
     if not r then item:set_generated() end
   end
   n.item = item
-  if n.error then item:add_proto_expert_info(n.error_expert or e_malformed, n.error) end
+  if n.error then add_expert(item, e_malformed, n.error) end
 end
 
 -- Parsing -------------------------------------------------------------------------------------------------------------
-
-local function new_state()
-  return {
-    nodes = setmetatable({}, { __mode = "k" }),
-    streams = setmetatable({}, { __mode = "k" }),
-    sources = {},
-    types = CLASSES,
-    seq = 0,
-    mark = 0,
-    depth = 0,
-  }
-end
 
 local function message(err)
   if type(err) == "string" then return (err:gsub("^[^:]*:%d+: ", "")) end
@@ -474,48 +457,36 @@ local function force_instances(root)
   while queue[i] do
     local n = queue[i]
     i = i + 1
-    local t = n.obj and S.types[getmetatable(n.obj)]
-    for _, f in ipairs(t and t.instances or {}) do
-      S.depth = 0
-      local before = #n.kids
-      local ok, err = pcall(function() return n.obj[f] end)
+    local t = type_of(n.obj)
+    for _, id in ipairs(t and t.instances or {}) do
+      local ok, err = pcall(function() return n.obj[id] end)
       if not ok then
-        local e = { name = f, owner = n, value = "", error = message(getmetatable(err) == EOF and "past the end of the data" or err), error_expert = e_instance }
-        e.value = e.error
-        if #n.kids == before then add_kid(n, e) end
+        add_kid(n, { name = id, owner = n, failed = is_eof(err) and "past the end of the data" or message(err) })
       end
     end
     for _, k in ipairs(n.kids) do
-      if k.kind == "struct" then queue[#queue + 1] = k end
-      if k.kind == "array" then
-        for _, e in ipairs(k.kids) do
-          if e.kind == "struct" then queue[#queue + 1] = e end
-        end
+      for _, s in ipairs(k.kind == "array" and k.kids or { k }) do
+        if s.kind == "struct" then queue[#queue + 1] = s end
       end
     end
   end
 end
 
--- Parses one PDU of class cls at tvb offset off. Returns the state, the bytes consumed, and an error: nil, an EOF
--- table (needs more data), or a message.
-local function parse(cls, tvb, off)
-  local st = new_state()
-  S = st
+-- Parses one PDU of schema type t at tvb offset off. Returns the state, the bytes consumed, and an error: nil, an
+-- EOF table (needs more data), or a message.
+local function parse(t, tvb, off)
   local io = Stream(StringStream(tvb:raw(off)))
-  st.streams[io] = { tvb = tvb, base = off }
-  st.top = io
-  local ok, err = pcall(cls, io)
+  local st = { top = io, streams = { [io] = { tvb = tvb, base = off } }, nodes = {}, sources = {}, seq = 0, mark = 0 }
+  S = st
+  local ok, err = pcall(t.cls, io)
   local used = io:pos()
-  if ok and st.root then force_instances(st.root) end
+  if ok then force_instances(st.root) end
   S = nil
-  if not ok then
-    if getmetatable(err) == EOF then return st, used, err end
-    return st, used, message(err)
-  end
-  return st, used, nil
+  if ok then return st, used end
+  return st, used, is_eof(err) and err or message(err)
 end
 
--- TCP state: which (frame, offset) holds the first PDU of each direction, and where a direction desynchronized.
+-- TCP state: which PDU is the first of each direction, and the frame where a direction desynchronized.
 local first_pdu, desync = {}, {}
 function proto.init()
   first_pdu, desync = {}, {}
@@ -528,10 +499,10 @@ local function direction(pinfo)
   return tostring(s.value) .. " " .. tostring(pinfo.src) .. ":" .. pinfo.src_port
 end
 
-local PDU = class_of(SPEC.pdu or SPEC.root)
-local FIRST = SPEC.first_pdu and class_of(SPEC.first_pdu)
+local PDU = SPEC.types[SPEC.pdu or SPEC.root]
+local FIRST = SPEC.types[SPEC.first_pdu]
 
--- Bytes of each PDU in recently dissected frames, for "Open in Kaitai IDE".
+-- The first PDU of each recently dissected frame, for "Open in Kaitai IDE".
 local recent, recent_order = {}, {}
 local function remember(frame, raw)
   if not recent[frame] then
@@ -541,78 +512,89 @@ local function remember(frame, raw)
   recent[frame] = raw
 end
 
-local function dissect(tvb, pinfo, tree, over_tcp)
-  local dir = over_tcp and direction(pinfo)
+-- The Info text of the last call. TCP fences the column after each PDU, so a second call for the same frame (the
+-- bytes after a reassembled PDU) adds to it.
+local last_info
+
+-- stream: reassemble over TCP and keep per-direction state
+local function dissect(tvb, pinfo, tree, stream)
+  local dir = stream and direction(pinfo)
   if dir and desync[dir] and pinfo.number > desync[dir] then
-    local item = tree:add(proto, tvb())
-    item:add_proto_expert_info(e_desync)
+    tree:add(proto, tvb()):add_proto_expert_info(e_desync)
     return tvb:len()
   end
 
-  local off, len, infos, raws = 0, tvb:len(), {}, {}
+  local off, len, infos = 0, tvb:len(), {}
   while off < len do
-    local cls = PDU
-    if FIRST and dir then
-      local f = first_pdu[dir]
-      if (not f and not pinfo.visited) or (f and f.frame == pinfo.number and f.off == off) then cls = FIRST end
-    end
+    -- A reassembled PDU is a data source of its own, at offset 0. The bytes after it in the same frame come in
+    -- another call, at their offset in the frame.
+    local key = FIRST and dir and pinfo.number .. ":" .. tvb:offset() + off
+    local first = key and (first_pdu[dir] == key or (not first_pdu[dir] and not pinfo.visited))
+    local t = first and FIRST or PDU
 
-    local st, used, err = parse(cls, tvb, off)
-    if getmetatable(err) == EOF and over_tcp then
+    local st, used, err = parse(t, tvb, off)
+    if dir and is_eof(err) then
       pinfo.desegment_offset = off
       pinfo.desegment_len = err.need or DESEGMENT_ONE_MORE_SEGMENT
       -- returning less than the buffer would tell TCP we rejected it, with desegment_* set
       off = len
       break
     end
-    if cls == FIRST and not err and not pinfo.visited then first_pdu[dir] = { frame = pinfo.number, off = off } end
-    if getmetatable(err) == EOF then err = "truncated: needs more bytes than the packet has" end
-    if err and used == 0 then used = len - off end
+    if first then first_pdu[dir] = key end
+    if is_eof(err) then err = "truncated: needs more bytes than the packet has" end
+    -- record boundaries after an error can't be trusted, so it takes the rest of the buffer
+    if err then used = len - off end
 
-    local root = st.root
-    local item = tree:add(proto, tvb(off, math.max(used, 0)))
-    if root then
-      S = st
-      local s = summarize(root)
-      if s ~= "" then item:append_text(", " .. s) end
-      infos[#infos + 1] = s ~= "" and s or S.types[getmetatable(root.obj)].path:match("[^.]+$")
-      -- a failed `valid` or `contents` check is about the field just read; anything else (a short read, a bad
-      -- encoding) happened while reading the next one
-      local last = st.last
-      if err and last and (err:find("^Validation") or err:find("^not equal")) then
-        last.error = err .. ": " .. last.name .. " = " .. show(last.value, field_of(last) and field_of(last).kind)
-      elseif err and last then
+    local item = tree:add(proto, tvb(off, used))
+    local root, last = st.root, st.last
+    S = st
+    local s = summarize(root)
+    if s ~= "" then item:append_text(", " .. s) end
+    infos[#infos + 1] = s ~= "" and s or t.path:match("[^.]+$")
+    if err and last then
+      if err:find("^Validation") or err:find("^not equal") then
+        -- a failed `valid` or `contents` is about the field just read
+        local f = field_of(last)
+        err = err .. ": " .. last.name .. " = " .. show(last.value, f and f.kind)
+        last.error = err
+      else
+        -- anything else (a short read, a bad encoding) happened while reading the next one
         err = err .. " (after " .. last.name .. ")"
       end
-      render_kids(item, root)
-      S = nil
     end
+    render_kids(item, root)
+    S = nil
     if err then
-      if not (st.last and st.last.error) then item:add_proto_expert_info(e_malformed, err) end
-      -- record boundaries after an error can't be trusted
+      -- a struct whose parse failed isn't in the tree, so neither is a field of it
+      if not (last and last.error and last.item) then add_expert(item, e_malformed, err) end
       if dir and not pinfo.visited then desync[dir] = pinfo.number end
-      used = len - off
     end
-    raws[#raws + 1] = tvb:raw(off, used)
-    if used <= 0 then break end
+    if used == 0 then break end
+    if off == 0 then remember(pinfo.number, tvb:raw(0, used)) end
     off = off + used
   end
 
-  if tree and #raws > 0 then remember(pinfo.number, raws) end
   if #infos > 0 then
+    local info = table.concat(infos, ", ")
+    if tostring(pinfo.cols.info) == last_info then
+      pinfo.cols.info = ", " .. info
+      info = last_info .. ", " .. info
+    else
+      pinfo.cols.info = info
+    end
+    last_info = info
     pinfo.cols.protocol = SPEC.name:upper()
-    pinfo.cols.info = table.concat(infos, ", ")
   end
   return off
 end
 
 function proto.dissector(tvb, pinfo, tree)
-  return dissect(tvb, pinfo, tree, pinfo.port_type == _EPAN.PT_TCP or tcp_stream() ~= nil)
+  return dissect(tvb, pinfo, tree, true)
 end
 
 -- Registration ----------------------------------------------------------------------------------------------------------
 
-local ws = SPEC.wireshark or {}
+local ws = SPEC.wireshark
 proto.prefs.tcp_ports = Pref.range("TCP ports", ws.tcp_ports or "", "TCP ports to dissect as " .. SPEC.title, 65535)
 proto.prefs.udp_ports = Pref.range("UDP ports", ws.udp_ports or "", "UDP ports to dissect as " .. SPEC.title, 65535)
 proto.prefs.ksy = Pref.string("Kaitai Struct spec", SPEC.ksy or "", "The .ksy file to open in the Kaitai IDE")
@@ -620,10 +602,10 @@ proto.prefs.ksy = Pref.string("Kaitai Struct spec", SPEC.ksy or "", "The .ksy fi
 local registered = { tcp = "", udp = "" }
 local function register_ports()
   for _, t in ipairs({ "tcp", "udp" }) do
-    local table_ = DissectorTable.get(t .. ".port")
-    if registered[t] ~= "" then table_:remove(registered[t], proto) end
+    local ports = DissectorTable.get(t .. ".port")
+    if registered[t] ~= "" then ports:remove(registered[t], proto) end
     registered[t] = proto.prefs[t .. "_ports"]
-    if registered[t] ~= "" then table_:add(registered[t], proto) end
+    if registered[t] ~= "" then ports:add(registered[t], proto) end
   end
 end
 proto.prefs_changed = register_ports
@@ -636,12 +618,12 @@ if ws.user_dlt then DissectorTable.get("wtap_encap"):add(wtap_encaps.USER0 + ws.
 -- Accepts a packet when the whole payload parses as one PDU. Only offered for specs whose first field is a magic
 -- (`contents` or `valid`), since almost anything parses as a spec with no checks.
 local function heuristic(tvb, pinfo, tree)
-  local st, used, err = parse(PDU, tvb, 0)
+  local _, used, err = parse(PDU, tvb, 0)
   if err or used ~= tvb:len() then return false end
   dissect(tvb, pinfo, tree, false)
   return true
 end
-for _, t in ipairs(ws.heuristic or {}) do proto:register_heuristic(t, heuristic) end
+for _, t in ipairs(ws.heuristic) do proto:register_heuristic(t, heuristic) end
 
 -- Open in Kaitai IDE ------------------------------------------------------------------------------------------------------
 
@@ -655,13 +637,13 @@ if gui_enabled() and register_packet_menu then
     for _, fi in ipairs({ ... }) do
       if fi.name == "frame.number" then frame = fi.value end
     end
-    local pdus = frame and recent[frame]
-    if not pdus or not pdus[1] then return end
+    local pdu = frame and recent[frame]
+    if not pdu then return end
     local dir = os.getenv("TMPDIR") or os.getenv("TEMP") or "/tmp"
     local sep = package.config:sub(1, 1)
     local path = dir .. sep .. SPEC.root .. "-" .. frame .. ".bin"
     local fh = assert(io.open(path, "wb"))
-    fh:write(pdus[1])
+    fh:write(pdu)
     fh:close()
     local url = "vscode://pl4nty.kaitai-ide/open?data=" .. uri_component(path)
     if proto.prefs.ksy ~= "" then url = url .. "&ksy=" .. uri_component(proto.prefs.ksy) end

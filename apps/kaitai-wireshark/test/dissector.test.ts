@@ -39,6 +39,30 @@ describe('TCP framing (DO peer protocol)', { skip }, () => {
     });
   }
 
+  // each direction as one write, so PDUs straddle segments and several end in one frame
+  const payloads = tcpPayloads(doPeerPcap, 7680);
+  const streams = (['c', 's'] as const).map((from) => ({
+    from,
+    data: Buffer.concat(payloads.filter((p) => p.from === from).map((p) => p.data)),
+  }));
+  for (const [mss, passes] of [
+    [7, 1],
+    [7, 2],
+    [100, 1],
+  ]) {
+    test(`a stream cut every ${mss} bytes, ${passes} pass`, async () => {
+      const capture = pcap(tcp(streams, 7680, mss));
+      const args = ['-Y', 'do_peer', '-T', 'fields', '-e', '_ws.col.info', '-e', '_ws.expert.message'];
+      const out = await tshark(doPeer, capture, passes === 2 ? ['-2', ...args] : args);
+      const got = out
+        .trimEnd()
+        .split('\n')
+        .flatMap((row) => row.split('\t')[0].split(', '));
+      assert.deepEqual(got.sort(), [...DO_PEER_PDUS].sort());
+      assert.doesNotMatch(out, /\t./, 'no expert messages');
+    });
+  }
+
   test('field ranges', async () => {
     const out = JSON.parse(await tshark(doPeer, doPeerPcap, ['-Y', 'do_peer.message.id == 6', '-T', 'json', '-x']));
     // tshark nests a subtree's fields under it; collect every "<field>_raw": [hex, offset, length, ...]
@@ -72,6 +96,7 @@ describe('UDP (rich.ksy: bits, xor, imports, switch, instances)', { skip }, () =
     1, // kind a => sub
     0,
     42, // sub.v
+    7, // unnamed
     ...Buffer.from('tail'),
   ]);
 
@@ -84,11 +109,12 @@ describe('UDP (rich.ksy: bits, xor, imports, switch, instances)', { skip }, () =
       'rich.body.x',
       'rich.kind',
       'rich.sub.v',
+      'rich._unnamed9',
       'rich.rest',
       'rich.dbl',
       'rich.first',
     ]);
-    assert.deepEqual(row, ['2', 'True', '1', 'hi', '1', '1', '42', '7461696c', '4', '82']);
+    assert.deepEqual(row, ['2', 'True', '1', 'hi', '1', '1', '42', '7', '7461696c', '4', '82']);
   });
 
   test('a failed valid marks the field', async () => {
@@ -96,6 +122,22 @@ describe('UDP (rich.ksy: bits, xor, imports, switch, instances)', { skip }, () =
     bad[2] = 9;
     const out = await tshark(rich, pcap([udp(bad, 9999)]), ['-V', '-O', 'rich']);
     assert.match(out, /ValidationGreaterThanError: ver = 9/);
+  });
+
+  test('a failed valid in a nested type is reported', async () => {
+    const bad = Buffer.from(good);
+    bad[9] = 0xaa; // body.x = 0xffff
+    bad[10] = 0xaa;
+    const out = await tshark(rich, pcap([udp(bad, 9999)]), ['-V', '-O', 'rich']);
+    assert.match(out, /ValidationGreaterThanError: x = 65535/);
+  });
+
+  test('a failed instance is marked and the rest is dissected', async () => {
+    const v3 = Buffer.from(good);
+    v3[2] = 3;
+    const out = await tshark(rich, pcap([udp(v3, 9999)]), ['-V', '-O', 'rich']);
+    assert.match(out, /\[far\]\n\s+\[Expert Info \(Warning\/Malformed\): past the end of the data\]/);
+    assert.match(out, /first: 82/);
   });
 
   test('a truncated packet says where', async () => {
