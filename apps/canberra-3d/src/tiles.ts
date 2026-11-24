@@ -217,6 +217,9 @@ export class TileManager {
       const d = this.distance(e.x, e.y, fx, fz);
       const near = d < (e.near ? nearRadius * 1.2 : nearRadius);
       if (near !== e.near) this.setDetail(e, near);
+      // Far off, a thinned canopy reads the same and costs half as much.
+      const share = d > 3800 ? 0.4 : d > 2400 ? 0.7 : 1;
+      for (const t of e.farTrees) t.count = Math.ceil((e.built!.trees.length / 7) * share);
       // Half a metre a pixel under a close camera, a metre nearby, two metres beyond.
       const res = d < 250 && cameraDistance < 700 ? CLOSE_RES : d < nearRadius * 0.9 ? NEAR_RES : FAR_RES;
       if (res > e.res && !e.repainting) this.repaint(e, res);

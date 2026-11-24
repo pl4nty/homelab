@@ -57,3 +57,5 @@ npm run dev                                           # client with hot reload, 
 `npm run build` writes the client to `dist/web` and the server to `dist/server.mjs`.
 
 Keys: arrows or WASD move, Q and E turn, R and F tilt, plus and minus zoom.
+
+Rendering resolution follows the frame rate. `?ratio=1` pins it, for benchmarks and screenshots.

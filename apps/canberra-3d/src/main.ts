@@ -22,7 +22,9 @@ if (!document.createElement('canvas').getContext('webgl2')) {
   throw new Error('WebGL 2 unavailable');
 }
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setPixelRatio(
+  Number(new URLSearchParams(location.search).get('ratio')) || Math.min(window.devicePixelRatio, 2),
+);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFShadowMap;
 
@@ -262,6 +264,23 @@ function applySky() {
 }
 
 let lastFrame = performance.now();
+// Resolution follows the frame rate: drop it when frames run long, restore it when there is headroom.
+// `?ratio=1` pins it, for benchmarks and screenshots.
+const pinned = Number(new URLSearchParams(location.search).get('ratio')) || 0;
+const maxRatio = pinned || Math.min(window.devicePixelRatio, 2);
+let ratio = maxRatio;
+let frameMs = 16;
+let ratioChangedAt = 0;
+function adaptResolution(dt: number, now: number) {
+  frameMs += (dt * 1000 - frameMs) * 0.05;
+  if (pinned || now - ratioChangedAt < 1500) return;
+  const next = frameMs > 42 ? Math.max(0.6, ratio * 0.8) : frameMs < 20 ? Math.min(maxRatio, ratio * 1.15) : ratio;
+  if (Math.abs(next - ratio) < 0.01) return;
+  ratio = next;
+  ratioChangedAt = now;
+  renderer.setPixelRatio(ratio);
+  resize();
+}
 let lastTileUpdate = 0;
 function frame() {
   const dt = Math.min(0.1, (performance.now() - lastFrame) / 1000);
@@ -294,9 +313,10 @@ function frame() {
 
   const dist = camera.position.distanceTo(controls.target);
   const now = performance.now();
+  if (!document.hidden) adaptResolution(dt, now);
   if (now - lastTileUpdate > 250) {
     lastTileUpdate = now;
-    const radius = THREE.MathUtils.clamp(dist * 1.5, 1800, 6500);
+    const radius = THREE.MathUtils.clamp(dist * 1.5, 1800, 5200);
     tiles.update(controls.target.x, controls.target.z, radius, THREE.MathUtils.clamp(dist * 0.9, 900, 1700), dist);
   }
 
