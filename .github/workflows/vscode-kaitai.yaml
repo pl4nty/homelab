@@ -6,8 +6,7 @@ name: vscode-kaitai
 #
 # Registry setup: a Trusted Publishing policy for pl4nty/homelab, workflow vscode-kaitai.yaml, environment
 # vscode-marketplace, on the Marketplace publisher pl4nty and on the Open VSX extension pl4nty.kaitai-ide.
-# Open VSX only trusts extensions that already exist, so its first version is published with the OVSX_PAT
-# secret, which can be deleted afterwards.
+# Open VSX only trusts extensions that already exist, so its first version is published by hand.
 on:
   pull_request:
     paths: [apps/vscode-kaitai/**, .github/workflows/vscode-kaitai.yaml]
@@ -61,9 +60,4 @@ jobs:
       - name: Publish to the Visual Studio Marketplace
         run: npx --yes @vscode/vsce@4 publish --packagePath kaitai-ide.vsix --oidc --skip-duplicate
       - name: Publish to Open VSX
-        env:
-          # only for the first version; trusted publishing needs the extension to exist
-          OVSX_PAT: ${{ secrets.OVSX_PAT }}
-        run: |
-          if [ -n "$OVSX_PAT" ]; then npx --yes ovsx@1 publish kaitai-ide.vsix --skip-duplicate
-          else npx --yes ovsx@1 publish kaitai-ide.vsix --trusted-publishing --skip-duplicate; fi
+        run: npx --yes ovsx@1 publish kaitai-ide.vsix --trusted-publishing --skip-duplicate
