@@ -167,6 +167,11 @@
         "category": "Kaitai"
       },
       {
+        "command": "kaitai.copyAs",
+        "category": "Kaitai",
+        "title": "Copy As…"
+      },
+      {
         "command": "kaitai.exportNodeJson",
         "title": "Copy as JSON",
         "category": "Kaitai"
@@ -296,6 +301,11 @@
           "group": "2_copy@2"
         },
         {
+          "command": "kaitai.copyAs",
+          "when": "view == kaitai.structure && viewItem =~ /ranged|stream/",
+          "group": "2_copy@3"
+        },
+        {
           "command": "kaitai.exportNodeJson",
           "when": "view == kaitai.structure",
           "group": "2_copy@3"
@@ -387,6 +397,13 @@
         {
           "command": "kaitai.openStream",
           "when": "false"
+        }
+      ],
+      "webview/context": [
+        {
+          "command": "kaitai.copyAs",
+          "when": "webviewId == kaitai.hexEditor",
+          "group": "9_cutcopypaste@1"
         }
       ]
     },

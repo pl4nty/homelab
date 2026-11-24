@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import { findDeepestNode, type StructureNode, toJson } from './engine/structure.ts';
 import type { KaitaiDocument, Session } from './session.ts';
 import { SCHEME, StreamFs } from './streamFs.ts';
+import { COPY_FORMATS, type CopyFormat } from './util/copyAs.ts';
 import { insertSeqItems, typeChoices } from './util/insertField.ts';
 import { INVALID, parseParamValue, parseRange } from './util/parse.ts';
 import { findAll, parseNeedle } from './util/search.ts';
@@ -145,6 +146,23 @@ export function registerCommands(session: Session): vscode.Disposable {
       return copy(String(text ?? value ?? ''), name);
     }),
     'kaitai.copyPath': onNode((node) => copy(toExpressionPath(node), 'path')),
+    // From the hex view (its selection) or the structure tree (that field's bytes).
+    'kaitai.copyAs': onDoc(async (doc, arg) => {
+      const node = arg && typeof arg === 'object' && 'kind' in arg ? (arg as StructureNode) : undefined;
+      const bytes = node
+        ? node.range
+          ? doc.data.subarray(node.range.start, node.range.end)
+          : node.streamBytes?.()
+        : doc.data.subarray(doc.selection.start, doc.selection.end);
+      if (!(bytes instanceof Uint8Array) || !bytes.length) {
+        return void vscode.window.showInformationMessage('Select some bytes in the Kaitai Hex Editor first.');
+      }
+      const pick = await vscode.window.showQuickPick(
+        Object.entries(COPY_FORMATS).map(([id, f]) => ({ id: id as CopyFormat, label: f.label, detail: f.detail })),
+        { placeHolder: `Copy ${bytes.length} bytes as` },
+      );
+      if (pick) await copy(COPY_FORMATS[pick.id].format(bytes), `${bytes.length} bytes as ${pick.label}`);
+    }),
     'kaitai.exportBytes': onNode(async (node, doc) => {
       const { range } = node;
       if (!range) return;

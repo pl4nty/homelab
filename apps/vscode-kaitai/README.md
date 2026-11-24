@@ -24,6 +24,7 @@ The container image (`server/serve.mjs` behind `https://vscode-kaitai.${PUBLIC_D
 | Language features | Completion, hover docs, go to definition (types, enums, imports, fields), outline for `.ksy`. |
 | Generated code | **Show Generated Code…** for every compiler target (C++, C#, Go, Java, JavaScript, Lua, Nim, Perl, PHP, Python, Ruby, Rust, Construct, Graphviz, HTML), with debug variants. |
 | Value inspector | Integers (8 to 64 bit), floats, Unix times and string previews at the caret, both endiannesses side by side. |
+| Copy As | **Copy As…** from the hex view's context menu or a structure field: hex octets, hex, literal, UTF-8, C, Go, Java, Python, JSON, Base64. |
 | Format gallery | Browse and use specs from `pl4nty/kaitai_struct_formats` (configurable). Absolute imports such as `/common/vlq_base128_le` resolve from the gallery when they are not in the workspace. |
 | Export | Whole tree to JSON, a subtree to the clipboard, a field's bytes to a file. |
 
