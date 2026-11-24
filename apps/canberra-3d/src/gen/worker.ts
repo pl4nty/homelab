@@ -1,4 +1,4 @@
-import type { Tile } from '../../shared/tile.ts';
+import { TILE_VERSION, type Tile } from '../../shared/tile.ts';
 import { buildTile } from './build.ts';
 import { paintGround } from './ground.ts';
 import type { BuildReply, BuildRequest, Built } from './types.ts';
@@ -35,7 +35,8 @@ async function load(x: number, y: number): Promise<{ tile: Tile; missing: string
   const key = `${x}/${y}`;
   const hit = recent.get(key);
   if (hit) return { tile: hit, missing: '' };
-  const r = await fetch(`/api/tile/15/${key}`);
+  // The version in the address keeps browsers and the CDN from serving tiles baked by an older build.
+  const r = await fetch(`/api/tile/15/${key}?v=${TILE_VERSION}`);
   if (!r.ok) throw new Error(`tile ${key}: ${r.status}`);
   const tile = (await r.json()) as Tile;
   recent.set(key, tile);

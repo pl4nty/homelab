@@ -34,7 +34,7 @@ Known gaps: no open surface model of the ACT exists, so building heights are onl
 
 `server/` bakes one tile of about 1 km at a time from the sources and keeps the result on disk. The browser only ever talks to it.
 
-- `GET /api/tile/15/{x}/{y}` returns a baked tile. A tile missing a source is served with an `X-Missing` header and is not kept.
+- `GET /api/tile/15/{x}/{y}` returns a baked tile, cacheable for a day. The client adds `?v=<tile format version>` so a new build is not handed tiles a CDN or browser cached from an old one. A tile missing a source is served with an `X-Missing` header and is not kept.
 - `GET /api/far` returns coarse terrain for the horizon.
 - `GET /api/transit` returns the light rail tracks and stations.
 - `GET /api/live` returns vehicles. `?at=<unix seconds>` replays the day's predictions at another time.
