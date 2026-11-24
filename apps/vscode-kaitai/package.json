@@ -445,9 +445,7 @@
     "watch": "node esbuild.mjs --watch",
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --no-warnings --test test/*.test.ts",
-    "package": "npm run build && vsce package",
-    "serve:web": "npm run build && npx vscode-test-web --browserType=none --extensionDevelopmentPath=. --port 3000 test/fixtures",
-    "smoke:web": "node scripts/web-smoke.mjs"
+    "package": "npm run build && vsce package"
   },
   "dependencies": {
     "fflate": "^0.8.3",
@@ -458,9 +456,7 @@
   "devDependencies": {
     "@types/node": "^26.6.6",
     "@types/vscode": "^1.146.0",
-    "@vscode/test-web": "^0.0.81",
     "esbuild": "^0.28.2",
-    "playwright-core": "^1.65.1",
     "typescript": "^7.0.2"
   },
   "icon": "media/icon.png"

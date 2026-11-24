@@ -1,5 +1,3 @@
 node_modules/
 dist/
 *.vsix
-.vscode-test-web/
-test/fixtures/_smoke/
