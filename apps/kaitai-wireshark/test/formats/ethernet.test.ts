@@ -90,7 +90,7 @@ const pairs: Record<keyof typeof frames, h.Pair[]> = {
     { ours: 'ethernet_frame.icmp_packet.echo_msg.checksum', theirs: 'icmp.checksum' },
     { ours: 'ethernet_frame.icmp_packet.echo_msg.identifier', theirs: 'icmp.ident' },
     { ours: 'ethernet_frame.icmp_packet.echo_msg.seq_num', theirs: 'icmp.seq' },
-    { ours: 'ethernet_frame.icmp_packet.echo_msg.data', theirs: 'icmp.data' },
+    // the echo payload is icmp.data in Wireshark 4.6 but data.data in 4.4, so it's checked on its own below
   ],
   ipv6Udp: [
     ...ethPairs,
@@ -150,6 +150,11 @@ describe('ethernet_frame (user DLT 0) vs Wireshark eth/ip/tcp/udp/icmp', { skip:
     assert.deepEqual(a, b);
     const dei = h.one(packet(ours, 'vlanUdp'), 'ethernet_frame.tag_control_info.drop_eligible');
     assert.equal(dei.show, 'False');
+  });
+
+  it('icmp: the echo payload is its last 2 bytes', () => {
+    const data = h.one(packet(ours, 'icmp'), 'ethernet_frame.icmp_packet.echo_msg.data');
+    assert.deepEqual([data.pos, data.size], [42, 2]);
   });
 
   it('a value instance has no byte range', () => {
