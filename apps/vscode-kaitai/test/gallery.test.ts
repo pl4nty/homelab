@@ -1,7 +1,15 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { EXTENSIONS } from '../src/gallery/extensions.ts';
-import { contentsUrl, fetchRepoFile, gitTreeUrl, groupByCategory, parseGitTree, rawUrl, toEntries } from '../src/gallery/listing.ts';
+import {
+  contentsUrl,
+  fetchRepoFile,
+  gitTreeUrl,
+  groupByCategory,
+  parseGitTree,
+  rawUrl,
+  toEntries,
+} from '../src/gallery/listing.ts';
 import { dirname, normalizePath, readMeta, resolveImport } from '../src/gallery/spec.ts';
 import { bundledPaths, extensionOf, suggestFor } from '../src/gallery/suggest.ts';
 
@@ -97,7 +105,7 @@ test('falls back to the contents API when raw.githubusercontent.com is blocked',
   t.mock.method(globalThis, 'fetch', async (url: string, init?: RequestInit) => {
     seen.push(url);
     if (url.startsWith('https://raw.')) throw new TypeError('Failed to fetch');
-    assert.equal((init?.headers as Record<string, string>).Accept, 'application/vnd.github.raw');
+    assert.equal(new Headers(init?.headers).get('Accept'), 'application/vnd.github.raw');
     return url.includes('missing') ? new Response('', { status: 404 }) : new Response('meta: {}');
   });
   assert.equal(await fetchRepoFile('o/r', 'v1', 'a/b.ksy'), 'meta: {}');
