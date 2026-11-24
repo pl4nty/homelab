@@ -51,20 +51,26 @@ function ports(p: WiresharkMeta['tcp-port']): string | undefined {
 // Lua long bracket that doesn't occur in s.
 function longString(s: string): string {
   let eq = '';
-  while (s.includes(`]${eq}]`)) eq += '=';
+  // s plus "]": a "]" (and the "="s) ending s would close the bracket early
+  while (`${s}]`.includes(`]${eq}]`)) eq += '=';
   // a newline straight after the opening bracket is dropped, so one that starts s needs another
   return `[${eq}[\n${s}]${eq}]`;
 }
 
+// JSON's string escapes are also Lua's, except \uXXXX. Matching "\\" too keeps an escaped backslash before a "u" intact.
+function quote(s: string): string {
+  return JSON.stringify(s).replace(/\\(\\|u([0-9a-f]{4}))/g, (m, _, hex) => (hex ? `\\u{${hex}}` : m));
+}
+
 function toLua(v: unknown, indent = ''): string {
   if (v === null || v === undefined) return 'nil';
-  if (typeof v === 'string') return JSON.stringify(v).replace(/\\u([0-9a-f]{4})/gi, (_, h) => `\\u{${h}}`);
+  if (typeof v === 'string') return quote(v);
   if (typeof v === 'number' || typeof v === 'boolean') return String(v);
   const inner = `${indent}  `;
   if (Array.isArray(v)) return `{ ${v.map((x) => toLua(x, inner)).join(', ')} }`;
   const entries = Object.entries(v as Record<string, unknown>).filter(([, x]) => x !== undefined);
   if (entries.length === 0) return '{}';
-  return `{\n${entries.map(([k, x]) => `${inner}[${JSON.stringify(k)}] = ${toLua(x, inner)},`).join('\n')}\n${indent}}`;
+  return `{\n${entries.map(([k, x]) => `${inner}[${quote(k)}] = ${toLua(x, inner)},`).join('\n')}\n${indent}}`;
 }
 
 // A heuristic dissector is only worth offering when the spec starts with a magic.
@@ -136,7 +142,7 @@ export async function generateDissector({ ksy, compiler, importer, ksyUri }: Opt
     '-- Needs Wireshark 4.4 or later (Lua 5.4).',
     '',
     'local MODULES = {',
-    ...Object.entries(modules).map(([name, src]) => `[${JSON.stringify(name)}] = ${longString(src)},`),
+    ...Object.entries(modules).map(([name, src]) => `[${quote(name)}] = ${longString(src)},`),
     '}',
     '',
     `local SPEC = ${toLua(spec)}`,
