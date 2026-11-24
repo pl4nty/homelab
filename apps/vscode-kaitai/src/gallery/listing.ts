@@ -22,6 +22,29 @@ export function rawUrl(repo: string, ref: string, path: string) {
   return `https://raw.githubusercontent.com/${repo}/${ref}/${path.split('/').filter(Boolean).map(encodeURIComponent).join('/')}`;
 }
 
+/** Same file through the contents API, which vscode.dev's CSP allows (raw.githubusercontent.com is blocked there). */
+export function contentsUrl(repo: string, ref: string, path: string) {
+  const file = path.split('/').filter(Boolean).map(encodeURIComponent).join('/');
+  return `https://api.github.com/repos/${repo}/contents/${file}?ref=${encodeURIComponent(ref)}`;
+}
+
+/**
+ * Downloads a repository file: raw.githubusercontent.com first (no rate limit), then the contents API when the raw
+ * request fails before a response (CSP or network block). Undefined on 404.
+ */
+export async function fetchRepoFile(repo: string, ref: string, path: string, signal?: AbortSignal) {
+  let res: Response;
+  try {
+    res = await fetch(rawUrl(repo, ref, path), { signal });
+  } catch (e) {
+    if (signal?.aborted) throw e;
+    res = await fetch(contentsUrl(repo, ref, path), { headers: { Accept: 'application/vnd.github.raw' }, signal });
+  }
+  if (res.status === 404) return undefined;
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.text();
+}
+
 /** Turns repo-relative paths into sorted entries, keeping only `.ksy` files outside hidden/underscore folders. */
 export function toEntries(paths: Iterable<string>): GalleryEntry[] {
   const out = new Map<string, GalleryEntry>();

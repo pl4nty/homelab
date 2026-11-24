@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { EXTENSIONS } from '../src/gallery/extensions.ts';
-import { gitTreeUrl, groupByCategory, parseGitTree, rawUrl, toEntries } from '../src/gallery/listing.ts';
+import { contentsUrl, fetchRepoFile, gitTreeUrl, groupByCategory, parseGitTree, rawUrl, toEntries } from '../src/gallery/listing.ts';
 import { dirname, normalizePath, readMeta, resolveImport } from '../src/gallery/spec.ts';
 import { bundledPaths, extensionOf, suggestFor } from '../src/gallery/suggest.ts';
 
@@ -90,4 +90,18 @@ test('extension map lookup and suggestions', () => {
   ]);
   const all = bundledPaths();
   assert.ok(all.includes('image/png.ksy') && all.length > 100);
+});
+
+test('falls back to the contents API when raw.githubusercontent.com is blocked', async (t) => {
+  const seen: string[] = [];
+  t.mock.method(globalThis, 'fetch', async (url: string, init?: RequestInit) => {
+    seen.push(url);
+    if (url.startsWith('https://raw.')) throw new TypeError('Failed to fetch');
+    assert.equal((init?.headers as Record<string, string>).Accept, 'application/vnd.github.raw');
+    return url.includes('missing') ? new Response('', { status: 404 }) : new Response('meta: {}');
+  });
+  assert.equal(await fetchRepoFile('o/r', 'v1', 'a/b.ksy'), 'meta: {}');
+  assert.equal(seen[1], contentsUrl('o/r', 'v1', 'a/b.ksy'));
+  assert.equal(seen[1], 'https://api.github.com/repos/o/r/contents/a/b.ksy?ref=v1');
+  assert.equal(await fetchRepoFile('o/r', 'v1', 'missing.ksy'), undefined);
 });

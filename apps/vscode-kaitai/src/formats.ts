@@ -2,7 +2,7 @@
 // they open as normal documents and their imports resolve. Also the gallery fallback for imports.
 // Uses only CORS-enabled endpoints, so it works in VS Code for the Web.
 import * as vscode from 'vscode';
-import { fetchGitTree, type GalleryEntry, groupByCategory, rawUrl, toEntries } from './gallery/listing.ts';
+import { fetchGitTree, type GalleryEntry, fetchRepoFile, groupByCategory, toEntries } from './gallery/listing.ts';
 import { dirname, normalizePath, readMeta, resolveImport, type SpecMeta } from './gallery/spec.ts';
 import { bundledPaths, extensionOf, suggestFor } from './gallery/suggest.ts';
 import { setGalleryFetch } from './imports.ts';
@@ -125,10 +125,8 @@ class Gallery implements vscode.TreeDataProvider<Node>, vscode.Disposable {
     let text = await this.readMirror(path, from);
     if (text === undefined) {
       try {
-        const res = await fetch(rawUrl(from.repo, from.ref, path), { signal: AbortSignal.timeout(TIMEOUT_MS) });
-        if (res.status === 404) return undefined;
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        text = await res.text();
+        text = await fetchRepoFile(from.repo, from.ref, path, AbortSignal.timeout(TIMEOUT_MS));
+        if (text === undefined) return undefined;
       } catch (e) {
         throw new Error(`Cannot download ${path}: ${errorMessage(e)}`);
       }
