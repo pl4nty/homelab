@@ -70,6 +70,14 @@ const viewRows = (title) =>
     );
     return list.length ? list : [pane.querySelector('.pane-body')?.textContent?.trim().slice(0, 300) ?? ''];
   }, title.toLowerCase());
+/** Text of the first webview frame whose body matches `re` (webviews are nested iframes, so pane text is empty). */
+async function webviewText(re) {
+  for (const f of page.frames()) {
+    const text = await f.evaluate(() => document.body?.innerText ?? '').catch(() => '');
+    if (re.test(text)) return text.replace(/\s+\n/g, '\n').slice(0, 600);
+  }
+  return '<no matching webview>';
+}
 const notifications = () => rows('.notification-toast .notification-list-item-message');
 
 async function step(name, fn) {
@@ -126,7 +134,7 @@ await step('select first tree node', async () => {
   await pane.locator('.monaco-list-row').nth(1).click();
   await pause(1500);
   log('select first tree node', {
-    inspector: await viewRows('inspector'),
+    inspector: await webviewText(/\bu32\b/),
     statusBar: await rows('.statusbar-item'),
     shot: await snap('selected'),
   });
@@ -135,6 +143,8 @@ await step('select first tree node', async () => {
 await step('png.ksy language features', async () => {
   await openFromExplorer('image', 'png.ksy');
   await pause(3000);
+  await runCommand('Focus on Outline View');
+  await pause(1500);
   log('png.ksy language features', {
     languageStatus: await rows('.statusbar-item'),
     outline: await viewRows('outline'),
@@ -143,8 +153,10 @@ await step('png.ksy language features', async () => {
 });
 
 await step('format gallery', async () => {
+  await runCommand('Focus on Format Gallery View');
+  await pause(1000);
   await runCommand('Kaitai: Refresh');
-  await pause(6000);
+  await pause(8000);
   log('format gallery', {
     gallery: (await viewRows('format gallery')).slice(0, 15),
     notifications: await notifications(),
