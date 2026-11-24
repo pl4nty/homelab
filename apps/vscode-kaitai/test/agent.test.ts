@@ -8,7 +8,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { main, renderTree } from '../src/agent/cli.ts';
 import { createServer } from '../src/agent/mcp.ts';
-import { Kaitai, resolvePath } from '../src/agent/ops.ts';
+import { Kaitai } from '../src/agent/ops.ts';
 
 const fixtures = join(import.meta.dirname, 'fixtures');
 const png = join(fixtures, 'image', 'png.ksy');
@@ -47,6 +47,7 @@ test('parse returns a capped tree with ranges, enums and summaries', async () =>
 test('parse drills down by path and pages arrays with from', async () => {
   const one = await k.parse({ spec: png, file: sample, path: 'chunks[1].len' });
   assert.equal(one.tree!.name, 'len');
+  assert.equal(one.path, 'png/chunks/[1]/len');
   assert.equal(typeof one.tree!.value, 'number');
   const same = await k.parse({ spec: png, file: sample, path: 'png/chunks/1/len' });
   assert.deepEqual(same.tree, one.tree);
@@ -58,6 +59,26 @@ test('parse drills down by path and pages arrays with from', async () => {
   );
   await assert.rejects(k.parse({ spec: png, file: sample, path: 'chunks/9' }), /No "9" in png\/chunks.*indices 0\.\.2/);
   await assert.rejects(k.parse({ spec: png, file: sample, path: 'nope' }), /No "nope" in png.*fields: magic/);
+  await assert.rejects(k.parse({ spec: png, file: join(fixtures, 'nope.png') }), /Cannot read .*nope\.png: ENOENT/);
+});
+
+test('values that JSON cannot hold are converted, and summaries are capped', async () => {
+  const dir = await tmp({
+    'v.ksy': `meta: { id: v, endian: le }
+-webide-representation: '{text}'
+seq:
+  - { id: nan, type: f4 }
+  - { id: text, type: str, size: 8, encoding: ASCII }
+`,
+    'v.bin': new Uint8Array([0, 0, 192, 127, ...Buffer.from('abcdefgh')]),
+  });
+  const r = await k.parse({ spec: join(dir, 'v.ksy'), file: join(dir, 'v.bin'), maxString: 4 });
+  assert.equal(r.error, undefined);
+  assert.equal(r.tree!.summary, 'abcd…');
+  const [nan, text] = r.tree!.fields!;
+  assert.equal(nan.value, 'NaN');
+  assert.deepEqual([text.value, text.size], ['abcd…', 8]);
+  JSON.stringify(r);
 });
 
 test('maxNodes cuts the output and marks it', async () => {
@@ -79,7 +100,26 @@ test('resolvePath walks into array buckets', async () => {
     page.tree!.items!.map((i) => i.value),
     Array.from({ length: 20 }, (_, i) => 198 + i),
   );
-  assert.equal(typeof resolvePath, 'function');
+});
+
+test('at leaves array buckets out of the path', async () => {
+  const dir = await tmp({
+    'gap.ksy': `meta: { id: gap }
+seq:
+  - { id: xs, type: x, size: 2, repeat: eos }
+types:
+  x:
+    seq:
+      - { id: v, type: u1 }
+`,
+    'gap.bin': new Uint8Array(400),
+  });
+  const r = await k.at({ spec: join(dir, 'gap.ksy'), file: join(dir, 'gap.bin'), offset: 301 });
+  assert.equal(r.path, 'gap/xs/[150]');
+  assert.deepEqual(
+    r.chain!.map((c) => c.name),
+    ['gap', 'xs', '[150]'],
+  );
 });
 
 test('at finds the deepest field and its containers', async () => {
@@ -127,6 +167,18 @@ test('imports resolve relatively, through ancestors and import paths', async () 
   assert.equal(r.tree!.fields![0].fields![0].value, 7);
 });
 
+test('an edited import is recompiled', async () => {
+  const dir = await tmp({
+    'root.ksy': 'meta: { id: root, imports: [u] }\nseq:\n  - { id: x, type: u }\n',
+    'u.ksy': 'meta: { id: u }\nseq:\n  - { id: v, type: u1 }\n',
+    'd.bin': new Uint8Array([7, 8]),
+  });
+  const input = { spec: join(dir, 'root.ksy'), file: join(dir, 'd.bin'), path: 'x/v' };
+  assert.equal((await k.parse(input)).tree!.value, 7);
+  await writeFile(join(dir, 'u.ksy'), 'meta: { id: u }\nseq:\n  - { id: v, type: u2be }\n');
+  assert.equal((await k.parse(input)).tree!.value, 0x0708);
+});
+
 test('suggest uses the bundled extension map', async () => {
   const r = await k.suggest({ file: sample });
   assert.deepEqual(
@@ -139,7 +191,10 @@ test('suggest uses the bundled extension map', async () => {
 });
 
 test('gallery specs need the network', async () => {
-  await assert.rejects(k.parse({ spec: 'gallery:image/png', file: sample }), /No image\/png\.ksy/);
+  await assert.rejects(
+    k.parse({ spec: 'gallery:image/png', file: sample }),
+    /No image\/png\.ksy.*network is turned off/,
+  );
   await assert.rejects(k.parse({ spec: 'image/png', file: sample }), /use "gallery:image\/png"/);
 });
 
@@ -180,6 +235,14 @@ test('CLI prints text or JSON and sets exit codes', async () => {
   const usage = capture();
   assert.equal(await main(['frobnicate'], out.stream, usage.stream), 2);
   assert.match(usage.text, /Unknown command frobnicate/);
+});
+
+test('KAITAI_OFFLINE applies without --offline', async (t) => {
+  process.env.KAITAI_OFFLINE = '1';
+  t.after(() => delete process.env.KAITAI_OFFLINE);
+  const err = capture();
+  assert.equal(await main(['parse', 'gallery:image/png', sample], capture().stream, err.stream), 1);
+  assert.match(err.text, /network is turned off/);
 });
 
 test('renderTree shows truncation hints', () => {

@@ -1,13 +1,13 @@
 // Loads .ksy specs for the CLI and MCP server: local files, inline source, or the format gallery (`gallery:<path>`),
 // and resolves their imports. Node only (node:fs); no vscode import.
 import { readFile } from 'node:fs/promises';
-import { dirname, isAbsolute, join, resolve } from 'node:path';
+import { delimiter, dirname, join, resolve } from 'node:path';
 import type { ImportReader } from '../engine/kaitai.ts';
 import { fetchRepoFile } from '../gallery/listing.ts';
 import { dirname as galleryDir, normalizePath } from '../gallery/spec.ts';
 
-export const DEFAULT_REPO = 'pl4nty/kaitai_struct_formats';
-export const DEFAULT_REF = 'master';
+const DEFAULT_REPO = 'pl4nty/kaitai_struct_formats';
+const DEFAULT_REF = 'master';
 const TIMEOUT_MS = 20_000;
 const GALLERY = 'gallery:';
 
@@ -19,7 +19,7 @@ export interface SourceOptions {
   importPaths?: readonly string[];
   /** Base for relative paths. Defaults to the process working directory. */
   cwd?: string;
-  /** Set to false to never use the network. */
+  /** Set to false to never use the network. Defaults to true, or false with KAITAI_OFFLINE=1. */
   network?: boolean;
 }
 
@@ -32,7 +32,10 @@ export interface LoadedSpec {
 }
 
 /** A folder that imports are looked up in. */
-type Loc = { kind: 'fs'; dir: string } | { kind: 'gallery'; dir: string };
+interface Loc {
+  kind: 'fs' | 'gallery';
+  dir: string;
+}
 
 const sameLoc = (a: Loc, b: Loc) => a.kind === b.kind && a.dir === b.dir;
 
@@ -50,7 +53,8 @@ export class SpecLoader {
     this.repo = opts.repo || process.env.KAITAI_FORMATS_REPO || DEFAULT_REPO;
     this.ref = opts.ref || process.env.KAITAI_FORMATS_REF || DEFAULT_REF;
     this.cwd = opts.cwd ?? process.cwd();
-    const envPaths = (process.env.KSPATH ?? '').split(/[:;]/).filter(Boolean);
+    // Split like ksc does (`;` on Windows, where `:` follows a drive letter).
+    const envPaths = (process.env.KSPATH ?? '').split(delimiter).filter(Boolean);
     this.importPaths = [...(opts.importPaths ?? []), ...envPaths].map((p) => resolve(this.cwd, p));
     this.network = opts.network ?? process.env.KAITAI_OFFLINE !== '1';
   }
@@ -77,7 +81,9 @@ export class SpecLoader {
       if (!path) throw new Error(`Bad gallery path: ${ref}`);
       const file = path.endsWith('.ksy') ? path : `${path}.ksy`;
       const source = await this.fetchGallery(file);
-      if (source === undefined) throw new Error(`No ${file} in ${this.repo}@${this.ref}`);
+      if (source === undefined) {
+        throw new Error(`No ${file} in ${this.repo}@${this.ref}${this.network ? '' : ' (the network is turned off)'}`);
+      }
       return {
         source,
         label: `${GALLERY}${file}`,
@@ -103,7 +109,7 @@ export class SpecLoader {
   /**
    * Import reader for a spec in `home`. Mirrors the IDE: relative imports are tried in the folder of every spec
    * read so far (the compiler only passes names), absolute ones in each ancestor folder of the root spec (so a
-   * checkout of the gallery works) and the import paths. Both then fall back to the gallery.
+   * checkout of the gallery works). Both then fall back to the import paths and the gallery root.
    */
   private reader(home: Loc): ImportReader {
     const seen: Loc[] = [home];
@@ -117,9 +123,7 @@ export class SpecLoader {
           if (dirname(d) === d) break;
         }
       }
-      candidates.push(...this.importPaths.map((dir): Loc => ({ kind: 'fs', dir })));
-      if (mode === 'abs' || home.kind === 'gallery') candidates.push({ kind: 'gallery', dir: '' });
-      else candidates.push(...seen.filter((l) => l.kind === 'gallery'), { kind: 'gallery', dir: '' });
+      candidates.push(...this.importPaths.map((dir): Loc => ({ kind: 'fs', dir })), { kind: 'gallery', dir: '' });
 
       let failure = '';
       for (const loc of candidates) {
@@ -138,7 +142,7 @@ export class SpecLoader {
 
   private async read(loc: Loc, file: string): Promise<{ text: string; dir: Loc } | undefined> {
     if (loc.kind === 'fs') {
-      const path = isAbsolute(file) ? file : join(loc.dir, file);
+      const path = join(loc.dir, file);
       const text = await readFile(path, 'utf8').catch(() => undefined);
       return text === undefined ? undefined : { text, dir: { kind: 'fs', dir: dirname(path) } };
     }

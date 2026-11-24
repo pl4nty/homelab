@@ -4,6 +4,7 @@ import { dirname, join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { parseUint } from '../util/parse.ts';
 import { type JsonNode, Kaitai, LANGUAGES, type Limits, UNLIMITED, type ValidateResult } from './ops.ts';
+import type { SourceOptions } from './source.ts';
 import { VERSION } from './version.ts';
 
 const USAGE = `kaitai ${VERSION}: parse binary files with Kaitai Struct specs (no Java or ksc needed)
@@ -62,13 +63,20 @@ export async function main(
     (o.help ? out : err).write(USAGE);
     return o.help ? 0 : 2;
   }
+  const source: SourceOptions = {
+    repo: o.repo,
+    ref: o.ref,
+    importPaths: o['import-path'],
+    // Left unset without the flag, so that KAITAI_OFFLINE still applies.
+    network: o.offline ? false : undefined,
+  };
   if (cmd === 'mcp') {
     const { serve } = await import('./mcp.ts');
-    await serve({ repo: o.repo, ref: o.ref, importPaths: o['import-path'], network: !o.offline });
+    await serve(source);
     return 0;
   }
 
-  const k = new Kaitai({ repo: o.repo, ref: o.ref, importPaths: o['import-path'], network: !o.offline });
+  const k = new Kaitai(source);
   const print = (v: unknown, text: () => string) => out.write(o.json ? `${JSON.stringify(v, null, 2)}\n` : text());
   const int = (name: keyof typeof o) => {
     const v = o[name];
@@ -85,13 +93,10 @@ export async function main(
     if (!v) throw new UsageError(`Missing ${what}`);
     return v;
   };
-  const limits = (): Limits => {
-    const base = o.all ? UNLIMITED : CLI_LIMITS;
-    return {
-      ...base,
-      ...(int('depth') !== undefined && { depth: int('depth') }),
-      ...(int('max-items') !== undefined && { maxItems: int('max-items') }),
-    };
+  /** `depth` is the default without --depth and --all. */
+  const limits = (depth = CLI_LIMITS.depth): Limits => {
+    const base = o.all ? UNLIMITED : { ...CLI_LIMITS, depth };
+    return { ...base, depth: int('depth') ?? base.depth, maxItems: int('max-items') ?? base.maxItems };
   };
 
   try {
@@ -119,17 +124,12 @@ export async function main(
           offset,
           typeName: o.type,
           params: o.param,
-          ...limits(),
-          depth: int('depth') ?? 1,
+          ...limits(1),
         });
-        print(r, () =>
-          r.node
-            ? `${r.path}\n${r.chain
-                ?.slice(0, -1)
-                .map((c) => `  ${c.name}${c.type ? `: ${c.type}` : ''} ${hexRange(c.range)}`)
-                .join('\n')}\n${renderTree(r.node)}`
-            : `${r.note}\n`,
-        );
+        const chain = (r.chain ?? [])
+          .slice(0, -1)
+          .map((c) => `  ${c.name}${c.type ? `: ${c.type}` : ''} ${hexRange(c.range)}\n`);
+        print(r, () => (r.node ? `${r.path}\n${chain.join('')}${renderTree(r.node)}` : `${r.error ?? r.note}\n`));
         return 0;
       }
       case 'validate': {
@@ -151,8 +151,9 @@ export async function main(
                     ...r.warnings.map((w) => ({ ...w, level: 'warning' })),
                   ]
                     .map((e) => {
+                      const where = e.file ? `in imported spec ${e.file}.ksy: ` : '';
                       const hint = e.suggestions ? ` (did you mean ${e.suggestions.join(', ')}?)` : '';
-                      return `${r.spec}:${e.line}:${e.column}: ${e.level}: ${e.message}${hint}\n`;
+                      return `${r.spec}:${e.line}:${e.column}: ${e.level}: ${where}${e.message}${hint}\n`;
                     })
                     .join(''),
             )

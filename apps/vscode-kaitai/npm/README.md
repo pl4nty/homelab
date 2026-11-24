@@ -47,8 +47,8 @@ Run `kaitai --help` for every option. Installed globally (`npm i -g kaitai-mcp`)
 
 A spec is a `.ksy` path, `-` for stdin, or `gallery:<path>` for a file in the format gallery
 ([pl4nty/kaitai_struct_formats](https://github.com/pl4nty/kaitai_struct_formats) by default; `--repo`, `--ref`,
-`KAITAI_FORMATS_REPO`, `KAITAI_FORMATS_REF`). Relative imports resolve from the importing spec's folder; absolute
-imports (`/common/vlq_base128_le`) from each ancestor folder, `-I` folders and `KSPATH`, then the gallery.
+`KAITAI_FORMATS_REPO`, `KAITAI_FORMATS_REF`). Relative imports resolve from the importing spec's folder, absolute
+imports (`/common/vlq_base128_le`) from each ancestor folder; both then try `-I` folders, `KSPATH` and the gallery.
 `--offline` or `KAITAI_OFFLINE=1` turns off the network.
 
 ## Notes
@@ -56,7 +56,7 @@ imports (`/common/vlq_base128_le`) from each ancestor folder, `-I` folders and `
 - Compiled specs run as JavaScript in the server process. Only use specs you trust.
 - The whole file is read into memory (limit `KAITAI_MAX_FILE_MB`, default 256).
 - Fields inside processed (e.g. decompressed) streams have no file offset.
-- The MCP server caches compiled specs by source; restart it after editing an imported spec.
+- The MCP server caches compiled specs, and recompiles when a spec or one of its imports changes.
 
 ## Licence
 

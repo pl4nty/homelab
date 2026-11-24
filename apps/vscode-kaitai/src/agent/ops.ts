@@ -2,7 +2,14 @@
 // JSON with size caps, so they can go straight into an agent's context. No vscode import.
 import { createHash } from 'node:crypto';
 import { readFile, stat } from 'node:fs/promises';
-import { compileTemplate, generateCode, KsyError, LANGUAGES, type Template } from '../engine/kaitai.ts';
+import {
+  compileTemplate,
+  generateCode,
+  type ImportReader,
+  KsyError,
+  LANGUAGES,
+  type Template,
+} from '../engine/kaitai.ts';
 import { findDeepestNode, type ParseResult, type StructureNode } from '../engine/structure.ts';
 import { extensionOf, suggestFor } from '../gallery/suggest.ts';
 import { diagnosticTargetPath, isImportedError, suggestionsFor, unresolvedName } from '../ksy/language.ts';
@@ -28,13 +35,13 @@ export interface Limits {
   maxNodes?: number;
   /** Bytes of a byte array to show as hex. */
   maxBytes?: number;
-  /** Characters of a string to show. */
+  /** Characters of a string or struct summary to show. */
   maxString?: number;
 }
 
 export interface ParseInput extends SpecInput, Limits {
   file: string;
-  /** Node path such as `png/chunks/3/body` or `chunks[3].body`. Defaults to the root. */
+  /** Node path such as `png/chunks/[3]/body` or `chunks[3].body`. Defaults to the root. */
   path?: string;
   /** First array item to show when `path` is an array. */
   from?: number;
@@ -70,6 +77,17 @@ export interface JsonNode {
   from?: number;
   /** Why children are missing: `depth`, `items` (more items than shown) or `nodes` (output budget). */
   truncated?: 'depth' | 'items' | 'nodes';
+}
+
+export interface ParseOutput {
+  spec: string;
+  id: string;
+  fileSize: number;
+  /** Set when parsing stopped early. The tree is still usable up to that point. */
+  error?: string;
+  /** Path of `tree`, for drilling down: append `/<field>` or `/[<index>]`. */
+  path?: string;
+  tree?: JsonNode;
 }
 
 export interface AtResult {
@@ -115,7 +133,7 @@ export const UNLIMITED: Required<Limits> = {
   maxBytes: Number.POSITIVE_INFINITY,
   maxString: Number.POSITIVE_INFINITY,
 };
-const MAX_FILE_BYTES = Number(process.env.KAITAI_MAX_FILE_MB || 256) * 1024 * 1024;
+const MAX_FILE_BYTES = (Number(process.env.KAITAI_MAX_FILE_MB) || 256) * 1024 * 1024;
 const MAX_CANDIDATES = 8;
 
 // ---------------------------------------------------------------------------------------------
@@ -129,10 +147,7 @@ class Lru<V> {
   }
   get(key: string) {
     const v = this.map.get(key);
-    if (v !== undefined) {
-      this.map.delete(key);
-      this.map.set(key, v);
-    }
+    if (v !== undefined) this.set(key, v);
     return v;
   }
   set(key: string, v: V) {
@@ -143,20 +158,24 @@ class Lru<V> {
   delete(key: string) {
     this.map.delete(key);
   }
-  clear() {
-    this.map.clear();
-  }
 }
 
-const templates = new Lru<Promise<Template>>(16);
-const parses = new Lru<ParseResult>(4);
-let templateIds = new WeakMap<Template, number>();
-let nextTemplateId = 0;
+interface Compiled {
+  /** Distinguishes compilations of one spec in parse cache keys. */
+  id: number;
+  template: Promise<Template>;
+  /** Every import read, in order. */
+  imports: { name: string; mode: 'rel' | 'abs'; text: string }[];
+}
 
 const hash = (...parts: string[]) => createHash('sha256').update(parts.join('\0')).digest('hex');
 
 export class Kaitai {
   readonly loader: SpecLoader;
+  private readonly templates = new Lru<Compiled>(16);
+  private readonly parses = new Lru<ParseResult>(4);
+  private compilations = 0;
+
   constructor(opts: SourceOptions = {}) {
     this.loader = new SpecLoader(opts);
   }
@@ -168,71 +187,89 @@ export class Kaitai {
     return input.source !== undefined ? this.loader.inline(input.source) : this.loader.load(input.spec as string);
   }
 
-  /** Compiles a spec, cached by source. Imports are not part of the key; a changed import needs a new process. */
-  private template(spec: LoadedSpec): Promise<Template> {
-    const key = hash(this.loader.repo, this.loader.ref, spec.label, spec.source);
-    let t = templates.get(key);
-    if (!t) {
-      t = compileTemplate(spec.source, spec.readImport);
-      t.catch(() => templates.delete(key));
-      templates.set(key, t);
+  /** Compiles a spec, cached by its source and the sources of its imports. */
+  private async compiled(spec: LoadedSpec): Promise<Compiled> {
+    const key = hash(spec.label, spec.source);
+    let c = this.templates.get(key);
+    if (c) {
+      // Replaying the imports in order resolves them like the first time (the reader tracks folders seen).
+      for (const { name, mode, text } of c.imports) {
+        if ((await spec.readImport(name, mode).catch(() => undefined)) === text) continue;
+        c = undefined;
+        break;
+      }
     }
-    return t;
+    if (!c) {
+      const imports: Compiled['imports'] = [];
+      const readImport: ImportReader = async (name, mode) => {
+        const text = await spec.readImport(name, mode);
+        imports.push({ name, mode, text });
+        return text;
+      };
+      const made: Compiled = { id: this.compilations++, template: compileTemplate(spec.source, readImport), imports };
+      // Failures are not kept: a missing import may turn up.
+      made.template.catch(() => this.templates.get(key) === made && this.templates.delete(key));
+      this.templates.set(key, made);
+      c = made;
+    }
+    return c;
   }
 
   private async parseFile(input: ParseInput) {
+    const info = await fileInfo(input.file);
     const spec = await this.loadSpec(input);
-    const template = await this.template(spec).catch((e) => {
+    const compiled = await this.compiled(spec);
+    const template = await compiled.template.catch((e) => {
       throw new Error(`Spec ${spec.label} does not compile: ${describeKsyError(e)}`);
     });
-    const info = await stat(input.file);
-    if (!info.isFile()) throw new Error(`${input.file} is not a file`);
-    if (info.size > MAX_FILE_BYTES) {
-      throw new Error(`${input.file} is ${info.size} bytes; the limit is ${MAX_FILE_BYTES} (KAITAI_MAX_FILE_MB)`);
-    }
     const params = (input.params ?? []).map((p, i) => {
       if (typeof p !== 'string') return p;
       const v = parseParamValue(p, template.params[i]?.type);
       if (v === INVALID) throw new Error(`Bad value for param ${template.params[i]?.id ?? i}: ${p}`);
       return v;
     });
-    if (!templateIds.has(template)) templateIds.set(template, nextTemplateId++);
     const key = hash(
-      String(templateIds.get(template)),
+      String(compiled.id),
       input.file,
       String(info.mtimeMs),
       String(info.size),
       input.typeName ?? '',
       JSON.stringify(params, (_, v) => (typeof v === 'bigint' ? `${v}n` : v instanceof Uint8Array ? [...v] : v)),
     );
-    let result = parses.get(key);
+    let result = this.parses.get(key);
     if (!result) {
       const buf = await readFile(input.file);
       result = template.parse(new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength), {
         params,
         typeName: input.typeName,
       });
-      parses.set(key, result);
+      this.parses.set(key, result);
     }
     return { spec, template, result, size: info.size };
   }
 
   /** Parses a file and returns (part of) the tree. */
-  async parse(input: ParseInput) {
+  async parse(input: ParseInput): Promise<ParseOutput> {
     const { spec, template, result, size } = await this.parseFile(input);
-    const limits = { ...DEFAULTS, ...definedOnly(input) };
+    const limits = limitsOf(input);
     const root = result.roots[0];
-    const out = {
-      spec: spec.label,
-      id: template.id,
-      fileSize: size,
-      ...(result.error && { error: result.error }),
-      tree: undefined as JsonNode | undefined,
-    };
+    const out: ParseOutput = { spec: spec.label, id: template.id, fileSize: size };
+    if (result.error) out.error = result.error;
     if (!root) return out;
-    const start = input.path ? resolvePath(root, input.path) : root;
-    const budget = { nodes: limits.maxNodes };
-    out.tree = serialize(start, limits, limits.depth, budget, !input.noInstances, input.from ?? 0);
+    let start = root;
+    try {
+      if (input.path) start = resolvePath(root, input.path);
+    } catch (e) {
+      // A field may be missing because parsing stopped before it.
+      throw result.error ? new Error(`${(e as Error).message}. Parsing stopped early: ${result.error}`) : e;
+    }
+    out.path = pathOf(start);
+    out.tree = serialize(
+      start,
+      { limits, nodes: limits.maxNodes, instances: !input.noInstances },
+      limits.depth,
+      input.from,
+    );
     return out;
   }
 
@@ -242,19 +279,20 @@ export class Kaitai {
     if (!Number.isInteger(input.offset) || input.offset < 0 || input.offset >= size) {
       throw new Error(`Offset ${input.offset} is outside the file (0..${size - 1})`);
     }
-    const node = findDeepestNode(result.roots, input.offset);
-    const limits = { ...DEFAULTS, depth: 1, ...definedOnly(input) };
-    const chain: { name: string; type?: string; range?: [number, number] }[] = [];
-    for (let n = node; n; n = n.parent) {
-      if (n.kind !== 'bucket') chain.unshift({ name: n.name, type: n.type, range: rangeOf(n) });
-    }
+    let node = findDeepestNode(result.roots, input.offset);
+    // A bucket is the deepest node for a gap between array items; report the array.
+    while (node?.kind === 'bucket') node = node.parent;
+    const limits = limitsOf({ ...input, depth: input.depth ?? 1 });
     const out: AtResult = { spec: spec.label, offset: input.offset };
     if (result.error) out.error = result.error;
     if (!node) out.note = 'No parsed field covers this offset';
     else {
       out.path = pathOf(node);
-      out.chain = chain;
-      out.node = serialize(node, limits, limits.depth, { nodes: limits.maxNodes }, false, 0);
+      out.chain = [];
+      for (let n: StructureNode | undefined = node; n; n = n.parent) {
+        if (n.kind !== 'bucket') out.chain.unshift({ name: n.name, type: n.type, range: rangeOf(n) });
+      }
+      out.node = serialize(node, { limits, nodes: limits.maxNodes, instances: false }, limits.depth);
     }
     return out;
   }
@@ -277,7 +315,7 @@ export class Kaitai {
     const warnings = parsed.doc.warnings.map(yaml);
     if (!errors.length) {
       const imported: string[] = [];
-      const readImport = async (name: string, mode: 'rel' | 'abs') => {
+      const readImport: ImportReader = async (name, mode) => {
         const text = await spec.readImport(name, mode);
         imported.push(text);
         return text;
@@ -316,6 +354,7 @@ export class Kaitai {
       spec: `gallery:${p}`,
     }));
     if (input.tryParse) {
+      await fileInfo(input.file);
       for (const c of candidates) {
         try {
           const { result, size } = await this.parseFile({ spec: c.spec, file: input.file });
@@ -365,15 +404,26 @@ export class Kaitai {
   }
 }
 
-/** Test hook: forget compiled specs and parse results. */
-export function clearCaches() {
-  templates.clear();
-  parses.clear();
-  templateIds = new WeakMap();
+function limitsOf(l: Limits): Required<Limits> {
+  return {
+    depth: l.depth ?? DEFAULTS.depth,
+    maxItems: l.maxItems ?? DEFAULTS.maxItems,
+    maxNodes: l.maxNodes ?? DEFAULTS.maxNodes,
+    maxBytes: l.maxBytes ?? DEFAULTS.maxBytes,
+    maxString: l.maxString ?? DEFAULTS.maxString,
+  };
 }
 
-function definedOnly<T extends object>(o: T): Partial<T> {
-  return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined)) as Partial<T>;
+/** Checks that `file` can be parsed, before any slow work. */
+async function fileInfo(file: string) {
+  const info = await stat(file).catch((e: NodeJS.ErrnoException) => {
+    throw new Error(`Cannot read ${file}: ${e.code ?? e.message}`);
+  });
+  if (!info.isFile()) throw new Error(`${file} is not a file`);
+  if (info.size > MAX_FILE_BYTES) {
+    throw new Error(`${file} is ${info.size} bytes; the limit is ${MAX_FILE_BYTES} (KAITAI_MAX_FILE_MB)`);
+  }
+  return info;
 }
 
 export function describeKsyError(e: unknown): string {
@@ -415,14 +465,17 @@ function arraySlice(node: StructureNode, from: number, to: number): StructureNod
 }
 
 /** Path without bucket segments, e.g. `png/chunks/[3]/len`. */
-export function pathOf(node: StructureNode): string {
+function pathOf(node: StructureNode): string {
   const parts: string[] = [];
   for (let n: StructureNode | undefined = node; n; n = n.parent) if (n.kind !== 'bucket') parts.unshift(n.name);
   return parts.join('/');
 }
 
-/** Finds a node by path: `a/b/[3]/c`, `a/b/3/c` or `a.b[3].c`. The root's name may be left out. */
-export function resolvePath(root: StructureNode, path: string): StructureNode {
+/**
+ * Finds a node by path: `a/b/[3]/c`, `a/b/3/c` or `a.b[3].c`. The root's name may be left out; a leading segment
+ * equal to it is always the root, so that paths from {@link pathOf} round-trip.
+ */
+function resolvePath(root: StructureNode, path: string): StructureNode {
   const parts = path
     .replace(/\[(\d+)\]/g, '/$1')
     .split(/[/.]/)
@@ -442,7 +495,9 @@ export function resolvePath(root: StructureNode, path: string): StructureNode {
               .map((c) => c.name)
               .join(', ')}`
           : node.kind === 'array'
-            ? `indices 0..${arrayLength(node) - 1}`
+            ? arrayLength(node)
+              ? `indices 0..${arrayLength(node) - 1}`
+              : 'empty'
             : 'no children';
       throw new Error(`No "${part}" in ${at} (${node.kind}; ${options})`);
     }
@@ -450,6 +505,8 @@ export function resolvePath(root: StructureNode, path: string): StructureNode {
   }
   return node;
 }
+
+const clip = (s: string, max: number) => (s.length > max ? `${s.slice(0, max)}…` : s);
 
 function leafValue(node: StructureNode, limits: Required<Limits>): Pick<JsonNode, 'value' | 'size' | 'enum'> {
   const v = node.raw;
@@ -459,26 +516,32 @@ function leafValue(node: StructureNode, limits: Required<Limits>): Pick<JsonNode
     return { value: hex, ...(shown.length < v.length && { size: v.length }) };
   }
   if (typeof v === 'string') {
-    return v.length > limits.maxString ? { value: `${v.slice(0, limits.maxString)}…`, size: v.length } : { value: v };
+    return { value: clip(v, limits.maxString), ...(v.length > limits.maxString && { size: v.length }) };
   }
-  if (typeof v === 'bigint') return { value: Number.isSafeInteger(Number(v)) ? Number(v) : v.toString() };
-  if (node.kind === 'enum') {
-    // The engine renders enums as `label = 1 (0x1)`.
-    const label = /^(\S+) = /.exec(node.value ?? '')?.[1];
-    return { value: v as number, ...(label && { enum: label }) };
-  }
-  return { value: v ?? null };
+  // JSON has no bigint, NaN or Infinity.
+  const value =
+    typeof v === 'bigint'
+      ? Number.isSafeInteger(Number(v))
+        ? Number(v)
+        : v.toString()
+      : typeof v === 'number' && !Number.isFinite(v)
+        ? String(v)
+        : (v ?? null);
+  // The engine renders enums as `label = 1 (0x1)`.
+  const label = node.kind === 'enum' ? /^(\S+) = /.exec(node.value ?? '')?.[1] : undefined;
+  return { value, ...(label && { enum: label }) };
 }
 
-function serialize(
-  node: StructureNode,
-  limits: Required<Limits>,
-  depth: number,
-  budget: { nodes: number },
-  instances: boolean,
-  from: number,
-): JsonNode {
-  budget.nodes--;
+interface Output {
+  limits: Required<Limits>;
+  /** Nodes left in the output budget. */
+  nodes: number;
+  instances: boolean;
+}
+
+/** `depth` is the levels left below `node`; `from` the first item to show when it is an array. */
+function serialize(node: StructureNode, o: Output, depth: number, from = 0): JsonNode {
+  o.nodes--;
   const out: JsonNode = { name: node.name, kind: node.kind };
   if (node.type) out.type = node.type;
   const r = rangeOf(node);
@@ -486,24 +549,23 @@ function serialize(
   if (node.instance) out.instance = true;
   if (node.error) out.error = node.error;
 
-  if (node.kind === 'struct') {
-    if (node.value) out.summary = node.value;
-    if (depth <= 0) {
-      out.truncated = 'depth';
-      return out;
-    }
-    out.fields = [];
-    for (const c of node.children()) {
-      if (c.instance && !instances) continue;
-      if (budget.nodes <= 0) {
+  const children = (list: StructureNode[]) => {
+    const kids: JsonNode[] = [];
+    for (const c of list) {
+      if (o.nodes <= 0) {
         out.truncated = 'nodes';
         break;
       }
-      out.fields.push(serialize(c, limits, depth - 1, budget, instances, 0));
+      kids.push(serialize(c, o, depth - 1));
     }
-    return out;
-  }
-  if (node.kind === 'array') {
+    return kids;
+  };
+
+  if (node.kind === 'struct') {
+    if (node.value) out.summary = clip(node.value, o.limits.maxString);
+    if (depth <= 0) out.truncated = 'depth';
+    else out.fields = children(node.children().filter((c) => o.instances || !c.instance));
+  } else if (node.kind === 'array') {
     const count = arrayLength(node);
     out.count = count;
     if (depth <= 0) {
@@ -511,21 +573,12 @@ function serialize(
       return out;
     }
     const start = Math.min(Math.max(0, from), count);
-    const end = Math.min(count, start + limits.maxItems);
+    const end = Math.min(count, start + o.limits.maxItems);
     if (start) out.from = start;
-    out.items = [];
-    for (const c of arraySlice(node, start, end)) {
-      if (budget.nodes <= 0) {
-        out.truncated = 'nodes';
-        break;
-      }
-      out.items.push(serialize(c, limits, depth - 1, budget, instances, 0));
-    }
+    out.items = children(arraySlice(node, start, end));
     if (!out.truncated && (end < count || start > 0)) out.truncated = 'items';
-    return out;
-  }
-  if (node.kind === 'bucket') return out;
-  return Object.assign(out, leafValue(node, limits));
+  } else Object.assign(out, leafValue(node, o.limits));
+  return out;
 }
 
 /** Share of the file covered by the root's top-level seq fields, 0..1. */

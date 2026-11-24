@@ -54,7 +54,8 @@ export function createServer(opts: SourceOptions = {}): McpServer {
       description:
         'Parses a file with a .ksy spec and returns the tree from the root, or from "path", a few levels deep. ' +
         'Array items past max_items and structs past depth are left out and marked "truncated"; request them with ' +
-        '"path" (e.g. "chunks/3" or "chunks[3].body") and "from". Instances (lazy fields) are included.',
+        '"path" (the result\'s "path" plus field names and indices, e.g. "png/chunks/[3]/body" or "chunks[3].body") ' +
+        'and "from". Instances (lazy fields) are included.',
       inputSchema: {
         ...target,
         path: z.string().optional().describe('Node to start from: field names and array indices, / or . separated'),
@@ -146,8 +147,10 @@ export function createServer(opts: SourceOptions = {}): McpServer {
 export async function serve(opts: SourceOptions = {}) {
   const server = createServer(opts);
   await server.connect(new StdioServerTransport());
-  // Resolve when the client closes stdin, so the CLI exits cleanly.
+  // Run until the client closes stdin (the transport does not watch for that) or the connection.
   await new Promise<void>((done) => {
     server.server.onclose = done;
+    process.stdin.once('end', done);
   });
+  await server.close();
 }

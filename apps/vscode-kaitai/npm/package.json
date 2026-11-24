@@ -21,10 +21,11 @@
   ],
   "bin": {
     "kaitai": "dist/kaitai.cjs",
-    "kaitai-mcp": "dist/kaitai.cjs"
+    "kaitai-mcp": "kaitai-mcp.cjs"
   },
   "files": [
     "dist/kaitai.cjs",
+    "kaitai-mcp.cjs",
     "LICENSE"
   ],
   "engines": {
