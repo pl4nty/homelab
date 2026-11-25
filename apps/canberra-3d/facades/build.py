@@ -8,9 +8,10 @@ A research pipeline, run offline. For each wall of the tile it:
 
 1. finds the photos that look at the wall (Mapillary graph API);
 2. keeps only the pixels Mapillary's own segmentation calls building, so trees, cars and sky drop out;
-3. nudges each camera until the model's buildings line up with that segmentation, because the
-   published pose is only as good as a phone's GPS;
-4. drops the parts of a wall another building hides from the camera;
+3. registers Mapillary's 3D mesh of each photo onto the model's footprints, because the published
+   pose is only as good as a phone's GPS, and drops photos that will not fit;
+4. drops the parts of a wall another building hides from the camera, and any texel whose distance
+   in that mesh is not the wall's;
 5. blends the photos that agree, texel by texel;
 6. packs the walls that came out well into one atlas with an index.
 
@@ -24,11 +25,13 @@ import io
 import json
 import math
 import os
+import struct
 import sys
 import time
 import urllib.parse
 import urllib.request
 import warnings
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -129,8 +132,10 @@ class Photo:
     year: float
     url: str
     user: str
+    mesh: str = ""  # where Mapillary's reconstruction of what this photo sees can be fetched
     shift: tuple[float, float, float] = (0.0, 0.0, 0.0)  # refined east, north, yaw
     fit: float = 0.0
+    scale: float = 1.0  # what the mesh's distances must be multiplied by to be metres
 
     def centre(self) -> np.ndarray:
         return np.array([self.x + self.shift[0], self.y + self.shift[1], self.z])
@@ -174,7 +179,7 @@ def harvest(box: tuple[float, float, float, float]) -> list[Photo]:
     """Every posed photo in a world-metre box, asked for in cells small enough not to hit the result cap."""
     fields = (
         "id,captured_at,is_pano,camera_type,computed_geometry,computed_rotation,computed_altitude,"
-        "camera_parameters,width,height,creator,thumb_1024_url"
+        "camera_parameters,width,height,creator,thumb_1024_url,mesh"
     )
     lon0, lat0 = lonlat(box[0], box[1])
     lon1, lat1 = lonlat(box[2], box[3])
@@ -223,6 +228,7 @@ def harvest(box: tuple[float, float, float, float]) -> list[Photo]:
                 year=1970 + i["captured_at"] / 1000 / 31557600,
                 url=i["thumb_1024_url"],
                 user=i.get("creator", {}).get("username", ""),
+                mesh=i.get("mesh", {}).get("url", ""),
             )
         )
     return photos
@@ -354,63 +360,136 @@ def building_mask(cache: Path, photo: Photo) -> np.ndarray | None:
     return np.asarray(img) > 0
 
 
-def clip_near(poly: np.ndarray, near: float = 0.5) -> np.ndarray:
-    """Clips a camera-space polygon to the half-space in front of the camera."""
-    out = []
-    for p, q in zip(poly, np.roll(poly, -1, axis=0), strict=True):
-        if p[2] >= near:
-            out.append(p)
-        if (p[2] >= near) != (q[2] >= near):
-            t = (near - p[2]) / (q[2] - p[2])
-            out.append(p + (q - p) * t)
-    return np.array(out)
+def load_mesh(cache: Path, photo: Photo) -> tuple[np.ndarray, np.ndarray] | None:
+    """Mapillary's reconstruction of what a photo sees: a few hundred vertices in the camera's own
+    frame (x right, y down, z forward) and the triangles between them. None for panoramas, whose
+    mesh would need wrapping at the seam, and for photos without one."""
+    if photo.pano or not photo.mesh:
+        return None
+    raw = cached(cache, f"mesh/{photo.id}.bin", lambda: fetch(photo.mesh))
+    verts: list[float] = []
+    faces: list[int] = []
+    for tag, value in proto(raw):
+        if tag == 1 and isinstance(value, bytes):
+            verts.extend(struct.unpack(f"<{len(value) // 4}f", value))
+        elif tag == 2 and isinstance(value, int):
+            faces.append(value)
+        elif tag == 2:
+            i = 0
+            while i < len(value):
+                index, i = varint(value, i)
+                faces.append(index)
+    if len(verts) < 9 or len(faces) < 3:
+        return None
+    v = np.array(verts, np.float32).reshape(-1, 3)
+    f = np.array(faces).reshape(-1, 3)
+    return v, f[(f < len(v)).all(axis=1)]
 
 
-def render_walls(photo: Photo, quads: np.ndarray, shape: tuple[int, int]) -> np.ndarray:
-    """The silhouette the model's buildings should make in this photo."""
+def mesh_pixels(
+    photo: Photo, v: np.ndarray, shape: tuple[int, int]
+) -> tuple[np.ndarray, np.ndarray]:
+    """Where each mesh vertex falls in an image of the given size."""
     h, w = shape
-    img = Image.new("L", (w, h), 0)
-    draw = ImageDraw.Draw(img)
-    rot, centre = photo.rotation(), photo.centre()
     m = max(photo.width, photo.height)
-    for quad in quads:
-        cam = clip_near((quad - centre) @ rot.T)
-        if len(cam) < 3:
-            continue
-        xn, yn = cam[:, 0] / cam[:, 2], cam[:, 1] / cam[:, 2]
-        u = (photo.focal * xn * m + photo.width / 2) / photo.width * w
-        v = (photo.focal * yn * m + photo.height / 2) / photo.height * h
-        if u.max() < 0 or u.min() > w or v.max() < 0 or v.min() > h:
-            continue
-        draw.polygon(list(zip(u.clip(-4 * w, 5 * w), v.clip(-4 * h, 5 * h), strict=True)), fill=255)
-    return np.asarray(img) > 0
+    z = np.maximum(v[:, 2], 0.1)
+    px = (photo.focal * v[:, 0] / z * m + photo.width / 2) / photo.width * w
+    py = (photo.focal * v[:, 1] / z * m + photo.height / 2) / photo.height * h
+    return px, py
 
 
-def refine(photo: Photo, mask: np.ndarray, quads: np.ndarray) -> None:
-    """Slides and turns the camera to where the model's buildings best overlap the segmented ones."""
-    if photo.pano:
+def depth_map(photo: Photo, mesh: tuple[np.ndarray, np.ndarray]) -> np.ndarray:
+    """Metres from the camera to whatever each part of the photo shows."""
+    v, f = mesh
+    h = max(1, round(MASK_W * photo.height / photo.width))
+    px, py = mesh_pixels(photo, v, (h, MASK_W))
+    img = Image.new("F", (MASK_W, h), 0.0)
+    draw = ImageDraw.Draw(img)
+    depth = v[:, 2][f].mean(axis=1)
+    # Far faces first, so a nearer one painted later wins.
+    for k in np.argsort(-depth):
+        a, b, c = f[k]
+        if v[a, 2] <= 0.1 or v[b, 2] <= 0.1 or v[c, 2] <= 0.1:
+            continue
+        draw.polygon([(px[a], py[a]), (px[b], py[b]), (px[c], py[c])], fill=float(depth[k]))
+    return np.asarray(img) * photo.scale
+
+
+def nearest_on_walls(pts: np.ndarray, segments: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """For 2D points, the closest point on any wall and the distance to it."""
+    a, d = segments[:, :2], segments[:, 2:] - segments[:, :2]
+    t = ((pts[:, None, :] - a[None]) * d[None]).sum(-1) / np.maximum((d * d).sum(-1), 1e-9)[None]
+    close = a[None] + d[None] * t.clip(0, 1)[..., None]
+    dist = np.linalg.norm(close - pts[:, None, :], axis=-1)
+    best = dist.argmin(axis=1)
+    rows = np.arange(len(pts))
+    return close[rows, best], dist[rows, best]
+
+
+def refine(
+    photo: Photo, mask: np.ndarray, mesh: tuple[np.ndarray, np.ndarray], segments: np.ndarray
+) -> None:
+    """Registers the photo's own 3D mesh onto the model's footprints.
+
+    The published pose is GPS-grade, and the mesh's scale drifts. Every mesh vertex the
+    segmentation calls building should lie on a wall in plan, so the camera is slid, turned and
+    the mesh rescaled until they do (iterated closest point, in two dimensions). `fit` is left
+    as the share of those vertices within 1.5 m of a wall.
+    """
+    v, _ = mesh
+    px, py = mesh_pixels(photo, v, mask.shape)
+    inside = (
+        (v[:, 2] > 2)
+        & (v[:, 2] < 90)
+        & (px >= 0)
+        & (px < mask.shape[1])
+        & (py >= 0)
+        & (py < mask.shape[0])
+    )
+    on_building = np.zeros(len(v), bool)
+    on_building[inside] = mask[py[inside].astype(int), px[inside].astype(int)]
+    cam = v[on_building].astype(float)
+    if len(cam) < 12 or len(segments) == 0:
+        photo.fit = 0.0
         return
+    # Rays in the world for the published pose; the unknowns then act on these in plan.
+    rays = (cam @ photo.rot)[:, :2]
+    centre, angle, scale = np.array([photo.x, photo.y]), 0.0, 1.0
 
-    def score(shift: tuple[float, float, float]) -> float:
-        photo.shift = shift
-        drawn = render_walls(photo, quads, mask.shape)
-        both = (drawn & mask).sum()
-        return 2 * both / max(1, drawn.sum() + mask.sum())
+    def placed() -> np.ndarray:
+        c, s = math.cos(angle), math.sin(angle)
+        return centre + scale * rays @ np.array([[c, s], [-s, c]])
 
-    best, best_shift = score((0.0, 0.0, 0.0)), (0.0, 0.0, 0.0)
-    start = best
-    for step, turn in ((4.0, math.radians(3)), (1.5, math.radians(1))):
-        centre = best_shift
-        for dx in (-2, -1, 0, 1, 2):
-            for dy in (-2, -1, 0, 1, 2):
-                for da in (-1, 0, 1):
-                    shift = (centre[0] + dx * step, centre[1] + dy * step, centre[2] + da * turn)
-                    s = score(shift)
-                    if s > best:
-                        best, best_shift = s, shift
-    # A move that barely helps is noise; keep the published pose.
-    photo.shift = best_shift if best > start + 0.03 else (0.0, 0.0, 0.0)
-    photo.fit = best
+    for reach in (14.0, 10.0, 7.0, 5.0, 3.5, 2.5, 2.0, 2.0):
+        pts = placed()
+        target, dist = nearest_on_walls(pts, segments)
+        use = dist < reach
+        if use.sum() < 10:
+            break
+        p, q = pts[use], target[use]
+        mp, mq = p.mean(0), q.mean(0)
+        cov = (q - mq).T @ (p - mp) / len(p)
+        turn = math.atan2(cov[1, 0] - cov[0, 1], cov[0, 0] + cov[1, 1])
+        grow = (
+            math.cos(turn) * (cov[0, 0] + cov[1, 1]) + math.sin(turn) * (cov[1, 0] - cov[0, 1])
+        ) / max(((p - mp) ** 2).sum(1).mean(), 1e-9)
+        # A mesh half or twice its claimed size is not a refinement, it is a wrong match.
+        if not 0.6 < scale * grow < 1.7:
+            grow = 1.0
+        c, s = math.cos(turn), math.sin(turn)
+        r = np.array([[c, -s], [s, c]])
+        centre = grow * (r @ centre) + (mq - grow * (r @ mp))
+        angle += turn
+        scale *= grow
+    moved = float(np.hypot(*(centre - np.array([photo.x, photo.y]))))
+    _, dist = nearest_on_walls(placed(), segments)
+    # A camera that had to move further than GPS error allows has latched on to the wrong street.
+    if moved > 30 or abs(angle) > math.radians(25):
+        photo.fit = 0.0
+        return
+    photo.shift = (float(centre[0] - photo.x), float(centre[1] - photo.y), angle)
+    photo.scale = scale
+    photo.fit = float((dist < 1.5).mean())
 
 
 def hidden(photo: Photo, wall: Wall, s: np.ndarray, others: np.ndarray) -> np.ndarray:
@@ -430,7 +509,7 @@ def hidden(photo: Photo, wall: Wall, s: np.ndarray, others: np.ndarray) -> np.nd
     return ((t > 0.02) & (t < 1) & (u > 0) & (u < 1)).any(axis=1)
 
 
-def texture(cache: Path, wall: Wall, others: np.ndarray, masks: dict, ppm: float):
+def texture(cache: Path, wall: Wall, others: np.ndarray, masks: dict, depths: dict, ppm: float):
     """Blends the wall's photos texel by texel. Returns RGBA, coverage, and the photos used."""
     nu, nv = max(2, round(wall.length * ppm)), max(2, round(wall.height * ppm))
     s = (np.arange(nu) + 0.5) / ppm
@@ -448,6 +527,15 @@ def texture(cache: Path, wall: Wall, others: np.ndarray, masks: dict, ppm: float
         ok &= ~hidden(photo, wall, s, others)[None, :]
         mh, mw = mask.shape
         ok &= mask[(v.clip(0, 0.999) * mh).astype(int), (u.clip(0, 0.999) * mw).astype(int)]
+        # The segmentation says "a building", not which one. Mapillary's mesh says how far away
+        # the surface in the photo is: keep a texel only where that matches the wall's distance.
+        seen = depths.get(photo.id)
+        if seen is not None:
+            dh, dw = seen.shape
+            there = seen[(v.clip(0, 0.999) * dh).astype(int), (u.clip(0, 0.999) * dw).astype(int)]
+            ok &= (there > 0) & (np.abs(there - depth) < np.maximum(3.0, 0.25 * depth))
+        elif not photo.pano:
+            continue
         if ok.mean() < 0.03:
             continue
         img = np.asarray(
@@ -484,7 +572,7 @@ def texture(cache: Path, wall: Wall, others: np.ndarray, masks: dict, ppm: float
     # One photo alone is believed only if its camera lined up well with the model; otherwise a
     # texel needs two photos behind it.
     views = (w > 0).sum(0)
-    trusted = np.stack([np.full(w.shape[1:], p.fit >= 0.55) for p in used])
+    trusted = np.stack([np.full(w.shape[1:], p.fit >= 0.6) for p in used])
     w = np.where((views[None] >= 2) | trusted, w, 0.0)
     total = w.sum(0)
     rgb = (c * w[..., None]).sum(0) / np.maximum(total, 1e-6)[..., None]
@@ -519,12 +607,17 @@ def build(args, tx: int, ty: int) -> None:
     cache = Path(args.cache)
     ox, oy = tile_origin(tx, ty)
     walls = load_walls(args.server, tx, ty, args.min_length, args.min_height)
-    # Buildings in the neighbouring tiles are not loaded: near a tile edge the silhouette and the
-    # line-of-sight test are missing them. A known limit of this first cut.
-    quads = np.array(
-        [[[*w.a, 0], [*w.b, 0], [*w.b, w.height], [*w.a, w.height]] for w in walls], float
-    ).reshape(-1, 4, 3)
-    segments = np.array([[*w.a, *w.b] for w in walls], float).reshape(-1, 4)
+    # Buildings just over the tile's edge still stand in photos and in the way: they shape the
+    # silhouette cameras are aligned to and block lines of sight, though only this tile's walls are textured.
+    around = [
+        w
+        for dx in (-1, 0, 1)
+        for dy in (-1, 0, 1)
+        if dx or dy
+        for w in load_walls(args.server, tx + dx, ty + dy, 4, 3)
+    ]
+    everything = walls + around
+    segments = np.array([[*w.a, *w.b] for w in everything], float).reshape(-1, 4)
     photos = harvest((ox - 60, oy - 60, ox + TILE_M + 60, oy + TILE_M + 60))
     found = len(photos)
     # An old photo may show whatever stood there before the building in the model.
@@ -558,24 +651,59 @@ def build(args, tx: int, ty: int) -> None:
         w.photos = [p for _, p in sorted(ranked, key=lambda r: -r[0])[: args.views]]
 
     wanted = {p.id: p for w in walls for p in w.photos}
+
+    # Downloads dominate a first run, so fetch everything the walls will need at once.
+    def prefetch(p: Photo) -> None:
+        try:
+            cached(cache, f"img/{p.id}.jpg", lambda: fetch(p.url))
+            cached(
+                cache,
+                f"seg/{p.id}.json",
+                lambda: fetch(
+                    f"https://graph.mapillary.com/{p.id}/detections?fields=value,geometry"
+                ),
+            )
+            if p.mesh and not p.pano:
+                cached(cache, f"mesh/{p.id}.bin", lambda: fetch(p.mesh))
+        except Exception as e:
+            print(f"  could not fetch {p.id}: {e}", flush=True)
+
+    with ThreadPoolExecutor(16) as pool:
+        list(pool.map(prefetch, wanted.values()))
     masks: dict[str, np.ndarray | None] = {}
-    moved = 0
+    depths: dict[str, np.ndarray | None] = {}
+    mids = (segments[:, :2] + segments[:, 2:]) / 2
+    fits = []
     for n, p in enumerate(wanted.values()):
         masks[p.id] = building_mask(cache, p)
-        if masks[p.id] is not None and masks[p.id].any():
-            near = np.hypot(quads[:, 0, 0] - p.x, quads[:, 0, 1] - p.y) < 150
-            refine(p, masks[p.id], quads[near])
-            moved += p.shift != (0.0, 0.0, 0.0)
-        if n % 100 == 99:
+        mesh = load_mesh(cache, p)
+        if p.pano:
+            continue
+        if masks[p.id] is None or not masks[p.id].any() or mesh is None:
+            masks[p.id] = None
+            continue
+        refine(p, masks[p.id], mesh, segments[np.hypot(mids[:, 0] - p.x, mids[:, 1] - p.y) < 150])
+        fits.append(p.fit)
+        # A photo whose buildings will not sit on the model's is left out altogether.
+        if p.fit < args.min_fit:
+            masks[p.id] = None
+        else:
+            depths[p.id] = depth_map(p, mesh)
+        if n % 200 == 199:
             print(f"  {n + 1}/{len(wanted)} photos masked and aligned", flush=True)
-    print(f"  {len(wanted)} photos in use, {moved} moved by alignment", flush=True)
+    kept = sum(1 for f in fits if f >= args.min_fit)
+    print(
+        f"  {len(wanted)} photos wanted, {len(fits)} with mesh and segmentation, {kept} aligned; "
+        f"median fit {float(np.median(fits)) if fits else 0:.2f}",
+        flush=True,
+    )
 
     done, credits, stats = [], set(), []
     for w in walls:
         if not w.photos:
             continue
         rgba, cover, used = texture(
-            cache, w, segments[[o.key != w.key for o in walls]], masks, args.ppm
+            cache, w, segments[[o is not w for o in everything]], masks, depths, args.ppm
         )
         stats.append(cover)
         if rgba is None or cover < args.min_cover:
@@ -626,6 +754,12 @@ def main() -> None:
     ap.add_argument("--min-length", type=float, default=8, help="shortest wall to texture, metres")
     ap.add_argument(
         "--min-height", type=float, default=5, help="lowest building to texture, metres"
+    )
+    ap.add_argument(
+        "--min-fit",
+        type=float,
+        default=0.4,
+        help="share of a photo's building points that must land on walls",
     )
     ap.add_argument(
         "--since", type=float, default=2023, help="ignore photos taken before this year"
