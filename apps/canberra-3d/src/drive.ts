@@ -1,6 +1,7 @@
 // Street level: a car to drive and a free-flying camera. Both ride the same streamed world as the
 // overhead view; the car follows the ground, water and bridge decks and stops at buildings.
 import * as THREE from 'three';
+import type { Cars } from './cars.ts';
 
 export interface Ground {
   surfaceAt(x: number, z: number, y?: number): number;
@@ -26,56 +27,11 @@ export interface Input {
   dragging: boolean;
 }
 
-const lambert = (hex: number, emissive = 0) => new THREE.MeshLambertMaterial({ color: hex, emissive });
-
-/** A small hatchback, nose along -z. */
-function carModel(): { group: THREE.Group; wheels: THREE.Mesh[] } {
-  const group = new THREE.Group();
-  const paint = lambert(0xf08a24);
-  const glass = lambert(0x1b232c);
-  const add = (geo: THREE.BufferGeometry, mat: THREE.Material, x: number, y: number, z: number) => {
-    const m = new THREE.Mesh(geo, mat);
-    m.position.set(x, y, z);
-    m.castShadow = true;
-    group.add(m);
-    return m;
-  };
-  add(new THREE.BoxGeometry(1.78, 0.52, 4.1), paint, 0, 0.62, 0);
-  add(new THREE.BoxGeometry(1.7, 0.2, 3.9), lambert(0x2a2d31), 0, 0.3, 0);
-  // Cabin: a box pinched at the top, set back from the nose.
-  const cabin = new THREE.BoxGeometry(1.6, 0.56, 2.3);
-  const p = cabin.attributes.position;
-  for (let i = 0; i < p.count; i++) {
-    if (p.getY(i) > 0) {
-      p.setX(i, p.getX(i) * 0.86);
-      p.setZ(i, p.getZ(i) * 0.74 + 0.12);
-    }
-  }
-  cabin.computeVertexNormals();
-  add(cabin, glass, 0, 1.16, 0.3);
-  add(new THREE.BoxGeometry(1.36, 0.06, 1.6), paint, 0, 1.46, 0.42);
-  for (const x of [-0.62, 0.62]) {
-    add(new THREE.BoxGeometry(0.36, 0.14, 0.06), lambert(0xfff4d6, 0xfff0c0), x, 0.7, -2.06);
-    add(new THREE.BoxGeometry(0.4, 0.14, 0.06), lambert(0x7a1010, 0xc01818), x, 0.72, 2.06);
-  }
-  const wheels: THREE.Mesh[] = [];
-  const tyre = new THREE.CylinderGeometry(0.33, 0.33, 0.24, 12).rotateZ(Math.PI / 2);
-  for (const [x, z] of [
-    [-0.86, -1.3],
-    [0.86, -1.3],
-    [-0.86, 1.3],
-    [0.86, 1.3],
-  ])
-    wheels.push(add(tyre, lambert(0x17191c), x, 0.33, z));
-  return { group, wheels };
-}
-
 const turn = (from: number, to: number, k: number) =>
   from + (((((to - from) % (2 * Math.PI)) + 3 * Math.PI) % (2 * Math.PI)) - Math.PI) * k;
 
 export class Car {
   readonly group: THREE.Group;
-  private wheels: THREE.Mesh[];
   x = 0;
   y = 0;
   z = 0;
@@ -93,10 +49,15 @@ export class Car {
   private eye = new THREE.Vector3();
   private aimAt = new THREE.Vector3();
 
-  constructor() {
-    const m = carModel();
-    this.group = m.group;
-    this.wheels = m.wheels;
+  constructor(kit: Cars) {
+    // A hatchback from the same kit as the traffic, in a colour nothing else on the road has.
+    const body = new THREE.InstancedMesh(kit.styles[1], kit.material, 1);
+    body.setMatrixAt(0, new THREE.Matrix4());
+    body.setColorAt(0, new THREE.Color(0xf08a24));
+    body.castShadow = true;
+    body.frustumCulled = false;
+    this.group = new THREE.Group();
+    this.group.add(body);
     this.group.rotation.order = 'YXZ';
     this.group.visible = false;
   }
@@ -145,7 +106,6 @@ export class Car {
     this.roll += (THREE.MathUtils.clamp(Math.atan2(right - left, 1.6), -0.5, 0.5) - this.roll) * ease;
     this.group.position.set(this.x, this.y, this.z);
     this.group.rotation.set(this.pitch, -this.heading, this.roll);
-    for (const w of this.wheels) w.rotation.x -= (this.speed * dt) / 0.33;
   }
 
   /** Puts the camera behind the car, or at the driver's eye. */

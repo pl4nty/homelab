@@ -30,13 +30,18 @@ export class Traffic {
       }
     }
     if (!cars.length) return;
-    const mesh = new THREE.InstancedMesh(this.tiles.carGeo, this.tiles.carMat, cars.length / STRIDE);
-    for (let k = 0; k < cars.length / STRIDE; k++)
-      mesh.setColorAt(k, this.c.setHex(CAR[Math.floor(hash2(k, e.x * 3 + e.y) * CAR.length)]));
-    mesh.castShadow = true;
-    mesh.frustumCulled = false;
-    e.group!.add(mesh);
-    e.traffic = { mesh, cars: new Float32Array(cars) };
+    const meshes = this.tiles.cars.meshes(
+      cars.length / STRIDE,
+      (k) => hash2(k * 7 + 3, e.x + e.y * 5),
+      (mesh, slot, k) => mesh.setColorAt(slot, this.c.setHex(CAR[Math.floor(hash2(k, e.x * 3 + e.y) * CAR.length)])),
+    );
+    for (const mesh of meshes) {
+      // They move every frame, so a bounding sphere from their first positions would cull them wrongly.
+      mesh.frustumCulled = false;
+      mesh.receiveShadow = false;
+      e.group!.add(mesh);
+    }
+    e.traffic = { meshes, cars: new Float32Array(cars) };
   }
 
   update(dt: number) {
@@ -49,40 +54,44 @@ export class Traffic {
           continue;
         }
       }
-      const { mesh, cars } = e.traffic!;
-      mesh.visible = this.enabled;
+      const { meshes, cars } = e.traffic!;
+      for (const mesh of meshes) mesh.visible = this.enabled;
       if (!this.enabled) continue;
       const buf = e.built!.lanes;
-      for (let k = 0, n = cars.length / STRIDE; k < n; k++) {
-        const o = k * STRIDE;
-        const lane = e.lanes![cars[o]];
-        const length = lane.cum[lane.count - 1];
-        const dir = cars[o + 3];
-        let s = cars[o + 1] + cars[o + 2] * dt * dir;
-        if (s > length) s -= length;
-        else if (s < 0) s += length;
-        cars[o + 1] = s;
-        let i = 1;
-        while (i < lane.count - 1 && lane.cum[i] < s) i++;
-        const a = lane.start + (i - 1) * 3;
-        const b = a + 3;
-        const t = (s - lane.cum[i - 1]) / (lane.cum[i] - lane.cum[i - 1] || 1);
-        let dx = (buf[b] - buf[a]) * dir;
-        let dz = (buf[b + 2] - buf[a + 2]) * dir;
-        const len = Math.hypot(dx, dz) || 1;
-        dx /= len;
-        dz /= len;
-        // Keep left: one-way roads are a carriageway already, two-way roads split about the centreline.
-        const off = lane.oneway ? 0 : 1.75;
-        const px = buf[a] + (buf[b] - buf[a]) * t + dz * off;
-        const pz = buf[a + 2] + (buf[b + 2] - buf[a + 2]) * t - dx * off;
-        this.m.makeRotationY(Math.atan2(-dx, -dz));
-        // Nothing drives through the player: a car that close is tucked out of sight.
-        const clear = !this.player || Math.hypot(px + e.originX - this.player.x, pz + e.originZ - this.player.z) > 14;
-        this.m.setPosition(px, clear ? buf[a + 1] + (buf[b + 1] - buf[a + 1]) * t : -9000, pz);
-        mesh.setMatrixAt(k, this.m);
+      for (const mesh of meshes) {
+        const members = mesh.userData.members as number[];
+        for (let slot = 0; slot < members.length; slot++) {
+          const k = members[slot];
+          const o = k * STRIDE;
+          const lane = e.lanes![cars[o]];
+          const length = lane.cum[lane.count - 1];
+          const dir = cars[o + 3];
+          let s = cars[o + 1] + cars[o + 2] * dt * dir;
+          if (s > length) s -= length;
+          else if (s < 0) s += length;
+          cars[o + 1] = s;
+          let i = 1;
+          while (i < lane.count - 1 && lane.cum[i] < s) i++;
+          const a = lane.start + (i - 1) * 3;
+          const b = a + 3;
+          const t = (s - lane.cum[i - 1]) / (lane.cum[i] - lane.cum[i - 1] || 1);
+          let dx = (buf[b] - buf[a]) * dir;
+          let dz = (buf[b + 2] - buf[a + 2]) * dir;
+          const len = Math.hypot(dx, dz) || 1;
+          dx /= len;
+          dz /= len;
+          // Keep left: one-way roads are a carriageway already, two-way roads split about the centreline.
+          const off = lane.oneway ? 0 : 1.75;
+          const px = buf[a] + (buf[b] - buf[a]) * t + dz * off;
+          const pz = buf[a + 2] + (buf[b + 2] - buf[a + 2]) * t - dx * off;
+          this.m.makeRotationY(Math.atan2(-dx, -dz));
+          // Nothing drives through the player: a car that close is tucked out of sight.
+          const clear = !this.player || Math.hypot(px + e.originX - this.player.x, pz + e.originZ - this.player.z) > 14;
+          this.m.setPosition(px, clear ? buf[a + 1] + (buf[b + 1] - buf[a + 1]) * t : -9000, pz);
+          mesh.setMatrixAt(slot, this.m);
+        }
+        mesh.instanceMatrix.needsUpdate = true;
       }
-      mesh.instanceMatrix.needsUpdate = true;
     }
   }
 }

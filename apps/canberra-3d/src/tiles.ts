@@ -2,8 +2,9 @@
 import * as THREE from 'three';
 import { TILE_SIZE, TILE_Z, tileBoundsWorld, tileInExtent, worldToTile } from '../shared/geo.ts';
 import { DEM_N } from '../shared/tile.ts';
+import { Cars } from './cars.ts';
 import { CAR } from './gen/palette.ts';
-import type { BuildReply, BuildRequest, Built, Label, MeshData } from './gen/types.ts';
+import { type BuildReply, type BuildRequest, type Built, hash2, type Label, type MeshData } from './gen/types.ts';
 import { buildingMaterial, groundMaterial, noPhoto, vertexColourMaterial, waterMaterial } from './materials.ts';
 import type { TreeFactory } from './trees.ts';
 
@@ -29,7 +30,7 @@ interface Entry {
   farTrees: THREE.InstancedMesh[];
   lamps?: THREE.Points;
   lanes?: { start: number; count: number; oneway: boolean; cum: Float32Array }[];
-  traffic?: { mesh: THREE.InstancedMesh; cars: Float32Array };
+  traffic?: { meshes: THREE.InstancedMesh[]; cars: Float32Array };
   /** The tile's aerial photograph, shared by its ground and its roofs. */
   photo?: THREE.Texture;
   walls?: THREE.MeshLambertMaterial;
@@ -51,31 +52,6 @@ function meshFrom(d: MeshData, material: THREE.Material): THREE.Mesh {
   m.castShadow = true;
   m.receiveShadow = true;
   return m;
-}
-
-export function carGeometry(): THREE.BufferGeometry {
-  const body = new THREE.BoxGeometry(1.8, 0.62, 4.3).translate(0, 0.52, 0).toNonIndexed();
-  const cabin = new THREE.BoxGeometry(1.62, 0.52, 2.3).translate(0, 1.08, -0.15).toNonIndexed();
-  const paint = (g: THREE.BufferGeometry, v: number) => {
-    const c = new Float32Array(g.attributes.position.count * 3).fill(v);
-    g.setAttribute('color', new THREE.BufferAttribute(c, 3));
-    g.deleteAttribute('uv');
-  };
-  paint(body, 1);
-  paint(cabin, 0.12);
-  const pos = new Float32Array(body.attributes.position.count * 3 * 2);
-  const nor = new Float32Array(pos.length);
-  const col = new Float32Array(pos.length);
-  for (const [i, g] of [body, cabin].entries()) {
-    pos.set(g.attributes.position.array, i * body.attributes.position.count * 3);
-    nor.set(g.attributes.normal.array, i * body.attributes.position.count * 3);
-    col.set(g.attributes.color.array, i * body.attributes.position.count * 3);
-  }
-  const out = new THREE.BufferGeometry();
-  out.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  out.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
-  out.setAttribute('color', new THREE.BufferAttribute(col, 3));
-  return out;
 }
 
 function lampSprite(): THREE.Texture {
@@ -104,8 +80,7 @@ export class TileManager {
   private nextId = 1;
   private plain = vertexColourMaterial();
   private water = waterMaterial();
-  readonly carGeo = carGeometry();
-  readonly carMat = new THREE.MeshLambertMaterial({ vertexColors: true });
+  readonly cars = new Cars();
   private poleGeo = new THREE.CylinderGeometry(0.07, 0.1, 1, 4).translate(0, 0.5, 0);
   private poleMat = new THREE.MeshLambertMaterial({ color: 0x8d9296 });
   readonly lampMat: THREE.PointsMaterial;
@@ -527,7 +502,7 @@ export class TileManager {
     for (const o of e.nearObjects) this.dispose(o);
     e.nearObjects = [];
     if (e.traffic) {
-      this.dispose(e.traffic.mesh);
+      for (const mesh of e.traffic.meshes) this.dispose(mesh);
       e.traffic = undefined;
     }
     for (const t of e.farTrees) t.visible = !near;
@@ -538,19 +513,22 @@ export class TileManager {
     }
     const cars = b.cars.length / 5;
     if (cars) {
-      const mesh = new THREE.InstancedMesh(this.carGeo, this.carMat, cars);
       const m = new THREE.Matrix4();
       const c = new THREE.Color();
-      for (let i = 0; i < cars; i++) {
-        const o = i * 5;
-        m.makeRotationY(-b.cars[o + 3]).setPosition(b.cars[o], b.cars[o + 1], b.cars[o + 2]);
-        mesh.setMatrixAt(i, m);
-        mesh.setColorAt(i, c.setHex(CAR[b.cars[o + 4] % CAR.length]));
+      const meshes = this.cars.meshes(
+        cars,
+        (i) => hash2(Math.round(b.cars[i * 5] * 10), Math.round(b.cars[i * 5 + 2] * 10)),
+        (mesh, slot, i) => {
+          const o = i * 5;
+          m.makeRotationY(-b.cars[o + 3]).setPosition(b.cars[o], b.cars[o + 1], b.cars[o + 2]);
+          mesh.setMatrixAt(slot, m);
+          mesh.setColorAt(slot, c.setHex(CAR[b.cars[o + 4] % CAR.length]));
+        },
+      );
+      for (const mesh of meshes) {
+        e.group!.add(mesh);
+        e.nearObjects.push(mesh);
       }
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      e.group!.add(mesh);
-      e.nearObjects.push(mesh);
     }
     const lights = b.lights.length / 4;
     if (lights) {

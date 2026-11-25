@@ -173,7 +173,7 @@ for (const type of ['pointerup', 'pointercancel'] as const) {
 }
 
 let mode: Mode = 'explore';
-const car = new Car();
+const car = new Car(tiles.cars);
 const drone = new Drone();
 scene.add(car.group);
 const world: Ground = {
