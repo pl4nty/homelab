@@ -18,6 +18,8 @@ public sealed class CatalogFactory : WebApplicationFactory<Program>
 
     public int MaxParts { get; set; } = 64;
 
+    public int? SampleSize { get; set; }
+
     public Task SyncAsync() =>
         ActivatorUtilities.CreateInstance<SyncService>(Services).SyncAsync(CancellationToken.None);
 
@@ -27,7 +29,12 @@ public sealed class CatalogFactory : WebApplicationFactory<Program>
         builder.UseSetting("Catalog:DataPath", DataPath);
         builder.ConfigureTestServices(services =>
         {
-            services.Configure<SyncOptions>(options => options.CompactionThreshold = CompactionThreshold);
+            services.Configure<SyncOptions>(options =>
+            {
+                options.CompactionThreshold = CompactionThreshold;
+                options.Full = SampleSize is null;
+                options.SampleSize = SampleSize ?? options.SampleSize;
+            });
             services.Configure<CatalogOptions>(options => options.MaxParts = MaxParts);
             services.AddHttpClient<ServerSyncClient>().ConfigurePrimaryHttpMessageHandler(() => UpdateServer);
         });

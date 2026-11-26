@@ -60,7 +60,12 @@ public sealed class SyncService(
 
         var (products, classifications) = ReadCategoryIds();
         var updates = await client.GetUpdateRevisionsAsync(products, classifications, ct);
-        var missing = updates.Where(id => !stored.Contains(id)).Take(_options.Full ? int.MaxValue : _options.SampleSize).ToList();
+        var missing = updates.Where(id => !stored.Contains(id)).ToList();
+        if (!_options.Full)
+        {
+            Random.Shared.Shuffle(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(missing));
+            missing = missing[..Math.Min(missing.Count, _options.SampleSize)];
+        }
         logger.LogInformation("{Categories} categories, {Updates} updates listed, {Missing} to fetch", categories.Count, updates.Count, missing.Count);
 
         written += await FetchAsync(missing, perRequest, ct);

@@ -23,6 +23,17 @@ public sealed class SyncTests : IDisposable
     }
 
     [Fact]
+    public async Task Sync_Sample_FetchesSampleSizeUpdatesPerSync()
+    {
+        _factory.SampleSize = 2;
+
+        await _factory.SyncAsync();
+        Assert.Equal(2, await ScalarAsync("SELECT count(*) FROM updates WHERE update_type <> 'Category'"));
+        await _factory.SyncAsync();
+        Assert.Equal(3, await ScalarAsync("SELECT count(*) FROM updates WHERE update_type <> 'Category'"));
+    }
+
+    [Fact]
     public async Task Sync_ExtractsCompressedUpdates()
     {
         await _factory.SyncAsync();

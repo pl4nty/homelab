@@ -23,7 +23,7 @@ public sealed class SyncOptions
     /// <summary>How often a sync runs; the first runs at startup.</summary>
     public TimeSpan Interval { get; set; } = TimeSpan.FromHours(1);
 
-    /// <summary>False fetches only <see cref="SampleSize"/> new updates per sync, so previews don't pull the whole catalog.</summary>
+    /// <summary>False fetches a random <see cref="SampleSize"/> new updates per sync, so previews don't pull the whole catalog.</summary>
     public bool Full { get; set; } = true;
 
     public int SampleSize { get; set; } = 2000;
