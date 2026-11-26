@@ -1,0 +1,131 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: msft-updates${APP_SUFFIX:=}
+  namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
+spec:
+  interval: 15m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1654
+        runAsGroup: 1654
+        fsGroup: 1654
+        fsGroupChangePolicy: OnRootMismatch
+    controllers:
+      main:
+        # RWO volumes can't attach to two nodes during a rollout
+        strategy: Recreate
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-dotnet: "true"
+        containers:
+          main:
+            image:
+              repository: ghcr.io/pl4nty/msft-updates
+              tag: ${APP_IMAGE_TAG:=}
+            env:
+              # previews sync a sample instead of the whole catalog
+              Sync__Full: "${APP_RETAIN:=true}"
+              # a full sync peaks at 3.6 GB with this heap cap; DuckDB and cabextract need the rest
+              DOTNET_GCHeapHardLimit: "0x80000000"
+            securityContext:
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: [ALL]
+            resources:
+              requests:
+                cpu: 100m
+                memory: 512Mi
+              limits:
+                memory: 5Gi
+          ui:
+            image:
+              repository: ghcr.io/caioricciuti/duck-ui
+              tag: 2.4.0@sha256:682d3edab619137bd42d0e8ba1a066152661a12da25af4afa9c23d0464e4b287
+            env:
+              DUCK_UI_EXTERNAL_CONNECTION_NAME: msft-updates
+              DUCK_UI_EXTERNAL_HOST: https://msft-updates${APP_SUFFIX:=}.${PUBLIC_DOMAIN}/query
+              DUCK_UI_EXTERNAL_PORT: "443"
+              DUCK_UI_EXTERNAL_DATABASE_NAME: memory
+            securityContext:
+              # the image's user, which owns the served files. Its entrypoint writes env.js there
+              runAsUser: 1001
+              runAsGroup: 1001
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: [ALL]
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 8080
+          ui:
+            port: 5522
+    persistence:
+      data:
+        # keep data if a failed install is remediated by uninstalling. previews drop theirs
+        retain: ${APP_RETAIN:=true}
+        accessMode: ReadWriteOnce
+        size: 10Gi
+        advancedMounts:
+          main:
+            main:
+              - path: /data
+      # cabextract input and DuckDB spill files
+      tmp:
+        type: emptyDir
+        sizeLimit: 4Gi
+        advancedMounts:
+          main:
+            main:
+              - path: /tmp
+      # Duck-UI's kiosk mode: only this catalog, no connection or import panels
+      ui:
+        type: configMap
+        identifier: ui
+        advancedMounts:
+          main:
+            ui:
+              - path: /app/dist/databases/manifest.json
+                subPath: manifest.json
+                readOnly: true
+    configMaps:
+      ui:
+        data:
+          manifest.json: |
+            {"databases": [], "ui": {"kiosk": true}}
+    route:
+      main:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - msft-updates${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
+        rules:
+          # the Cloudflare gateway passes paths to the tunnel as regexes and ignores other matches
+          - matches:
+              - path:
+                  type: RegularExpression
+                  value: ^/(query|files|status)(/|$)
+            backendRefs:
+              - identifier: main
+                port: 8080
+          - backendRefs:
+              - identifier: main
+                port: 5522
