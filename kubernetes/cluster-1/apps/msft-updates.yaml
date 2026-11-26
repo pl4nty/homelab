@@ -34,6 +34,8 @@ spec:
             env:
               # previews sync a sample instead of the whole catalog
               Sync__Full: "${APP_RETAIN:=true}"
+              # a full sync peaks at 3.6 GB with this heap cap; DuckDB and cabextract need the rest
+              DOTNET_GCHeapHardLimit: "0x80000000"
             securityContext:
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -44,7 +46,7 @@ spec:
                 cpu: 100m
                 memory: 512Mi
               limits:
-                memory: 4Gi
+                memory: 5Gi
           ui:
             image:
               repository: ghcr.io/caioricciuti/duck-ui

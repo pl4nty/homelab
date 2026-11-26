@@ -117,7 +117,8 @@ considered and not measured:
 - Queries on `update_xml` read 89 GB of XML when they can't filter by `update_id`, which takes about
   30 seconds.
 - Compressed updates are extracted with `cabextract`, as .NET has no LZX decoder.
-- A sync holds up to about 5 GB while it fetches the whole catalog. Later syncs take about 1.5 minutes.
+- A full sync takes about 38 minutes and peaks at 3.6 GB with a 2 GB GC heap cap
+  (`DOTNET_GCHeapHardLimit=0x80000000`). Later syncs take about 1.5 minutes.
 - Previews (`Sync__Full=false`) fetch 2000 updates instead of the whole catalog.
 
 [MS-WSUSSS]: https://learn.microsoft.com/openspecs/windows_protocols/ms-wsusss/
