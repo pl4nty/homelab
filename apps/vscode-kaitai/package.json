@@ -2,7 +2,7 @@
   "name": "kaitai-ide",
   "displayName": "Kaitai Struct IDE",
   "description": "Parse binary files with Kaitai Struct (.ksy) specs: field-coloured hex view, structure tree, value inspector, .ksy diagnostics and code generation. Works in VS Code for the Web.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publisher": "pl4nty",
   "license": "GPL-3.0-or-later",
   "repository": {
