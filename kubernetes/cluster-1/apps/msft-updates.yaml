@@ -55,7 +55,7 @@ spec:
               tag: 2.4.0@sha256:682d3edab619137bd42d0e8ba1a066152661a12da25af4afa9c23d0464e4b287
             env:
               DUCK_UI_EXTERNAL_CONNECTION_NAME: msft-updates
-              DUCK_UI_EXTERNAL_HOST: https://msft-updates${APP_SUFFIX:=}.${PUBLIC_DOMAIN}/duckdb
+              DUCK_UI_EXTERNAL_HOST: https://msft-updates${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
               DUCK_UI_EXTERNAL_PORT: "443"
               DUCK_UI_EXTERNAL_DATABASE_NAME: memory
             securityContext:
@@ -97,6 +97,21 @@ spec:
           main:
             main:
               - path: /tmp
+      # Duck-UI's kiosk mode: only this catalog, no connection or import panels
+      ui:
+        type: configMap
+        identifier: ui
+        advancedMounts:
+          main:
+            ui:
+              - path: /app/dist/databases/manifest.json
+                subPath: manifest.json
+                readOnly: true
+    configMaps:
+      ui:
+        data:
+          manifest.json: |
+            {"databases": [], "ui": {"kiosk": true}}
     route:
       main:
         parentRefs:
@@ -106,10 +121,10 @@ spec:
           - msft-updates${APP_SUFFIX:=}.${PUBLIC_DOMAIN}
         rules:
           - matches:
-              - path:
-                  value: /query
-              - path:
-                  value: /duckdb
+              - method: POST
+                path:
+                  type: Exact
+                  value: /
               - path:
                   value: /files
               - path:

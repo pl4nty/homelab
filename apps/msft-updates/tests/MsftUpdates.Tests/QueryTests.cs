@@ -25,79 +25,52 @@ public sealed class QueryTests(SyncedCatalog catalog) : IClassFixture<SyncedCata
     [Fact]
     public async Task Query_FindsDriverUrlByHardwareId()
     {
-        var result = await PostAsync("""
+        var (result, truncated) = await PostAsync("""
             SELECT f.url, d.driver_version
             FROM driver_metadata d JOIN files f USING (update_id, revision)
             WHERE d.hardware_id = 'pci\ven_8086&dev_1916&subsys_39f217aa'
             """);
 
-        Assert.Equal(["url", "driver_version"], result.GetProperty("columns").EnumerateArray().Select(c => c.GetString()));
-        var row = Assert.Single(result.GetProperty("rows").EnumerateArray());
+        Assert.Equal(["url", "driver_version"], result.GetProperty("meta").EnumerateArray().Select(c => c.GetProperty("name").GetString()));
+        Assert.Equal(["VARCHAR", "VARCHAR"], result.GetProperty("meta").EnumerateArray().Select(c => c.GetProperty("type").GetString()));
+        var row = Assert.Single(result.GetProperty("data").EnumerateArray());
         Assert.Equal(FakeUpdateServer.DriverUrl, row[0].GetString());
         Assert.Equal("21.20.16.4542", row[1].GetString());
-        Assert.False(result.GetProperty("truncated").GetBoolean());
+        Assert.Equal(1, result.GetProperty("rows").GetInt32());
+        Assert.False(truncated);
     }
 
     [Fact]
-    public async Task Query_ByGet_ReturnsCsv()
+    public async Task Query_DefaultsToJsonEachRow()
     {
-        var csv = await _client.GetStringAsync("/query?format=csv&sql=" + Uri.EscapeDataString("SELECT kb_article, title FROM updates WHERE kb_article = '5023052'"));
+        var response = await _client.PostAsync("/", new StringContent("SELECT kb_article, title FROM updates WHERE kb_article = '5023052'"));
 
-        Assert.Equal("kb_article,title\n5023052,Azure File Sync Agent v16.2 Release – February 2024 (KB5023052)\n", csv);
+        Assert.Equal("""{"kb_article":"5023052","title":"Azure File Sync Agent v16.2 Release \u2013 February 2024 (KB5023052)"}""", await response.Content.ReadAsStringAsync());
     }
 
     [Fact]
-    public async Task Query_Limit_TruncatesRows()
+    public async Task Query_TruncatesAtMaxRows()
     {
-        var response = await _client.PostAsync("/query?limit=2", new StringContent("SELECT * FROM updates"));
-        var result = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var (result, truncated) = await PostAsync("SELECT * FROM range(200000)");
 
-        Assert.Equal(2, result.GetProperty("rows").GetArrayLength());
-        Assert.True(result.GetProperty("truncated").GetBoolean());
-    }
-
-    [Fact]
-    public async Task Query_NegativeLimit_KeepsMaxRows()
-    {
-        var response = await _client.PostAsync("/query?limit=-1", new StringContent("SELECT * FROM range(200000)"));
-        var result = await response.Content.ReadFromJsonAsync<JsonElement>();
-
-        Assert.True(result.GetProperty("rows").GetArrayLength() <= 100000);
+        Assert.Equal(100_000, result.GetProperty("rows").GetInt32());
+        Assert.True(truncated);
     }
 
     [Fact]
     public async Task Query_LargeValues_TruncateAtMaxBytes()
     {
-        var response = await _client.PostAsync("/query", new StringContent("SELECT repeat('x', 1 << 20) FROM range(100)"));
-        var result = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var (result, truncated) = await PostAsync("SELECT repeat('x', 1 << 20) FROM range(100)");
 
-        Assert.InRange(result.GetProperty("rows").GetArrayLength(), 1, 40);
-        Assert.True(result.GetProperty("truncated").GetBoolean());
-    }
-
-    [Fact]
-    public async Task DuckDb_ReturnsJsonCompact()
-    {
-        var response = await _client.PostAsync("/duckdb/", new StringContent("SELECT kb_article FROM updates WHERE kb_article = '5023052'"));
-        var result = await response.Content.ReadFromJsonAsync<JsonElement>();
-
-        var column = Assert.Single(result.GetProperty("meta").EnumerateArray());
-        Assert.Equal("kb_article", column.GetProperty("name").GetString());
-        Assert.Equal("VARCHAR", column.GetProperty("type").GetString());
-        Assert.Equal("5023052", result.GetProperty("data")[0][0].GetString());
-        Assert.Equal(1, result.GetProperty("rows").GetInt32());
+        Assert.InRange(result.GetProperty("rows").GetInt32(), 1, 40);
+        Assert.True(truncated);
     }
 
     [Theory]
     [InlineData("SHOW DATABASES")]
     [InlineData("SELECT table_schema, table_name FROM information_schema.tables WHERE table_catalog = 'memory'")]
     [InlineData("DESCRIBE memory.main.updates")]
-    public async Task DuckDb_AllowsDuckUiCatalogQueries(string sql)
-    {
-        var response = await _client.PostAsync("/duckdb/", new StringContent(sql));
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-    }
+    public async Task Query_AllowsDuckUiCatalogQueries(string sql) => await PostAsync(sql);
 
     [Theory]
     [InlineData("COPY updates TO '/tmp/out.parquet'")]
@@ -110,7 +83,7 @@ public sealed class QueryTests(SyncedCatalog catalog) : IClassFixture<SyncedCata
     [InlineData("SELECT * FROM read_parquet('https://example.com/x.parquet')")]
     public async Task Query_RejectsWritesAndReadsOutsideTheCatalog(string sql)
     {
-        var response = await _client.PostAsync("/query", new StringContent(sql));
+        var response = await _client.PostAsync("/", new StringContent(sql));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -133,7 +106,7 @@ public sealed class QueryTests(SyncedCatalog catalog) : IClassFixture<SyncedCata
         var statuses = new List<HttpStatusCode>();
         for (var i = 0; i < 61; i++)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, "/query") { Content = new StringContent("SELECT 1") };
+            using var request = new HttpRequestMessage(HttpMethod.Post, "/") { Content = new StringContent("SELECT 1") };
             request.Headers.Add("CF-Connecting-IP", "192.0.2.1");
             statuses.Add((await _client.SendAsync(request)).StatusCode);
         }
@@ -142,10 +115,12 @@ public sealed class QueryTests(SyncedCatalog catalog) : IClassFixture<SyncedCata
         Assert.Equal(HttpStatusCode.OK, statuses[0]);
     }
 
-    private async Task<JsonElement> PostAsync(string sql)
+    private async Task<(JsonElement Result, bool Truncated)> PostAsync(string sql)
     {
-        var response = await _client.PostAsync("/query", new StringContent(sql));
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/") { Content = new StringContent(sql) };
+        request.Headers.Add("format", "JSONCompact");
+        var response = await _client.SendAsync(request);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        return await response.Content.ReadFromJsonAsync<JsonElement>();
+        return (await response.Content.ReadFromJsonAsync<JsonElement>(), response.Headers.GetValues("X-Truncated").Single() == "true");
     }
 }

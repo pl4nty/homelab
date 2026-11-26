@@ -14,10 +14,10 @@ WSUS server syncs from Microsoft Update, and keeps content URLs, not content.
    ```
 
 2. Watch `GET /status` until `Completed` is set.
-3. Send SQL as the body of `POST /query`, or as `GET /query?sql=`:
+3. Send SQL as the body of `POST /`:
 
    ```sh
-   curl --data-binary @- 'http://localhost:8080/query?format=csv' <<'SQL'
+   curl --data-binary @- http://localhost:8080/ <<'SQL'
    SELECT d.driver_version, d.driver_date, f.url
    FROM driver_metadata d JOIN files f USING (update_id, revision)
    WHERE d.hardware_id = 'pci\ven_8086&dev_1916&subsys_39f217aa'
@@ -27,9 +27,10 @@ WSUS server syncs from Microsoft Update, and keeps content URLs, not content.
 
 ## Querying
 
-Queries run in DuckDB over the catalog's Parquet files. The response is JSON
-(`{columns, rows, truncated}`), or CSV with `?format=csv` or `Accept: text/csv`. `?limit=` lowers the
-row cap.
+Queries run in DuckDB over the catalog's Parquet files. `POST /` speaks the protocol of DuckDB's
+[httpserver](https://duckdb.org/community_extensions/extensions/httpserver.html) extension: the
+response is one JSON object per row, or `{meta, data, rows}` with a `format: JSONCompact` header.
+`X-Truncated: true` marks a result cut at the row or size cap.
 
 - `updates`: one row per revision, with title, type, KB, MSRC severity and dates. Categories are
   updates too (`update_type = 'Category'`; `category_type` is Product, ProductFamily, Company or
@@ -46,11 +47,9 @@ Every table is keyed by `(update_id, revision)`. `GET /files` lists the Parquet 
 
 ## Web UI
 
-The homelab deployment serves [Duck-UI](https://github.com/caioricciuti/duck-ui) beside the API,
-with its external connection pointed at `POST /duckdb/`. That endpoint speaks the protocol of
-DuckDB's [httpserver](https://duckdb.org/community_extensions/extensions/httpserver.html) extension
-(SQL body in, `JSONCompact` out), so the UI browses the tables and runs queries under the same limits
-as `/query`. DuckDB's own [UI extension](https://duckdb.org/docs/stable/core_extensions/ui) doesn't
+The homelab deployment serves [Duck-UI](https://github.com/caioricciuti/duck-ui) in kiosk mode on
+the same host, with its external connection pointed at `POST /`, so it browses the tables and runs
+queries under the same limits as any other client. DuckDB's own [UI extension](https://duckdb.org/docs/stable/core_extensions/ui) doesn't
 fit: it listens on localhost only, loads its frontend from `ui.duckdb.org`, and has no read-only mode.
 
 ## Storage
@@ -112,8 +111,8 @@ considered and not measured:
 - Only SELECT runs. Queries see the catalog alone: no file, URL or extension access.
 - Two queries run at once, each with 1 GB of memory, 2 minutes, and 100,000 rows or 64 MB of
   results.
-- Each client (by `CF-Connecting-IP`) gets 60 queries a minute. `GET /query` responses are cacheable
-  for 5 minutes and Parquet parts forever, as part names are never reused.
+- Each client (by `CF-Connecting-IP`) gets 60 queries a minute. Parquet parts are cacheable forever, as
+  part names are never reused.
 - Queries on `update_xml` read 89 GB of XML when they can't filter by `update_id`, which takes about
   30 seconds.
 - Compressed updates are extracted with `cabextract`, as .NET has no LZX decoder.

@@ -88,10 +88,12 @@ public sealed class SyncTests : IDisposable
 
     private async Task<List<JsonElement>> QueryAsync(string sql)
     {
-        var response = await _factory.CreateClient().PostAsync("/query", new StringContent(sql));
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/") { Content = new StringContent(sql) };
+        request.Headers.Add("format", "JSONCompact");
+        var response = await _factory.CreateClient().SendAsync(request);
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadFromJsonAsync<JsonElement>();
-        return [.. result.GetProperty("rows").EnumerateArray().Select(row => row[0])];
+        return [.. result.GetProperty("data").EnumerateArray().Select(row => row[0])];
     }
 
     public void Dispose() => _factory.Dispose();

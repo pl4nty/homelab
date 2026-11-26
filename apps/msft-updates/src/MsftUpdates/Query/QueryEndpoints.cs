@@ -31,21 +31,12 @@ public static class QueryEndpoints
         var options = app.Services.GetRequiredService<IOptions<QueryOptions>>().Value;
         var slots = new SemaphoreSlim(options.MaxConcurrency);
 
-        var queries = app.MapGroup("").RequireRateLimiting(RateLimit);
-        queries.MapPost("/query", async (HttpRequest request, CatalogStore store, CancellationToken ct) =>
+        // the DuckDB httpserver extension's protocol: SQL as the body, results as JSONEachRow or JSONCompact
+        app.MapPost("/", async (HttpRequest request, CatalogStore store, CancellationToken ct) =>
         {
             using var body = new StreamReader(request.Body, Encoding.UTF8);
             return await RunAsync(await body.ReadToEndAsync(ct), request, store, options, slots, ct);
-        });
-        // results change at most once per sync, so the CDN can answer repeats
-        queries.MapGet("/query", (string sql, HttpRequest request, CatalogStore store, CancellationToken ct) =>
-            RunAsync(sql, request, store, options, slots, ct)).CacheControl("public, max-age=300");
-        // the DuckDB httpserver extension's protocol, for Duck-UI's external connections
-        queries.MapPost("/duckdb/", async (HttpRequest request, CatalogStore store, CancellationToken ct) =>
-        {
-            using var body = new StreamReader(request.Body, Encoding.UTF8);
-            return await RunAsync(await body.ReadToEndAsync(ct), request, store, options, slots, ct, compact: true);
-        });
+        }).RequireRateLimiting(RateLimit);
 
         app.MapGet("/status", (SyncStatus status) => Results.Json(status, JsonSerializerOptions.Default)).CacheControl("no-store");
 
@@ -87,14 +78,12 @@ public static class QueryEndpoints
             return await next(context);
         });
 
-    private static async Task<IResult> RunAsync(string sql, HttpRequest request, CatalogStore store, QueryOptions options, SemaphoreSlim slots, CancellationToken ct, bool compact = false)
+    private static async Task<IResult> RunAsync(string sql, HttpRequest request, CatalogStore store, QueryOptions options, SemaphoreSlim slots, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(sql))
         {
             return Results.BadRequest(new { error = "empty query" });
         }
-        var csv = request.Query["format"] == "csv" || request.Headers.Accept.ToString().Contains("text/csv", StringComparison.Ordinal);
-        var maxRows = int.TryParse(request.Query["limit"], CultureInfo.InvariantCulture, out var limit) ? Math.Clamp(limit, 0, options.MaxRows) : options.MaxRows;
 
         await slots.WaitAsync(ct);
         try
@@ -121,7 +110,7 @@ public static class QueryEndpoints
                 var bytes = 0L;
                 while (await reader.ReadAsync(timeout.Token))
                 {
-                    if (rows.Count == maxRows || bytes > options.MaxBytes)
+                    if (rows.Count == options.MaxRows || bytes > options.MaxBytes)
                     {
                         truncated = true;
                         break;
@@ -134,9 +123,10 @@ public static class QueryEndpoints
                     }
                     rows.Add(row);
                 }
-                return compact ? Results.Json(new { meta = columns.Zip(types, (name, type) => new { name, type }), data = rows, rows = rows.Count })
-                    : csv ? Csv(request.HttpContext.Response, columns, rows, truncated)
-                    : Results.Json(new { columns, rows, truncated });
+                request.HttpContext.Response.Headers["X-Truncated"] = truncated ? "true" : "false";
+                return request.Headers["format"] == "JSONCompact"
+                    ? Results.Json(new { meta = columns.Zip(types, (name, type) => new { name, type }), data = rows, rows = rows.Count })
+                    : Results.Text(string.Join('\n', rows.Select(row => JsonSerializer.Serialize(columns.Zip(row).ToDictionary()))), "application/x-ndjson", Encoding.UTF8);
             }
             catch (DbException e)
             {
@@ -170,28 +160,4 @@ public static class QueryEndpoints
         System.Numerics.BigInteger big => big.ToString(CultureInfo.InvariantCulture),
         _ => value,
     };
-
-    private static IResult Csv(HttpResponse response, string[] columns, List<object?[]> rows, bool truncated)
-    {
-        static string Field(object? value)
-        {
-            var text = value switch
-            {
-                null => string.Empty,
-                DateTime dt => dt.ToString("O", CultureInfo.InvariantCulture),
-                IFormattable f => f.ToString(null, CultureInfo.InvariantCulture),
-                _ => value.ToString() ?? string.Empty,
-            };
-            return text.IndexOfAny([',', '"', '\n', '\r']) >= 0 ? $"\"{text.Replace("\"", "\"\"", StringComparison.Ordinal)}\"" : text;
-        }
-
-        var builder = new StringBuilder();
-        builder.AppendJoin(',', columns.Select(Field)).Append('\n');
-        foreach (var row in rows)
-        {
-            builder.AppendJoin(',', row.Select(Field)).Append('\n');
-        }
-        response.Headers["X-Truncated"] = truncated ? "true" : "false";
-        return Results.Text(builder.ToString(), "text/csv", Encoding.UTF8);
-    }
 }
