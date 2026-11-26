@@ -67,7 +67,7 @@ jobs:
       - run: npx tsc --noEmit
       - run: npm test --if-present
       - run: npm run build --if-present
-      - run: npx --yes @vscode/vsce@4 package --out extension.vsix
+      - run: npx --yes @vscode/vsce@4 package --out extension.vsix --baseImagesUrl https://github.com/${{ github.repository }}/raw/${{ github.sha }}/apps/${{ matrix.app }}
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ matrix.app }}-vsix
@@ -92,7 +92,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: npm ci
       - run: npm run build --if-present
-      - run: npx --yes @vscode/vsce@4 package --out extension.vsix
+      - run: npx --yes @vscode/vsce@4 package --out extension.vsix --baseImagesUrl https://github.com/${{ github.repository }}/raw/${{ github.sha }}/apps/${{ matrix.app }}
       - name: Publish to the Visual Studio Marketplace
         run: npx --yes @vscode/vsce@4 publish --packagePath extension.vsix --oidc --skip-duplicate
       - name: Publish to Open VSX

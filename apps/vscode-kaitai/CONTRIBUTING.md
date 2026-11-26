@@ -22,5 +22,5 @@ The container image (`server/serve.mjs` behind `https://vscode-kaitai.${PUBLIC_D
 ## Notes
 
 - The parser engine started from the Kaitai support in pl4nty/vscode-hexeditor's structure view. The runtime (`kaitai-struct`) is Apache-2.0.
-- README screenshots are in `media/screenshots`. The README links them by absolute URL on `main`, and they are not packaged in the .vsix.
+- README screenshots are in `media/screenshots` and are not packaged in the .vsix. vsce rewrites their relative links with `--baseImagesUrl`.
 - A release is a bump of `version` in `package.json`.
