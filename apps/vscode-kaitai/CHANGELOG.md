@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- Shorter README with screenshots, and more complete listing metadata.
+
 ## 0.1.0
 
 First release.
