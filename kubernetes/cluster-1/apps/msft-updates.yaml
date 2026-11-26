@@ -152,9 +152,9 @@ spec:
                 proxy_pass http://127.0.0.1:5522;
                 # sub_filter can't rewrite compressed responses
                 proxy_set_header Accept-Encoding "";
-                # Duck-UI's policy, with the fonts' CDN allowed
+                # Duck-UI's policy, with the fonts' CDN and Zaraz's Faro SDK allowed
                 proxy_hide_header Content-Security-Policy;
-                add_header Content-Security-Policy "default-src 'self'; script-src 'self' blob: 'wasm-unsafe-eval' https://cdn.jsdelivr.net; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data: https://cdn.jsdelivr.net; connect-src 'self' https: http: data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'" always;
+                add_header Content-Security-Policy "default-src 'self'; script-src 'self' blob: 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data: https://cdn.jsdelivr.net; connect-src 'self' https: http: data: blob:; object-src 'none'; base-uri 'self'; form-action 'self'" always;
                 sub_filter '<title>Duck-UI: DuckDB in your browser</title>' '<title>msft-updates</title>';
                 sub_filter '<link rel="icon" type="image/png" href="/logo-padding.png" />' '<link rel="icon" type="image/svg+xml" href="/favicon.svg" />';
                 sub_filter '</head>' '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><link rel="stylesheet" href="/tplant.css"></head>';
