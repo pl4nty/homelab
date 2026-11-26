@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -81,11 +82,28 @@ public sealed class QueryTests(SyncedCatalog catalog) : IClassFixture<SyncedCata
     [InlineData("SELECT * FROM read_csv('/etc/passwd')")]
     [InlineData("SELECT * FROM read_text('/etc/hostname')")]
     [InlineData("SELECT * FROM read_parquet('https://example.com/x.parquet')")]
+    [InlineData("CREATE TEMP TABLE t AS SELECT 1")]
+    [InlineData("CREATE OR REPLACE VIEW updates AS SELECT 1")]
+    [InlineData("CREATE MACRO m() AS 1")]
+    [InlineData("LOAD httpfs")]
     public async Task Query_RejectsWritesAndReadsOutsideTheCatalog(string sql)
     {
         var response = await _client.PostAsync("/", new StringContent(sql));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("COPY (SELECT 1) TO '{0}/updates/x.parquet'")]
+    [InlineData("ATTACH '{0}/x.duckdb'")]
+    [InlineData("EXPORT DATABASE '{0}/export'")]
+    public async Task Query_RejectsWritesInsideTheCatalog(string sql)
+    {
+        var before = Directory.GetFileSystemEntries(catalog.Factory.DataPath, "*", SearchOption.AllDirectories).Length;
+        var response = await _client.PostAsync("/", new StringContent(string.Format(CultureInfo.InvariantCulture, sql, catalog.Factory.DataPath)));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(before, Directory.GetFileSystemEntries(catalog.Factory.DataPath, "*", SearchOption.AllDirectories).Length);
     }
 
     [Fact]

@@ -19,10 +19,6 @@ spec:
         runAsGroup: 1654
         fsGroup: 1654
         fsGroupChangePolicy: OnRootMismatch
-      tolerations:
-      - key: topology.kubernetes.io/region
-        operator: Exists
-        effect: PreferNoSchedule
     controllers:
       main:
         # RWO volumes can't attach to two nodes during a rollout
