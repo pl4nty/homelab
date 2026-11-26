@@ -22,6 +22,17 @@ public sealed class SyncTests : IDisposable
         Assert.Contains($"<Classifications><IdAndDelta><Id>{FakeUpdateServer.Classification.UpdateId}</Id>", filter);
     }
 
+    [Fact(Timeout = 30_000)]
+    public async Task Sync_RetriesAStalledResponse()
+    {
+        _factory.UpdateServer.StalledResponses = 1;
+
+        await _factory.SyncAsync();
+
+        Assert.Equal(5, await ScalarAsync("SELECT count(*) FROM updates"));
+        Assert.Equal(4, _factory.UpdateServer.GetUpdateDataCalls);
+    }
+
     [Fact]
     public async Task Sync_Sample_FetchesSampleSizeUpdatesPerSync()
     {
