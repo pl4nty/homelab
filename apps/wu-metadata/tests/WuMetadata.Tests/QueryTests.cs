@@ -1,0 +1,100 @@
+using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
+using Xunit;
+
+namespace WuMetadata.Tests;
+
+public sealed class SyncedCatalog : IAsyncLifetime
+{
+    public CatalogFactory Factory { get; } = new();
+
+    public Task InitializeAsync() => Factory.SyncAsync();
+
+    public Task DisposeAsync()
+    {
+        Factory.Dispose();
+        return Task.CompletedTask;
+    }
+}
+
+public sealed class QueryTests(SyncedCatalog catalog) : IClassFixture<SyncedCatalog>
+{
+    private readonly HttpClient _client = catalog.Factory.CreateClient();
+
+    [Fact]
+    public async Task Query_FindsDriverUrlByHardwareId()
+    {
+        var result = await PostAsync("""
+            SELECT f.url, d.driver_version
+            FROM driver_metadata d JOIN files f USING (update_id, revision)
+            WHERE d.hardware_id = 'pci\ven_8086&dev_1916&subsys_39f217aa'
+            """);
+
+        Assert.Equal(["url", "driver_version"], result.GetProperty("columns").EnumerateArray().Select(c => c.GetString()));
+        var row = Assert.Single(result.GetProperty("rows").EnumerateArray());
+        Assert.Equal(FakeUpdateServer.DriverUrl, row[0].GetString());
+        Assert.Equal("21.20.16.4542", row[1].GetString());
+        Assert.False(result.GetProperty("truncated").GetBoolean());
+    }
+
+    [Fact]
+    public async Task Query_ByGet_ReturnsCsv()
+    {
+        var csv = await _client.GetStringAsync("/query?format=csv&sql=" + Uri.EscapeDataString("SELECT kb_article, title FROM updates WHERE kb_article = '5023052'"));
+
+        Assert.Equal("kb_article,title\n5023052,Azure File Sync Agent v16.2 Release – February 2024 (KB5023052)\n", csv);
+    }
+
+    [Fact]
+    public async Task Query_Limit_TruncatesRows()
+    {
+        var response = await _client.PostAsync("/query?limit=2", new StringContent("SELECT * FROM updates"));
+        var result = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.Equal(2, result.GetProperty("rows").GetArrayLength());
+        Assert.True(result.GetProperty("truncated").GetBoolean());
+    }
+
+    [Theory]
+    [InlineData("COPY updates TO '/tmp/out.parquet'")]
+    [InlineData("CREATE TABLE t AS SELECT 1")]
+    [InlineData("ATTACH '/tmp/x.duckdb'")]
+    [InlineData("SET enable_external_access = true")]
+    [InlineData("SELECT 1; DROP VIEW updates")]
+    public async Task Query_RejectsStatementsOtherThanSelect(string sql)
+    {
+        var response = await _client.PostAsync("/query", new StringContent(sql));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("SELECT * FROM read_csv('/etc/passwd')")]
+    [InlineData("SELECT * FROM read_text('/etc/hostname')")]
+    [InlineData("SELECT * FROM read_parquet('https://example.com/x.parquet')")]
+    public async Task Query_CannotReadOutsideTheCatalog(string sql)
+    {
+        var response = await _client.PostAsync("/query", new StringContent(sql));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Files_ServesTheParquetParts()
+    {
+        var files = await _client.GetFromJsonAsync<string[]>("/files");
+
+        var part = files!.First(f => f.StartsWith("driver_metadata/", StringComparison.Ordinal));
+        var bytes = await _client.GetByteArrayAsync($"/files/{part}");
+        Assert.Equal("PAR1"u8.ToArray(), bytes[..4]);
+        Assert.Equal(HttpStatusCode.NotFound, (await _client.GetAsync("/files/../../etc/passwd")).StatusCode);
+    }
+
+    private async Task<JsonElement> PostAsync(string sql)
+    {
+        var response = await _client.PostAsync("/query", new StringContent(sql));
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        return await response.Content.ReadFromJsonAsync<JsonElement>();
+    }
+}

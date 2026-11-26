@@ -1,0 +1,82 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: wu-metadata${APP_SUFFIX:=}
+  namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
+spec:
+  interval: 15m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  values:
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1654
+        runAsGroup: 1654
+        fsGroup: 1654
+        fsGroupChangePolicy: OnRootMismatch
+      tolerations:
+      - key: topology.kubernetes.io/region
+        operator: Exists
+        effect: PreferNoSchedule
+    controllers:
+      main:
+        # RWO volumes can't attach to two nodes during a rollout
+        strategy: Recreate
+        pod:
+          annotations:
+            instrumentation.opentelemetry.io/inject-dotnet: "true"
+        containers:
+          main:
+            image:
+              repository: ghcr.io/pl4nty/wu-metadata
+              tag: ${APP_IMAGE_TAG:=}
+            env:
+              # previews sync a sample instead of the whole catalog
+              Sync__Full: "${APP_RETAIN:=true}"
+            securityContext:
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: [ALL]
+            resources:
+              requests:
+                cpu: 100m
+                memory: 512Mi
+              limits:
+                memory: 4Gi
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 8080
+    persistence:
+      data:
+        # keep data if a failed install is remediated by uninstalling. previews drop theirs
+        retain: ${APP_RETAIN:=true}
+        accessMode: ReadWriteOnce
+        size: 10Gi
+        globalMounts:
+          - path: /data
+      # cabextract input and DuckDB spill files
+      tmp:
+        type: emptyDir
+        sizeLimit: 4Gi
+        globalMounts:
+          - path: /tmp
+    route:
+      main:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - wu-metadata${APP_SUFFIX:=}.${PRIVATE_DOMAIN}
+        rules:
+          - backendRefs:
+              - identifier: main
+                port: 8080
