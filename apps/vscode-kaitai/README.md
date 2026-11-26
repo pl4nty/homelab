@@ -1,54 +1,48 @@
 # Kaitai Struct IDE
 
-Explore binary files with [Kaitai Struct](https://kaitai.io/) `.ksy` specs in VS Code: a field-coloured hex view, a structure tree, and live reparse while you edit the spec. It runs on desktop and in VS Code for the Web (vscode.dev, github.dev).
+Parse binary files with [Kaitai Struct](https://kaitai.io/) specs in VS Code. Features a coloured hex view, structure tree, format library, and LSP/hot-reload for spec editing. It also supports VS Code for the Web (vscode.dev, github.dev) as well as desktop.
 
-![Hex view coloured by field, with the structure tree and the Value view](https://raw.githubusercontent.com/pl4nty/homelab/main/apps/vscode-kaitai/media/screenshots/hero.png)
+![Hex view coloured by field, with the structure tree and the Value view](media/screenshots/hero.png)
 
 ## Quick start
 
 1. Right-click a binary file and select **Open in Kaitai Hex Editor**.
-2. Open the **Kaitai Struct** view in the activity bar.
-3. Select **Load Spec…**, or pick a spec from **Formats**. Specs that match the file extension are listed first.
+2. Open the Kaitai Struct view in the activity bar.
+3. Select **Load Spec...**, or pick a spec from Formats. Specs that match the file extension are listed first.
 
 | Structure | Value | Formats |
 | --- | --- | --- |
-| ![Structure tree of a PNG file](https://raw.githubusercontent.com/pl4nty/homelab/main/apps/vscode-kaitai/media/screenshots/structure.png) | ![Value view with integer, float, time and string decodings at the caret](https://raw.githubusercontent.com/pl4nty/homelab/main/apps/vscode-kaitai/media/screenshots/value.png) | ![Formats view with a spec suggested for .png](https://raw.githubusercontent.com/pl4nty/homelab/main/apps/vscode-kaitai/media/screenshots/formats.png) |
+| ![Structure tree of a PNG file](media/screenshots/structure.png) | ![Value view with integer, float, time and string decodings at the caret](media/screenshots/value.png) | ![Formats view with a spec suggested for .png](media/screenshots/formats.png) |
 
-## Features
+## Exploring a file
 
-**Explore**
+The hex view colours each field by nesting and marks regions that failed to parse. Press `]` and `[` to step through fields, and `N` to jump to the next unparsed gap.
 
-- **Hex view** (read-only): coloured fields with nesting, error regions, and virtualised rows for large files. Press `]` and `[` to step through fields, and `N` to jump to the next unparsed gap.
-- **Structure**: a lazy tree that stays in sync with the hex selection. It shows enum labels, parses instances on expand, and marks failed fields.
-- **Value**: integers, floats, Unix times and strings at the caret, little-endian and big-endian side by side.
-- **Formats**: a gallery of specs from `pl4nty/kaitai_struct_formats` (set `kaitai.formatsRepository` to change it). It also resolves absolute imports that are not in your workspace.
-- **Find Value in File…** (Ctrl+F): `u4le 1234`, `f4 1.5`, `"text"`, `utf-16le "text"`, or hex with `??` wildcards.
-- **Go to Offset…** (Ctrl+G): an offset or a range, such as `0x10-0x20` or `0x10+16`.
-- **Copy As…**, **Export Parsed Tree as JSON** and **Save Bytes As…**.
-- **Open Bytes in Hex Editor**: view the decoded bytes of a `process:` field (zlib, xor, rotate).
+- **Formats**: choose from thousands of specs via `pl4nty/kaitai_struct_formats` (set `kaitai.formatsRepository` to change it). It also resolves absolute imports that are not in your workspace.
+- **Find Value in File...** (Ctrl+F): a typed value (`u4le 1234`, `f4 1.5`), a string (`"text"`, `utf-16le "text"`), or hex with `??` wildcards. Each match shows the field that it's in.
+- **Go to Offset...** (Ctrl+G): an offset or a range, such as `0x10-0x20` or `0x10+16`.
+- Copy As..., Save Bytes As... and Export Parsed Tree as JSON.
+- Open Bytes in Hex Editor: view the decoded bytes of a `process:` field (zlib, xor, rotate).
 
-**Write specs**
+![Find Value in File with two matches for "tEXt" and the field path of each](media/screenshots/find.png)
 
-- **Live reparse**: an edit to the `.ksy` or its imports, saved or not, reparses each open file that uses it.
-- **Diagnostics** on the correct `.ksy` line, with quick fixes, completion, hover, go to definition and outline.
-- **Add Field from Selection…**: select bytes, choose a type, and the `seq` entry is inserted into the spec.
-- **Parse Selection as Type…**: try a type from the spec on the selected bytes.
-- **Set Spec Params…** for specs with top-level `params`.
-- **Show Generated Code…** for every compiler target.
+## Writing specs
 
-**Agents (MCP)**
+`.ksy` files get completion, schema validation, hover and go to definition. The hex view and structure tree hot reload when you edit a spec or its imports.
 
-- The desktop extension registers a Kaitai MCP server with VS Code's agent mode (VS Code 1.101 or later): agents can parse files, explain the bytes at an offset, find a gallery spec and check the `.ksy` specs that they write.
-- Other MCP clients can run the same server with `npx -y kaitai-mcp`. It also has a `kaitai` CLI; see [npm/README.md](https://github.com/pl4nty/homelab/blob/main/apps/vscode-kaitai/npm/README.md).
+![A .ksy spec beside the hex view, with a hover on a user-defined type](media/screenshots/spec.png)
+
+- **Add Field from Selection...**: select bytes, choose a type, and the `seq` entry is inserted into the spec.
+- **Parse Selection as Type...**: try a type from the spec on the selected bytes.
+- **Set Spec Params...** for specs with top-level `params`.
+- **Show Generated Code...** for every compiler target.
+
+## AI agents (MCP)
+
+On desktop, the extension registers a Kaitai MCP server with VS Code's agent mode (VS Code 1.101 or later). Agents can parse files, explain the bytes at an offset, find a spec in Formats, and check the `.ksy` specs that they write. Other MCP clients can run the same server with `npx -y kaitai-mcp`, and it includes a `kaitai` CLI. See [npm/README.md](https://github.com/pl4nty/homelab/blob/main/apps/vscode-kaitai/npm/README.md).
 
 ## Limits
 
 - The hex view is read-only, and the whole file is read into memory (`kaitai.maxFileSizeMB`, default 256).
 - Compiled specs run as JavaScript in the extension host. Only load specs that you trust.
-- Bit-sized fields highlight the bytes that they were read from.
 - Fields inside a processed stream have no file position, so they have no colour. Open the stream to see them.
-- **Formats** downloads its list from GitHub and keeps it for 24 hours.
-
-## Licence
-
-GPL-3.0-or-later, because it bundles the Kaitai Struct compiler. See [CONTRIBUTING.md](https://github.com/pl4nty/homelab/blob/main/apps/vscode-kaitai/CONTRIBUTING.md) to build it, and report problems in [GitHub issues](https://github.com/pl4nty/homelab/issues).
