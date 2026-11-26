@@ -44,7 +44,7 @@ public sealed class QueryTests(SyncedCatalog catalog) : IClassFixture<SyncedCata
     [Fact]
     public async Task Query_DefaultsToJsonEachRow()
     {
-        var response = await _client.PostAsync("/", new StringContent("SELECT kb_article, title FROM updates WHERE kb_article = '5023052'"));
+        var response = await _client.PostAsync("/query", new StringContent("SELECT kb_article, title FROM updates WHERE kb_article = '5023052'"));
 
         Assert.Equal("""{"kb_article":"5023052","title":"Azure File Sync Agent v16.2 Release \u2013 February 2024 (KB5023052)"}""", await response.Content.ReadAsStringAsync());
     }
@@ -88,7 +88,7 @@ public sealed class QueryTests(SyncedCatalog catalog) : IClassFixture<SyncedCata
     [InlineData("LOAD httpfs")]
     public async Task Query_RejectsWritesAndReadsOutsideTheCatalog(string sql)
     {
-        var response = await _client.PostAsync("/", new StringContent(sql));
+        var response = await _client.PostAsync("/query", new StringContent(sql));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -100,7 +100,7 @@ public sealed class QueryTests(SyncedCatalog catalog) : IClassFixture<SyncedCata
     public async Task Query_RejectsWritesInsideTheCatalog(string sql)
     {
         var before = Directory.GetFileSystemEntries(catalog.Factory.DataPath, "*", SearchOption.AllDirectories).Length;
-        var response = await _client.PostAsync("/", new StringContent(string.Format(CultureInfo.InvariantCulture, sql, catalog.Factory.DataPath)));
+        var response = await _client.PostAsync("/query", new StringContent(string.Format(CultureInfo.InvariantCulture, sql, catalog.Factory.DataPath)));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Equal(before, Directory.GetFileSystemEntries(catalog.Factory.DataPath, "*", SearchOption.AllDirectories).Length);
@@ -124,7 +124,7 @@ public sealed class QueryTests(SyncedCatalog catalog) : IClassFixture<SyncedCata
         var statuses = new List<HttpStatusCode>();
         for (var i = 0; i < 61; i++)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, "/") { Content = new StringContent("SELECT 1") };
+            using var request = new HttpRequestMessage(HttpMethod.Post, "/query") { Content = new StringContent("SELECT 1") };
             request.Headers.Add("CF-Connecting-IP", "192.0.2.1");
             statuses.Add((await _client.SendAsync(request)).StatusCode);
         }
@@ -135,7 +135,7 @@ public sealed class QueryTests(SyncedCatalog catalog) : IClassFixture<SyncedCata
 
     private async Task<(JsonElement Result, bool Truncated)> PostAsync(string sql)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Post, "/") { Content = new StringContent(sql) };
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/query") { Content = new StringContent(sql) };
         request.Headers.Add("format", "JSONCompact");
         var response = await _client.SendAsync(request);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

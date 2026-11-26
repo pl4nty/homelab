@@ -32,7 +32,7 @@ public static class QueryEndpoints
         var slots = new SemaphoreSlim(options.MaxConcurrency);
 
         // the DuckDB httpserver extension's protocol: SQL as the body, results as JSONEachRow or JSONCompact
-        app.MapPost("/", async (HttpRequest request, CatalogStore store, CancellationToken ct) =>
+        app.MapPost("/query", async (HttpRequest request, CatalogStore store, CancellationToken ct) =>
         {
             using var body = new StreamReader(request.Body, Encoding.UTF8);
             return await RunAsync(await body.ReadToEndAsync(ct), request, store, options, slots, ct);

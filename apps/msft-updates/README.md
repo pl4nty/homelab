@@ -14,10 +14,10 @@ WSUS server syncs from Microsoft Update, and keeps content URLs, not content.
    ```
 
 2. Watch `GET /status` until `Completed` is set.
-3. Send SQL as the body of `POST /`:
+3. Send SQL as the body of `POST /query`:
 
    ```sh
-   curl --data-binary @- http://localhost:8080/ <<'SQL'
+   curl --data-binary @- http://localhost:8080/query <<'SQL'
    SELECT d.driver_version, d.driver_date, f.url
    FROM driver_metadata d JOIN files f USING (update_id, revision)
    WHERE d.hardware_id = 'pci\ven_8086&dev_1916&subsys_39f217aa'
@@ -27,7 +27,7 @@ WSUS server syncs from Microsoft Update, and keeps content URLs, not content.
 
 ## Querying
 
-Queries run in DuckDB over the catalog's Parquet files. `POST /` speaks the protocol of DuckDB's
+Queries run in DuckDB over the catalog's Parquet files. `POST /query` speaks the protocol of DuckDB's
 [httpserver](https://duckdb.org/community_extensions/extensions/httpserver.html) extension: the
 response is one JSON object per row, or `{meta, data, rows}` with a `format: JSONCompact` header.
 `X-Truncated: true` marks a result cut at the row or size cap.
@@ -48,18 +48,19 @@ Every table is keyed by `(update_id, revision)`. `GET /files` lists the Parquet 
 ## Web UI
 
 The homelab deployment serves [Duck-UI](https://github.com/caioricciuti/duck-ui) in kiosk mode on
-the same host, with its external connection pointed at `POST /`, so it browses the tables and runs
-queries under the same limits as any other client. DuckDB's own [UI extension](https://duckdb.org/docs/stable/core_extensions/ui) doesn't
-fit: it listens on localhost only, loads its frontend from `ui.duckdb.org`, and has no read-only mode.
+the same host, with its external connection pointed at `POST /query`, so it browses the tables and
+runs queries under the same limits as any other client. DuckDB's own
+[UI extension](https://duckdb.org/docs/stable/core_extensions/ui) doesn't fit: it listens on
+localhost only, loads its frontend from `ui.duckdb.org`, and has no read-only mode.
 
 ## Storage
 
 The catalog is about 2.1 GB: 0.5 GB of tables and 1.5 GB of XML, from 89 GB of XML as served. It is
 Parquet with zstd level 9, one directory of parts per table. Each sync adds parts and rewrites
-`removed.parquet`, the revisions Microsoft dropped, which the views hide. The tables are merged back
-into one part each once they have 64 parts, or once removed rows pass 5%. DuckDB writes the tables; ParquetSharp
-writes the XML, because DuckDB's smallest row group is 2048 rows, which is gigabytes where the
-70 MB updates cluster.
+`removed.parquet`, the revisions Microsoft dropped, which the views hide. The tables are merged
+back into one part each once they have 64 parts, or once removed rows pass 5%. DuckDB writes the
+tables; ParquetSharp writes the XML, because DuckDB's smallest row group is 2048 rows, which is
+gigabytes where the 70 MB updates cluster.
 
 The format was picked from these options, measured on a 5% sample (138k updates, 4.3 GB of XML) and
 scaled by 20:

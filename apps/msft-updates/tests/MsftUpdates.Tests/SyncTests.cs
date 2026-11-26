@@ -88,7 +88,7 @@ public sealed class SyncTests : IDisposable
 
     private async Task<List<JsonElement>> QueryAsync(string sql)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Post, "/") { Content = new StringContent(sql) };
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/query") { Content = new StringContent(sql) };
         request.Headers.Add("format", "JSONCompact");
         var response = await _factory.CreateClient().SendAsync(request);
         response.EnsureSuccessStatusCode();
