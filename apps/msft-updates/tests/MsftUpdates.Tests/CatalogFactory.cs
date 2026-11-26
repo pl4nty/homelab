@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http.Resilience;
 using MsftUpdates.Catalog;
 using MsftUpdates.Sync;
 
@@ -37,6 +38,11 @@ public sealed class CatalogFactory : WebApplicationFactory<Program>
             });
             services.Configure<CatalogOptions>(options => options.MaxParts = MaxParts);
             services.AddHttpClient<ServerSyncClient>().ConfigurePrimaryHttpMessageHandler(() => UpdateServer);
+            services.Configure<HttpStandardResilienceOptions>("ServerSyncClient-standard", options =>
+            {
+                options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(1);
+                options.Retry.Delay = TimeSpan.Zero;
+            });
         });
     }
 

@@ -13,7 +13,7 @@ builder.Services.Configure<QueryOptions>(builder.Configuration.GetSection("Query
 builder.Services.AddQueryRateLimit(builder.Configuration);
 builder.Services.AddSingleton<CatalogStore>();
 builder.Services.AddSingleton<SyncStatus>();
-builder.Services.AddHttpClient<ServerSyncClient>(client => client.Timeout = Timeout.InfiniteTimeSpan)
+var sync = builder.Services.AddHttpClient<ServerSyncClient>(client => client.Timeout = Timeout.InfiniteTimeSpan)
     .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
     {
         SslOptions =
@@ -24,15 +24,17 @@ builder.Services.AddHttpClient<ServerSyncClient>(client => client.Timeout = Time
                 CustomTrustStore = { ServerSyncClient.Root },
             },
         },
-    })
-    .AddStandardResilienceHandler(options =>
-    {
-        // the full revision list is a ~60 MB response
-        options.AttemptTimeout.Timeout = TimeSpan.FromMinutes(5);
-        options.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(20);
-        options.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(10);
-        options.Retry.MaxRetryAttempts = 6;
     });
+sync.AddStandardResilienceHandler(options =>
+{
+    // the full revision list is a ~60 MB response
+    options.AttemptTimeout.Timeout = TimeSpan.FromMinutes(5);
+    options.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(20);
+    options.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(10);
+    options.Retry.MaxRetryAttempts = 6;
+});
+// added after the resilience handler, so it runs inside each attempt
+sync.AddHttpMessageHandler(() => new BufferingHandler());
 if (builder.Configuration.GetValue("Sync:Enabled", true))
 {
     builder.Services.AddHostedService<SyncService>();
