@@ -10,3 +10,5 @@ Dockerfile
 .dockerignore
 media/kaitai.svg.map
 .gitignore
+media/screenshots/**
+CONTRIBUTING.md

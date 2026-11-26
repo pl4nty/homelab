@@ -2,7 +2,7 @@
   "name": "kaitai-ide",
   "displayName": "Kaitai Struct IDE",
   "description": "Parse binary files with Kaitai Struct (.ksy) specs: field-coloured hex view, structure tree, value inspector, .ksy diagnostics and code generation. Works in VS Code for the Web.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "pl4nty",
   "license": "GPL-3.0-or-later",
   "repository": {
@@ -10,21 +10,31 @@
     "url": "https://github.com/pl4nty/homelab",
     "directory": "apps/vscode-kaitai"
   },
+  "homepage": "https://github.com/pl4nty/homelab/tree/main/apps/vscode-kaitai#readme",
+  "bugs": {
+    "url": "https://github.com/pl4nty/homelab/issues"
+  },
+  "qna": false,
   "engines": {
     "vscode": "^1.90.0"
   },
   "categories": [
     "Programming Languages",
-    "Visualization",
-    "Other"
+    "Visualization"
   ],
   "keywords": [
     "kaitai",
+    "kaitai struct",
     "ksy",
     "binary",
+    "binary parser",
     "hex",
+    "hex editor",
+    "hex viewer",
     "reverse engineering",
-    "file format"
+    "file format",
+    "forensics",
+    "ctf"
   ],
   "main": "./dist/node/extension.js",
   "browser": "./dist/web/extension.js",
