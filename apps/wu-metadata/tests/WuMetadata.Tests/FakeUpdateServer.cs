@@ -37,7 +37,9 @@ public sealed partial class FakeUpdateServer : HttpMessageHandler
 
     public List<string> UpdateFilters { get; } = [];
 
-    public int GetUpdateDataCalls { get; private set; }
+    private int _getUpdateDataCalls;
+
+    public int GetUpdateDataCalls => _getUpdateDataCalls;
 
     public static string Fixture(string name) => File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", name));
 
@@ -81,7 +83,7 @@ public sealed partial class FakeUpdateServer : HttpMessageHandler
 
     private string UpdateData(string body)
     {
-        GetUpdateDataCalls++;
+        Interlocked.Increment(ref _getUpdateDataCalls);
         var updates = new StringBuilder();
         foreach (Match match in RequestedId().Matches(body))
         {
