@@ -1,7 +1,7 @@
 using ParquetSharp;
-using WuMetadata.Sync;
+using MsftUpdates.Sync;
 
-namespace WuMetadata.Catalog;
+namespace MsftUpdates.Catalog;
 
 /// <summary>
 /// Writes an update_xml part with row groups capped by size. DuckDB's writer can't do this: its smallest

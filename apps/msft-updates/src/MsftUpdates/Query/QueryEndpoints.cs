@@ -2,20 +2,26 @@ using System.Data.Common;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using System.Threading.RateLimiting;
 using DuckDB.NET.Data;
 using Microsoft.Extensions.Options;
-using WuMetadata.Catalog;
-using WuMetadata.Sync;
+using MsftUpdates.Catalog;
+using MsftUpdates.Sync;
 
-namespace WuMetadata.Query;
+namespace MsftUpdates.Query;
 
 public sealed class QueryOptions
 {
     public int MaxRows { get; set; } = 100_000;
 
+    /// <summary>Results are buffered before they're serialized, so this bounds the memory one query can hold.</summary>
+    public long MaxBytes { get; set; } = 64L << 20;
+
     public TimeSpan Timeout { get; set; } = TimeSpan.FromMinutes(2);
 
     public int MaxConcurrency { get; set; } = 2;
+
+    public int RequestsPerMinute { get; set; } = 60;
 }
 
 public static class QueryEndpoints
@@ -25,22 +31,30 @@ public static class QueryEndpoints
         var options = app.Services.GetRequiredService<IOptions<QueryOptions>>().Value;
         var slots = new SemaphoreSlim(options.MaxConcurrency);
 
-        app.MapPost("/query", async (HttpRequest request, CatalogStore store, CancellationToken ct) =>
+        var queries = app.MapGroup("").RequireRateLimiting(RateLimit);
+        queries.MapPost("/query", async (HttpRequest request, CatalogStore store, CancellationToken ct) =>
         {
             using var body = new StreamReader(request.Body, Encoding.UTF8);
             return await RunAsync(await body.ReadToEndAsync(ct), request, store, options, slots, ct);
         });
-        app.MapGet("/query", (string sql, HttpRequest request, CatalogStore store, CancellationToken ct) =>
-            RunAsync(sql, request, store, options, slots, ct));
+        // results change at most once per sync, so the CDN can answer repeats
+        queries.MapGet("/query", (string sql, HttpRequest request, CatalogStore store, CancellationToken ct) =>
+            RunAsync(sql, request, store, options, slots, ct)).CacheControl("public, max-age=300");
+        // the DuckDB httpserver extension's protocol, for Duck-UI's external connections
+        queries.MapPost("/duckdb/", async (HttpRequest request, CatalogStore store, CancellationToken ct) =>
+        {
+            using var body = new StreamReader(request.Body, Encoding.UTF8);
+            return await RunAsync(await body.ReadToEndAsync(ct), request, store, options, slots, ct, compact: true);
+        });
 
-        app.MapGet("/status", (SyncStatus status) => Results.Json(status, new JsonSerializerOptions { IncludeFields = true }));
+        app.MapGet("/status", (SyncStatus status) => Results.Json(status, JsonSerializerOptions.Default)).CacheControl("no-store");
 
         // the parts as-is, so DuckDB and other Parquet readers can query the catalog remotely
         app.MapGet("/files", (CatalogStore store) => Results.Json(
             Directory.Exists(store.DataPath)
                 ? Directory.EnumerateFiles(store.DataPath, "*.parquet", SearchOption.AllDirectories)
-                    .Select(f => Path.GetRelativePath(store.DataPath, f).Replace('\\', '/')).Order().ToArray()
-                : Array.Empty<string>()));
+                    .Select(f => Path.GetRelativePath(store.DataPath, f)).Order().ToArray()
+                : Array.Empty<string>())).CacheControl("public, max-age=60");
         app.MapGet("/files/{**path}", (string path, CatalogStore store) =>
         {
             var full = Path.GetFullPath(Path.Combine(store.DataPath, path));
@@ -48,17 +62,39 @@ public static class QueryEndpoints
                 && full.EndsWith(".parquet", StringComparison.Ordinal) && File.Exists(full)
                 ? Results.File(full, "application/vnd.apache.parquet", enableRangeProcessing: true)
                 : Results.NotFound();
+        }).CacheControl("public, max-age=31536000, immutable");
+    }
+
+    public const string RateLimit = "query";
+
+    /// <summary>Per client, by the address Cloudflare saw, since every request arrives through the tunnel.</summary>
+    public static void AddQueryRateLimit(this IServiceCollection services, IConfiguration configuration)
+    {
+        var perMinute = configuration.GetValue("Query:RequestsPerMinute", new QueryOptions().RequestsPerMinute);
+        services.AddRateLimiter(limiter =>
+        {
+            limiter.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            limiter.AddPolicy(RateLimit, context => RateLimitPartition.GetFixedWindowLimiter(
+                context.Request.Headers["CF-Connecting-IP"].FirstOrDefault() ?? context.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = perMinute, Window = TimeSpan.FromMinutes(1) }));
         });
     }
 
-    private static async Task<IResult> RunAsync(string sql, HttpRequest request, CatalogStore store, QueryOptions options, SemaphoreSlim slots, CancellationToken ct)
+    private static RouteHandlerBuilder CacheControl(this RouteHandlerBuilder builder, string value) =>
+        builder.AddEndpointFilter(async (context, next) =>
+        {
+            context.HttpContext.Response.Headers.CacheControl = value;
+            return await next(context);
+        });
+
+    private static async Task<IResult> RunAsync(string sql, HttpRequest request, CatalogStore store, QueryOptions options, SemaphoreSlim slots, CancellationToken ct, bool compact = false)
     {
         if (string.IsNullOrWhiteSpace(sql))
         {
             return Results.BadRequest(new { error = "empty query" });
         }
         var csv = request.Query["format"] == "csv" || request.Headers.Accept.ToString().Contains("text/csv", StringComparison.Ordinal);
-        var maxRows = int.TryParse(request.Query["limit"], CultureInfo.InvariantCulture, out var limit) ? Math.Min(limit, options.MaxRows) : options.MaxRows;
+        var maxRows = int.TryParse(request.Query["limit"], CultureInfo.InvariantCulture, out var limit) ? Math.Clamp(limit, 0, options.MaxRows) : options.MaxRows;
 
         await slots.WaitAsync(ct);
         try
@@ -79,11 +115,13 @@ public static class QueryEndpoints
             {
                 using var reader = await command.ExecuteReaderAsync(timeout.Token);
                 var columns = Enumerable.Range(0, reader.FieldCount).Select(reader.GetName).ToArray();
+                var types = Enumerable.Range(0, reader.FieldCount).Select(i => reader.GetDataTypeName(i).ToUpperInvariant()).ToArray();
                 var rows = new List<object?[]>();
                 var truncated = false;
+                var bytes = 0L;
                 while (await reader.ReadAsync(timeout.Token))
                 {
-                    if (rows.Count == maxRows)
+                    if (rows.Count == maxRows || bytes > options.MaxBytes)
                     {
                         truncated = true;
                         break;
@@ -92,10 +130,13 @@ public static class QueryEndpoints
                     for (var i = 0; i < row.Length; i++)
                     {
                         row[i] = reader.IsDBNull(i) ? null : Normalize(reader.GetValue(i));
+                        bytes += row[i] is string text ? text.Length * 2L : 16;
                     }
                     rows.Add(row);
                 }
-                return csv ? Csv(columns, rows, truncated) : Results.Json(new { columns, rows, truncated });
+                return compact ? Results.Json(new { meta = columns.Zip(types, (name, type) => new { name, type }), data = rows, rows = rows.Count })
+                    : csv ? Csv(request.HttpContext.Response, columns, rows, truncated)
+                    : Results.Json(new { columns, rows, truncated });
             }
             catch (DbException e)
             {
@@ -130,7 +171,7 @@ public static class QueryEndpoints
         _ => value,
     };
 
-    private static IResult Csv(string[] columns, List<object?[]> rows, bool truncated)
+    private static IResult Csv(HttpResponse response, string[] columns, List<object?[]> rows, bool truncated)
     {
         static string Field(object? value)
         {
@@ -150,16 +191,7 @@ public static class QueryEndpoints
         {
             builder.AppendJoin(',', row.Select(Field)).Append('\n');
         }
-        return new CsvResult(builder.ToString(), truncated);
-    }
-
-    private sealed class CsvResult(string body, bool truncated) : IResult
-    {
-        public Task ExecuteAsync(HttpContext context)
-        {
-            context.Response.ContentType = "text/csv; charset=utf-8";
-            context.Response.Headers["X-Truncated"] = truncated ? "true" : "false";
-            return context.Response.WriteAsync(body);
-        }
+        response.Headers["X-Truncated"] = truncated ? "true" : "false";
+        return Results.Text(builder.ToString(), "text/csv", Encoding.UTF8);
     }
 }

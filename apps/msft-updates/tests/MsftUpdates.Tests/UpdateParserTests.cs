@@ -1,7 +1,7 @@
-using WuMetadata.Catalog;
+using MsftUpdates.Catalog;
 using Xunit;
 
-namespace WuMetadata.Tests;
+namespace MsftUpdates.Tests;
 
 public sealed class UpdateParserTests
 {

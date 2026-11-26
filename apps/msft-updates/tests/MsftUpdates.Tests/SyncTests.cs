@@ -2,7 +2,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Xunit;
 
-namespace WuMetadata.Tests;
+namespace MsftUpdates.Tests;
 
 public sealed class SyncTests : IDisposable
 {

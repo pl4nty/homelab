@@ -4,9 +4,10 @@ using System.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Xml;
+using System.Xml.Linq;
 using Microsoft.Extensions.Options;
 
-namespace WuMetadata.Sync;
+namespace MsftUpdates.Sync;
 
 public sealed class SyncOptions
 {
@@ -14,10 +15,13 @@ public sealed class SyncOptions
     public Uri Endpoint { get; set; } = new("https://sws.update.microsoft.com/");
 
     /// <summary>Concurrent GetUpdateData requests during a sync.</summary>
-    public int Parallelism { get; set; } = 32;
+    public int Parallelism { get; set; } = 16;
+
+    /// <summary>Update XML held between download and write during a sync, as UTF-16 bytes.</summary>
+    public long BufferBytes { get; set; } = 512L << 20;
 
     /// <summary>How often a sync runs; the first runs at startup.</summary>
-    public TimeSpan Interval { get; set; } = TimeSpan.FromHours(6);
+    public TimeSpan Interval { get; set; } = TimeSpan.FromHours(1);
 
     /// <summary>False fetches only <see cref="SampleSize"/> new updates per sync, so previews don't pull the whole catalog.</summary>
     public bool Full { get; set; } = true;
@@ -81,6 +85,7 @@ public sealed class ServerSyncClient(HttpClient http, IOptions<SyncOptions> opti
         """);
 
     private const string Ns = "http://www.microsoft.com/SoftwareDistribution";
+    private static readonly XNamespace Xmlns = Ns;
     private const string DssNs = "http://www.microsoft.com/SoftwareDistribution/Server/DssAuthWebService";
     private const string ServerSyncPath = "ServerSyncWebService/ServerSyncWebService.asmx";
 
@@ -130,78 +135,31 @@ public sealed class ServerSyncClient(HttpClient http, IOptions<SyncOptions> opti
         using var reader = await PostAsync(ServerSyncPath, $"{Ns}/GetUpdateData", body.ToString(), ct);
         var updates = new List<RawUpdate>(ids.Count);
         var urls = new Dictionary<string, string>();
-        while (reader.Read())
+        reader.MoveToContent();
+        while (!reader.EOF)
         {
-            if (reader.NodeType != XmlNodeType.Element)
+            if (reader.NodeType != XmlNodeType.Element || reader.LocalName is not ("ServerSyncUpdateData" or "ServerSyncUrlData"))
             {
+                reader.Read();
                 continue;
             }
-
-            if (reader.LocalName == "ServerSyncUpdateData")
+            // ReadFrom leaves the reader on the next node
+            var element = (XElement)XNode.ReadFrom(reader);
+            string? Child(string name) => element.Descendants(Xmlns + name).FirstOrDefault()?.Value;
+            if (element.Name.LocalName == "ServerSyncUrlData")
             {
-                updates.Add(ReadUpdate(reader.ReadSubtree()));
-            }
-            else if (reader.LocalName == "ServerSyncUrlData")
-            {
-                using var url = reader.ReadSubtree();
-                string? digest = null, location = null;
-                while (url.Read())
-                {
-                    if (url.NodeType == XmlNodeType.Element && url.LocalName == "FileDigest")
-                    {
-                        digest = url.ReadElementContentAsString();
-                    }
-                    if (url.NodeType == XmlNodeType.Element && url.LocalName == "MUUrl")
-                    {
-                        location = url.ReadElementContentAsString();
-                    }
-                }
-                if (digest is not null && !string.IsNullOrEmpty(location))
+                if (Child("FileDigest") is { } digest && Child("MUUrl") is { Length: > 0 } location)
                 {
                     urls[digest] = location;
                 }
+                continue;
             }
+            updates.Add(new RawUpdate(
+                new RevisionId(Guid.Parse(Child("UpdateID")!), int.Parse(Child("RevisionNumber")!, CultureInfo.InvariantCulture)),
+                Child("XmlUpdateBlob") is { Length: > 0 } xml ? xml : null,
+                Child("XmlUpdateBlobCompressed") is { } cabinet ? Convert.FromBase64String(cabinet) : null));
         }
         return new UpdateData(updates, urls);
-    }
-
-    private static RawUpdate ReadUpdate(XmlReader reader)
-    {
-        using (reader)
-        {
-            Guid id = default;
-            int revision = 0;
-            string? xml = null;
-            byte[]? cabinet = null;
-            reader.Read();
-            while (!reader.EOF)
-            {
-                if (reader.NodeType != XmlNodeType.Element)
-                {
-                    reader.Read();
-                    continue;
-                }
-                switch (reader.LocalName)
-                {
-                    case "UpdateID":
-                        id = Guid.Parse(reader.ReadElementContentAsString());
-                        break;
-                    case "RevisionNumber":
-                        revision = reader.ReadElementContentAsInt();
-                        break;
-                    case "XmlUpdateBlob":
-                        xml = reader.ReadElementContentAsString();
-                        break;
-                    case "XmlUpdateBlobCompressed":
-                        cabinet = Convert.FromBase64String(reader.ReadElementContentAsString());
-                        break;
-                    default:
-                        reader.Read();
-                        break;
-                }
-            }
-            return new RawUpdate(new RevisionId(id, revision), string.IsNullOrEmpty(xml) ? null : xml, cabinet);
-        }
     }
 
     private async Task<IReadOnlyList<RevisionId>> GetRevisionIdListAsync(string filter, CancellationToken ct)
@@ -287,6 +245,6 @@ public sealed class ServerSyncClient(HttpClient http, IOptions<SyncOptions> opti
             response.Dispose();
             throw new HttpRequestException($"{action} returned {(int)response.StatusCode}: {text[..Math.Min(text.Length, 500)]}");
         }
-        return XmlReader.Create(stream, new XmlReaderSettings { Async = false, IgnoreWhitespace = true, CloseInput = true });
+        return XmlReader.Create(stream, new XmlReaderSettings { IgnoreWhitespace = true, CloseInput = true });
     }
 }

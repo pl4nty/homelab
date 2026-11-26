@@ -1,4 +1,4 @@
-# wu-metadata
+# msft-updates
 
 A mirror of all Microsoft Update metadata (2.76M updates, 90% drivers) that clients query with SQL. It
 syncs from `sws.update.microsoft.com` with the WSUS server-server protocol ([MS-WSUSSS]), the way a
@@ -6,10 +6,11 @@ WSUS server syncs from Microsoft Update, and keeps content URLs, not content.
 
 ## Quick start
 
-1. Run it with a data volume. The first sync starts at once and takes about 35 minutes:
+1. Run it with a data volume. The first sync starts at once and takes about 35 minutes, then it syncs
+   hourly:
 
    ```sh
-   docker run -p 8080:8080 -v wu-metadata:/data ghcr.io/pl4nty/wu-metadata
+   docker run -p 8080:8080 -v msft-updates:/data ghcr.io/pl4nty/msft-updates
    ```
 
 2. Watch `GET /status` until `Completed` is set.
@@ -43,12 +44,21 @@ row cap.
 Every table is keyed by `(update_id, revision)`. `GET /files` lists the Parquet files and
 `GET /files/{path}` serves them, so DuckDB, Spark or pandas can read the catalog directly instead.
 
+## Web UI
+
+The homelab deployment serves [Duck-UI](https://github.com/caioricciuti/duck-ui) beside the API,
+with its external connection pointed at `POST /duckdb/`. That endpoint speaks the protocol of
+DuckDB's [httpserver](https://duckdb.org/community_extensions/extensions/httpserver.html) extension
+(SQL body in, `JSONCompact` out), so the UI browses the tables and runs queries under the same limits
+as `/query`. DuckDB's own [UI extension](https://duckdb.org/docs/stable/core_extensions/ui) doesn't
+fit: it listens on localhost only, loads its frontend from `ui.duckdb.org`, and has no read-only mode.
+
 ## Storage
 
 The catalog is about 2.1 GB: 0.5 GB of tables and 1.5 GB of XML, from 89 GB of XML as served. It is
 Parquet with zstd level 9, one directory of parts per table. Each sync adds parts and rewrites
-`removed.parquet`, the revisions Microsoft dropped, which the views hide. A table is merged back into
-one part once it has 64 parts, or once removed rows pass 5%. DuckDB writes the tables; ParquetSharp
+`removed.parquet`, the revisions Microsoft dropped, which the views hide. The tables are merged back
+into one part each once they have 64 parts, or once removed rows pass 5%. DuckDB writes the tables; ParquetSharp
 writes the XML, because DuckDB's smallest row group is 2048 rows, which is gigabytes where the
 70 MB updates cluster.
 
@@ -100,7 +110,10 @@ considered and not measured:
 ## Limits
 
 - Only SELECT runs. Queries see the catalog alone: no file, URL or extension access.
-- Two queries run at once, each with 1 GB of memory, 2 minutes and 100,000 rows.
+- Two queries run at once, each with 1 GB of memory, 2 minutes, and 100,000 rows or 64 MB of
+  results.
+- Each client (by `CF-Connecting-IP`) gets 60 queries a minute. `GET /query` responses are cacheable
+  for 5 minutes and Parquet parts forever, as part names are never reused.
 - Queries on `update_xml` read 89 GB of XML when they can't filter by `update_id`, which takes about
   30 seconds.
 - Compressed updates are extracted with `cabextract`, as .NET has no LZX decoder.

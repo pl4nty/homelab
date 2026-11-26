@@ -2,9 +2,9 @@ using System.Net;
 using System.Security;
 using System.Text;
 using System.Text.RegularExpressions;
-using WuMetadata.Sync;
+using MsftUpdates.Sync;
 
-namespace WuMetadata.Tests;
+namespace MsftUpdates.Tests;
 
 /// <summary>
 /// Answers the server-server sync calls a sync makes, serving the fixture updates. Tests change

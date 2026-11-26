@@ -2,19 +2,17 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using WuMetadata.Catalog;
-using WuMetadata.Sync;
+using MsftUpdates.Catalog;
+using MsftUpdates.Sync;
 
-namespace WuMetadata.Tests;
+namespace MsftUpdates.Tests;
 
 /// <summary>Hosts the service over an empty catalog in a temporary directory, syncing from <see cref="FakeUpdateServer"/>.</summary>
 public sealed class CatalogFactory : WebApplicationFactory<Program>
 {
-    private readonly string _dataPath = Directory.CreateTempSubdirectory("wu-metadata-tests").FullName;
+    public string DataPath { get; } = Directory.CreateTempSubdirectory("msft-updates-tests").FullName;
 
     public FakeUpdateServer UpdateServer { get; } = new();
-
-    public string DataPath => _dataPath;
 
     public double CompactionThreshold { get; set; } = 0.05;
 
@@ -26,7 +24,7 @@ public sealed class CatalogFactory : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseSetting("Sync:Enabled", "false");
-        builder.UseSetting("Catalog:DataPath", _dataPath);
+        builder.UseSetting("Catalog:DataPath", DataPath);
         builder.ConfigureTestServices(services =>
         {
             services.Configure<SyncOptions>(options => options.CompactionThreshold = CompactionThreshold);
@@ -38,9 +36,9 @@ public sealed class CatalogFactory : WebApplicationFactory<Program>
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
-        if (Directory.Exists(_dataPath))
+        if (Directory.Exists(DataPath))
         {
-            Directory.Delete(_dataPath, recursive: true);
+            Directory.Delete(DataPath, recursive: true);
         }
     }
 }

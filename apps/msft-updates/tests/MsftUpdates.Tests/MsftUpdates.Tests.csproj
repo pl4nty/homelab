@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/WuMetadata/WuMetadata.csproj" />
+    <ProjectReference Include="../../src/MsftUpdates/MsftUpdates.csproj" />
   </ItemGroup>
 
 </Project>

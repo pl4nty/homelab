@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Xunit;
 
-namespace WuMetadata.Tests;
+namespace MsftUpdates.Tests;
 
 public sealed class SyncedCatalog : IAsyncLifetime
 {
@@ -56,24 +56,59 @@ public sealed class QueryTests(SyncedCatalog catalog) : IClassFixture<SyncedCata
         Assert.True(result.GetProperty("truncated").GetBoolean());
     }
 
+    [Fact]
+    public async Task Query_NegativeLimit_KeepsMaxRows()
+    {
+        var response = await _client.PostAsync("/query?limit=-1", new StringContent("SELECT * FROM range(200000)"));
+        var result = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.True(result.GetProperty("rows").GetArrayLength() <= 100000);
+    }
+
+    [Fact]
+    public async Task Query_LargeValues_TruncateAtMaxBytes()
+    {
+        var response = await _client.PostAsync("/query", new StringContent("SELECT repeat('x', 1 << 20) FROM range(100)"));
+        var result = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.InRange(result.GetProperty("rows").GetArrayLength(), 1, 40);
+        Assert.True(result.GetProperty("truncated").GetBoolean());
+    }
+
+    [Fact]
+    public async Task DuckDb_ReturnsJsonCompact()
+    {
+        var response = await _client.PostAsync("/duckdb/", new StringContent("SELECT kb_article FROM updates WHERE kb_article = '5023052'"));
+        var result = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        var column = Assert.Single(result.GetProperty("meta").EnumerateArray());
+        Assert.Equal("kb_article", column.GetProperty("name").GetString());
+        Assert.Equal("VARCHAR", column.GetProperty("type").GetString());
+        Assert.Equal("5023052", result.GetProperty("data")[0][0].GetString());
+        Assert.Equal(1, result.GetProperty("rows").GetInt32());
+    }
+
+    [Theory]
+    [InlineData("SHOW DATABASES")]
+    [InlineData("SELECT table_schema, table_name FROM information_schema.tables WHERE table_catalog = 'memory'")]
+    [InlineData("DESCRIBE memory.main.updates")]
+    public async Task DuckDb_AllowsDuckUiCatalogQueries(string sql)
+    {
+        var response = await _client.PostAsync("/duckdb/", new StringContent(sql));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
     [Theory]
     [InlineData("COPY updates TO '/tmp/out.parquet'")]
     [InlineData("CREATE TABLE t AS SELECT 1")]
     [InlineData("ATTACH '/tmp/x.duckdb'")]
     [InlineData("SET enable_external_access = true")]
     [InlineData("SELECT 1; DROP VIEW updates")]
-    public async Task Query_RejectsStatementsOtherThanSelect(string sql)
-    {
-        var response = await _client.PostAsync("/query", new StringContent(sql));
-
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-    }
-
-    [Theory]
     [InlineData("SELECT * FROM read_csv('/etc/passwd')")]
     [InlineData("SELECT * FROM read_text('/etc/hostname')")]
     [InlineData("SELECT * FROM read_parquet('https://example.com/x.parquet')")]
-    public async Task Query_CannotReadOutsideTheCatalog(string sql)
+    public async Task Query_RejectsWritesAndReadsOutsideTheCatalog(string sql)
     {
         var response = await _client.PostAsync("/query", new StringContent(sql));
 
@@ -89,6 +124,22 @@ public sealed class QueryTests(SyncedCatalog catalog) : IClassFixture<SyncedCata
         var bytes = await _client.GetByteArrayAsync($"/files/{part}");
         Assert.Equal("PAR1"u8.ToArray(), bytes[..4]);
         Assert.Equal(HttpStatusCode.NotFound, (await _client.GetAsync("/files/../../etc/passwd")).StatusCode);
+        Assert.True((await _client.GetAsync($"/files/{part}")).Headers.CacheControl!.Public);
+    }
+
+    [Fact]
+    public async Task Query_LimitsRequestsPerClient()
+    {
+        var statuses = new List<HttpStatusCode>();
+        for (var i = 0; i < 61; i++)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, "/query") { Content = new StringContent("SELECT 1") };
+            request.Headers.Add("CF-Connecting-IP", "192.0.2.1");
+            statuses.Add((await _client.SendAsync(request)).StatusCode);
+        }
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, statuses[^1]);
+        Assert.Equal(HttpStatusCode.OK, statuses[0]);
     }
 
     private async Task<JsonElement> PostAsync(string sql)

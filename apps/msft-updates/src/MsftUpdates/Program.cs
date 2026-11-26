@@ -1,8 +1,8 @@
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.Http.Resilience;
-using WuMetadata.Catalog;
-using WuMetadata.Query;
-using WuMetadata.Sync;
+using MsftUpdates.Catalog;
+using MsftUpdates.Query;
+using MsftUpdates.Sync;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +10,7 @@ builder.Services.Configure<SyncOptions>(builder.Configuration.GetSection("Sync")
 builder.Services.Configure<CatalogOptions>(builder.Configuration.GetSection("Catalog"));
 builder.Services.Configure<QueryOptions>(builder.Configuration.GetSection("Query"));
 
+builder.Services.AddQueryRateLimit(builder.Configuration);
 builder.Services.AddSingleton<CatalogStore>();
 builder.Services.AddSingleton<SyncStatus>();
 builder.Services.AddHttpClient<ServerSyncClient>(client => client.Timeout = Timeout.InfiniteTimeSpan)
@@ -39,6 +40,7 @@ if (builder.Configuration.GetValue("Sync:Enabled", true))
 
 var app = builder.Build();
 
+app.UseRateLimiter();
 app.MapQuery();
 
 app.Run();

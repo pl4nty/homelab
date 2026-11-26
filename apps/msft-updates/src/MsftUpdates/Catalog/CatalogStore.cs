@@ -1,8 +1,8 @@
 using DuckDB.NET.Data;
 using Microsoft.Extensions.Options;
-using WuMetadata.Sync;
+using MsftUpdates.Sync;
 
-namespace WuMetadata.Catalog;
+namespace MsftUpdates.Catalog;
 
 public sealed class CatalogOptions
 {
@@ -48,8 +48,10 @@ public sealed class CatalogStore(IOptions<CatalogOptions> options)
 
     private string RemovedPath => Path.Combine(DataPath, "removed.parquet");
 
-    public bool HasData => Directory.Exists(Path.Combine(DataPath, "updates")) &&
-        Directory.EnumerateFiles(Path.Combine(DataPath, "updates"), "*.parquet").Any();
+    public bool Fragmented => Parts("updates").Length > options.Value.MaxParts;
+
+    private string[] Parts(string table) =>
+        Directory.Exists(Path.Combine(DataPath, table)) ? Directory.GetFiles(Path.Combine(DataPath, table), "*.parquet") : [];
 
     public DuckDBConnection OpenDuckDb(string database = ":memory:")
     {
@@ -78,34 +80,25 @@ public sealed class CatalogStore(IOptions<CatalogOptions> options)
             : string.Empty;
         foreach (var (table, columns) in Tables)
         {
-            var parts = Path.Combine(DataPath, table);
-            var source = Directory.Exists(parts) && Directory.EnumerateFiles(parts, "*.parquet").Any()
-                ? $"read_parquet('{parts}/*.parquet') t {removed}"
-                : $"(SELECT * FROM (SELECT {string.Join(", ", columns.Split(", ").Select(c => $"NULL::{c.Split(' ')[1]} AS {c.Split(' ')[0]}"))}) WHERE false) t";
-            Execute(connection, $"CREATE OR REPLACE VIEW {table} AS SELECT t.* FROM {source}");
+            Execute(connection, Parts(table).Length > 0
+                ? $"CREATE VIEW {table} AS SELECT t.* FROM read_parquet('{Path.Combine(DataPath, table)}/*.parquet') t {removed}"
+                : $"CREATE TABLE {table} ({columns})");
         }
     }
 
-    public HashSet<RevisionId> ReadRevisions()
-    {
-        var revisions = new HashSet<RevisionId>();
-        if (!HasData)
-        {
-            return revisions;
-        }
-        using var connection = OpenDuckDb();
-        return ReadRevisions(connection, $"'{Path.Combine(DataPath, "updates")}/*.parquet'");
-    }
+    public HashSet<RevisionId> ReadRevisions() =>
+        ReadRevisions(Parts("updates").Length > 0 ? Path.Combine(DataPath, "updates", "*.parquet") : null);
 
-    private static HashSet<RevisionId> ReadRevisions(DuckDBConnection connection, string? parquet)
+    private HashSet<RevisionId> ReadRevisions(string? parquet)
     {
         var revisions = new HashSet<RevisionId>();
         if (parquet is null)
         {
             return revisions;
         }
+        using var connection = OpenDuckDb();
         using var command = connection.CreateCommand();
-        command.CommandText = $"SELECT update_id, revision FROM read_parquet({parquet})";
+        command.CommandText = $"SELECT update_id, revision FROM read_parquet('{parquet}')";
         using var reader = command.ExecuteReader();
         while (reader.Read())
         {
@@ -133,29 +126,23 @@ public sealed class CatalogStore(IOptions<CatalogOptions> options)
         return stored == 0 ? 0 : (double)removed.Count / stored;
     }
 
-    public IEnumerable<string> FragmentedTables() => Tables.Keys.Where(table =>
-        Directory.Exists(Path.Combine(DataPath, table)) &&
-        Directory.GetFiles(Path.Combine(DataPath, table), "*.parquet").Length > options.Value.MaxParts);
-
-    /// <summary>
-    /// Rewrites each table into one part without removed rows, then swaps it in. removed.parquet goes once
-    /// no table still holds the rows it hides.
-    /// </summary>
-    public void Compact(IReadOnlyCollection<string> tables)
+    /// <summary>Rewrites each table into one part without removed rows, swaps it in, and drops removed.parquet.</summary>
+    public void Compact()
     {
         using var connection = OpenDuckDb();
         CreateViews(connection);
         var stamp = PartName();
-        foreach (var table in tables)
+        // updates goes last: a crash before it leaves the removed rows listed, so the next sync hides them again
+        foreach (var table in Tables.Keys.OrderBy(t => t == "updates"))
         {
             var directory = Path.Combine(DataPath, table);
-            var old = Directory.Exists(directory) ? Directory.GetFiles(directory, "*.parquet") : [];
+            var old = Parts(table);
             Directory.CreateDirectory(directory);
             var temporary = Path.Combine(directory, stamp + ".tmp");
             if (table == XmlTable)
             {
                 using var writer = new XmlPartWriter(temporary);
-                writer.CopyFrom(old, ReadRevisions(connection, File.Exists(RemovedPath) ? $"'{RemovedPath}'" : null));
+                writer.CopyFrom(old, ReadRevisions(File.Exists(RemovedPath) ? RemovedPath : null));
                 writer.Close();
             }
             else
@@ -168,16 +155,13 @@ public sealed class CatalogStore(IOptions<CatalogOptions> options)
                 File.Delete(file);
             }
         }
-        if (tables.Count == Tables.Count)
-        {
-            File.Delete(RemovedPath);
-        }
+        File.Delete(RemovedPath);
     }
 
     /// <summary>A writer staging into a database file, so a part's rows can spill to disk while it fills.</summary>
     public CatalogWriter CreateWriter()
     {
-        var staging = Path.Combine(Path.GetTempPath(), $"wu-metadata-{Guid.NewGuid():N}.duckdb");
+        var staging = Path.Combine(Path.GetTempPath(), $"msft-updates-{Guid.NewGuid():N}.duckdb");
         return new(this, OpenDuckDb(staging), staging, options.Value.PartXmlBytes);
     }
 

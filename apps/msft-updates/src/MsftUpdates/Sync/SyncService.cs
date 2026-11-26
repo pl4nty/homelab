@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.Threading.Channels;
 using Microsoft.Extensions.Options;
-using WuMetadata.Catalog;
+using MsftUpdates.Catalog;
 
-namespace WuMetadata.Sync;
+namespace MsftUpdates.Sync;
 
 public sealed class SyncStatus
 {
@@ -11,7 +11,7 @@ public sealed class SyncStatus
     public DateTimeOffset? Completed { get; set; }
     public string? Error { get; set; }
     public int Pending { get; set; }
-    public int Fetched;
+    public int Fetched { get; set; }
     public int Stored { get; set; }
     public int Removed { get; set; }
 }
@@ -56,38 +56,27 @@ public sealed class SyncService(
         var stored = store.ReadRevisions();
 
         var categories = await client.GetCategoryRevisionsAsync(ct);
-        var written = 0;
-        using (var writer = store.CreateWriter())
-        {
-            await FetchAsync([.. categories.Where(id => !stored.Contains(id))], perRequest, writer, ct);
-            writer.Flush();
-            written += writer.Written;
-        }
+        var written = await FetchAsync([.. categories.Where(id => !stored.Contains(id))], perRequest, ct);
 
         var (products, classifications) = ReadCategoryIds();
         var updates = await client.GetUpdateRevisionsAsync(products, classifications, ct);
         var missing = updates.Where(id => !stored.Contains(id)).Take(_options.Full ? int.MaxValue : _options.SampleSize).ToList();
         logger.LogInformation("{Categories} categories, {Updates} updates listed, {Missing} to fetch", categories.Count, updates.Count, missing.Count);
 
-        using (var writer = store.CreateWriter())
-        {
-            await FetchAsync(missing, perRequest, writer, ct);
-            writer.Flush();
-            written += writer.Written;
-        }
+        written += await FetchAsync(missing, perRequest, ct);
 
         var current = new HashSet<RevisionId>(categories);
         current.UnionWith(updates);
         var removed = stored.Where(id => !current.Contains(id)).ToList();
         var fraction = store.WriteRemoved(removed, stored.Count + written);
-        var compact = fraction > _options.CompactionThreshold ? [.. CatalogStore.Tables.Keys] : store.FragmentedTables().ToList();
-        if (compact.Count > 0)
+        var compact = fraction > _options.CompactionThreshold || store.Fragmented;
+        if (compact)
         {
-            logger.LogInformation("Compacting {Tables}: {Removed} removed revisions ({Fraction:P1})", compact, removed.Count, fraction);
-            store.Compact(compact);
+            logger.LogInformation("Compacting: {Removed} removed revisions ({Fraction:P1})", removed.Count, fraction);
+            store.Compact();
         }
 
-        status.Stored = stored.Count + written - (compact.Count == CatalogStore.Tables.Count ? removed.Count : 0);
+        status.Stored = stored.Count + written - (compact ? removed.Count : 0);
         status.Removed = removed.Count;
         status.Completed = DateTimeOffset.UtcNow;
         logger.LogInformation("Sync done in {Elapsed}: {Written} new, {Removed} removed", clock.Elapsed, written, removed.Count);
@@ -108,52 +97,43 @@ public sealed class SyncService(
         return (products, classifications);
     }
 
-    private async Task FetchAsync(List<RevisionId> ids, int perRequest, CatalogWriter writer, CancellationToken ct)
+    private async Task<int> FetchAsync(List<RevisionId> ids, int perRequest, CancellationToken ct)
     {
         status.Pending = ids.Count;
-        var fetched = Channel.CreateBounded<UpdateData>(4);
-        var parsed = Channel.CreateBounded<(ParsedUpdate Update, string Xml)>(64);
+        var parsed = Channel.CreateBounded<(ParsedUpdate Update, string Xml, int Units)>(64);
+        var budget = new ByteBudget(_options.BufferBytes);
+        using var stop = CancellationTokenSource.CreateLinkedTokenSource(ct);
 
-        var download = Task.Run(async () =>
-        {
-            try
+        var produce = Parallel.ForEachAsync(ids.Chunk(perRequest), new ParallelOptions { MaxDegreeOfParallelism = _options.Parallelism, CancellationToken = stop.Token },
+            async (batch, token) =>
             {
-                await Parallel.ForEachAsync(ids.Chunk(perRequest), new ParallelOptions { MaxDegreeOfParallelism = _options.Parallelism, CancellationToken = ct },
-                    async (batch, token) => await fetched.Writer.WriteAsync(await client.GetUpdateDataAsync(batch, token), token));
-                fetched.Writer.Complete();
-            }
-            catch (Exception e)
-            {
-                fetched.Writer.Complete(e);
-            }
-        }, ct);
+                var data = await client.GetUpdateDataAsync(batch, token);
+                foreach (var raw in data.Updates)
+                {
+                    // extraction holds the UTF-16 bytes and the string at once
+                    var size = raw.Xml is { } text ? text.Length * 2L : 2 * Cabinet.UncompressedSize(raw.Cabinet ?? throw new InvalidDataException($"{raw.Id} has no XML"));
+                    var units = await budget.AcquireAsync(size, token);
+                    var xml = raw.Xml ?? await Cabinet.ExtractTextAsync(raw.Cabinet!, token);
+                    await parsed.Writer.WriteAsync((UpdateParser.Parse(xml, data.FileUrls), xml, units), token);
+                }
+            }).ContinueWith(t => parsed.Writer.Complete(t.Exception?.GetBaseException()), TaskScheduler.Default);
 
-        var parse = Task.Run(async () =>
+        using var writer = store.CreateWriter();
+        try
         {
-            try
+            await foreach (var (update, xml, units) in parsed.Reader.ReadAllAsync(ct))
             {
-                await Parallel.ForEachAsync(fetched.Reader.ReadAllAsync(ct), new ParallelOptions { MaxDegreeOfParallelism = _options.Parallelism, CancellationToken = ct },
-                    async (data, token) =>
-                    {
-                        foreach (var raw in data.Updates)
-                        {
-                            var xml = raw.Xml ?? await Cabinet.ExtractTextAsync(raw.Cabinet ?? throw new InvalidDataException($"{raw.Id} has no XML"), token);
-                            await parsed.Writer.WriteAsync((UpdateParser.Parse(xml, data.FileUrls), xml), token);
-                        }
-                    });
-                parsed.Writer.Complete();
+                writer.Add(update, xml);
+                budget.Release(units);
+                status.Fetched++;
             }
-            catch (Exception e)
-            {
-                parsed.Writer.Complete(e);
-            }
-        }, ct);
-
-        await foreach (var (update, xml) in parsed.Reader.ReadAllAsync(ct))
-        {
-            writer.Add(update, xml);
-            Interlocked.Increment(ref status.Fetched);
         }
-        await Task.WhenAll(download, parse);
+        finally
+        {
+            stop.Cancel();
+            await produce;
+        }
+        writer.Flush();
+        return writer.Written;
     }
 }

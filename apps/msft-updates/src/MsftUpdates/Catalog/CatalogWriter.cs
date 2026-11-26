@@ -1,6 +1,6 @@
 using DuckDB.NET.Data;
 
-namespace WuMetadata.Catalog;
+namespace MsftUpdates.Catalog;
 
 /// <summary>
 /// Stages parsed updates and writes them out as one Parquet part per table. XML goes straight to its part
@@ -16,7 +16,6 @@ public sealed class CatalogWriter : IDisposable
     private string _part = CatalogStore.PartName();
     private XmlPartWriter? _xml;
     private long _stagedXml;
-    private int _stagedRows;
 
     public int Written { get; private set; }
 
@@ -83,7 +82,6 @@ public sealed class CatalogWriter : IDisposable
         }
 
         Written++;
-        _stagedRows++;
         _stagedXml += xml.Length;
         if (_stagedXml >= _partXmlBytes)
         {
@@ -94,12 +92,12 @@ public sealed class CatalogWriter : IDisposable
     /// <summary>Writes staged rows as new parts. Parts land under a .tmp name and are renamed, so readers never see half a file.</summary>
     public void Flush()
     {
-        if (_stagedRows == 0)
+        if (_xml is null)
         {
             return;
         }
         CloseAppenders();
-        _xml!.Close();
+        _xml.Close();
         _xml.Dispose();
         _xml = null;
         foreach (var table in CatalogStore.Tables.Keys.Where(t => t != CatalogStore.XmlTable))
@@ -114,7 +112,6 @@ public sealed class CatalogWriter : IDisposable
         }
         _part = CatalogStore.PartName();
         _stagedXml = 0;
-        _stagedRows = 0;
         OpenAppenders();
     }
 

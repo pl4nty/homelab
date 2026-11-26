@@ -2,7 +2,7 @@ using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Text;
 
-namespace WuMetadata.Sync;
+namespace MsftUpdates.Sync;
 
 /// <summary>
 /// Large update XML arrives as a one-file LZX cabinet of UTF-16 text. .NET has no LZX decoder, so this

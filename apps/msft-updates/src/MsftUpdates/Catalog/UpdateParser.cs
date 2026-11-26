@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Xml;
 
-namespace WuMetadata.Catalog;
+namespace MsftUpdates.Catalog;
 
 public sealed class ParsedUpdate
 {
@@ -78,12 +78,11 @@ public static class UpdateParser
         UpdateFile? file = null;
         DriverMetadata? driver = null;
         var driverIndex = 0;
-        var haveIdentity = false;
 
-        var advanced = false;
-        while (advanced || reader.Read())
+        // ReadElementContentAsString leaves the reader on the next node, so those cases skip the Read below
+        reader.Read();
+        while (!reader.EOF)
         {
-            advanced = false;
             if (reader.NodeType == XmlNodeType.EndElement)
             {
                 switch (path[^1])
@@ -102,10 +101,10 @@ public static class UpdateParser
                         break;
                 }
                 path.RemoveAt(path.Count - 1);
-                continue;
             }
             if (reader.NodeType != XmlNodeType.Element)
             {
+                reader.Read();
                 continue;
             }
 
@@ -116,11 +115,10 @@ public static class UpdateParser
                 case "UpdateIdentity":
                     var id = Guid.Parse(reader.GetAttribute("UpdateID")!);
                     var revision = reader.GetAttribute("RevisionNumber") is { } r ? int.Parse(r, CultureInfo.InvariantCulture) : (int?)null;
-                    if (!haveIdentity && parent == "Update")
+                    if (update.UpdateId == default && parent == "Update")
                     {
                         update.UpdateId = id;
                         update.Revision = revision ?? 0;
-                        haveIdentity = true;
                     }
                     else if (parent == "Prerequisites")
                     {
@@ -157,19 +155,19 @@ public static class UpdateParser
                     update.MaxDownloadSize = ParseLong(reader.GetAttribute("MaxDownloadSize"));
                     break;
                 case "KBArticleID" when parent == "Properties":
-                    update.KbArticle = ReadText(reader, ref advanced);
+                    update.KbArticle = reader.ReadElementContentAsString();
                     continue;
                 case "CveID" when parent == "Properties":
-                    update.Cves.Add(ReadText(reader, ref advanced).Trim());
+                    update.Cves.Add(reader.ReadElementContentAsString().Trim());
                     continue;
                 case "SecurityBulletinID" when parent == "Properties":
-                    update.SecurityBulletin = ReadText(reader, ref advanced);
+                    update.SecurityBulletin = reader.ReadElementContentAsString();
                     continue;
                 case "Language" when parent == "LocalizedProperties":
-                    language = ReadText(reader, ref advanced);
+                    language = reader.ReadElementContentAsString();
                     continue;
                 case "Title" when parent == "LocalizedProperties":
-                    var title = ReadText(reader, ref advanced);
+                    var title = reader.ReadElementContentAsString();
                     // English when there is one, otherwise the first language listed
                     if (titleLanguage is null || (titleLanguage != "en" && language == "en"))
                     {
@@ -179,7 +177,7 @@ public static class UpdateParser
                     }
                     continue;
                 case "Description" when parent == "LocalizedProperties":
-                    var description = ReadText(reader, ref advanced);
+                    var description = reader.ReadElementContentAsString();
                     if (titleLanguage == (language ?? string.Empty))
                     {
                         update.Description = description;
@@ -205,7 +203,7 @@ public static class UpdateParser
                     break;
                 case "AdditionalDigest" when file is not null:
                     var algorithm = reader.GetAttribute("Algorithm");
-                    var value = ReadText(reader, ref advanced);
+                    var value = reader.ReadElementContentAsString();
                     if (algorithm == "SHA256")
                     {
                         file.Sha256 = Hex(value);
@@ -237,7 +235,7 @@ public static class UpdateParser
                 case "TargetComputerHardwareId" or "DistributionComputerHardwareId":
                     var kind = name == "TargetComputerHardwareId" ? "target" : "distribution";
                     var index = driver?.Index ?? -1;
-                    if (Guid.TryParse(ReadText(reader, ref advanced), out var chid))
+                    if (Guid.TryParse(reader.ReadElementContentAsString(), out var chid))
                     {
                         update.ComputerHardwareIds.Add((index, chid, kind));
                     }
@@ -247,16 +245,9 @@ public static class UpdateParser
             {
                 path.Add(name);
             }
+            reader.Read();
         }
         return update;
-    }
-
-    /// <summary>ReadElementContentAsString leaves the reader on the next node, which the loop must not skip.</summary>
-    private static string ReadText(XmlReader reader, ref bool advanced)
-    {
-        var text = reader.ReadElementContentAsString();
-        advanced = true;
-        return text;
     }
 
     private static DateTime? ParseDate(string? value) =>
