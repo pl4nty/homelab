@@ -28,7 +28,7 @@ The hex view colours each field by nesting and marks regions that failed to pars
 
 ## Writing specs
 
-`.ksy` files get completion, schema validation, hover and go to definition. An edit to a spec or its imports, saved or not, reparses each open file that uses it, so the hex view and structure tree update as you type.
+`.ksy` files get completion, schema validation, hover and go to definition. The hex view and structure tree hot reload when you edit a spec or its imports.
 
 ![A .ksy spec beside the hex view, with a hover on a user-defined type](media/screenshots/spec.png)
 
