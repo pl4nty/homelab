@@ -6,6 +6,10 @@
   file, explain the bytes at an offset, suggest a gallery spec, validate a .ksy and generate code. The same server and a
   `kaitai` CLI are on npm as `kaitai-mcp`.
 
+## 0.1.1
+
+- Shorter README with screenshots, and more complete listing metadata.
+
 ## 0.1.0
 
 First release.

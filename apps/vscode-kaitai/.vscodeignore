@@ -10,6 +10,8 @@ Dockerfile
 .dockerignore
 media/kaitai.svg.map
 .gitignore
+media/screenshots/**
+CONTRIBUTING.md
 
 # npm package metadata; the bundled server (npm/dist/kaitai.cjs) ships for the MCP provider
 npm/*
