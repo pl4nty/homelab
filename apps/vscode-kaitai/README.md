@@ -6,7 +6,9 @@ Parse binary files with [Kaitai Struct](https://kaitai.io/) specs in VS Code. Fe
 
 ## Quick start
 
-Right-click a binary file and select **Open in Kaitai Hex Editor**, then open the Kaitai Struct view in the activity bar. Select **Load Spec...** to use a `.ksy` from your workspace, or pick one from Formats, which lists specs that match the file extension first. Formats has thousands of specs from `pl4nty/kaitai_struct_formats` (set `kaitai.formatsRepository` to change it), and it also resolves absolute imports that are not in your workspace.
+1. Right-click a binary file and select **Open in Kaitai Hex Editor**.
+2. Open the Kaitai Struct view in the activity bar.
+3. Select **Load Spec...**, or pick a spec from Formats. Specs that match the file extension are listed first.
 
 | Structure | Value | Formats |
 | --- | --- | --- |
@@ -16,6 +18,7 @@ Right-click a binary file and select **Open in Kaitai Hex Editor**, then open th
 
 The hex view colours each field by nesting, marks regions that failed to parse, and only renders visible rows, so large files stay responsive. Press `]` and `[` to step through fields, and `N` to jump to the next unparsed gap. The Structure tree follows the hex selection, shows enum labels, and parses instances when you expand them. The Value view decodes the bytes at the caret as integers, floats, Unix times and strings, little-endian and big-endian side by side.
 
+- **Formats**: choose from thousands of specs via `pl4nty/kaitai_struct_formats` (set `kaitai.formatsRepository` to change it). It also resolves absolute imports that are not in your workspace.
 - **Find Value in File...** (Ctrl+F): a typed value (`u4le 1234`, `f4 1.5`), a string (`"text"`, `utf-16le "text"`), or hex with `??` wildcards. Each match shows the field that it's in.
 - **Go to Offset...** (Ctrl+G): an offset or a range, such as `0x10-0x20` or `0x10+16`.
 - Copy As..., Save Bytes As... and Export Parsed Tree as JSON.
