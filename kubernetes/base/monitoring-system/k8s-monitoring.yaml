@@ -10,8 +10,8 @@ spec:
     mediaType: 'application/vnd.cncf.helm.chart.content.v1.tar+gzip'
     operation: copy
   ref:
-    tag: 4.6.1
-    digest: sha256:71491492d9c6479f3802cd8bf71ea23e6955d8240fc31164654935a03c33ec28
+    tag: 4.6.2
+    digest: sha256:4ae68683ac2eb7027741eab5a51868fc46f853fbc72b97f742fb899636a88b6d
 ---
 # yaml-language-server: $schema=https://flux-helm-schema.tplant.com.au?values=https://raw.githubusercontent.com/grafana/k8s-monitoring-helm/refs/heads/main/charts/k8s-monitoring/values.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2

@@ -10,8 +10,8 @@ spec:
     mediaType: 'application/vnd.cncf.helm.chart.content.v1.tar+gzip'
     operation: copy
   ref:
-    tag: 0.67.1
-    digest: sha256:fa66f4e73b60484b2ca3d922cfe80dc63936d8f7af9d2323d448be7efdbbf822
+    tag: 0.69.1
+    digest: sha256:95b13697df3dd033755276fd4b693680f09c1d56bfd3ed496961f10e11c4355a
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease

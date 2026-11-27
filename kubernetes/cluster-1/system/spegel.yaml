@@ -17,8 +17,8 @@ spec:
     mediaType: 'application/vnd.cncf.helm.chart.content.v1.tar+gzip'
     operation: copy
   ref:
-    tag: 0.8.1
-    digest: sha256:0f6685e12ba49fa57b3fd4329e0e9695d60d00024df102733f337e4752ca2e61
+    tag: 0.8.2
+    digest: sha256:2449e91ce3ae949433126f2a3293270937be23391798b486b26c173043ee759f
 ---
 # P2P image mirror between the home nodes, so a rescheduled pod pulls from a peer
 # when the internet is down. needs the CRICustomizationConfig in talos/hardware/home.yaml
