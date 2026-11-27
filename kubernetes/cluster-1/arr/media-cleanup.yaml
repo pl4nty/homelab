@@ -1,7 +1,9 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 # Deletes media once it's been watched in Jellyfin and its torrent has seeded past a ratio
-# while the swarm is healthy. Torrent files are matched to library files by inode, since imports
-# are hardlinks. Library files go through Sonarr/Radarr so they unmonitor rather than re-grab
+# while the swarm is healthy, and torrents the library no longer uses (replaced by an upgrade or
+# deleted in Sonarr/Radarr) once they've seeded a while. Torrent files are matched to library files
+# by inode, since imports are hardlinks. Library files go through Sonarr/Radarr so they unmonitor
+# rather than re-grab
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -29,9 +31,10 @@ spec:
               tag: 3.15.0-alpine@sha256:2699b90f4d562a22e2dd076c82f964032f64814204bff36d271a54ba4cc2c7e2
             command: [python, /app/cleanup.py]
             env:
-              DRY_RUN: "true"
-              MIN_RATIO: "2"
-              MIN_SEEDERS: "50"
+              DRY_RUN: "false"
+              MIN_RATIO: "1"
+              MIN_SEEDERS: "10"
+              UNUSED_SEEDING_DAYS: "14"
               CATEGORIES: shows,movies,tv-sonarr
               JELLYFIN_API_KEY:
                 secretKeyRef:
@@ -97,6 +100,7 @@ spec:
             DRY_RUN = os.environ["DRY_RUN"] != "false"
             MIN_RATIO = float(os.environ["MIN_RATIO"])
             MIN_SEEDERS = int(os.environ["MIN_SEEDERS"])
+            UNUSED_SEEDING_DAYS = int(os.environ["UNUSED_SEEDING_DAYS"])
             CATEGORIES = os.environ["CATEGORIES"].split(",")
 
             JELLYFIN = ("http://jellyfin:8096", {"Authorization": f'MediaBrowser Token="{os.environ["JELLYFIN_API_KEY"]}"'})
@@ -163,14 +167,17 @@ spec:
             for torrent in call(QBITTORRENT, "/torrents/info?filter=completed"):
                 if torrent["category"] not in CATEGORIES:
                     continue
-                if torrent["ratio"] <= MIN_RATIO or torrent["num_complete"] <= MIN_SEEDERS:
-                    continue
                 linked = set()
                 for file in call(QBITTORRENT, f"/torrents/files?hash={torrent['hash']}"):
                     path = os.path.join(torrent["save_path"], file["name"])
                     if (key := inode(path)) and os.stat(path).st_nlink > 1:
                         linked.add(key)
-                if not linked or not linked <= watched or not linked <= library.keys():
+                if linked:
+                    if torrent["ratio"] <= MIN_RATIO or torrent["num_complete"] <= MIN_SEEDERS:
+                        continue
+                    if not linked <= watched or not linked <= library.keys():
+                        continue
+                elif torrent["ratio"] <= 1 and torrent["seeding_time"] < UNUSED_SEEDING_DAYS * 86400:
                     continue
 
                 print(f"{'would delete' if DRY_RUN else 'deleting'} {torrent['name']} "
