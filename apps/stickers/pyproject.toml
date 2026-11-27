@@ -11,14 +11,14 @@ requires-python = ">=3.13"
 license = "MIT"
 authors = [{ name = "Tom Plant" }]
 dependencies = [
-  "numpy==2.5.4",
-  "opencv-python-headless==5.0.0.93",
+  "numpy==2.5.5",
+  "opencv-python-headless==5.1.0.95",
   "pillow==13.0.0",
-  "anthropic==2.8.0",
-  "pydantic==2.14.3",
-  "fastapi==0.163.0",
+  "anthropic==2.11.0",
+  "pydantic==2.14.4",
+  "fastapi==0.165.0",
   "uvicorn==0.54.0",
-  "python-multipart==0.0.33",
+  "python-multipart==0.0.34",
 ]
 
 [project.optional-dependencies]
