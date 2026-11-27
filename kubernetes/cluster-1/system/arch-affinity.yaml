@@ -53,7 +53,7 @@ spec:
             app: arch-affinity
       containers:
       - name: arch-affinity
-        image: ghcr.io/pl4nty/arch-affinity:latest@sha256:a882a950596cf403e934d59d6cf1a87996410b1f45a76684b7bbabcd58f49be4
+        image: ghcr.io/pl4nty/arch-affinity:latest@sha256:aebdf7639d1bac8f4528dd4c2baeb8019342ac64c717ed83a108498d1022ab56
         ports:
         - name: https
           containerPort: 8443
