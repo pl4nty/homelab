@@ -71,18 +71,6 @@ public sealed class VersionsSourceTests(RestSourceFactory factory) : IClassFixtu
     }
 
     [Fact]
-    public async Task Manifest_LatestVersionAlsoInstallsThroughTheStore()
-    {
-        var manifest = await _client.GetManifestAsync(Prefix, StoreFixture.TerminalId);
-
-        var installer = Assert.Single(manifest!.Versions[0].Installers, installer => installer.InstallerType == "msstore");
-        Assert.Equal(StoreFixture.TerminalId, installer.MSStoreProductIdentifier);
-        Assert.Equal("Microsoft.WindowsTerminal_8wekyb3d8bbwe", installer.PackageFamilyName);
-        Assert.Equal("user", installer.Scope);
-        Assert.DoesNotContain(manifest.Versions[1].Installers, installer => installer.InstallerType == "msstore");
-    }
-
-    [Fact]
     public async Task Manifest_ForOneVersion()
     {
         var response = await _client.GetFromJsonAsync<Response<Manifest?>>(

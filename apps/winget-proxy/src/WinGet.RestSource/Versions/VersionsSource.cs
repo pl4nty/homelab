@@ -83,10 +83,7 @@ public sealed class VersionsSource(StoreCatalog catalog, StoreDelivery delivery,
                 .Select(version => new ManifestVersion(
                     version.Key,
                     Locale(app.Product),
-                    [
-                        .. version.Select(package => ToInstaller(package, urls)).OfType<Installer>(),
-                        .. version.Key == app.Versions[0].Key ? new[] { StoreInstaller(app) } : [],
-                    ]))
+                    [.. version.Select(package => ToInstaller(package, urls)).OfType<Installer>()]))
                 .Where(version => version.Installers.Count > 0),
         ];
 
@@ -143,14 +140,6 @@ public sealed class VersionsSource(StoreCatalog catalog, StoreDelivery delivery,
                 PackageFamilyName: package.PackageFamilyName,
                 ReleaseDate: package.Modified?.ToString("yyyy-MM-dd"))
             : null;
-
-    /// <summary>The Store client only delivers the latest version, so only it gets an <c>msstore</c> installer.</summary>
-    private static Installer StoreInstaller(StoreApp app) => new(
-        InstallerType: "msstore",
-        Architecture: "neutral",
-        MSStoreProductIdentifier: app.Product.ProductId,
-        PackageFamilyName: app.PackageFamilyName,
-        Scope: "user");
 
     private static Locale Locale(CatalogProduct product)
     {
