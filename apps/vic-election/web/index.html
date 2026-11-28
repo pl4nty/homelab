@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Victoria 2026 Top Two</title>
+<meta name="description" content="Live two-candidate-preferred leader and runner-up in all 88 Victorian Legislative Assembly districts, 2026 state election.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --fg: #16202c;
+  --muted: #5b6878;
+  --line: #d9dee5;
+  --land: #e7eaee;
+  --accent: #6d28d9;
+  --live: #16a34a;
+  --warn: #b45309;
+  --font-display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --stroke: rgba(255,255,255,.85);
+  --ALP: #de3533; --LIB: #1c4f9c; --NAT: #0a7d52; --GRN: #2bb24c; --ONP: #f36c21; --IND: #8a8f98; --OTH: #a39e93;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f141a; --surface: #171e27; --fg: #e8edf3; --muted: #93a0b0; --line: #2a3441; --land: #222b36;
+    --accent: #a78bfa; --live: #4ade80; --warn: #f59e0b; --stroke: rgba(15,20,26,.9);
+    --LIB: #3f78d6; --NAT: #16a36d; --IND: #9aa1ab;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f141a; --surface: #171e27; --fg: #e8edf3; --muted: #93a0b0; --line: #2a3441; --land: #222b36;
+  --accent: #a78bfa; --live: #4ade80; --warn: #f59e0b; --stroke: rgba(15,20,26,.9);
+  --LIB: #3f78d6; --NAT: #16a36d; --IND: #9aa1ab;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--fg); font: 14px/1.5 var(--font-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: max(16px, env(safe-area-inset-top, 0px)) 48px;
+}
+.wrap { max-width: 1320px; margin: 0 auto; display: grid; gap: 20px; }
+h1, h2 { font-family: var(--font-display); text-wrap: balance; margin: 0; letter-spacing: .005em; }
+h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.05; font-weight: 700; }
+h2 { font-size: 20px; font-weight: 600; }
+.num { font-variant-numeric: tabular-nums; }
+.eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+
+header.mast { display: grid; gap: 12px; }
+.status { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; color: var(--muted); font-size: 13px; }
+.live { display: inline-flex; align-items: center; gap: 6px; color: var(--fg); font-weight: 600; }
+.live i { width: 8px; height: 8px; border-radius: 50%; background: var(--live); box-shadow: 0 0 0 0 var(--live); animation: pulse 2s infinite; }
+.live.err i { background: var(--warn); animation: none; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--live) 60%, transparent); } 70% { box-shadow: 0 0 0 7px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+@media (prefers-reduced-motion: reduce) { .live i { animation: none; } }
+
+.tally { display: grid; gap: 6px; }
+.tally-bar { position: relative; display: flex; height: 22px; border-radius: 4px; overflow: hidden; background: var(--land); }
+.tally-bar span { display: block; height: 100%; }
+.tally-bar .half { position: absolute; left: calc(45 / 88 * 100%); top: -3px; bottom: -3px; width: 2px; background: var(--fg); }
+.tally-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; align-items: baseline; }
+.tally-legend b { font-family: var(--font-display); font-size: 18px; font-weight: 700; margin-right: 3px; }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); }
+.seg button { font: inherit; font-size: 13px; padding: 6px 12px; border: 0; background: transparent; color: var(--fg); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+.seg button:focus-visible, .chip:focus-visible, input:focus-visible, th button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+input[type="search"] { font: inherit; font-size: 13px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--fg); min-width: 0; width: 220px; max-width: 100%; }
+
+.maps { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px; min-width: 0; }
+.panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+.side { display: grid; gap: 16px; min-width: 0; }
+.zoom { display: inline-flex; gap: 4px; }
+.hint { color: var(--muted); font-size: 12px; margin-top: 6px; }
+.zoom button { font: inherit; font-size: 14px; min-width: 32px; height: 30px; padding: 0 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--fg); cursor: pointer; }
+.zoom button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+svg.map { display: block; width: 100%; height: auto; touch-action: manipulation; }
+svg.map path.d { stroke: var(--stroke); stroke-width: .6; cursor: pointer; vector-effect: non-scaling-stroke; }
+svg.map path.d.dim { opacity: .18; }
+svg.map path.d.sel { stroke: var(--fg); stroke-width: 2.2; }
+svg.map path.d:hover { stroke: var(--fg); stroke-width: 1.4; }
+svg.map .frame { fill: none; stroke: var(--fg); stroke-width: 1.2; stroke-dasharray: 3 3; pointer-events: none; }
+svg.map text.lbl { font: 600 9px var(--font-body); fill: #fff; paint-order: stroke; stroke: rgba(0,0,0,.45); stroke-width: 2px; pointer-events: none; text-anchor: middle; }
+
+.detail { display: grid; gap: 10px; }
+.detail .empty { color: var(--muted); }
+.detail h3 { font-family: var(--font-display); font-size: 24px; margin: 0; line-height: 1.1; }
+.cand { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: baseline; }
+.cand .who { font-weight: 600; }
+.cand .pct { font-family: var(--font-display); font-size: 22px; font-weight: 700; }
+.cand .meta { color: var(--muted); font-size: 12px; grid-column: 1 / -1; }
+.tcp { display: flex; height: 14px; border-radius: 3px; overflow: hidden; position: relative; background: var(--land); }
+.tcp span { display: block; height: 100%; }
+.tcp::after { content: ""; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--fg); }
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font-size: 13px; color: var(--muted); margin: 0; }
+.facts dd { margin: 0; color: var(--fg); }
+.badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); }
+.badge.final { color: var(--live); border-color: var(--live); }
+
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); }
+.legend svg { vertical-align: -3px; margin-right: 5px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: inherit; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; padding: 5px 10px 5px 6px; border: 1px solid var(--line); border-radius: 99px; background: var(--surface); color: var(--fg); cursor: pointer; }
+.chip[aria-pressed="true"] { border-color: var(--fg); box-shadow: inset 0 0 0 1px var(--fg); }
+.chip b { font-variant-numeric: tabular-nums; }
+.pair { display: inline-flex; width: 22px; height: 14px; border-radius: 3px; overflow: hidden; }
+.pair span { flex: 1; }
+
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 720px; font-size: 13px; }
+th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+th button { font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+th button[aria-sort]::after { content: " ↓"; }
+th button[aria-sort="ascending"]::after { content: " ↑"; }
+td.r, th.r { text-align: right; }
+tbody tr { cursor: pointer; }
+tbody tr:hover { background: color-mix(in srgb, var(--fg) 5%, transparent); }
+tbody tr.sel { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+td .tcp { width: 140px; height: 10px; }
+.p { display: inline-flex; align-items: center; gap: 6px; }
+
+#tip { position: fixed; z-index: 20; pointer-events: none; background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font-size: 12px; box-shadow: 0 6px 20px rgba(0,0,0,.18); max-width: 260px; }
+#tip strong { font-family: var(--font-display); font-size: 16px; display: block; }
+
+footer { color: var(--muted); font-size: 12px; display: grid; gap: 6px; max-width: 80ch; }
+footer a { color: inherit; }
+
+@media (max-width: 860px) {
+  .maps { grid-template-columns: minmax(0, 1fr); }
+  .side { display: contents; }
+  #detail { grid-row: 2; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <div class="eyebrow">Victorian state election · Legislative Assembly · 28 November 2026</div>
+    <h1>Who's first and second in all 88 districts</h1>
+    <div class="status">
+      <span class="live" id="live"><i></i><span id="liveText">Connecting…</span></span>
+      <span id="updated" class="num"></span>
+      <span id="counted" class="num"></span>
+      <span id="checked" class="num"></span>
+    </div>
+    <div class="tally" aria-label="Seats by two-candidate-preferred leader">
+      <div class="tally-bar" id="tallyBar"><div class="half" title="45 seats for majority"></div></div>
+      <div class="tally-legend" id="tallyLegend"></div>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Map colouring">
+      <button type="button" id="modeTop" aria-pressed="true">Leader + runner-up</button>
+      <button type="button" id="modeMargin" aria-pressed="false">Leader by margin</button>
+    </div>
+    <input type="search" id="q" placeholder="Find a district" aria-label="Find a district" list="names">
+    <datalist id="names"></datalist>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <section class="maps">
+    <div class="panel">
+      <div class="panel-head"><h2>Greater Melbourne</h2><div class="zoom" role="group" aria-label="Zoom Melbourne map"><button type="button" data-map="metro" data-zoom="1.6" aria-label="Zoom in">+</button><button type="button" data-map="metro" data-zoom="0.625" aria-label="Zoom out">−</button><button type="button" id="metro-reset" data-map="metro" data-zoom="0" hidden>Reset</button></div></div>
+      <svg class="map" id="metro" role="img" aria-label="Map of Greater Melbourne districts"></svg>
+      <div class="hint">Select a district for details. Pinch, Ctrl + scroll or the buttons zoom, drag pans.</div>
+    </div>
+    <div class="side">
+      <div class="panel">
+        <div class="panel-head"><h2>Victoria</h2><span class="eyebrow">dashed box = Melbourne map</span></div>
+        <svg class="map" id="state" role="img" aria-label="Map of all Victorian districts"></svg>
+      </div>
+      <div class="panel detail" id="detail" aria-live="polite">
+        <div class="empty">Select a district on either map or in the table to see both candidates' two-candidate-preferred (2CP) count.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" style="display:grid;gap:12px">
+    <div class="panel-head"><h2>Contests by top-two pairing</h2><span class="eyebrow">select to filter</span></div>
+    <div class="chips" id="chips"></div>
+  </section>
+
+  <section class="panel">
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th><button type="button" data-sort="name">District</button></th>
+            <th>Leading</th>
+            <th>Second</th>
+            <th>2CP</th>
+            <th class="r"><button type="button" data-sort="margin" aria-sort="ascending">Margin</button></th>
+            <th class="r"><button type="button" data-sort="swing">Swing</button></th>
+            <th class="r"><button type="button" data-sort="counted">Counted</button></th>
+            <th>Held by</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <div>Results: <a href="https://www.abc.net.au/news/elections/vic/2026/results" target="_blank" rel="noopener">ABC News, Victorian Election 2026 Live Results</a>. This page reads the same feed the ABC page polls, through a 30-second cache, and refreshes every 60 seconds. 2CP figures are the ABC's two-candidate-preferred count for the two candidates it has selected in each district. Early in the count these are partial and can flip. "Margin" is the leader's 2CP share minus 50. "Held by" is the party that held the district before this election.</div>
+    <div>Boundaries: Vicmap Admin <code>state_assembly_2022</code> (Legislative Assembly districts from the 2021 Electoral Boundaries Commission redivision, first used in 2022), Department of Transport and Planning via <a href="https://discover.data.vic.gov.au/" target="_blank" rel="noopener">DataVic</a>, CC BY 4.0. Simplified for display.</div>
+  </footer>
+</div>
+<div id="tip" hidden></div>
+
+<script data-cfasync="false" src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script data-cfasync="false">
+(() => {
+  const PARTIES = ["ALP", "LIB", "NAT", "GRN", "ONP", "IND"];
+  const css = getComputedStyle(document.documentElement);
+  const colour = code => css.getPropertyValue("--" + (PARTIES.includes(code) ? code : "OTH")).trim() || "#999";
+  const shortName = {ALP: "Labor", LIB: "Liberal", NAT: "Nationals", GRN: "Greens", ONP: "One Nation", IND: "Independent"};
+  const tz = {timeZone: "Australia/Melbourne"};
+  const fmtTime = iso => iso ? new Date(iso).toLocaleTimeString("en-AU", {...tz, hour: "numeric", minute: "2-digit"}) : "";
+  const fmtClock = d => d.toLocaleTimeString("en-AU", {...tz, hour: "numeric", minute: "2-digit", second: "2-digit"});
+  const METRO = [[144.62, -38.12], [145.42, -37.58]];
+
+  const state = {data: null, byName: new Map(), mode: "top", sel: null, pair: null, sort: {key: "margin", dir: 1}, features: null};
+
+  const tip = document.getElementById("tip");
+  const $ = id => document.getElementById(id);
+
+  function partyLabel(p) { return shortName[p.code] || p.name || p.code || "Other"; }
+  function lead(e) { return e && e.cands && e.cands.length >= 2 && Number.isFinite(e.cands[0].pct) && e.cands[0].pct > 0 ? e : null; }
+  function margin(e) { return lead(e) ? e.cands[0].pct - 50 : null; }
+  function pairKey(e) { return lead(e) ? e.cands[0].party.code + "|" + e.cands[1].party.code : null; }
+  function sortedPair(e) { return lead(e) ? [e.cands[0].party.code, e.cands[1].party.code].sort((a, b) => PARTIES.indexOf(a) - PARTIES.indexOf(b)).join(" v ") : null; }
+
+  function shade(m) { return m == null ? 0 : m < 2 ? .38 : m < 5 ? .58 : m < 10 ? .8 : 1; }
+
+  function ensurePattern(defs, a, b) {
+    const id = "pt-" + a + "-" + b;
+    if (defs.select("#" + id).empty()) {
+      const p = defs.append("pattern").attr("id", id).attr("patternUnits", "userSpaceOnUse").attr("width", 9).attr("height", 9).attr("patternTransform", "rotate(45)");
+      p.append("rect").attr("width", 9).attr("height", 9).attr("fill", colour(a));
+      p.append("rect").attr("width", 3).attr("height", 9).attr("fill", colour(b));
+    }
+    return "url(#" + id + ")";
+  }
+
+  function fillFor(defs, name) {
+    const e = lead(state.byName.get(name));
+    if (!e) return "url(#nodata)";
+    const a = e.cands[0].party.code, b = e.cands[1].party.code;
+    if (state.mode === "top") return ensurePattern(defs, a, b);
+    return d3.interpolateRgb(css.getPropertyValue("--land").trim(), colour(a))(shade(margin(e)));
+  }
+
+  const maps = [];
+  function buildMap(svgId, opts) {
+    const svg = d3.select("#" + svgId);
+    const W = opts.width, H = opts.height;
+    svg.attr("viewBox", `0 0 ${W} ${H}`);
+    const defs = svg.append("defs");
+    const nd = defs.append("pattern").attr("id", "nodata").attr("patternUnits", "userSpaceOnUse").attr("width", 6).attr("height", 6).attr("patternTransform", "rotate(45)");
+    nd.append("rect").attr("width", 6).attr("height", 6).style("fill", "var(--land)");
+    nd.append("rect").attr("width", 1).attr("height", 6).style("fill", "var(--line)");
+    const proj = d3.geoMercator();
+    if (opts.extent) {
+      proj.fitExtent([[0, 0], [W, H]], {type: "MultiPoint", coordinates: opts.extent});
+    } else {
+      proj.fitExtent([[6, 6], [W - 6, H - 6]], state.features);
+    }
+    const path = d3.geoPath(proj);
+    svg.append("clipPath").attr("id", svgId + "-clip").append("rect").attr("width", W).attr("height", H);
+    const g = svg.append("g").attr("clip-path", `url(#${svgId}-clip)`).append("g");
+    const paths = g.selectAll("path.d").data(state.features.features).join("path")
+      .attr("class", "d").attr("d", path)
+      .on("pointerenter pointermove", (ev, f) => { if (ev.pointerType !== "touch") showTip(ev, f.properties.name); })
+      .on("pointerleave", hideTip)
+      .on("click", (ev, f) => select(f.properties.name, true));
+    if (opts.frame) {
+      const [x0, y0] = proj(METRO[0]), [x1, y1] = proj(METRO[1]);
+      g.append("rect").attr("class", "frame").attr("x", Math.min(x0, x1)).attr("y", Math.min(y0, y1)).attr("width", Math.abs(x1 - x0)).attr("height", Math.abs(y1 - y0));
+    }
+    let labels = null;
+    if (opts.labels) {
+      labels = g.append("g").selectAll("text").data(state.features.features.filter(f => {
+        const b = path.bounds(f); return b[1][0] - b[0][0] > 34 && b[1][1] - b[0][1] > 16;
+      })).join("text").attr("class", "lbl").attr("transform", f => { const c = path.centroid(f); return `translate(${c[0]},${c[1] + 3})`; }).text(f => f.properties.name.length > 12 ? f.properties.name.replace(/ (North|South|East|West)$/, "") : f.properties.name);
+    }
+    const zoom = d3.zoom().scaleExtent([1, 8]).translateExtent([[0, 0], [W, H]])
+      .filter(ev => ev.type === "wheel" ? ev.ctrlKey || ev.metaKey : ev.type === "touchstart" ? ev.touches.length > 1 : !ev.button && ev.type !== "dblclick")
+      .on("zoom", ev => {
+        g.attr("transform", ev.transform);
+        if (labels) labels.style("font-size", (9 / ev.transform.k) + "px").attr("transform", function (f) { const c = path.centroid(f); return `translate(${c[0]},${c[1] + 3 / ev.transform.k})`; });
+        const reset = document.getElementById(svgId + "-reset");
+        if (reset) reset.hidden = ev.transform.k === 1;
+      });
+    svg.call(zoom).style("touch-action", "pan-x pan-y");
+    maps.push({id: svgId, svg, defs, paths, labels, zoom});
+  }
+
+  function zoomBy(id, k) {
+    const m = maps.find(x => x.id === id);
+    if (m) k ? m.svg.transition().duration(250).call(m.zoom.scaleBy, k) : m.svg.transition().duration(250).call(m.zoom.transform, d3.zoomIdentity);
+  }
+  document.querySelectorAll("[data-zoom]").forEach(b => b.addEventListener("click", () => zoomBy(b.dataset.map, parseFloat(b.dataset.zoom))));
+
+  function paint() {
+    for (const m of maps) {
+      m.paths.attr("fill", f => fillFor(m.defs, f.properties.name))
+        .classed("sel", f => f.properties.name === state.sel)
+        .classed("dim", f => state.pair && sortedPair(state.byName.get(f.properties.name)) !== state.pair);
+      m.paths.filter(f => f.properties.name === state.sel).raise();
+    }
+    renderLegend();
+  }
+
+  function renderLegend() {
+    const L = $("legend"); L.replaceChildren();
+    const sw = (fill, text, stripe) => {
+      const s = document.createElement("span");
+      const ns = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(ns, "svg"); svg.setAttribute("width", 14); svg.setAttribute("height", 14);
+      const r = document.createElementNS(ns, "rect"); r.setAttribute("width", 14); r.setAttribute("height", 14); r.setAttribute("rx", 2); r.style.fill = fill; svg.append(r);
+      if (stripe) { const r2 = document.createElementNS(ns, "rect"); r2.setAttribute("x", 9); r2.setAttribute("width", 5); r2.setAttribute("height", 14); r2.style.fill = stripe; svg.append(r2); }
+      s.append(svg, document.createTextNode(text)); L.append(s);
+    };
+    if (state.mode === "top") {
+      sw(colour("ALP"), "Base = leading party, stripes = second (e.g. Labor ahead of Greens)", colour("GRN"));
+    } else {
+      [[1, "10+ pts"], [.8, "5–10"], [.58, "2–5"], [.38, "under 2"]].forEach(([o, t]) => sw(d3.interpolateRgb(css.getPropertyValue("--land").trim(), colour("ALP"))(o), t));
+    }
+    sw("var(--land)", "No 2CP yet");
+  }
+
+  function showTip(ev, name) {
+    const e = state.byName.get(name);
+    tip.replaceChildren();
+    const h = document.createElement("strong"); h.textContent = name; tip.append(h);
+    if (lead(e)) {
+      for (const c of e.cands.slice(0, 2)) {
+        const d = document.createElement("div");
+        d.className = "num";
+        d.textContent = `${partyLabel(c.party)} ${c.pct.toFixed(1)}% · ${c.name}`;
+        tip.append(d);
+      }
+      const m = document.createElement("div"); m.style.color = "var(--muted)"; m.className = "num";
+      m.textContent = `${e.counted}% counted`; tip.append(m);
+    } else {
+      const d = document.createElement("div"); d.textContent = "No 2CP count yet"; tip.append(d);
+    }
+    tip.hidden = false;
+    const x = Math.min(ev.clientX + 14, innerWidth - tip.offsetWidth - 8), y = Math.min(ev.clientY + 14, innerHeight - tip.offsetHeight - 8);
+    tip.style.left = x + "px"; tip.style.top = y + "px";
+  }
+  function hideTip() { tip.hidden = true; }
+
+  function select(name, fromMap) {
+    state.sel = state.sel === name && fromMap ? null : name;
+    paint(); renderDetail(); markRows();
+    if (state.sel && !fromMap) document.getElementById("metro").scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest"});
+  }
+
+  function el(tag, cls, text) { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+
+  function tcpBar(e) {
+    const bar = el("div", "tcp");
+    if (lead(e)) {
+      const [a, b] = e.cands;
+      const s1 = el("span"); s1.style.width = a.pct + "%"; s1.style.background = colour(a.party.code);
+      const s2 = el("span"); s2.style.width = b.pct + "%"; s2.style.background = colour(b.party.code);
+      bar.append(s1, s2);
+    }
+    return bar;
+  }
+
+  function renderDetail() {
+    const D = $("detail"); D.replaceChildren();
+    const e = state.byName.get(state.sel);
+    if (!e) { D.append(el("div", "empty", "Select a district on either map or in the table to see both candidates' two-candidate-preferred (2CP) count.")); return; }
+    const head = el("div"); head.style.display = "flex"; head.style.justifyContent = "space-between"; head.style.gap = "8px"; head.style.alignItems = "baseline";
+    head.append(el("h3", null, e.name), el("span", "badge" + (e.isFinal ? " final" : ""), e.isFinal ? "Final" : e.isDoubtful ? "In doubt" : "Counting"));
+    D.append(head);
+    if (lead(e)) {
+      for (const c of e.cands.slice(0, 2)) {
+        const row = el("div", "cand");
+        const who = el("div", "who"); const s = el("span", "sw"); s.style.background = colour(c.party.code); who.append(s, document.createTextNode(partyLabel(c.party)));
+        row.append(who, el("div", "pct num", c.pct.toFixed(1) + "%"));
+        row.append(el("div", "meta num", `${c.name} · ${c.votes != null ? c.votes.toLocaleString("en-AU") + " votes" : ""}${c.swing ? " · swing " + c.swing : ""}`));
+        D.append(row);
+      }
+      D.append(tcpBar(e));
+    } else {
+      D.append(el("div", "empty", "No two-candidate-preferred count reported yet."));
+    }
+    const dl = el("dl", "facts");
+    const add = (k, v) => { dl.append(el("dt", null, k), el("dd", "num", v)); };
+    if (lead(e)) add("Margin", margin(e).toFixed(1) + " pts");
+    add("Counted", (e.counted || "0") + "% of enrolment");
+    add("Held by", `${partyLabel(e.held)}${e.priorMargin ? " · " + e.priorMargin + "% pre-election margin" : ""}`);
+    if (e.label) add("ABC", e.label);
+    if (e.updated) add("Updated", fmtTime(e.updated));
+    D.append(dl);
+    const a = el("a", null, "Open on ABC News"); a.href = "https://www.abc.net.au/news/elections/vic/2026/results/" + encodeURIComponent(e.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")); a.target = "_blank"; a.rel = "noopener"; a.style.color = "var(--accent)"; a.style.fontSize = "13px";
+    D.append(a);
+  }
+
+  function renderTally() {
+    const counts = new Map();
+    let none = 0;
+    for (const e of state.data.electorates) {
+      if (!lead(e)) { none++; continue; }
+      const k = PARTIES.includes(e.cands[0].party.code) ? e.cands[0].party.code : "OTH";
+      counts.set(k, (counts.get(k) || 0) + 1);
+    }
+    const order = [...PARTIES, "OTH"].filter(k => counts.get(k));
+    const bar = $("tallyBar"); bar.querySelectorAll("span").forEach(s => s.remove());
+    const half = bar.querySelector(".half");
+    for (const k of order) { const s = el("span"); s.style.width = (counts.get(k) / 88 * 100) + "%"; s.style.background = colour(k); s.title = `${shortName[k] || "Other"}: ${counts.get(k)}`; bar.insertBefore(s, half); }
+    const L = $("tallyLegend"); L.replaceChildren();
+    for (const k of order) { const s = el("span"); const sw = el("span", "sw"); sw.style.background = colour(k); s.append(sw, el("b", "num", String(counts.get(k))), document.createTextNode(shortName[k] || "Other")); L.append(s); }
+    if (none) L.append(el("span", null, `${none} not yet reporting`));
+    L.append(el("span", null, "Leading on 2CP · 45 for majority"));
+  }
+
+  function renderChips() {
+    const C = $("chips"); C.replaceChildren();
+    const groups = new Map();
+    for (const e of state.data.electorates) { const k = sortedPair(e); if (k) groups.set(k, (groups.get(k) || 0) + 1); }
+    if (state.pair && !groups.has(state.pair)) state.pair = null;
+    for (const [k, n] of [...groups].sort((a, b) => b[1] - a[1])) {
+      const [a, b] = k.split(" v ");
+      const btn = el("button", "chip"); btn.type = "button"; btn.setAttribute("aria-pressed", String(state.pair === k));
+      const sw = el("span", "pair"); const s1 = el("span"); s1.style.background = colour(a); const s2 = el("span"); s2.style.background = colour(b); sw.append(s1, s2);
+      btn.append(sw, document.createTextNode(`${shortName[a] || a} v ${shortName[b] || b} `), el("b", null, String(n)));
+      btn.addEventListener("click", () => { state.pair = state.pair === k ? null : k; renderChips(); paint(); renderRows(); });
+      C.append(btn);
+    }
+  }
+
+  function swingNum(e) { const s = lead(e) ? parseFloat(e.cands[0].swing) : NaN; return Number.isFinite(s) ? s : -Infinity; }
+  function renderRows() {
+    const T = $("rows"); T.replaceChildren();
+    const {key, dir} = state.sort;
+    const val = e => key === "name" ? e.name : key === "margin" ? (margin(e) ?? Infinity) : key === "swing" ? swingNum(e) : parseFloat(e.counted) || 0;
+    const list = state.data.electorates.filter(e => !state.pair || sortedPair(e) === state.pair).slice().sort((a, b) => {
+      const x = val(a), y = val(b);
+      return (typeof x === "string" ? x.localeCompare(y) : x - y) * dir || a.name.localeCompare(b.name);
+    });
+    for (const e of list) {
+      const tr = el("tr"); tr.dataset.name = e.name; tr.tabIndex = 0;
+      tr.append(el("td", null, e.name));
+      const pcell = c => { const td = el("td"); if (c) { const p = el("span", "p"); const s = el("span", "sw"); s.style.background = colour(c.party.code); s.style.marginRight = "0"; p.append(s, document.createTextNode(`${partyLabel(c.party)} ${c.pct.toFixed(1)}`)); td.append(p); } else td.textContent = "–"; td.className = "num"; return td; };
+      const L = lead(e);
+      tr.append(pcell(L && e.cands[0]), pcell(L && e.cands[1]));
+      const tb = el("td"); tb.append(tcpBar(e)); tr.append(tb);
+      tr.append(el("td", "r num", L ? margin(e).toFixed(1) : "–"));
+      tr.append(el("td", "r num", L && e.cands[0].swing ? e.cands[0].swing : "–"));
+      tr.append(el("td", "r num", (e.counted || "0") + "%"));
+      tr.append(el("td", null, partyLabel(e.held)));
+      tr.addEventListener("click", () => select(e.name, false));
+      tr.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); select(e.name, false); } });
+      T.append(tr);
+    }
+    markRows();
+    document.querySelectorAll("th button").forEach(b => {
+      if (b.dataset.sort === key) b.setAttribute("aria-sort", dir > 0 ? "ascending" : "descending"); else b.removeAttribute("aria-sort");
+    });
+  }
+  function markRows() { document.querySelectorAll("#rows tr").forEach(tr => tr.classList.toggle("sel", tr.dataset.name === state.sel)); }
+
+  document.querySelectorAll("th button").forEach(b => b.addEventListener("click", () => {
+    const k = b.dataset.sort;
+    state.sort = state.sort.key === k ? {key: k, dir: -state.sort.dir} : {key: k, dir: k === "counted" || k === "swing" ? -1 : 1};
+    renderRows();
+  }));
+  const setMode = m => { state.mode = m; $("modeTop").setAttribute("aria-pressed", String(m === "top")); $("modeMargin").setAttribute("aria-pressed", String(m === "margin")); paint(); try { localStorage.setItem("vic26-mode", m); } catch {} };
+  $("modeTop").addEventListener("click", () => setMode("top"));
+  $("modeMargin").addEventListener("click", () => setMode("margin"));
+  $("q").addEventListener("change", ev => {
+    const v = ev.target.value.trim().toLowerCase();
+    const hit = [...state.byName.keys()].find(n => n.toLowerCase() === v) || [...state.byName.keys()].find(n => n.toLowerCase().startsWith(v));
+    if (hit) select(hit, false);
+  });
+
+  function setStatus(ok, msg) {
+    $("live").classList.toggle("err", !ok);
+    $("liveText").textContent = msg;
+  }
+
+  async function refresh() {
+    try {
+      const r = await fetch("/api/results", {cache: "no-store"});
+      const j = await r.json();
+      if (!r.ok || !j.electorates) throw new Error(j.error || r.status);
+      state.data = j;
+      state.byName = new Map(j.electorates.map(e => [e.name, e]));
+      const o = j.overall;
+      $("updated").textContent = o && o.updated ? `ABC updated ${fmtTime(o.updated)}` : "";
+      $("counted").textContent = o && o.counted ? `${o.counted}% of enrolment counted` : "";
+      $("checked").textContent = `Checked ${fmtClock(new Date())}`;
+      setStatus(!j.stale, j.stale ? "ABC feed not answering, showing last result" : o && o.isFinal ? "Final" : "Live · refreshes every minute");
+      const dl = $("names"); if (!dl.children.length) for (const e of j.electorates) { const op = document.createElement("option"); op.value = e.name; dl.append(op); }
+      renderTally(); renderChips(); paint(); renderDetail(); renderRows();
+    } catch (err) {
+      setStatus(false, state.data ? "Couldn't refresh, showing last result" : "Couldn't load results");
+      $("checked").textContent = `Tried ${fmtClock(new Date())}`;
+    }
+  }
+
+  async function boot() {
+    try { const m = localStorage.getItem("vic26-mode"); if (m === "margin") state.mode = "margin", $("modeTop").setAttribute("aria-pressed", "false"), $("modeMargin").setAttribute("aria-pressed", "true"); } catch {}
+    state.features = await (await fetch("/districts.json")).json();
+    buildMap("metro", {width: 800, height: 600, extent: METRO, labels: true});
+    buildMap("state", {width: 560, height: 340, frame: true});
+    paint();
+    await refresh();
+    setInterval(refresh, 60000);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
+  }
+  boot();
+})();
+</script>
+</body>
+</html>
