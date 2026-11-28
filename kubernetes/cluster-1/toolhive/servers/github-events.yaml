@@ -8,7 +8,7 @@ spec:
     name: toolhive
   telemetryConfigRef:
     name: toolhive
-  image: ghcr.io/pl4nty/github-events:latest@sha256:d1b2fe7106412b87257d1b0dbcc51095303a5294c19df938c605797f9a4a3e05
+  image: ghcr.io/pl4nty/github-events:latest@sha256:94997d8398e0522919fa68f688535365d6251b4264f40040c49b67fd6482d0ef
   transport: streamable-http
   mcpPort: 8080
   podTemplateSpec:
