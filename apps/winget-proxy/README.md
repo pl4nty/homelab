@@ -158,4 +158,4 @@ Windows. The shims themselves only truly run on Windows (DISM, wusa, pnputil, re
   installed updates are not tracked by `winget list`.
 * **Versions**: only the packages FE3 still serves, often just one (HEVC Video Extensions `9NMZLZ57R3T7` has only
   2.4.151.0); `winget download` saves no Store licence, because WinGet only requests one for `msstore` installers,
-  and those always fetch the latest version and refuse paid apps.
+  which always fetch the latest version and refuse some apps (HEVC: "does not support download").
