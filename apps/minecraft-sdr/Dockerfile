@@ -1,4 +1,4 @@
-FROM steamcmd/steamcmd:ubuntu-24@sha256:864879e45a4612ddccb7f17f114a0b77c1b80021833810134a63fef19b93b378 AS steamclient
+FROM steamcmd/steamcmd:ubuntu-24@sha256:013d2e46939d8b5e9d116839dca0ab3f126c58ccf2ebee66b298804a5e7337ce AS steamclient
 # app 1007 is the Steamworks SDK redistributable, which has the steamclient.so game servers load
 RUN steamcmd +force_install_dir /redist +login anonymous +app_update 1007 validate +quit
 
