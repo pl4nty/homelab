@@ -1,4 +1,4 @@
-FROM ghcr.io/rocker-org/shiny-verse:4.6.2@sha256:698a41041a522198a2ab9deff61a2c2b807c5058885ee0dcc7ac4f525512deb9
+FROM ghcr.io/rocker-org/shiny-verse:4.6.2@sha256:e0fcf3df94f0b85f44760e777c64f881bc832bc60f38f8980c16ae74473d6482
 WORKDIR /srv/shiny-server
 
 RUN rm -r ./*
