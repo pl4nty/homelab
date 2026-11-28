@@ -1,0 +1,127 @@
+diff --git a/apps/api/src/lib/app-env.ts b/apps/api/src/lib/app-env.ts
+index 9536c274..3abf549f 100644
+--- a/apps/api/src/lib/app-env.ts
++++ b/apps/api/src/lib/app-env.ts
+@@ -12,6 +12,7 @@ export type AppEnv = {
+     logger: PinoLogger
+     redis: TypedRedis
+     ip: string
++    browserId: string | undefined
+     dynamicChallenge?: DynamicChallengeContext
+   }
+ }
+diff --git a/apps/api/src/middlewares/app-env.ts b/apps/api/src/middlewares/app-env.ts
+index 46cc4dd1..5993f9ea 100644
+--- a/apps/api/src/middlewares/app-env.ts
++++ b/apps/api/src/middlewares/app-env.ts
+@@ -1,6 +1,7 @@
+ import { config } from '@rctf/config'
+ import { createDatabase } from '@rctf/db'
+ import type { MiddlewareHandler } from 'hono'
++import { getCookie, setCookie } from 'hono/cookie'
+ import type { AppEnv } from '../lib/app-env'
+ import { getIp } from '../util/ip'
+ import { createRedis } from '../util/redis'
+@@ -15,7 +16,18 @@ export const appEnvMiddleware: MiddlewareHandler<AppEnv> = async (c, next) => {
+ 
+   const ip = getIp(c)
+   c.set('ip', ip)
+-  c.set('logger', c.var.logger.assign({ ip }))
++  // a random id per browser, so submissions from a shared team login can be told apart.
++  // undefined for a client that sent none, like a script, which this response issues one to
++  const browserId = getCookie(c, 'rctf_browser')
++  if (!browserId) {
++    setCookie(c, 'rctf_browser', crypto.randomUUID(), {
++      httpOnly: true,
++      secure: config.origin.startsWith('https:'),
++      maxAge: 400 * 24 * 60 * 60,
++    })
++  }
++  c.set('browserId', browserId)
++  c.set('logger', c.var.logger.assign({ ip, browserId }))
+ 
+   await next()
+ }
+diff --git a/apps/api/src/routes/v1/challs/routes/submit-flag.ts b/apps/api/src/routes/v1/challs/routes/submit-flag.ts
+index a146a06d..49115e34 100644
+--- a/apps/api/src/routes/v1/challs/routes/submit-flag.ts
++++ b/apps/api/src/routes/v1/challs/routes/submit-flag.ts
+@@ -8,5 +8,9 @@ challsGroup.route(SubmitFlagRoute, async ({ res, ctx, params, body, user }) => {
+     challengeId: params.id,
+     flag: body.flag,
+     submissionIp: ctx.var.ip,
++    client: {
++      browserId: ctx.var.browserId,
++      userAgent: ctx.req.header('user-agent')?.slice(0, 512),
++    },
+   })
+ })
+diff --git a/apps/api/src/services/challenges.ts b/apps/api/src/services/challenges.ts
+index 446a1244..5c65df53 100644
+--- a/apps/api/src/services/challenges.ts
++++ b/apps/api/src/services/challenges.ts
+@@ -337,6 +337,7 @@ export const createSolveAndGetBloodNumber = async (
+     challengeId: string
+     userId: string
+     submissionIp?: string | null
++    client?: Record<string, string | undefined>
+     submittedFlag?: string
+     matchedFlag?: MatchedFlagEntry
+     cheated?: boolean
+@@ -379,6 +380,7 @@ export const createSolveAndGetBloodNumber = async (
+         ? SubmissionResult.CHEATED
+         : SubmissionResult.CORRECT,
+       details: {
++        ...params.client,
+         ...(params.submittedFlag
+           ? { submittedFlag: params.submittedFlag }
+           : {}),
+@@ -1149,6 +1151,7 @@ export const submitFlag = async (
+     challengeId: string
+     flag: string
+     submissionIp: string | undefined
++    client?: Record<string, string | undefined>
+   }
+ ): Promise<ReturnType<SubmitResponseHelpers[keyof SubmitResponseHelpers]>> => {
+   // NOTE(es3n1n): Directly querying from the database to bypass any stale cache entries
+@@ -1198,6 +1201,7 @@ export const submitFlag = async (
+       ip: params.submissionIp,
+       result: SubmissionResult.INCORRECT,
+       details: {
++        ...params.client,
+         submittedFlag: params.flag,
+       },
+     }).catch(err =>
+@@ -1237,6 +1241,7 @@ export const submitFlag = async (
+       challengeId: params.challengeId,
+       userId: params.userId,
+       submissionIp: params.submissionIp,
++      client: params.client,
+       submittedFlag: params.flag,
+       matchedFlag: matched,
+       cheated,
+@@ -1251,7 +1256,7 @@ export const submitFlag = async (
+         userId: params.userId,
+         ip: params.submissionIp,
+         result: SubmissionResult.ALREADY_SOLVED,
+-        details: { submittedFlag: params.flag },
++        details: { ...params.client, submittedFlag: params.flag },
+       }).catch(err =>
+         log.error(
+           { err, challengeId: params.challengeId, userId: params.userId },
+diff --git a/apps/web/src/routes/admin/submissions/submissions-model.ts b/apps/web/src/routes/admin/submissions/submissions-model.ts
+index e654060d..84c4c405 100644
+--- a/apps/web/src/routes/admin/submissions/submissions-model.ts
++++ b/apps/web/src/routes/admin/submissions/submissions-model.ts
+@@ -265,6 +265,11 @@ export function detailEntries(submission: Submission): DetailEntry[] {
+           : {}),
+       })
+     }
++    for (const key of ['browserId', 'userAgent'] as const) {
++      if (typeof details[key] === 'string') {
++        entries.push({ label: key, value: details[key] })
++      }
++    }
+     return entries
+   }
+ 
