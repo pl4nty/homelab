@@ -20,7 +20,7 @@ spec:
           main:
             image:
               repository: itzg/minecraft-server
-              tag: java25@sha256:dc15f05423064860968043de873316dbd0c027a7d9c8354826229d7c20dd4619
+              tag: java25@sha256:f4375fbbc3e5f797c394856739ea664442d2b5c647470d2c9c7735a96406f8d3
             env:
               EULA: "TRUE"
               VERSION: "26.3"
