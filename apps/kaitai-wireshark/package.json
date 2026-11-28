@@ -1,0 +1,26 @@
+{
+  "name": "kaitai-wireshark",
+  "version": "0.1.0",
+  "description": "Generate Wireshark Lua dissectors from Kaitai Struct specs",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "bin": {
+    "ksy2wireshark": "./bin/ksy2wireshark.ts"
+  },
+  "scripts": {
+    "embed": "node --experimental-strip-types --no-warnings scripts/embed.ts",
+    "typecheck": "tsc --noEmit",
+    "pretest": "npm run embed",
+    "pretypecheck": "npm run embed",
+    "test": "node --experimental-strip-types --no-warnings --test \"test/**/*.test.ts\""
+  },
+  "devDependencies": {
+    "@types/js-yaml": "4.0.9",
+    "@types/node": "26.6.6",
+    "js-yaml": "4.1.1",
+    "kaitai-struct-compiler": "0.11.0",
+    "typescript": "7.0.2"
+  }
+}

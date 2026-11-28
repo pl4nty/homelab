@@ -6,7 +6,12 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!apps/vscode-oci-layers/src/types/vscode.proposed.*.d.ts", "!apps/ipa-web/templates"]
+    "includes": [
+      "**",
+      "!apps/vscode-oci-layers/src/types/vscode.proposed.*.d.ts",
+      "!apps/ipa-web/templates",
+      "!apps/kaitai-wireshark/src/lua-sources.generated.ts"
+    ]
   },
   "formatter": {
     "indentStyle": "space",
