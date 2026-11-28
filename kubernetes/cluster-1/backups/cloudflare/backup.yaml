@@ -19,7 +19,7 @@ spec:
           main:
             image:
               repository: ghcr.io/pl4nty/flares
-              tag: latest@sha256:b72288861024451bdfe778c016bb8f3294bf66b8b81aea1e595e107d5ff1bc35
+              tag: latest@sha256:515ff3d1d451f355fca05ffc257e34d88318685b426f129988e903cdda1e502d
             # flares moved to subcommands, the old --all --export flags now fail with usage
             args:
               - export
