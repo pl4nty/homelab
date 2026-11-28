@@ -3,7 +3,7 @@ import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/
 import { z } from 'zod';
 import { describe, itemTypes, type TimelineItem } from './events';
 
-const authorization = process.env.GITHUB_AUTHORIZATION!;
+const token = process.env.GITHUB_TOKEN!.replace(/^Bearer /, '');
 const pollSeconds = Number(process.env.POLL_SECONDS || 60);
 const webhookUrl = process.env.CLAUDE_WEBHOOK_URL;
 const webhookToken = process.env.CLAUDE_WEBHOOK_TOKEN;
@@ -24,7 +24,7 @@ let nextFire = 0;
 async function graphql(query: string, variables: Record<string, unknown>) {
   const res = await fetch('https://api.github.com/graphql', {
     method: 'POST',
-    headers: { Authorization: authorization },
+    headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify({ query, variables }),
   });
   if (res.status === 403 || res.status === 429) {

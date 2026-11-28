@@ -16,7 +16,7 @@ spec:
       containers:
         - name: mcp
           env:
-            - name: GITHUB_AUTHORIZATION
+            - name: GITHUB_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: toolhive

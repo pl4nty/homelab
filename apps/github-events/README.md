@@ -18,7 +18,7 @@ When `CLAUDE_WEBHOOK_URL` is set, changes are POSTed to it as the `text` of a `/
 
 |Variable|Default|
 |---|---|
-|`GITHUB_AUTHORIZATION`|Required. `Authorization` header for GitHub, such as `Bearer <token>`|
+|`GITHUB_TOKEN`|Required|
 |`GITHUB_QUERY`|`is:pr archived:false author:<token owner>`|
 |`POLL_SECONDS`|`60`|
 |`CLAUDE_WEBHOOK_URL`|The scheduled task's `/fire` URL|
