@@ -14,6 +14,7 @@
     'github>pl4nty/homelab//.github/renovate/labels.json5',
     'github>pl4nty/homelab//.github/renovate/semanticCommits.json5',
     'helpers:pinGitHubActionDigests',
+    'customManagers:dockerfileVersions',
   ],
   ignoreTests: true,
   ignorePaths: [
