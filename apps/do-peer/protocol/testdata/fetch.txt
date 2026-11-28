@@ -1,0 +1,10 @@
+4	Handshake
+6	Handshake
+8	Interested
+9	Bitfield
+11	Unchoke
+13	Request idx=0 begin=0 len=16384
+14	Piece idx=0 begin=0 len=16384
+15	Request idx=0 begin=16384 len=16384, Request idx=0 begin=32768 len=7232
+16	Piece idx=0 begin=16384 len=16384
+18	Piece idx=0 begin=32768 len=7232

@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DO Explorer</title>
+<style>
+  :root { color-scheme: light dark; --bg: #fff; --fg: #1b1b1b; --muted: #666; --line: #ddd; --accent: #0067b8; --card: #f6f6f6; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #141414; --fg: #eee; --muted: #999; --line: #333; --accent: #4cc2ff; --card: #1e1e1e; } }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.5 system-ui, sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 20px; margin: 0 0 4px; } h2 { font-size: 16px; margin: 24px 0 8px; }
+  p.lead { color: var(--muted); margin: 0 0 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 12px; }
+  .tabs button { border: 0; background: none; color: var(--muted); padding: 8px 12px; cursor: pointer; font: inherit; border-bottom: 2px solid transparent; }
+  .tabs button[aria-selected="true"] { color: var(--fg); border-color: var(--accent); }
+  form { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+  input, select { font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); color: var(--fg); }
+  input[type="text"] { flex: 1 1 320px; min-width: 0; }
+  button.go, button.small { font: inherit; padding: 6px 12px; border: 1px solid var(--accent); background: var(--accent); color: var(--bg); border-radius: 4px; cursor: pointer; }
+  button.small { padding: 2px 8px; font-size: 12px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  td.mono, .mono { font-family: ui-monospace, monospace; font-size: 12px; word-break: break-all; }
+  .scroll { overflow-x: auto; }
+  .muted { color: var(--muted); } .error { color: #d13438; }
+  details { margin: 4px 0; } summary { cursor: pointer; }
+  pre { margin: 4px 0; padding: 8px; background: var(--bg); border: 1px solid var(--line); border-radius: 4px; overflow: auto; max-height: 320px; font-size: 12px; }
+  fieldset { border: 1px solid var(--line); border-radius: 4px; padding: 2px 8px; margin: 0; display: flex; gap: 8px; }
+  dl { display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; margin: 0; } dt { color: var(--muted); } dd { margin: 0; word-break: break-all; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Delivery Optimization explorer</h1>
+  <p class="lead">Resolve a file from the Microsoft Store, the Update Catalog, or a URL, then ask the DO services for its content policy, array and peers.</p>
+
+  <section class="card" id="geo"><span class="muted">Loading geo and key-value config…</span></section>
+
+  <h2>Content</h2>
+  <div class="tabs" role="tablist">
+    <button type="button" role="tab" aria-selected="true" data-tab="store">Microsoft Store</button>
+    <button type="button" role="tab" aria-selected="false" data-tab="catalog">Update Catalog</button>
+    <button type="button" role="tab" aria-selected="false" data-tab="direct">URL or ContentId</button>
+  </div>
+  <form data-panel="store"><input type="text" name="id" placeholder="Store product ID, e.g. 9N0DX20HK701 or XP89DCGQ3K6VLD" required><button type="submit" class="go">Look up</button></form>
+  <form data-panel="catalog" hidden><input type="text" name="q" placeholder="Search, e.g. 2026-11 Cumulative Update Windows 11 24H2 x64" required><button type="submit" class="go">Search</button></form>
+  <form data-panel="direct" hidden>
+    <input type="text" name="url" placeholder="Download URL (used as AltCatalogId)">
+    <input type="text" name="contentId" placeholder="ContentId (optional)">
+    <input type="number" name="size" placeholder="Size in bytes" min="1">
+    <button type="submit" class="go">Explore</button>
+  </form>
+  <div id="results"></div>
+
+  <h2>Delivery Optimization</h2>
+  <form id="options">
+    <label>Scope <select name="scope"><option value="internet">Internet (mode 3)</option><option value="lan">LAN (mode 1)</option><option value="group">Group (mode 2)</option></select></label>
+    <label>Partition <input type="number" name="partition" value="0" min="0" max="20"></label>
+    <label>Joins per family <input type="number" name="joins" value="3" min="1" max="10"></label>
+    <fieldset id="families"><legend>Service families</legend>
+      <label><input type="checkbox" value="4" checked> 4xx</label>
+      <label><input type="checkbox" value="5" checked> 5xx</label>
+      <label><input type="checkbox" value="6" checked> 6xx</label>
+      <label><input type="checkbox" value="8" checked> 8xx</label>
+    </fieldset>
+  </form>
+  <p class="muted">Each family keeps its own swarms. A join returns about 50 peers, sampled afresh each time, so more joins collect more of the swarm. The array picks peers near the IP that calls it, so peers come mostly from this server's region.</p>
+  <div id="explore" class="muted">Pick a file above.</div>
+</main>
+<script type="module">
+  const $ = (s) => document.querySelector(s);
+  const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+  const api = async (path, params = {}) => {
+    const res = await fetch(`${path}?${new URLSearchParams(params)}`);
+    const body = await res.json();
+    if (!res.ok) throw new Error(body.error ?? res.statusText);
+    return body;
+  };
+  const size = (n) => (n ? `${(n / 1048576).toFixed(1)} MB` : '');
+  const json = (title, value, open = false) =>
+    value === undefined ? '' : `<details ${open ? 'open' : ''}><summary>${esc(title)}</summary><pre>${esc(JSON.stringify(value, null, 2))}</pre></details>`;
+
+  api('/api/geo').then(({ geo, kv }) => {
+    $('#geo').innerHTML = `<dl>
+      <dt>Country</dt><dd>${esc(geo.CountryCode)} (external IP ${esc(geo.ExternalIpAddress)})</dd>
+      <dt>Participation</dt><dd>${esc(kv.ParticipationRate)} (public ${esc(kv.PublicParticipationRate)})</dd>
+      <dt>Endpoints</dt><dd class="mono">${esc(kv.ContentPolicy_EndpointFullUri)}<br>${esc(kv.Discovery_EndpointFullUri)}</dd>
+      <dt>Registered callers</dt><dd>${esc(kv.Client_RegisteredCallersFilterList)}</dd></dl>
+      ${json('Geo response', geo)}${json('Key-value config', kv)}`;
+  }, (e) => { $('#geo').innerHTML = `<span class="error">${esc(e.message)}</span>`; });
+
+  for (const tab of document.querySelectorAll('[data-tab]')) {
+    tab.onclick = () => {
+      for (const t of document.querySelectorAll('[data-tab]')) t.setAttribute('aria-selected', t === tab);
+      for (const p of document.querySelectorAll('[data-panel]')) p.hidden = p.dataset.panel !== tab.dataset.tab;
+    };
+  }
+
+  const files = [];
+  const fileTable = (rows, cols) => {
+    files.length = 0;
+    return `<div class="scroll"><table><tr>${cols.map((c) => `<th>${c[0]}</th>`).join('')}<th></th></tr>${rows
+      .map((r) => `<tr>${cols.map((c) => `<td class="${c[2] ?? ''}">${esc(c[1](r))}</td>`).join('')}<td><button class="small" data-file="${files.push(r) - 1}">Explore</button></td></tr>`)
+      .join('')}</table></div>`;
+  };
+
+  const run = async (form, fn) => {
+    $('#results').innerHTML = '<p class="muted">Loading…</p>';
+    try { $('#results').innerHTML = await fn(Object.fromEntries(new FormData(form))); }
+    catch (e) { $('#results').innerHTML = `<p class="error">${esc(e.message)}</p>`; }
+  };
+
+  $('[data-panel="store"]').onsubmit = (ev) => { ev.preventDefault(); run(ev.target, async ({ id }) => {
+    const p = await api('/api/store', { id });
+    if (p.kind === 'installers') {
+      return `<p>${esc(p.title)} ${esc(p.version)}: installers from the msstore WinGet source. WinGet passes the SHA256 as ContentId.</p>` +
+        fileTable(p.installers.map((i) => ({ ...i, contentId: i.sha256 })), [['Arch', (i) => i.architecture], ['Type', (i) => i.type], ['URL', (i) => i.url, 'mono'], ['SHA256', (i) => i.sha256, 'mono']]);
+    }
+    return `<p>${esc(p.title)}: ${p.files.length} packages from FE3 (WuCategoryId ${esc(p.wuCategoryId)}), newest first.</p>` +
+      fileTable(p.files.map((f) => ({ ...f, fe3: true })), [['Package', (f) => f.moniker, 'mono'], ['Size', (f) => size(f.size)], ['SHA256', (f) => f.sha256, 'mono']]);
+  }); };
+
+  $('[data-panel="catalog"]').onsubmit = (ev) => { ev.preventDefault(); run(ev.target, async ({ q }) => {
+    const rows = await api('/api/catalog', { q });
+    if (!rows.length) return '<p class="muted">No results.</p>';
+    return `<div class="scroll"><table><tr><th>Title</th><th>Products</th><th>Updated</th><th>Size</th><th></th></tr>${rows
+      .map((r) => `<tr><td>${esc(r.title)}</td><td>${esc(r.products)}</td><td>${esc(r.lastUpdated)}</td><td>${esc(r.size?.split(' ').slice(0, 2).join(' '))}</td><td><button class="small" data-update="${esc(r.updateId)}">Files</button></td></tr>`)
+      .join('')}</table></div><div id="catalog-files"></div>`;
+  }); };
+
+  $('[data-panel="direct"]').onsubmit = (ev) => { ev.preventDefault(); const f = Object.fromEntries(new FormData(ev.target)); exploreFile({ url: f.url, contentId: f.contentId, size: f.size }); };
+
+  $('#results').onclick = async (ev) => {
+    const update = ev.target.dataset.update;
+    if (update) {
+      const out = $('#catalog-files');
+      out.innerHTML = '<p class="muted">Loading…</p>';
+      try {
+        const list = await api('/api/catalog/files', { id: update });
+        out.innerHTML = fileTable(list, [['File', (f) => f.name, 'mono'], ['SHA1', (f) => f.sha1, 'mono'], ['SHA256', (f) => f.sha256, 'mono']]);
+      } catch (e) { out.innerHTML = `<p class="error">${esc(e.message)}</p>`; }
+    }
+    if (ev.target.dataset.file !== undefined) {
+      const f = files[ev.target.dataset.file];
+      if (f.fe3) {
+        $('#explore').innerHTML = '<p class="muted">Signing a URL with FE3…</p>';
+        try {
+          const urls = await api('/api/store/url', { updateId: f.updateId, revision: f.revision });
+          f.url = (urls.find((u) => u.sha1 === f.sha1) ?? urls[0])?.url;
+        } catch (e) { $('#explore').innerHTML = `<p class="error">${esc(e.message)}</p>`; return; }
+      }
+      exploreFile({ url: f.url, contentId: f.contentId, size: f.size });
+    }
+  };
+
+  let last;
+  let lookups = 0;
+  // skip Teredo (2001:0::/32) addresses, which mostly wrap the peer's external IPv4
+  // set bits of the array's Type; the client reads only bits 0, 1 and 31
+  const bits = (type) => { const b = [...Array(32).keys()].filter((i) => (type >>> i) & 1); return b.length ? `bit${b.length > 1 ? 's' : ''} ${b.join(', ')}` : 'no bits'; };
+  const teredo = (ip) => /^2001:0*:/i.test(ip ?? '');
+  async function exploreFile(file) {
+    last = file;
+    const run = ++lookups;
+    const opts = Object.fromEntries(new FormData($('#options')));
+    opts.families = [...document.querySelectorAll('#families input:checked')].map((i) => i.value).join(',');
+    $('#explore').innerHTML = '<p class="muted">Asking content policy, discovery and the arrays…</p>';
+    try {
+      const r = await api('/api/explore', { ...Object.fromEntries(Object.entries(file).filter(([, v]) => v)), ...opts });
+      const peers = r.families.flatMap((f) => f.peers ?? []);
+      const sameIp = {};
+      for (const p of peers) sameIp[p.ExternalIp] = (sameIp[p.ExternalIp] ?? 0) + 1;
+      $('#explore').innerHTML = `<dl>
+          <dt>URL</dt><dd class="mono">${esc(file.url)}</dd>
+          <dt>AltCatalogId</dt><dd class="mono">${esc(r.altCatalogId)}</dd>
+          <dt>Requested ContentId</dt><dd class="mono">${esc(r.requestedContentId)}</dd>
+          <dt>Peers</dt><dd>${peers.length} unique ${peers.length ? '<button type="button" id="whois-all">Whois all</button>' : ''} <span id="countries"></span></dd></dl>
+        ${json('Pieces hash', r.piecesHash)}
+        <div class="scroll"><table><tr><th>Family</th><th>ContentId</th><th>Array</th><th>Result</th><th></th></tr>${r.families
+          .map((f) => `<tr><td>${f.family}xx</td><td class="mono">${esc(f.contentId)}${f.contentPolicy?.ContentId ? ' (content policy)' : ''}</td><td class="mono">${esc(f.array?.replace(/^https:\/\/|\.prod.*$/g, ''))}</td><td>${f.error ? `<span class="error">${esc(f.error)}</span>` : `${f.peers.length} peers from ${f.joins} joins, FailureReason ${esc(f.announce?.FailureReason ?? 'none')}`}</td><td>${json('Responses', { contentPolicy: f.contentPolicy, discovery: f.discovery, announce: f.announce })}</td></tr>`)
+          .join('')}</table></div>
+        ${peers.length ? `<div class="scroll"><table><tr><th>Array</th><th>Type</th><th>External</th><th title="Peers in this list with the same external IP">Same IP</th><th>Whois</th><th>Internal</th><th>IPv6</th><th>PeerId</th><th></th></tr>${peers
+          .map((p, i) => `<tr><td class="mono">${esc(p.array.replace(/^https:\/\/|\.prod.*$/g, ''))}</td><td>${esc(p.typeName)}<br><span class="muted">${esc(p.Type)} = ${esc(bits(p.Type))}</span></td><td class="mono">${esc(p.ExternalIp)}:${esc(p.ExternalPort)}</td><td>${sameIp[p.ExternalIp]}</td><td id="whois-${i}"><button type="button" data-whois="${i}">Whois</button></td><td class="mono">${esc(p.InternalIp)}${p.InternalPort ? `:${esc(p.InternalPort)}` : ''}</td><td class="mono">${teredo(p.Ipv6) ? '' : esc(p.Ipv6)}</td><td class="mono">${esc(p.PeerId)}</td><td>${json('Raw', p)}</td></tr>`)
+          .join('')}</table></div>` : ''}`;
+      // whois only on click; the server caches each IP
+      const countries = {};
+      const lookup = async (i) => {
+        const cell = document.getElementById(`whois-${i}`);
+        if (!cell.querySelector('button')) return;
+        cell.textContent = '…';
+        try {
+          const w = await api('/api/whois', { ip: peers[i].ExternalIp || peers[i].Ip });
+          countries[w.country ?? '?'] = (countries[w.country ?? '?'] ?? 0) + 1;
+          cell.innerHTML = `${esc(w.org ?? w.network)}<br><span class="muted">${esc(w.country)} · ${esc(w.range)}</span>`;
+        } catch (e) { cell.innerHTML = `<span class="error">${esc(e.message)}</span> <button type="button" data-whois="${i}">Retry</button>`; return; }
+        $('#countries').textContent = `(${Object.entries(countries).sort((a, b) => b[1] - a[1]).map(([c, n]) => `${c} ${n}`).join(', ')})`;
+      };
+      $('#explore').onclick = (ev) => {
+        const i = ev.target.dataset?.whois;
+        if (i !== undefined) lookup(Number(i));
+      };
+      const all = $('#whois-all');
+      if (all) all.onclick = async () => {
+        all.disabled = true;
+        // four lookups at a time
+        const queue = peers.map((_, i) => i);
+        const worker = async () => { for (let i = queue.shift(); i !== undefined && run === lookups; i = queue.shift()) await lookup(i); };
+        await Promise.all([worker(), worker(), worker(), worker()]);
+        all.disabled = false;
+      };
+    } catch (e) { $('#explore').innerHTML = `<p class="error">${esc(e.message)}</p>`; }
+  }
+  $('#options').onchange = () => last && exploreFile(last);
+</script>
+</body>
+</html>
