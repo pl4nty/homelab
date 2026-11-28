@@ -8,7 +8,7 @@ COPY . .
 COPY --from=sdk redistributable_bin/linux64/libsteam_api.so redistributable_bin/win64/steam_api64.dll redistributable_bin/osx/libsteam_api.dylib bridge/src/main/resources/natives/
 RUN --mount=type=cache,target=/home/gradle/.gradle/caches gradle build --no-daemon --warning-mode all
 
-FROM eclipse-temurin:25.0.5_8-jre-noble@sha256:a98128a57de944a72bd31fbc79b898edd5a5864d3652071d5bbd2160ab7d7dce
+FROM eclipse-temurin:25.0.5_8-jre-noble@sha256:23481dc33a759b79d62814ceb1ec27a0d1a84da9d7aab0609577427176fbb1b7
 WORKDIR /app
 COPY --from=steamclient /redist/linux64/steamclient.so steam/
 COPY --from=build /app/bridge/build/libs/bridge-*.jar minecraft-sdr.jar
