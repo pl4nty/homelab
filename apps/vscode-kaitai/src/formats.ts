@@ -38,7 +38,8 @@ type Node =
   | { kind: 'group'; name: string; entries: GalleryEntry[]; suggested?: true }
   | { kind: 'file'; entry: GalleryEntry; suggested?: true };
 
-function configuredSource(): Source {
+/** The gallery repository and ref from the settings. */
+export function configuredSource(): Source {
   const c = vscode.workspace.getConfiguration('kaitai');
   // Normalised, so that neither can climb out of the mirror folder.
   const get = (key: string, fallback: string) => normalizePath((c.get<string>(key) ?? '').trim()) || fallback;

@@ -1,3 +1,6 @@
 *.vsix
 dist/
 node_modules/
+
+# copied in by npm/package.json prepack
+npm/LICENSE

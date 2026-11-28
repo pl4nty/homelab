@@ -4,6 +4,7 @@ import { registerFormatGallery } from './formats.ts';
 import { registerHexEditor } from './hexEditor.ts';
 import { registerInspector } from './inspector.ts';
 import { registerKsyLanguage } from './ksy/index.ts';
+import { registerMcpServer } from './mcpProvider.ts';
 import { Session } from './session.ts';
 import { StructureView } from './structureView.ts';
 import { Templates } from './templates.ts';
@@ -22,5 +23,6 @@ export function activate(context: vscode.ExtensionContext) {
     registerKsyLanguage(context, session),
     registerCommands(session),
     registerUriHandler(session),
+    registerMcpServer(context),
   );
 }

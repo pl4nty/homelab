@@ -4,7 +4,7 @@
 npm install
 npm test          # unit tests (node:test)
 npm run typecheck
-npm run build     # dist/node, dist/web, dist/webview
+npm run build     # dist/node, dist/web, dist/webview, npm/dist (CLI and MCP server)
 npm run package   # .vsix
 ```
 

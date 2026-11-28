@@ -37,6 +37,10 @@ The hex view colours each field by nesting and marks regions that failed to pars
 - **Set Spec Params...** for specs with top-level `params`.
 - **Show Generated Code...** for every compiler target.
 
+## AI agents (MCP)
+
+On desktop, the extension registers a Kaitai MCP server with VS Code's agent mode (VS Code 1.101 or later). Agents can parse files, explain the bytes at an offset, find a spec in Formats, and check the `.ksy` specs that they write. Other MCP clients can run the same server with `npx -y kaitai-mcp`, and it includes a `kaitai` CLI. See [npm/README.md](https://github.com/pl4nty/homelab/blob/main/apps/vscode-kaitai/npm/README.md).
+
 ## Limits
 
 - The hex view is read-only, and the whole file is read into memory (`kaitai.maxFileSizeMB`, default 256).
