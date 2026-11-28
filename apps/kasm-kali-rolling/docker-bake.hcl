@@ -1,6 +1,6 @@
 target "default" {
   contexts = {
     # renovate: branch=master
-    rsactftool = "https://github.com/RsaCtfTool/RsaCtfTool.git#86a9f77cd8271df5af5e0bd9b2b9bb20f312896b"
+    rsactftool = "https://github.com/RsaCtfTool/RsaCtfTool.git#819026111b816278fbd589b87e03b48dc73a4b72"
   }
 }
