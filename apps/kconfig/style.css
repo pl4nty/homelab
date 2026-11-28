@@ -1,0 +1,300 @@
+:root {
+  --light: #ffffff;
+  --lightgray: #f2f2f2;
+  --gray: #b0b0b0;
+  --darkgray: #666666;
+  --dark: #303030;
+  --secondary: #2e7d32;
+  --tertiary: #388e3c;
+  --highlight: #2e7d3226;
+  --error: #b3261e;
+  --on-accent: #ffffff;
+}
+
+body.body--dark {
+  --light: #141414;
+  --lightgray: #1f1f1f;
+  --gray: #7a8882;
+  --darkgray: #a9a9a9;
+  --dark: #e0f0e9;
+  --secondary: #66bb6a;
+  --tertiary: #81c784;
+  --highlight: #66bb6a26;
+  --error: #ff8a80;
+  --on-accent: #0f1f10;
+}
+
+body {
+  background: var(--light);
+  color: var(--darkgray);
+}
+
+.nicegui-content {
+  height: 100dvh;
+  padding: 0;
+  gap: 0;
+}
+
+.nicegui-sub-pages {
+  width: 100%;
+}
+
+a {
+  color: var(--secondary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+code,
+pre,
+.expr,
+.pair,
+.h2,
+.badge,
+.chip {
+  font-family: ui-monospace, "Fira Code", monospace;
+}
+
+.bar {
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--lightgray);
+  width: 100%;
+}
+
+.h1 {
+  color: var(--dark);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.h2 {
+  color: var(--dark);
+  font-size: 20px;
+  overflow-wrap: anywhere;
+}
+
+.h3 {
+  color: var(--dark);
+  font-weight: 600;
+  margin-top: 16px;
+}
+
+.pick {
+  min-width: 200px;
+}
+
+.url {
+  width: 28ch;
+}
+
+main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  width: 100%;
+}
+
+nav {
+  width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  border-right: 1px solid var(--lightgray);
+}
+
+.results {
+  overflow: auto;
+}
+
+.hit {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  padding: 4px 6px;
+  font-weight: 400;
+  color: var(--darkgray);
+}
+
+.hit:hover {
+  background: var(--lightgray);
+}
+
+.hit code {
+  color: var(--dark);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hit span:last-child {
+  grid-column: 1 / -1;
+  font-size: 13px;
+}
+
+.detail {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding: 12px 20px 32px;
+}
+
+.prompt {
+  color: var(--dark);
+  font-size: 17px;
+}
+
+.type {
+  font-size: 13px;
+  border: 1px solid var(--gray);
+  border-radius: 5px;
+  padding: 0 6px;
+}
+
+.type.changed {
+  border-color: var(--secondary);
+  color: var(--secondary);
+}
+
+.badge {
+  font-size: 12px;
+  border-radius: 5px;
+  padding: 0 5px;
+  margin-left: 2px;
+  white-space: nowrap;
+}
+
+.v-y {
+  background: var(--secondary);
+  color: var(--on-accent);
+}
+
+.v-m {
+  background: color-mix(in srgb, var(--secondary) 35%, transparent);
+  color: var(--dark);
+}
+
+.v-n,
+.v-str {
+  background: var(--lightgray);
+  color: var(--darkgray);
+}
+
+.v-fail {
+  background: var(--error);
+  color: var(--on-accent);
+}
+
+b.v-y,
+b.v-m,
+b.v-n {
+  background: none;
+  color: var(--secondary);
+}
+
+b.v-n {
+  color: var(--darkgray);
+}
+
+.locked {
+  opacity: 0.6;
+}
+
+.note {
+  color: var(--error);
+}
+
+.where a {
+  font-size: 13px;
+  margin-right: 12px;
+}
+
+.help {
+  white-space: pre-wrap;
+  margin: 0;
+  font-size: 13px;
+  color: var(--dark);
+}
+
+.expr,
+.pair {
+  font-size: 13px;
+  line-height: 1.9;
+}
+
+.expr + .expr {
+  border-top: 1px solid var(--lightgray);
+}
+
+.ref,
+.const {
+  white-space: nowrap;
+  color: var(--dark);
+}
+
+.undef {
+  text-decoration: line-through;
+}
+
+.pair.off {
+  opacity: 0.55;
+}
+
+.pair.chosen {
+  border-left: 3px solid var(--secondary);
+  padding-left: 6px;
+}
+
+.khc {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 4px 0;
+  border-top: 1px solid var(--lightgray);
+}
+
+.why,
+.more {
+  font-size: 13px;
+}
+
+.trees {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.trees strong {
+  width: 140px;
+}
+
+.chip {
+  font-size: 12px;
+  border: 1px solid var(--gray);
+  border-radius: 5px;
+  padding: 0 6px;
+}
+
+.chip.here {
+  background: var(--highlight);
+}
+
+.chip.missing {
+  color: var(--gray);
+  border-style: dashed;
+  text-decoration: line-through;
+}
+
+@media (max-width: 760px) {
+  main {
+    flex-direction: column;
+  }
+
+  nav {
+    width: auto;
+    max-height: 40dvh;
+    border-right: 0;
+    border-bottom: 1px solid var(--lightgray);
+  }
+}
