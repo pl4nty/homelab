@@ -1,0 +1,35 @@
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: github-events
+  namespace: toolhive-system
+spec:
+  groupRef:
+    name: toolhive
+  telemetryConfigRef:
+    name: toolhive
+  image: ghcr.io/pl4nty/github-events:latest@sha256:d1b2fe7106412b87257d1b0dbcc51095303a5294c19df938c605797f9a4a3e05
+  transport: streamable-http
+  mcpPort: 8080
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          env:
+            - name: GITHUB_AUTHORIZATION
+              valueFrom:
+                secretKeyRef:
+                  name: toolhive
+                  key: github-authorization
+            - name: GITHUB_QUERY
+              value: is:pr author:pl4nty repo:microsoft/winget-pkgs
+            - name: CLAUDE_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: toolhive
+                  key: claude-webhook-url
+            - name: CLAUDE_WEBHOOK_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: toolhive
+                  key: claude-webhook-token
