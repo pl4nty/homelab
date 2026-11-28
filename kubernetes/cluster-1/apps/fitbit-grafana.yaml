@@ -1,0 +1,214 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-4.6.2/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: fitbit-grafana${APP_SUFFIX:=}
+  namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: ${APP_SSA:=Ignore}
+spec:
+  interval: 15m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+    namespace: default
+  values:
+    global:
+      createDefaultServiceAccount: false
+    defaultPodOptions:
+      # the InfluxDB image runs as uid 1500, which can't write to fresh volumes
+      securityContext:
+        fsGroup: 1500
+        fsGroupChangePolicy: OnRootMismatch
+    controllers:
+      main:
+        # RWO volumes can't attach to two nodes during a rollout
+        strategy: Recreate
+        initContainers:
+          # upstream's dashboard asks for its datasource on import, which provisioning can't answer
+          dashboard:
+            image: &curl
+              repository: quay.io/curl/curl
+              tag: 8.23.0@sha256:3fb7e13e5d179a845c97d78204f3f1064d1907037f26a3ebf91710571151fd93
+            command:
+              - sh
+              - -c
+              - >-
+                curl --fail --silent --show-error --location
+                "https://raw.githubusercontent.com/arpanghosh8453/fitbit-grafana/cc0a1a6e08f6f1d73bb8655adb3fe769d04ab4c1/Grafana_Dashboard/Health%20Stats%20Dashboard%20for%20influxdb-v1.json"
+                | sed 's/[$]{DS_HEALTH_STATS}/health-stats/g' > /dashboards/fitbit.json
+          # the script rewrites its token file on every refresh, so it can't read the secret mount directly
+          token:
+            image: *curl
+            command: [cp, /secret/fitbit.token, /app/tokens/fitbit.token]
+            securityContext:
+              runAsUser: 1000
+              runAsGroup: 1000
+          # a native sidecar starts before the fetcher, so its first writes don't fail
+          influxdb:
+            image:
+              repository: docker.io/library/influxdb
+              tag: 1.11.8@sha256:64748ef240cae6b1675698db3e46031b8fe1ceef7eec8dd0d2edf653b37e0915
+            restartPolicy: Always
+            env:
+              INFLUXDB_DB: &db FitbitHealthStats
+              INFLUXDB_DATA_INDEX_VERSION: tsi1
+              # no auth, so only the pod's containers can reach it
+              INFLUXDB_HTTP_BIND_ADDRESS: 127.0.0.1:8086
+              INFLUXDB_BIND_ADDRESS: 127.0.0.1:8088
+              INFLUXDB_REPORTING_DISABLED: "true"
+            probes:
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command: [influx, -execute, SHOW DATABASES]
+                  periodSeconds: 2
+                  failureThreshold: 30
+            resources:
+              requests:
+                cpu: 20m
+                memory: 128Mi
+              limits:
+                memory: 1Gi
+        containers:
+          main:
+            image:
+              repository: ghcr.io/pl4nty/fitbit-grafana
+              tag: ${APP_IMAGE_TAG:=}
+            env:
+              HEALTH_API_PROVIDER: google
+              TOKEN_FILE_PATH: /app/tokens/fitbit.token
+              FITBIT_LOG_FILE_PATH: /tmp/fitbit.log
+              LOG_LEVEL: INFO
+              INFLUXDB_HOST: 127.0.0.1
+              INFLUXDB_DATABASE: *db
+            # GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET. previews share them
+            envFrom:
+              - secretRef:
+                  name: fitbit-grafana
+            resources:
+              requests:
+                cpu: 10m
+                memory: 128Mi
+              limits:
+                memory: 512Mi
+          grafana:
+            image:
+              repository: docker.io/grafana/grafana
+              tag: 13.3.1@sha256:0615ec4fbd4072004b7d86b46ded63013a74b7d6eb1119273dd89e8fa25c13cf
+            env:
+              GF_SERVER_ROOT_URL: https://fitbit${APP_SUFFIX:=}.${PRIVATE_DOMAIN}
+              # Cloudflare Access gates the route
+              GF_AUTH_ANONYMOUS_ENABLED: "true"
+              GF_AUTH_ANONYMOUS_ORG_ROLE: Editor
+              GF_AUTH_DISABLE_LOGIN_FORM: "true"
+              GF_PLUGINS_PREINSTALL_SYNC: marcusolsson-hourly-heatmap-panel@2.0.1
+            probes:
+              liveness: &grafana-probe
+                enabled: true
+                type: HTTP
+                path: /api/health
+                port: 3000
+              readiness: *grafana-probe
+              startup:
+                enabled: true
+                type: HTTP
+                path: /api/health
+                port: 3000
+                spec:
+                  periodSeconds: 5
+                  failureThreshold: 30
+            resources:
+              requests:
+                cpu: 20m
+                memory: 128Mi
+              limits:
+                memory: 512Mi
+                ephemeral-storage: 512Mi
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: 3000
+    persistence:
+      data:
+        # keep data if a failed install is remediated by uninstalling. previews drop theirs
+        retain: ${APP_RETAIN:=true}
+        accessMode: ReadWriteOnce
+        size: 5Gi
+        advancedMounts:
+          main:
+            influxdb:
+              - path: /var/lib/influxdb
+      tokens:
+        type: emptyDir
+        advancedMounts:
+          main:
+            token:
+              - path: /app/tokens
+            main:
+              - path: /app/tokens
+      secret:
+        type: secret
+        name: fitbit-grafana
+        advancedMounts:
+          main:
+            token:
+              - path: /secret/fitbit.token
+                subPath: fitbit.token
+                readOnly: true
+      dashboards:
+        type: emptyDir
+        advancedMounts:
+          main:
+            dashboard:
+              - path: /dashboards
+            grafana:
+              - path: /var/lib/grafana/dashboards
+                readOnly: true
+      provisioning:
+        type: configMap
+        identifier: provisioning
+        advancedMounts:
+          main:
+            grafana:
+              - path: /etc/grafana/provisioning/datasources/influxdb.yaml
+                subPath: datasources.yaml
+                readOnly: true
+              - path: /etc/grafana/provisioning/dashboards/fitbit.yaml
+                subPath: dashboards.yaml
+                readOnly: true
+    configMaps:
+      provisioning:
+        data:
+          datasources.yaml: |
+            apiVersion: 1
+            datasources:
+              - name: Health Stats
+                uid: health-stats
+                type: influxdb
+                url: http://127.0.0.1:8086
+                jsonData:
+                  dbName: FitbitHealthStats
+                isDefault: true
+          dashboards.yaml: |
+            apiVersion: 1
+            providers:
+              - name: fitbit
+                type: file
+                options:
+                  path: /var/lib/grafana/dashboards
+    route:
+      main:
+        parentRefs:
+          - namespace: default
+            name: ${CLUSTER_NAME}
+        hostnames:
+          - fitbit${APP_SUFFIX:=}.${PRIVATE_DOMAIN}
+        rules:
+          - backendRefs:
+              - identifier: main
+                port: 3000
