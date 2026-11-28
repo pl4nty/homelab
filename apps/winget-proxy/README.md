@@ -156,3 +156,6 @@ Windows. The shims themselves only truly run on Windows (DISM, wusa, pnputil, re
   not installable; checkpoint cumulative updates may need the checkpoint installed first; only the
   catalog's first results page (25 rows) is searched; drivers are matched by text, not hardware IDs;
   installed updates are not tracked by `winget list`.
+* **Versions**: only the packages FE3 still serves, often just one (HEVC Video Extensions `9NMZLZ57R3T7` has only
+  2.4.151.0); `winget download` saves no Store licence, because WinGet only requests one for `msstore` installers,
+  which always fetch the latest version and refuse some apps (HEVC: "does not support download").
