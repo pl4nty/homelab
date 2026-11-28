@@ -63,7 +63,9 @@ client uses (as do [StoreLib](https://github.com/StoreDev/StoreLib) and [StoreWe
 The display catalog gives a product's `WuCategoryId`; a `SyncUpdates` filtered to it returns every package in
 the product's live package set, older versions included; `GetExtendedUpdateInfo2` signs a download URL for each.
 Package identifiers are Store product IDs. Manifests carry one `msix`/`appx` installer per architecture, with the
-package's SHA-256 from the FE3 metadata. The signed URLs expire within minutes, so they are fetched for every
+package's SHA-256 from the FE3 metadata. The latest version also carries an `msstore` installer, which WinGet
+prefers: it hands installs to the Store client, and lets `winget download` fetch the offline licence. Pass
+`--installer-type msix` or `appx` to install the package file directly. The signed URLs expire within minutes, so they are fetched for every
 manifest request; the package lists are cached. They are plain HTTP (the CDN host has no certificate for its
 name), which the SHA-256 check covers.
 
@@ -157,5 +159,5 @@ Windows. The shims themselves only truly run on Windows (DISM, wusa, pnputil, re
   catalog's first results page (25 rows) is searched; drivers are matched by text, not hardware IDs;
   installed updates are not tracked by `winget list`.
 * **Versions**: only the packages FE3 still serves, often just one (HEVC Video Extensions `9NMZLZ57R3T7` has only
-  2.4.151.0); `winget download` saves no Store licence, because WinGet only requests one for `msstore` installers
-  (`winget download --source msstore`, with a Microsoft Entra account in Global, User or License Administrator).
+  2.4.151.0); WinGet fetches a licence only for `msstore` installers, so `winget download --version` of an older
+  version saves none, and the latest needs a Microsoft Entra account in Global, User or License Administrator.
