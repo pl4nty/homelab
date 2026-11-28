@@ -8,21 +8,21 @@ Channels are a research preview. Claude Code spawns the server as a local stdio 
 
 The server polls GitHub every `POLL_SECONDS` and sends one `<channel source="github">` event per change.
 
-- `kind="pr"`: a pull request that matches `GITHUB_QUERY` changed. The event lists added or removed labels, a new review, the review decision, new comments, more unresolved review threads, the check rollup, draft state, and merged or closed. Each poll is one GraphQL search, which costs a few points of the 5,000 per hour.
+- `kind="pr"`: new timeline events on a pull request that matches `GITHUB_QUERY`: labels added or removed, reviews, comments, merged, closed, reopened, and draft state. Each poll is one GraphQL search filtered to pull requests updated since the last poll, with their timeline items since then. It costs a few points of the 5,000 per hour.
 - `kind="notification"`: a new or updated unread [notification](https://docs.github.com/en/rest/activity/notifications) thread that isn't one of those pull requests. It honours `X-Poll-Interval` and `If-Modified-Since`, so unchanged polls don't count against the rate limit.
 
 Events never include comment or review text, because anyone can write it. Claude reads the pull request itself.
 
-The first run records a baseline and sends nothing. State persists in `STATE_FILE`, so changes made while Claude Code was closed arrive on the next start.
+The search index lags behind GitHub, so each poll overlaps the last by 5 minutes and skips timeline items it already sent. The first run sends nothing. `STATE_FILE` keeps the last poll time, so events from while Claude Code was closed arrive on the next start.
 
-GitHub doesn't send notifications for label changes, or for threads you ignore. The search covers both.
+GitHub doesn't send notifications for label changes, or for threads you ignore. The search covers both. Check results don't update a pull request, so they only arrive as `ci_activity` notifications for your own workflow runs.
 
 ## Configuration
 
 |Variable|Default|
 |---|---|
 |`GITHUB_TOKEN`|`gh auth token`. Classic token with `repo` or `notifications` scope; fine-grained tokens can't read notifications|
-|`GITHUB_QUERY`|`is:pr is:open archived:false author:<you>`|
+|`GITHUB_QUERY`|`is:pr archived:false author:<you>`|
 |`POLL_SECONDS`|`60`|
 |`NOTIFICATIONS`|`true`|
 |`STATE_FILE`|`~/.cache/github-channel/state.json`|
@@ -37,7 +37,7 @@ Download a binary from the `github-channel` [releases](https://github.com/pl4nty
   "mcpServers": {
     "github": {
       "command": "github-channel-windows-x64.exe",
-      "env": { "GITHUB_QUERY": "is:pr is:open author:pl4nty repo:microsoft/winget-pkgs" }
+      "env": { "GITHUB_QUERY": "is:pr author:pl4nty repo:microsoft/winget-pkgs" }
     }
   }
 }
