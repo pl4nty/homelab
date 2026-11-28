@@ -11,7 +11,7 @@ RUN gradle jproRelease --warning-mode all
 # Ubuntu with required packages
 # https://www.jpro.one/docs/current/2.7/PREPARING_LINUX_FOR_JPRO
 # jpro 2026 bundles JavaFX 27, which needs Java 25
-FROM eclipse-temurin:25.0.5_8-jre-noble@sha256:a98128a57de944a72bd31fbc79b898edd5a5864d3652071d5bbd2160ab7d7dce
+FROM eclipse-temurin:25.0.5_8-jre-noble@sha256:23481dc33a759b79d62814ceb1ec27a0d1a84da9d7aab0609577427176fbb1b7
 
 # prevent interactive prompt from debconf
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections \
