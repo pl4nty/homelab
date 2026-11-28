@@ -1,0 +1,588 @@
+// Streams tiles in around the camera and turns worker output into scene objects.
+import * as THREE from 'three';
+import { TILE_SIZE, TILE_Z, tileBoundsWorld, tileInExtent, worldToTile } from '../shared/geo.ts';
+import { DEM_N } from '../shared/tile.ts';
+import { Cars } from './cars.ts';
+import { CAR } from './gen/palette.ts';
+import { type BuildReply, type BuildRequest, type Built, hash2, type Label, type MeshData } from './gen/types.ts';
+import { buildingMaterial, groundMaterial, noPhoto, vertexColourMaterial, waterMaterial } from './materials.ts';
+import type { TreeFactory } from './trees.ts';
+
+const N = DEM_N + 1;
+const STREET_RES = 4096;
+const CLOSE_RES = 2048;
+const NEAR_RES = 1024;
+const FAR_RES = 512;
+export const MASK_SIZE = 128;
+
+interface Entry {
+  key: string;
+  x: number;
+  y: number;
+  state: 'queued' | 'loading' | 'ready' | 'error';
+  group?: THREE.Group;
+  built?: Built;
+  ground?: THREE.Mesh<THREE.BufferGeometry, THREE.MeshLambertMaterial>;
+  res: number;
+  repainting?: boolean;
+  near: boolean;
+  nearObjects: THREE.Object3D[];
+  farTrees: THREE.InstancedMesh[];
+  lamps?: THREE.Points;
+  lanes?: { start: number; count: number; oneway: boolean; cum: Float32Array }[];
+  traffic?: { meshes: THREE.InstancedMesh[]; cars: Float32Array };
+  /** The tile's aerial photograph, shared by its ground and its roofs. */
+  photo?: THREE.Texture;
+  walls?: THREE.MeshLambertMaterial;
+  facade?: THREE.Texture;
+  retryAt?: number;
+  originX: number;
+  originZ: number;
+}
+
+function meshFrom(d: MeshData, material: THREE.Material): THREE.Mesh {
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(d.pos, 3));
+  g.setAttribute('normal', new THREE.BufferAttribute(d.normal, 3));
+  g.setAttribute('color', new THREE.BufferAttribute(d.color, 3, true));
+  if (d.wall) g.setAttribute('wall', new THREE.BufferAttribute(d.wall, 4));
+  if (d.fuv) g.setAttribute('fuv', new THREE.BufferAttribute(d.fuv, 2));
+  g.setIndex(new THREE.BufferAttribute(d.index, 1));
+  const m = new THREE.Mesh(g, material);
+  m.castShadow = true;
+  m.receiveShadow = true;
+  return m;
+}
+
+function lampSprite(): THREE.Texture {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const ctx = c.getContext('2d')!;
+  const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, 'rgba(255,255,255,1)');
+  g.addColorStop(0.25, 'rgba(255,220,160,0.55)');
+  g.addColorStop(1, 'rgba(255,200,120,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 64, 64);
+  return new THREE.CanvasTexture(c);
+}
+
+export class TileManager {
+  readonly group = new THREE.Group();
+  readonly tiles = new Map<string, Entry>();
+  /** One byte per tile around the origin: 255 where a tile is drawn, so the far terrain can step aside. */
+  readonly mask: THREE.DataTexture;
+  readonly maskOrigin: [number, number];
+  private maskTile: [number, number];
+  private workers: Worker[] = [];
+  private idle: Worker[] = [];
+  private jobs = new Map<number, { entry: Entry; worker: Worker; ground: boolean }>();
+  private nextId = 1;
+  private plain = vertexColourMaterial();
+  private water = waterMaterial();
+  readonly cars = new Cars();
+  private poleGeo = new THREE.CylinderGeometry(0.07, 0.1, 1, 4).translate(0, 0.5, 0);
+  private poleMat = new THREE.MeshLambertMaterial({ color: 0x8d9296 });
+  readonly lampMat: THREE.PointsMaterial;
+  maxAnisotropy = 8;
+  /** Whether this device can afford a 4096 px ground texture under a street-level camera. */
+  streetTextures = false;
+  onLabels?: (key: string, labels: Label[] | null, origin: [number, number]) => void;
+  onChange?: () => void;
+  onLandmark?: (id: string, x: number, z: number) => void;
+  focus = new THREE.Vector2();
+  missing = new Set<string>();
+  /** Mapillary photographers whose pictures are on walls now loaded; their licence requires naming them. */
+  facadeCredits = new Set<string>();
+
+  constructor(
+    private trees: TreeFactory,
+    workerCount: number,
+  ) {
+    for (let i = 0; i < workerCount; i++) {
+      const w = new Worker(new URL('./gen/worker.ts', import.meta.url), { type: 'module' });
+      w.onmessage = (e: MessageEvent<BuildReply>) => this.onReply(w, e.data);
+      this.workers.push(w);
+      this.idle.push(w);
+    }
+    const [ox, oy] = worldToTile(0, 0);
+    this.maskTile = [ox - MASK_SIZE / 2, oy - MASK_SIZE / 2];
+    const b = tileBoundsWorld(TILE_Z, this.maskTile[0], this.maskTile[1]);
+    this.maskOrigin = [b[0], -b[3]];
+    this.mask = new THREE.DataTexture(new Uint8Array(MASK_SIZE * MASK_SIZE), MASK_SIZE, MASK_SIZE, THREE.RedFormat);
+    this.mask.magFilter = this.mask.minFilter = THREE.NearestFilter;
+    this.mask.needsUpdate = true;
+    this.lampMat = new THREE.PointsMaterial({
+      map: lampSprite(),
+      size: 13,
+      sizeAttenuation: true,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      color: 0xffd9a0,
+      opacity: 0,
+    });
+  }
+
+  get loading(): number {
+    let n = 0;
+    for (const e of this.tiles.values()) if (e.state === 'queued' || e.state === 'loading') n++;
+    return n;
+  }
+
+  private setMask(e: Entry, on: boolean) {
+    const mx = e.x - this.maskTile[0];
+    const my = e.y - this.maskTile[1];
+    if (mx < 0 || my < 0 || mx >= MASK_SIZE || my >= MASK_SIZE) return;
+    (this.mask.image.data as Uint8Array)[my * MASK_SIZE + mx] = on ? 255 : 0;
+    this.mask.needsUpdate = true;
+  }
+
+  /** Ground height above BASE at scene x, z; undefined where no tile is loaded. */
+  heightAt(x: number, z: number): number | undefined {
+    const [tx, ty] = worldToTile(x, -z);
+    const e = this.tiles.get(`${tx}/${ty}`);
+    if (!e?.built) return undefined;
+    const h = e.built.heights;
+    const step = TILE_SIZE / DEM_N;
+    const fx = Math.min(DEM_N, Math.max(0, (x - e.originX) / step));
+    const fy = Math.min(DEM_N, Math.max(0, (e.originZ - z) / step));
+    const ix = Math.min(DEM_N - 1, Math.floor(fx));
+    const iy = Math.min(DEM_N - 1, Math.floor(fy));
+    const ax = fx - ix;
+    const ay = fy - iy;
+    const i = iy * N + ix;
+    return (h[i] * (1 - ax) + h[i + 1] * ax) * (1 - ay) + (h[i + N] * (1 - ax) + h[i + N + 1] * ax) * ay;
+  }
+
+  private entryAt(x: number, z: number): Entry | undefined {
+    const [tx, ty] = worldToTile(x, -z);
+    return this.tiles.get(`${tx}/${ty}`);
+  }
+
+  /**
+   * Height a vehicle at scene x, z rides at: the ground, the water's surface, or a bridge deck.
+   * `y` is the vehicle's current height, so it stays on the ground when it passes under a bridge.
+   */
+  surfaceAt(x: number, z: number, y?: number): number | undefined {
+    const e = this.entryAt(x, z);
+    if (!e?.built) return undefined;
+    const h = e.built.surface;
+    const step = TILE_SIZE / DEM_N;
+    const fx = Math.min(DEM_N, Math.max(0, (x - e.originX) / step));
+    const fy = Math.min(DEM_N, Math.max(0, (e.originZ - z) / step));
+    const ix = Math.min(DEM_N - 1, Math.floor(fx));
+    const iy = Math.min(DEM_N - 1, Math.floor(fy));
+    const ax = fx - ix;
+    const ay = fy - iy;
+    const i = iy * N + ix;
+    let best = (h[i] * (1 - ax) + h[i + 1] * ax) * (1 - ay) + (h[i + N] * (1 - ax) + h[i + N + 1] * ax) * ay;
+    // A span belongs to the tile under its midpoint, so look in the neighbours too.
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        const t = this.tiles.get(`${e.x + dx}/${e.y + dy}`);
+        const d = t?.built?.decks;
+        if (!t || !d?.length) continue;
+        const lx = x - t.originX;
+        const lz = z - t.originZ;
+        for (let k = 0; k < d.length; ) {
+          const count = d[k];
+          const half = d[k + 1];
+          for (let p = 0; p + 1 < count; p++) {
+            const a = k + 2 + p * 3;
+            const sx = d[a + 3] - d[a];
+            const sz = d[a + 5] - d[a + 2];
+            const len2 = sx * sx + sz * sz || 1;
+            const u = Math.min(1, Math.max(0, ((lx - d[a]) * sx + (lz - d[a + 2]) * sz) / len2));
+            if (Math.hypot(d[a] + sx * u - lx, d[a + 2] + sz * u - lz) > half) continue;
+            const deck = d[a + 1] + (d[a + 4] - d[a + 1]) * u;
+            if (deck > best && (y == null || deck < y + 1.6)) best = deck;
+          }
+          k += 2 + count * 3;
+        }
+      }
+    }
+    return best;
+  }
+
+  /** True inside a building's outline. */
+  blockedAt(x: number, z: number): boolean {
+    const e = this.entryAt(x, z);
+    const s = e?.built?.solids;
+    if (!e || !s) return false;
+    const lx = x - e.originX;
+    const lz = z - e.originZ;
+    for (let k = 0; k < s.length; ) {
+      const count = s[k];
+      if (lx >= s[k + 1] && lx <= s[k + 3] && lz >= s[k + 2] && lz <= s[k + 4]) {
+        let inside = false;
+        for (let i = 0, j = count - 1; i < count; j = i++) {
+          const xi = s[k + 5 + i * 2];
+          const zi = s[k + 6 + i * 2];
+          const xj = s[k + 5 + j * 2];
+          const zj = s[k + 6 + j * 2];
+          if (zi > lz !== zj > lz && lx < ((xj - xi) * (lz - zi)) / (zj - zi) + xi) inside = !inside;
+        }
+        if (inside) return true;
+      }
+      k += 5 + count * 2;
+    }
+    return false;
+  }
+
+  /** The nearest point on a through road, and the compass heading along it; for starting a drive. */
+  nearestRoad(x: number, z: number, reach = 250): { x: number; z: number; heading: number } | null {
+    const e = this.entryAt(x, z);
+    if (!e?.built || !e.lanes) return null;
+    const b = e.built.lanes;
+    const lx = x - e.originX;
+    const lz = z - e.originZ;
+    let best: { x: number; z: number; heading: number } | null = null;
+    let bestD = reach;
+    for (const lane of e.lanes) {
+      for (let p = 0; p + 1 < lane.count; p++) {
+        const a = lane.start + p * 3;
+        const sx = b[a + 3] - b[a];
+        const sz = b[a + 5] - b[a + 2];
+        const len2 = sx * sx + sz * sz || 1;
+        const u = Math.min(1, Math.max(0, ((lx - b[a]) * sx + (lz - b[a + 2]) * sz) / len2));
+        const px = b[a] + sx * u;
+        const pz = b[a + 2] + sz * u;
+        const d = Math.hypot(px - lx, pz - lz);
+        if (d < bestD) {
+          bestD = d;
+          best = { x: px + e.originX, z: pz + e.originZ, heading: Math.atan2(sx, -sz) };
+        }
+      }
+    }
+    return best;
+  }
+
+  /** Loads what lies within `radius` of the focus, drops what is well outside it, and sets detail. */
+  update(fx: number, fz: number, radius: number, nearRadius: number, cameraDistance: number, street = false) {
+    this.focus.set(fx, fz);
+    const [cx, cy] = worldToTile(fx, -fz);
+    const reach = Math.ceil(radius / TILE_SIZE);
+    const wanted = new Set<string>();
+    const now = performance.now();
+    for (let dy = -reach; dy <= reach; dy++) {
+      for (let dx = -reach; dx <= reach; dx++) {
+        const x = cx + dx;
+        const y = cy + dy;
+        if (!tileInExtent(x, y)) continue;
+        if (this.distance(x, y, fx, fz) > radius) continue;
+        const key = `${x}/${y}`;
+        wanted.add(key);
+        let e = this.tiles.get(key);
+        if (!e) {
+          const b = tileBoundsWorld(TILE_Z, x, y);
+          e = {
+            key,
+            x,
+            y,
+            state: 'queued',
+            res: FAR_RES,
+            near: false,
+            nearObjects: [],
+            farTrees: [],
+            originX: b[0],
+            originZ: -b[1],
+          };
+          this.tiles.set(key, e);
+        } else if (e.state === 'error' && e.retryAt && now > e.retryAt) {
+          e.state = 'queued';
+        }
+      }
+    }
+    for (const [key, e] of this.tiles) {
+      if (wanted.has(key)) continue;
+      // Keep a margin so panning back and forth does not thrash.
+      if (this.distance(e.x, e.y, fx, fz) > radius * 1.35 + TILE_SIZE) this.drop(e);
+    }
+    for (const e of this.tiles.values()) {
+      if (e.state !== 'ready') continue;
+      const d = this.distance(e.x, e.y, fx, fz);
+      const near = d < (e.near ? nearRadius * 1.2 : nearRadius);
+      if (near !== e.near) this.setDetail(e, near);
+      // Far off, a thinned canopy reads the same and costs half as much.
+      const share = d > 3800 ? 0.4 : d > 2400 ? 0.7 : 1;
+      for (const t of e.farTrees) t.count = Math.ceil((e.built!.trees.length / 7) * share);
+      // Half a metre a pixel under a close camera, a metre nearby, two metres beyond.
+      // At street level the tile underfoot gets a quarter of a metre a pixel.
+      const res =
+        street && d === 0 && this.streetTextures
+          ? STREET_RES
+          : d < 250 && cameraDistance < 700
+            ? CLOSE_RES
+            : d < nearRadius * 0.9
+              ? NEAR_RES
+              : FAR_RES;
+      if (res > e.res && !e.repainting) this.repaint(e, res);
+    }
+    this.pump();
+  }
+
+  private distance(x: number, y: number, fx: number, fz: number): number {
+    const b = tileBoundsWorld(TILE_Z, x, y);
+    // Nearest point of the tile, so the tile under the camera counts as distance zero.
+    const dx = Math.max(b[0] - fx, 0, fx - b[2]);
+    const dz = Math.max(-b[3] - fz, 0, fz + b[1]);
+    return Math.hypot(dx, dz);
+  }
+
+  private pump() {
+    if (!this.idle.length) return;
+    const queued = [...this.tiles.values()].filter((e) => e.state === 'queued');
+    queued.sort(
+      (a, b) =>
+        this.distance(a.x, a.y, this.focus.x, this.focus.y) - this.distance(b.x, b.y, this.focus.x, this.focus.y),
+    );
+    for (const e of queued) {
+      const w = this.idle.pop();
+      if (!w) break;
+      e.state = 'loading';
+      const near = this.distance(e.x, e.y, this.focus.x, this.focus.y) < 600;
+      e.res = near ? NEAR_RES : FAR_RES;
+      this.send(w, e, { x: e.x, y: e.y, res: e.res }, false);
+    }
+  }
+
+  private send(w: Worker, entry: Entry, req: Omit<BuildRequest, 'id'>, ground: boolean) {
+    const id = this.nextId++;
+    this.jobs.set(id, { entry, worker: w, ground });
+    w.postMessage({ id, ...req } satisfies BuildRequest);
+  }
+
+  private repaint(e: Entry, res: number) {
+    const w = this.idle.pop();
+    if (!w) return;
+    e.repainting = true;
+    this.send(w, e, { x: e.x, y: e.y, res, groundOnly: true }, true);
+  }
+
+  private onReply(w: Worker, reply: BuildReply) {
+    const job = this.jobs.get(reply.id);
+    this.jobs.delete(reply.id);
+    this.idle.push(w);
+    if (job) {
+      const e = job.entry;
+      const alive = this.tiles.get(e.key) === e;
+      if (!reply.ok) {
+        if (job.ground) e.repainting = false;
+        else {
+          e.state = 'error';
+          e.retryAt = performance.now() + 15000;
+          console.warn(reply.error);
+        }
+      } else if ('ground' in reply) {
+        e.repainting = false;
+        if (alive && e.ground) {
+          e.ground.material.map?.dispose();
+          e.ground.material.map = this.texture(reply.ground);
+          const mask = e.ground.material.userData.mask as { value: THREE.Texture };
+          mask.value.dispose();
+          mask.value = this.texture(reply.mask, false);
+          if (reply.photo) {
+            // A sharper photograph for the ground and for this tile's roofs.
+            if (e.photo !== noPhoto) e.photo?.dispose();
+            e.photo = this.texture(reply.photo);
+            (e.ground.material.userData.photo as { value: THREE.Texture }).value = e.photo;
+            if (e.walls) (e.walls.userData.photo as { value: THREE.Texture }).value = e.photo;
+          }
+          e.res = reply.ground.width;
+        } else {
+          reply.ground.close();
+          reply.mask.close();
+          reply.photo?.close();
+        }
+      } else if (alive) this.attach(e, reply.built);
+      else {
+        reply.built.ground.close();
+        reply.built.mask.close();
+        reply.built.photo?.close();
+        reply.built.facade?.close();
+      }
+    }
+    this.pump();
+    this.onChange?.();
+  }
+
+  private texture(bitmap: ImageBitmap, colour = true): THREE.Texture {
+    const t = new THREE.Texture(bitmap);
+    t.colorSpace = colour ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+    t.flipY = false;
+    t.anisotropy = this.maxAnisotropy;
+    t.generateMipmaps = true;
+    t.minFilter = THREE.LinearMipmapLinearFilter;
+    t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
+    t.needsUpdate = true;
+    // The pixels live on the GPU after the first upload; free the copy.
+    t.onUpdate = () => bitmap.close();
+    return t;
+  }
+
+  private attach(e: Entry, b: Built) {
+    const group = new THREE.Group();
+    group.position.set(e.originX, 0, e.originZ);
+    group.matrixAutoUpdate = false;
+    group.updateMatrix();
+
+    const photo = b.photo ? this.texture(b.photo) : noPhoto;
+    e.photo = photo;
+    const tg = new THREE.BufferGeometry();
+    tg.setAttribute('position', new THREE.BufferAttribute(b.terrain.pos, 3));
+    tg.setAttribute('normal', new THREE.BufferAttribute(b.terrain.normal, 3));
+    tg.setAttribute('uv', new THREE.BufferAttribute(b.terrain.uv, 2));
+    tg.setIndex(new THREE.BufferAttribute(b.terrain.index, 1));
+    const ground = new THREE.Mesh(tg, groundMaterial(this.texture(b.ground), this.texture(b.mask, false), photo));
+    ground.receiveShadow = true;
+    group.add(ground);
+    e.ground = ground;
+
+    if (b.buildings) {
+      e.facade = b.facade ? this.texture(b.facade) : undefined;
+      for (const name of b.facadeCredits) this.facadeCredits.add(name);
+      e.walls = buildingMaterial(photo, TILE_SIZE, e.facade ?? noPhoto);
+      group.add(meshFrom(b.buildings, e.walls));
+    }
+    if (b.bridges) group.add(meshFrom(b.bridges, this.plain));
+    if (b.water) {
+      const wg = new THREE.BufferGeometry();
+      wg.setAttribute('position', new THREE.BufferAttribute(b.water.pos, 3));
+      wg.setIndex(new THREE.BufferAttribute(b.water.index, 1));
+      wg.computeVertexNormals();
+      const wm = new THREE.Mesh(wg, this.water);
+      wm.receiveShadow = true;
+      wm.renderOrder = 1;
+      group.add(wm);
+    }
+    e.farTrees = this.trees.build(b.trees, false);
+    for (const t of e.farTrees) group.add(t);
+
+    if (b.lights.length) {
+      const pos = new Float32Array((b.lights.length / 4) * 3);
+      for (let i = 0, o = 0; i < b.lights.length; i += 4, o += 3) {
+        pos[o] = b.lights[i];
+        pos[o + 1] = b.lights[i + 1] + b.lights[i + 3];
+        pos[o + 2] = b.lights[i + 2];
+      }
+      const lg = new THREE.BufferGeometry();
+      lg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      e.lamps = new THREE.Points(lg, this.lampMat);
+      e.lamps.renderOrder = 3;
+      group.add(e.lamps);
+    }
+
+    // Index the traffic lanes: where each starts in the buffer, and the running length at each point.
+    e.lanes = [];
+    for (let i = 0; i < b.lanes.length; ) {
+      const count = b.lanes[i];
+      const cum = new Float32Array(count);
+      for (let k = 1; k < count; k++) {
+        const o = i + 2 + k * 3;
+        cum[k] = cum[k - 1] + Math.hypot(b.lanes[o] - b.lanes[o - 3], b.lanes[o + 2] - b.lanes[o - 1]);
+      }
+      e.lanes.push({ start: i + 2, count, oneway: b.lanes[i + 1] === 1, cum });
+      i += 2 + count * 3;
+    }
+
+    e.group = group;
+    e.built = b;
+    e.state = 'ready';
+    if (b.stats.missing) this.missing.add(b.stats.missing);
+    this.group.add(group);
+    this.setMask(e, true);
+    this.onLabels?.(e.key, b.labels, [e.originX, e.originZ]);
+    for (const l of b.landmarks) this.onLandmark?.(l.id, l.x + e.originX, l.z + e.originZ);
+  }
+
+  private setDetail(e: Entry, near: boolean) {
+    e.near = near;
+    const b = e.built!;
+    for (const o of e.nearObjects) this.dispose(o);
+    e.nearObjects = [];
+    if (e.traffic) {
+      for (const mesh of e.traffic.meshes) this.dispose(mesh);
+      e.traffic = undefined;
+    }
+    for (const t of e.farTrees) t.visible = !near;
+    if (!near) return;
+    for (const t of this.trees.build(b.trees, true)) {
+      e.group!.add(t);
+      e.nearObjects.push(t);
+    }
+    const cars = b.cars.length / 5;
+    if (cars) {
+      const m = new THREE.Matrix4();
+      const c = new THREE.Color();
+      const meshes = this.cars.meshes(
+        cars,
+        (i) => hash2(Math.round(b.cars[i * 5] * 10), Math.round(b.cars[i * 5 + 2] * 10)),
+        (mesh, slot, i) => {
+          const o = i * 5;
+          m.makeRotationY(-b.cars[o + 3]).setPosition(b.cars[o], b.cars[o + 1], b.cars[o + 2]);
+          mesh.setMatrixAt(slot, m);
+          mesh.setColorAt(slot, c.setHex(CAR[b.cars[o + 4] % CAR.length]));
+        },
+      );
+      for (const mesh of meshes) {
+        e.group!.add(mesh);
+        e.nearObjects.push(mesh);
+      }
+    }
+    const lights = b.lights.length / 4;
+    if (lights) {
+      const mesh = new THREE.InstancedMesh(this.poleGeo, this.poleMat, lights);
+      const m = new THREE.Matrix4();
+      for (let i = 0; i < lights; i++) {
+        const o = i * 4;
+        m.makeScale(1, b.lights[o + 3], 1).setPosition(b.lights[o], b.lights[o + 1], b.lights[o + 2]);
+        mesh.setMatrixAt(i, m);
+      }
+      e.group!.add(mesh);
+      e.nearObjects.push(mesh);
+    }
+  }
+
+  /** Rebuilds tree instances everywhere, for a change of season. */
+  refreshTrees() {
+    for (const e of this.tiles.values()) {
+      if (e.state !== 'ready' || !e.built) continue;
+      for (const t of e.farTrees) this.dispose(t);
+      e.farTrees = this.trees.build(e.built.trees, false);
+      for (const t of e.farTrees) e.group!.add(t);
+      this.setDetail(e, e.near);
+    }
+  }
+
+  private dispose(o: THREE.Object3D) {
+    o.removeFromParent();
+    if (o instanceof THREE.InstancedMesh) o.dispose();
+    else if (o instanceof THREE.Mesh || o instanceof THREE.Points) o.geometry.dispose();
+  }
+
+  private drop(e: Entry) {
+    this.tiles.delete(e.key);
+    if (!e.group) return;
+    this.setMask(e, false);
+    this.onLabels?.(e.key, null, [0, 0]);
+    this.group.remove(e.group);
+    e.ground?.material.map?.dispose();
+    if (e.photo !== noPhoto) e.photo?.dispose();
+    e.walls?.dispose();
+    e.facade?.dispose();
+    (e.ground?.material.userData.mask as { value: THREE.Texture } | undefined)?.value.dispose();
+    e.ground?.material.dispose();
+    for (const o of [...e.group.children]) this.dispose(o);
+    e.built?.ground.close();
+  }
+
+  /** Ready tiles close enough to carry moving traffic. */
+  nearTiles(): Entry[] {
+    const out: Entry[] = [];
+    for (const e of this.tiles.values()) if (e.state === 'ready' && e.near) out.push(e);
+    return out;
+  }
+}
+
+export type TileEntry = Entry;
