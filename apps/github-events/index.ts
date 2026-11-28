@@ -10,6 +10,7 @@ const seen = new Set<string>();
 let since = new Date();
 let pending: string[] = [];
 let lastFire = 0;
+let baselined = false;
 
 const actor = 'actor { login } createdAt';
 const types: Record<string, string> = {
@@ -55,18 +56,18 @@ async function poll() {
       const who = (item.actor ?? item.author)?.login ?? 'ghost';
       changes.push(`${item.__typename} ${item.label?.name ?? item.state ?? ''} by ${who}`.replace('  ', ' '));
     }
-    if (!changes.length || !lastFire) continue;
+    if (!changes.length || !baselined) continue;
     const pull = { repo: pr.repository.nameWithOwner, number: pr.number, title: pr.title, url: pr.url, changes };
     const cursor = String(events.length + 1);
     events.push({ eventId: cursor, name, timestamp: new Date().toISOString(), data: pull, cursor });
     pending.push(`${pull.repo}#${pull.number} ${pull.title}\n${pull.url}\n${changes.map((c) => `- ${c}`).join('\n')}`);
   }
+  baselined = true;
 }
 
 // the fire endpoint allows 30 runs per hour per scheduled task
 async function fire() {
-  if (Date.now() - lastFire < 120_000) return;
-  if (!lastFire || !pending.length) return void (lastFire ||= 1);
+  if (!pending.length || Date.now() - lastFire < 120_000) return;
   lastFire = Date.now();
   const res = await fetch(webhookUrl, {
     method: 'POST',
