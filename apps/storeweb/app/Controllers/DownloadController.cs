@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Mime;
@@ -111,39 +111,36 @@ namespace StoreWeb.Controllers
                 return NotFound("Product has no downloadable packages");
             }
             var productpackages = await dcat.GetPackagesForProductAsync();
+            string[] fileNames = await Task.WhenAll(productpackages.Select(p => GetDownloadFileNameAsync(p.PackageUri)));
+            var files = productpackages.Select((p, i) => new
+            {
+                Uri = p.PackageUri,
+                FileName = fileNames[i],
+                Moniker = fileNames[i] != null ? Path.GetFileNameWithoutExtension(fileNames[i]) : p.PackageMoniker
+            }).ToList();
 
             if (!string.IsNullOrWhiteSpace(Name))
             {
-                var package = productpackages.FirstOrDefault(p => MonikerMatches(p.PackageMoniker, Name, Arch));
-                if (package == null)
+                var file = files.FirstOrDefault(f => MonikerMatches(f.Moniker, Name, Arch));
+                if (file == null)
                 {
                     return NotFound("No package matches that name and architecture");
                 }
-                return Redirect(package.PackageUri.ToString());
+                return Redirect(file.Uri.ToString());
             }
 
-            List<PackageInstance> candidates = new List<PackageInstance>();
+            Uri downloadUri = null;
             string pfn = mainPackage.PackageFamilyName;
             if (!string.IsNullOrEmpty(pfn) && pfn.Contains('_'))
             {
                 int separator = pfn.LastIndexOf('_');
                 string name = pfn.Substring(0, separator);
                 string publisher = pfn.Substring(separator + 1);
-                candidates = productpackages
-                    .Where(p => p.PackageMoniker.StartsWith(name + "_", StringComparison.OrdinalIgnoreCase)
-                        && p.PackageMoniker.EndsWith("_" + publisher, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-            }
-            Uri downloadUri = null;
-            int bestRank = int.MinValue;
-            foreach (PackageInstance candidate in candidates)
-            {
-                int rank = RankInstallFile(await GetDownloadFileNameAsync(candidate.PackageUri));
-                if (rank > bestRank)
-                {
-                    bestRank = rank;
-                    downloadUri = candidate.PackageUri;
-                }
+                downloadUri = files
+                    .Where(f => f.Moniker.StartsWith(name + "_", StringComparison.OrdinalIgnoreCase)
+                        && f.Moniker.EndsWith("_" + publisher, StringComparison.OrdinalIgnoreCase))
+                    .OrderByDescending(f => RankInstallFile(f.FileName))
+                    .FirstOrDefault()?.Uri;
             }
             if (downloadUri == null && mainPackage.PackageDownloadUris?.Count > 0)
             {
