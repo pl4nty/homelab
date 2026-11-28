@@ -50,7 +50,7 @@ func TestResults(t *testing.T) {
 	abc := abcServer(t, &fail, &calls)
 	now := time.Date(2026, 11, 28, 9, 15, 0, 0, time.UTC)
 	f := &feed{base: abc.URL, client: abc.Client(), ttl: 30 * time.Second, now: func() time.Time { return now }}
-	web := fstest.MapFS{"index.html": {Data: []byte("<title>x</title>")}, "districts.json": {Data: []byte("{}")}}
+	web := fstest.MapFS{"index.html": {Data: []byte("<title>x</title>")}, "districts.geojson": {Data: []byte("{}")}}
 	h := routes(f, web)
 
 	get := func() (*httptest.ResponseRecorder, results) {
@@ -121,9 +121,9 @@ func TestResultsUnavailable(t *testing.T) {
 }
 
 func TestStatic(t *testing.T) {
-	web := fstest.MapFS{"index.html": {Data: []byte("<title>x</title>")}, "districts.json": {Data: []byte("{}")}}
+	web := fstest.MapFS{"index.html": {Data: []byte("<title>x</title>")}, "districts.geojson": {Data: []byte("{}")}}
 	h := routes(&feed{}, web)
-	for path, cc := range map[string]string{"/": "public, max-age=60", "/districts.json": "public, max-age=86400"} {
+	for path, cc := range map[string]string{"/": "public, max-age=60", "/districts.geojson": "public, max-age=86400"} {
 		rec := httptest.NewRecorder()
 		h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, path, nil))
 		if rec.Code != http.StatusOK || rec.Header().Get("Cache-Control") != cc {

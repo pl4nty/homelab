@@ -274,7 +274,7 @@ func routes(f *feed, web fs.FS) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/results", f.handle)
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) { w.Write([]byte("ok")) })
-	mux.HandleFunc("GET /districts.json", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /districts.geojson", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "public, max-age=86400")
 		files.ServeHTTP(w, r)
 	})

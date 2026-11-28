@@ -9,7 +9,7 @@ The server relays the ABC's results feed, the same one its [results page](https:
 `main.go` serves the embedded `web/` page and:
 
 - `GET /api/results` returns every district's top two candidates plus the statewide count, with `stale: true` if the ABC feed fails after a successful fetch.
-- `GET /districts.json` returns the district boundaries.
+- `GET /districts.geojson` returns the district boundaries.
 
 | Variable | Default |
 | --- | --- |
@@ -19,10 +19,10 @@ The server relays the ABC's results feed, the same one its [results page](https:
 
 ## Boundaries
 
-`web/districts.json` is Vicmap Admin `state_assembly_2022` (the 2021 redivision, first used in 2022), CC BY 4.0, simplified to about 600 KB:
+`web/districts.geojson` is Vicmap Admin `state_assembly_2022` (the 2021 redivision, first used in 2022), CC BY 4.0, simplified to about 600 KB:
 
 1. `curl -o sa2022.json 'https://opendata.maps.vic.gov.au/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=open-data-platform:state_assembly_2022&outputFormat=application/json&srsName=EPSG:4326'`
-2. `python3 districts.py sa2022.json web/districts.json 0.0006`
+2. `python3 districts.py sa2022.json web/districts.geojson 0.0006`
 
 ## Limits
 

@@ -520,7 +520,7 @@ footer a { color: inherit; }
 
   async function boot() {
     try { const m = localStorage.getItem("vic26-mode"); if (m === "margin") state.mode = "margin", $("modeTop").setAttribute("aria-pressed", "false"), $("modeMargin").setAttribute("aria-pressed", "true"); } catch {}
-    state.features = await (await fetch("/districts.json")).json();
+    state.features = await (await fetch("/districts.geojson")).json();
     buildMap("metro", {width: 800, height: 600, extent: METRO, labels: true});
     buildMap("state", {width: 560, height: 340, frame: true});
     paint();
